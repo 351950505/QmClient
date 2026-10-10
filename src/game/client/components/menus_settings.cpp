@@ -244,8 +244,8 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 	InputState.m_MouseReleased = !InputState.m_MouseDown && Ui()->LastMouseButton(0);
 	InputState.m_CtrlPressed = Input()->ModifierIsPressed();
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = RenderOnly ? nullptr : &ScrollParams;
-	const SSettingsCardDeckResult DeckResult = SettingsCardDeckForRenderPass().RenderCached(GeneralCardCtx, GeneralPage, "general", DefinitionsRevision, BuildDefinitions, SettingsCardOrderModelForRenderPass(), RenderOnly ? nullptr : &s_GeneralSettingsScrollRegion, InputState, SettingsCardMotionSpec(), GeneralVisualOptions);
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
+	const SSettingsCardDeckResult DeckResult = SettingsCardDeckForRenderPass().RenderCached(GeneralCardCtx, GeneralPage, "general", DefinitionsRevision, BuildDefinitions, SettingsCardOrderModelForRenderPass(), Ui()->MeasurementOnly() ? nullptr : &s_GeneralSettingsScrollRegion, InputState, SettingsCardMotionSpec(), GeneralVisualOptions);
 	if(!RenderOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 
@@ -575,8 +575,8 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 	InputState.m_MouseReleased = !InputState.m_MouseDown && Ui()->LastMouseButton(0);
 	InputState.m_CtrlPressed = Input()->ModifierIsPressed();
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = RenderOnly ? nullptr : &ScrollParams;
-	const SSettingsCardDeckResult Result = SettingsCardDeckForRenderPass().RenderCached(CardCtx, Page, "tee", DefinitionsRevision, BuildDefinitions, SettingsCardOrderModelForRenderPass(), RenderOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), VisualOptions);
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
+	const SSettingsCardDeckResult Result = SettingsCardDeckForRenderPass().RenderCached(CardCtx, Page, "tee", DefinitionsRevision, BuildDefinitions, SettingsCardOrderModelForRenderPass(), Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), VisualOptions);
 	if(!RenderOnly && Result.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 	LogSettingsSectionPerf(Client(), SETTINGS_TEE, -1, "tee_page", RenderTimer.ElapsedMs(), "static_text", TextStats.Stats().m_New, TextStats.Stats().m_Reused);

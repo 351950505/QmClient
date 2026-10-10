@@ -128,10 +128,10 @@ void CMenus::RenderSettingsQmClientBindDeck(CUIRect MainView, const bool Prewarm
 	InputState.m_CtrlPressed = !ReadOnly && Input()->ModifierIsPressed();
 	InputState.m_AllowHeaderDrag = !ReadOnly;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
-	qm_card_order::CModel &OrderModel = ReadOnly ? s_PrewarmOrderModel : SettingsCardOrderModel();
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_PrewarmDeck : m_SettingsCardDeck;
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "bind", DefinitionsRevision, BuildDefinitions, OrderModel, ReadOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
+	qm_card_order::CModel &OrderModel = Ui()->MeasurementOnly() ? s_PrewarmOrderModel : SettingsCardOrderModel();
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_PrewarmDeck : m_SettingsCardDeck;
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "bind", DefinitionsRevision, BuildDefinitions, OrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }

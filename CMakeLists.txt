@@ -3193,6 +3193,7 @@ if(CLIENT)
     QmUi/SettingsToggleGrid.h
     QmUi/SettingsIconFeedback.h
     QmUi/SettingsCard.h
+    QmUi/SettingsCardMeasure.h
     QmUi/SettingsCardCollapseState.cpp
     QmUi/SettingsCardCollapseState.h
     QmUi/SettingsCardWidth.h

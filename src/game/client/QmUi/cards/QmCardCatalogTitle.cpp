@@ -356,8 +356,8 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 
 	FSettingsCardRenderMeasured Render = [=](CUIRect &Content) {
 		const bool ReadOnly = Ctx.m_ReadOnly || pMenus->Ui()->RenderOnly() || pMenus->m_MenuTextPlanCollecting;
-		if(ReadOnly)
-			pMenus->Ui()->BeginRenderOnly();
+		const bool PrewarmOnly = pMenus->Ui()->MeasurementOnly() || pMenus->m_MenuTextPlanCollecting || (Ctx.m_ReadOnly && !pMenus->Ui()->BackgroundRender());
+		const CUiScopedMeasurement Measurement(pMenus->Ui(), PrewarmOnly);
 		auto &Auth = pMenus->GameClient()->m_QmClient;
 		auto &Draft = TitleProfileDraft(Auth, ReadOnly);
 		const bool TitleStyleExpanded = s_TitleStyleExpanded;
@@ -693,8 +693,6 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 			RenderQmTitleFinishedPreview(pMenus->TextRender(), pMenus->GameClient()->RenderTools(), TitlePreviewArea, Draft.m_Title.GetString(), pPreviewStyleId, pMenus->GameClient()->IsQmDeveloperRainbow(pMenus->GameClient()->m_Snap.m_LocalClientId), BodySize * 1.4f, (float)Auth.TitleAnimationTime());
 			pMenus->Ui()->ClipDisable();
 		}
-		if(ReadOnly)
-			pMenus->Ui()->EndRenderOnly();
 	};
 	Out.m_Render = [Render](CUIRect Content) { Render(Content); };
 	Out.m_RenderMeasured = std::move(Render);

@@ -1,5 +1,6 @@
 #include "QmCardCatalog.h"
 
+#include <game/client/QmUi/SettingsCardMeasure.h>
 #include <game/client/components/menus.h>
 #include <game/client/gameclient.h>
 #include <game/client/ui.h>
@@ -9,28 +10,28 @@ float qm_card_catalog::QmCardRenderHook::MeasureContent(CMenus *pMenus, const FS
 	if(pMenus == nullptr || !Render)
 		return 0.0f;
 
-	// 内容回调中既有纯布局控件，也有会在普通 UI 帧里处理输入的控件。
-	// 测量必须进入 render-only scope，避免探测渲染改变配置或 UI 状态。
-	CUi *pUi = pMenus->Ui();
-	const bool AlreadyRenderOnly = pUi != nullptr && pUi->RenderOnly();
-	if(pUi != nullptr && !AlreadyRenderOnly)
-		pUi->BeginRenderOnly();
-	const float Height = ResolveSettingsCardContentHeight(Render, ContentWidth);
-	if(pUi != nullptr && !AlreadyRenderOnly)
-		pUi->EndRenderOnly();
-	return Height;
+	return MeasureSettingsCardContent(pMenus->Ui(), Render, ContentWidth);
+}
+
+namespace
+{
+	bool ResolvePrewarmOnly(CUi *pUi, bool Requested)
+	{
+		// 旧内容参数同时承载只读；后台仍需绘制，真实测量由公共作用域识别。
+		return pUi->MeasurementOnly() || (Requested && !pUi->BackgroundRender());
+	}
 }
 
 // 卡片目录与菜单内容渲染之间的受控桥接：卡片模块是独立文件，
 // 这里把"卡片可以调用哪些渲染/输入助手"显式列出来（CMenus 只对本结构开放友元）。
 bool qm_card_catalog::QmCardRenderHook::RenderQmFunctionCheckbox(CMenus *pMenus, const void *pId, const char *pTextId, const char *pText, int *pValue, CUIRect *pRect, bool PrewarmOnly)
 {
-	return pMenus->RenderQmFunctionCheckbox(pId, pTextId, pText, pValue, pRect, PrewarmOnly);
+	return pMenus->RenderQmFunctionCheckbox(pId, pTextId, pText, pValue, pRect, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 bool qm_card_catalog::QmCardRenderHook::RenderQmFunctionCheckboxRow(CMenus *pMenus, CUIRect &Content, const float LineHeight, const float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue, const bool PrewarmOnly, const char *pTooltip)
 {
-	return pMenus->RenderQmFunctionCheckboxRow(Content, LineHeight, LineSpacing, pId, pTextId, pText, pValue, PrewarmOnly, pTooltip);
+	return pMenus->RenderQmFunctionCheckboxRow(Content, LineHeight, LineSpacing, pId, pTextId, pText, pValue, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly), pTooltip);
 }
 
 bool qm_card_catalog::QmCardRenderHook::RenderQmVisualCheckbox(CMenus *pMenus, CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue)
@@ -50,52 +51,52 @@ void qm_card_catalog::QmCardRenderHook::RenderQmVisualStreamerContent(CMenus *pM
 
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualEntityOverlayContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmVisualEntityOverlayContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmVisualEntityOverlayContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualCollisionHitboxContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmVisualCollisionHitboxContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmVisualCollisionHitboxContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualWeaponAnimationContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ContentGap, bool PrewarmOnly)
 {
-	pMenus->RenderQmVisualWeaponAnimationContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ContentGap, PrewarmOnly);
+	pMenus->RenderQmVisualWeaponAnimationContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ContentGap, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualChatBubbleContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmVisualChatBubbleContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmVisualChatBubbleContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualSpectatorModeContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmVisualSpectatorModeContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmVisualSpectatorModeContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualCameraViewContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmVisualCameraViewContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmVisualCameraViewContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualSkinAppearanceContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmVisualSkinAppearanceContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmVisualSkinAppearanceContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualSkinTransitionContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmVisualSkinTransitionContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmVisualSkinTransitionContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionGoresActorContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionGoresActorContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionGoresActorContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionGoresContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionGoresContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionGoresContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualFocusModeContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float ColumnGap, float LabelWidth)
@@ -105,7 +106,7 @@ void qm_card_catalog::QmCardRenderHook::RenderQmVisualFocusModeContent(CMenus *p
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionSoloSplitContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionSoloSplitContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionSoloSplitContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionKeyBindsContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth)
@@ -120,137 +121,137 @@ void qm_card_catalog::QmCardRenderHook::RenderQmFunctionEmoticonsContent(CMenus 
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionMiniFeaturesContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionMiniFeaturesContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionMiniFeaturesContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionImeContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionImeContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionImeContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionBetterScoreboardContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionBetterScoreboardContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionBetterScoreboardContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionJumpHintContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionJumpHintContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionJumpHintContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionWeaponTrajectoryContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionWeaponTrajectoryContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionWeaponTrajectoryContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionFriendNotifyContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionFriendNotifyContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionFriendNotifyContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionBlockWordsContent(CMenus *pMenus, CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionBlockWordsContent(Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionBlockWordsContent(Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionTranslateContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionTranslateContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionTranslateContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionKeywordReplyContent(CMenus *pMenus, CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionKeywordReplyContent(Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionKeywordReplyContent(Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionPieMenuContent(CMenus *pMenus, CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CardCornerRadius, bool PrewarmOnly, int MaxGridColumns)
 {
-	pMenus->RenderQmFunctionPieMenuContent(Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, PrewarmOnly, MaxGridColumns);
+	pMenus->RenderQmFunctionPieMenuContent(Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly), MaxGridColumns);
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionMapUploadContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionMapUploadContent(Content, LineHeight, BodySize, LineSpacing, PrewarmOnly);
+	pMenus->RenderQmFunctionMapUploadContent(Content, LineHeight, BodySize, LineSpacing, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionFavoriteMapsContent(CMenus *pMenus, CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionFavoriteMapsContent(Content, UiScale, LineHeight, BodySize, LineSpacing, PrewarmOnly);
+	pMenus->RenderQmFunctionFavoriteMapsContent(Content, UiScale, LineHeight, BodySize, LineSpacing, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionHJAssistContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionHJAssistContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmFunctionHJAssistContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudDummyMiniViewContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool Expanded, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudDummyMiniViewContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, Expanded, PrewarmOnly);
+	pMenus->RenderQmHudDummyMiniViewContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, Expanded, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudCoordsContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudCoordsContent(Content, Metrics, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudCoordsContent(Content, Metrics, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudPlayerStatsContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudPlayerStatsContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudPlayerStatsContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudDebugGraphContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudDebugGraphContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudDebugGraphContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudDebugModeContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudDebugModeContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudDebugModeContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudInputOverlayContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudInputOverlayContent(Content, Metrics, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudInputOverlayContent(Content, Metrics, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudNotificationsBasicContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudNotificationsBasicContent(Content, Metrics, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudNotificationsBasicContent(Content, Metrics, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudNotificationsAdvancedContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudNotificationsAdvancedContent(Content, Metrics, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudNotificationsAdvancedContent(Content, Metrics, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudVoiceContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudVoiceContent(Content, Metrics, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudVoiceContent(Content, Metrics, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudSystemMediaControlsContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudSystemMediaControlsContent(Content, LineHeight, BodySize, LineSpacing, PrewarmOnly);
+	pMenus->RenderQmHudSystemMediaControlsContent(Content, LineHeight, BodySize, LineSpacing, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudLyricsContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float LineSpacing, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudLyricsContent(Content, LineHeight, LineSpacing, PrewarmOnly);
+	pMenus->RenderQmHudLyricsContent(Content, LineHeight, LineSpacing, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudBackground3DContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudBackground3DContent(Content, Metrics, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudBackground3DContent(Content, Metrics, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudBindStatusContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudBindStatusContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudBindStatusContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmHudGoresDrownBoardContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
-	pMenus->RenderQmHudGoresDrownBoardContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+	pMenus->RenderQmHudGoresDrownBoardContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 bool qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(CMenus *pMenus, CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, int *pValue)
@@ -296,20 +297,20 @@ void qm_card_catalog::QmCardRenderHook::RenderQmBindEditorContent(CMenus *pMenus
 
 void qm_card_catalog::QmCardRenderHook::RenderQmSteamContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly)
 {
-	pMenus->RenderQmSteamContent(Content, Metrics, PrewarmOnly);
+	pMenus->RenderQmSteamContent(Content, Metrics, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmAppearancePresetContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly)
 {
-	pMenus->RenderQmAppearancePresetContent(Content, Metrics, PrewarmOnly);
+	pMenus->RenderQmAppearancePresetContent(Content, Metrics, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmConsoleContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly)
 {
-	pMenus->RenderQmConsoleContent(Content, Metrics, PrewarmOnly);
+	pMenus->RenderQmConsoleContent(Content, Metrics, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmTooltipContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly)
 {
-	pMenus->RenderQmTooltipContent(Content, Metrics, PrewarmOnly);
+	pMenus->RenderQmTooltipContent(Content, Metrics, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }

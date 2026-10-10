@@ -82,7 +82,7 @@ void CMenus::RenderSettingsCatalogPage(CUIRect MainView, const char *pTab, bool 
 	if(ReadOnly && !Ui()->RenderOnly())
 		ReadOnlyGuard.emplace(Ui());
 	static std::map<std::string, CScrollRegion> s_ScrollRegions;
-	CScrollRegion *pScroll = ReadOnly ? nullptr : &s_ScrollRegions[pTab];
+	CScrollRegion *pScroll = Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegions[pTab];
 	qm_card_catalog::SQmCardBuildContext Ctx;
 	Ctx.m_pMenus = this;
 	Ctx.m_ReadOnly = ReadOnly;
@@ -112,6 +112,7 @@ void CMenus::RenderSettingsCatalogPage(CUIRect MainView, const char *pTab, bool 
 	SSettingsCardDeckInput InputState;
 	InputState.m_pDiagnostics = TrackTClient ? &Diagnostics : nullptr;
 	InputState.m_AllowHeaderDrag = !ReadOnly;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	if(!ReadOnly)
 	{
 		InputState.m_MouseX = Ui()->MouseX();

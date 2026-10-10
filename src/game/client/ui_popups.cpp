@@ -903,8 +903,13 @@ int CUi::DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, 
 																pRect->h * ms_FontmodHeight * 0.8f;
 	if(RenderOnly())
 	{
-		if(pRect != nullptr && pStrs != nullptr && CurSelection >= 0 && CurSelection < Num)
-			DoLabel(pRect, pStrs[CurSelection], ResolvedFontSize, TEXTALIGN_MC);
+		SMenuButtonProperties Props;
+		Props.m_Enabled = DropDownProps.m_Enabled;
+		Props.m_ShowDropDownIcon = true;
+		Props.m_Checked = IsPopupOpen(&State.m_SelectionPopupContext) ? 1 : 0;
+		Props.m_FontSize = ResolvedFontSize;
+		Props.m_Color = DropDownProps.m_VisualStyle.m_TriggerColor;
+		DoButton_Menu(State.m_UiElement, &State.m_ButtonContainer, [=]() { return pStrs != nullptr && CurSelection >= 0 && CurSelection < Num ? pStrs[CurSelection] : ""; }, pRect, Props);
 		return CurSelection;
 	}
 

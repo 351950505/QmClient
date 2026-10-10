@@ -288,24 +288,24 @@ void CMenus::RenderSettingsContributors(CUIRect MainView, bool PrewarmOnly)
 	InputState.m_CtrlPressed = !ReadOnly && Input()->ModifierIsPressed();
 	InputState.m_AllowHeaderDrag = !ReadOnly;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	static qm_card_order::CModel s_ContributorsPrewarmOrderModel;
 	static bool s_ContributorsPrewarmOrderModelInitialized = false;
 	static CSettingsCardDeck s_ContributorsPrewarmDeck;
-	if(ReadOnly && !s_ContributorsPrewarmOrderModelInitialized)
+	if(Ui()->MeasurementOnly() && !s_ContributorsPrewarmOrderModelInitialized)
 	{
 		s_ContributorsPrewarmOrderModel.LoadMerged("", qm_card_registry::BuildDefaultEntries());
 		s_ContributorsPrewarmOrderModelInitialized = true;
 	}
-	qm_card_order::CModel &CardOrderModel = ReadOnly ? s_ContributorsPrewarmOrderModel : SettingsCardOrderModel();
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_ContributorsPrewarmDeck : m_SettingsCardDeck;
+	qm_card_order::CModel &CardOrderModel = Ui()->MeasurementOnly() ? s_ContributorsPrewarmOrderModel : SettingsCardOrderModel();
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_ContributorsPrewarmDeck : m_SettingsCardDeck;
 	// 信息 tab 删除前的旧 stable id 前缀也接受，保证旧的搜索/深链接定位仍能展开卡片。
 	if(!ReadOnly && (str_startswith(m_SettingsCardFocusStableId.c_str(), "deck:tclient-info-") != nullptr || str_startswith(m_SettingsCardFocusStableId.c_str(), "deck:qmclient-contributors-") != nullptr || str_startswith(m_SettingsCardFocusStableId.c_str(), "deck:credits-") != nullptr))
 	{
 		CardDeck.RequestReveal(m_SettingsCardFocusStableId.c_str());
 		m_SettingsCardFocusStableId.clear();
 	}
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, pDeckTab, DefinitionsRevision, BuildDefinitions, CardOrderModel, ReadOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, pDeckTab, DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }

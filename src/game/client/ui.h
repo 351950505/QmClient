@@ -977,6 +977,7 @@ public:
 	}
 	// 文本预热不绘制外观；后台绘制保留外观，但同样禁止交互。
 	bool MeasurementOnly() const { return m_RenderOnlyDepth > 0; }
+	bool BackgroundRender() const { return m_BackgroundRenderDepth > 0; }
 	bool RenderOnly() const { return m_RenderOnlyDepth > 0 || m_BackgroundRenderDepth > 0; }
 	void BeginPreLayoutInput() { ++m_PreLayoutInputDepth; }
 	void EndPreLayoutInput()
@@ -1453,6 +1454,26 @@ public:
 	};
 	int DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, int Num, SDropDownState &State, const SDropDownProperties &DropDownProps = {});
 	int DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, int Num, SDropDownState &State, bool Enabled);
+};
+
+// 测量独立于后台只读绘制，嵌套进入时仍建立零尺寸裁剪。
+class CUiScopedMeasurement
+{
+	CUi *m_pUi;
+
+public:
+	explicit CUiScopedMeasurement(CUi *pUi, bool Enabled = true) : m_pUi(Enabled ? pUi : nullptr)
+	{
+		if(m_pUi != nullptr)
+			m_pUi->BeginRenderOnly();
+	}
+	~CUiScopedMeasurement()
+	{
+		if(m_pUi != nullptr)
+			m_pUi->EndRenderOnly();
+	}
+	CUiScopedMeasurement(const CUiScopedMeasurement &) = delete;
+	CUiScopedMeasurement &operator=(const CUiScopedMeasurement &) = delete;
 };
 
 class CUiScopedInteractionOwner

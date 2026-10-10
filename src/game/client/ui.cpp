@@ -1961,6 +1961,24 @@ int CUi::DoButton_Menu(CUIElement &UIElement, const CButtonContainer *pId, const
 		Text.VSplitRight(pRect->h * 0.75f, &Text, &DropDownIcon);
 	}
 
+	if(RenderOnly())
+	{
+		// 后台保留触发器完整外观，不初始化或改写菜单输入缓存。
+		const EFontPreset PreviousPreset = TextRender()->GetFontPreset();
+		if(Props.m_UseIconFont)
+			TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+		if(!SurfaceOptions.m_Enabled)
+		{
+			TextRender()->TextColor(TextRender()->GetTextColor().WithAlpha(TextRender()->GetTextColor().a * 0.65f));
+			TextRender()->TextOutlineColor(TextRender()->GetTextOutlineColor().WithAlpha(TextRender()->GetTextOutlineColor().a * 0.65f));
+		}
+		DoLabel(&Text, GetTextLambda(), FontSize, TEXTALIGN_MC);
+		TextRender()->SetFontPreset(PreviousPreset);
+		if(Props.m_ShowDropDownIcon)
+			DoLabel_QmIcon(&DropDownIcon, EQmIcon::CIRCLE_CHEVRON_DOWN, FONT_ICON_CIRCLE_CHEVRON_DOWN, DropDownIcon.h * CUi::ms_FontmodHeight, TEXTALIGN_MR);
+		return 0;
+	}
+
 	// 只缓存文字。背景和状态反馈由公共按钮绘制，避免为每个状态重复缓存矩形。
 	bool NeedsRecalc = !UIElement.AreRectsInit() || !UIElement.Rect(0)->m_UITextContainer.Valid();
 	const char *pText = m_CardLabelHintsEnabled && !Props.m_UseIconFont ? GetTextLambda() : nullptr;

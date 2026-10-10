@@ -635,18 +635,18 @@ void CMenus::RenderSettingsQmClientHudDeck(CUIRect MainView, bool PrewarmOnly)
 	InputState.m_CtrlPressed = !ReadOnly && Input()->ModifierIsPressed();
 	InputState.m_AllowHeaderDrag = !ReadOnly;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	static qm_card_order::CModel s_HudPrewarmOrderModel;
 	static bool s_HudPrewarmOrderModelInitialized = false;
 	static CSettingsCardDeck s_HudPrewarmDeck;
-	if(ReadOnly && !s_HudPrewarmOrderModelInitialized)
+	if(Ui()->MeasurementOnly() && !s_HudPrewarmOrderModelInitialized)
 	{
 		s_HudPrewarmOrderModel.LoadMerged("", qm_card_registry::BuildDefaultEntries());
 		s_HudPrewarmOrderModelInitialized = true;
 	}
-	qm_card_order::CModel &CardOrderModel = ReadOnly ? s_HudPrewarmOrderModel : SettingsCardOrderModel();
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_HudPrewarmDeck : m_SettingsCardDeck;
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "hud", DefinitionsRevision, BuildDefinitions, CardOrderModel, ReadOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	qm_card_order::CModel &CardOrderModel = Ui()->MeasurementOnly() ? s_HudPrewarmOrderModel : SettingsCardOrderModel();
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_HudPrewarmDeck : m_SettingsCardDeck;
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "hud", DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }
@@ -738,18 +738,18 @@ void CMenus::RenderSettingsQmClientFunctionDeck(CUIRect MainView, bool PrewarmOn
 	InputState.m_CtrlPressed = !ReadOnly && Input()->ModifierIsPressed();
 	InputState.m_AllowHeaderDrag = !ReadOnly;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	static qm_card_order::CModel s_FunctionPrewarmOrderModel;
 	static bool s_FunctionPrewarmOrderModelInitialized = false;
 	static CSettingsCardDeck s_FunctionPrewarmDeck;
-	if(ReadOnly && !s_FunctionPrewarmOrderModelInitialized)
+	if(Ui()->MeasurementOnly() && !s_FunctionPrewarmOrderModelInitialized)
 	{
 		s_FunctionPrewarmOrderModel.LoadMerged("", qm_card_registry::BuildDefaultEntries());
 		s_FunctionPrewarmOrderModelInitialized = true;
 	}
-	qm_card_order::CModel &CardOrderModel = ReadOnly ? s_FunctionPrewarmOrderModel : SettingsCardOrderModel();
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_FunctionPrewarmDeck : m_SettingsCardDeck;
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "function", DefinitionsRevision, BuildDefinitions, CardOrderModel, ReadOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	qm_card_order::CModel &CardOrderModel = Ui()->MeasurementOnly() ? s_FunctionPrewarmOrderModel : SettingsCardOrderModel();
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_FunctionPrewarmDeck : m_SettingsCardDeck;
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "function", DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }
@@ -818,18 +818,18 @@ void CMenus::RenderSettingsQmClientVisualDeck(CUIRect MainView, bool PrewarmOnly
 	InputState.m_CtrlPressed = !ReadOnly && Input()->ModifierIsPressed();
 	InputState.m_AllowHeaderDrag = !ReadOnly;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	static qm_card_order::CModel s_VisualPrewarmOrderModel;
 	static bool s_VisualPrewarmOrderModelInitialized = false;
 	static CSettingsCardDeck s_VisualPrewarmDeck;
-	if(ReadOnly && !s_VisualPrewarmOrderModelInitialized)
+	if(Ui()->MeasurementOnly() && !s_VisualPrewarmOrderModelInitialized)
 	{
 		s_VisualPrewarmOrderModel.LoadMerged("", qm_card_registry::BuildDefaultEntries());
 		s_VisualPrewarmOrderModelInitialized = true;
 	}
-	qm_card_order::CModel &CardOrderModel = ReadOnly ? s_VisualPrewarmOrderModel : SettingsCardOrderModel();
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_VisualPrewarmDeck : m_SettingsCardDeck;
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "visual", DefinitionsRevision, BuildDefinitions, CardOrderModel, ReadOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	qm_card_order::CModel &CardOrderModel = Ui()->MeasurementOnly() ? s_VisualPrewarmOrderModel : SettingsCardOrderModel();
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_VisualPrewarmDeck : m_SettingsCardDeck;
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "visual", DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }
@@ -897,8 +897,8 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	static std::unordered_map<std::string, CButtonContainer> s_GlobalSearchActionButtons;
 	// 分类布局只用于解析搜索和导航；以下两个模型仅属于搜索页，不持久化。
 	const qm_card_order::CModel &CardOrderModel = SettingsCardOrderModel();
-	qm_card_order::CModel &DeckOrderModel = ReadOnly ? s_GlobalSearchPrewarmOrderModel : s_GlobalSearchCache.m_Model;
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_GlobalSearchPrewarmDeck : m_SettingsCardDeck;
+	qm_card_order::CModel &DeckOrderModel = Ui()->MeasurementOnly() ? s_GlobalSearchPrewarmOrderModel : s_GlobalSearchCache.m_Model;
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_GlobalSearchPrewarmDeck : m_SettingsCardDeck;
 	const char *pLanguage = g_Config.m_ClLanguagefile;
 	const uint64_t LayoutRevision = CardOrderModel.LayoutRevision();
 	if(!s_GlobalSearchCache.m_Valid || s_GlobalSearchCache.m_Search != (pModuleSearch != nullptr ? pModuleSearch : "") || s_GlobalSearchCache.m_Language != (pLanguage != nullptr ? pLanguage : "") || s_GlobalSearchCache.m_Sixup != Client()->IsSixup() || s_GlobalSearchCache.m_LayoutRevision != LayoutRevision || s_GlobalSearchCache.m_TextGeneration != m_MenuTextPoolGeneration)
@@ -933,7 +933,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	StandardPrepare.m_Page = Page;
 	StandardPrepare.m_Metrics = Metrics;
 	StandardPrepare.m_UiContext = SearchCtx;
-	StandardPrepare.m_pScrollRegion = ReadOnly ? nullptr : &s_GlobalSearchScrollRegion;
+	StandardPrepare.m_pScrollRegion = Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion;
 	std::vector<const char *> vStandardIds;
 	vStandardIds.reserve(SearchVisibleGlobalCards.size());
 	for(const auto &Card : SearchVisibleGlobalCards)
@@ -949,7 +949,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ TranslationTestLayoutRevision();
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::MeasureContentRevision(g_Localization.Languages().size(), GameClient()->m_MenuBackground.GetThemes().size());
 	if(std::any_of(SearchVisibleGlobalCards.begin(), SearchVisibleGlobalCards.end(), [](const SQmGlobalSearchCard &Card) { return str_startswith(Card.m_pStableId, "deck:controls-") != nullptr; }))
-		CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::QmCardRenderHook::PrepareControlsCards(this, MainView.w, ReadOnly, ReadOnly ? nullptr : &s_GlobalSearchScrollRegion);
+		CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::QmCardRenderHook::PrepareControlsCards(this, MainView.w, ReadOnly, Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion);
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ s_GlobalSearchFunctionCardLayout.m_BlockWordsRevision;
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ s_GlobalSearchFunctionCardLayout.m_KeywordRulesRevision;
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ s_GlobalSearchFunctionCardLayout.m_FavoriteMapsRevision;
@@ -965,7 +965,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	s_GlobalSearchCardBuild.m_Metrics = Metrics;
 	s_GlobalSearchCardBuild.m_LabelWidth = ResolveSettingsCardLabelWidth(Page.m_TwoColumns ? Page.m_aColumns[0].w : Page.m_ContentViewport.w, Metrics);
 	s_GlobalSearchCardBuild.m_UiContext = SearchCtx;
-	s_GlobalSearchCardBuild.m_pScrollRegion = ReadOnly ? nullptr : &s_GlobalSearchScrollRegion;
+	s_GlobalSearchCardBuild.m_pScrollRegion = Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion;
 	s_GlobalSearchCardBuild.m_Padding = CardStyle.m_Padding;
 	s_GlobalSearchCardBuild.m_CornerRadius = CardStyle.m_CornerRadius;
 	s_GlobalSearchCardBuild.m_pCollapsed = s_aGlobalSearchCollapsed.data();
@@ -1160,8 +1160,8 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	// 搜索结果按匹配顺序排列，不修改分类页的持久布局。
 	InputState.m_AllowHeaderDrag = false;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
-	CardDeck.RenderCached(SearchCtx, DeckPage, "global-search", DefinitionsRevision, BuildDefinitions, DeckOrderModel, ReadOnly ? nullptr : &s_GlobalSearchScrollRegion, InputState, Motion, SettingsCardDeckVisualOptions());
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
+	CardDeck.RenderCached(SearchCtx, DeckPage, "global-search", DefinitionsRevision, BuildDefinitions, DeckOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion, InputState, Motion, SettingsCardDeckVisualOptions());
 }
 
 void CMenus::RenderSettingsQmClientContent(CUIRect MainView, bool PrewarmOnly)

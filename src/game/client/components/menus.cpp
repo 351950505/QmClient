@@ -754,7 +754,7 @@ qm_card_order::CModel &CMenus::SettingsCardOrderModel()
 
 qm_card_order::CModel &CMenus::SettingsCardOrderModelForRenderPass()
 {
-	if(!Ui()->RenderOnly())
+	if(!Ui()->MeasurementOnly())
 		return SettingsCardOrderModel();
 	if(!m_SettingsCardRenderOnlyOrderInitialized || m_SettingsCardRenderOnlyOrderSource != g_Config.m_QmGlobalCardOrder)
 	{
@@ -769,7 +769,7 @@ qm_card_order::CModel &CMenus::SettingsCardOrderModelForRenderPass()
 
 CSettingsCardDeck &CMenus::SettingsCardDeckForRenderPass()
 {
-	return Ui()->RenderOnly() ? m_SettingsCardRenderOnlyDeck : m_SettingsCardDeck;
+	return Ui()->MeasurementOnly() ? m_SettingsCardRenderOnlyDeck : m_SettingsCardDeck;
 }
 
 void CMenus::LoadSettingsCardOrderModel()

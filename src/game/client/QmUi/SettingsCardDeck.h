@@ -83,11 +83,13 @@ public:
 	template<typename FBuildDefinitions>
 	SSettingsCardDeckResult RenderCached(const IUiContext &Ctx, const SSettingsPageLayoutFrame &Layout, const char *pTab, uint64_t DefinitionsRevision, FBuildDefinitions &&BuildDefinitions, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &Input, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions)
 	{
-		if(SettingsCardDeckDefinitionsCacheKeyChanged(m_CachedDefinitionsInitialized, m_CachedDefinitionsRevision, DefinitionsRevision, m_CachedDefinitionsTab.c_str(), pTab))
+		const ESettingsCardRenderPass RenderPass = RenderPassMode(Ctx);
+		if(SettingsCardDeckDefinitionsCacheKeyChanged(m_CachedDefinitionsInitialized, m_CachedDefinitionsRevision, DefinitionsRevision, m_CachedDefinitionsTab.c_str(), pTab, m_CachedDefinitionsRenderPass, RenderPass))
 		{
 			m_vCachedDefinitions.clear();
 			BuildDefinitions(m_vCachedDefinitions);
 			m_CachedDefinitionsRevision = DefinitionsRevision;
+			m_CachedDefinitionsRenderPass = RenderPass;
 			m_CachedDefinitionsTab = pTab != nullptr ? pTab : "";
 			m_CachedDefinitionsInitialized = true;
 			m_CachedDefinitionsDirty = true;
@@ -145,6 +147,7 @@ private:
 		void Reset() { *this = {}; }
 	};
 
+	static ESettingsCardRenderPass RenderPassMode(const IUiContext &Ctx);
 	void PrepareDefinitions(const std::vector<SSettingsCardDefinition> &vCards, const qm_card_order::CModel &Model);
 	void ResetDefinitionViewState();
 	SSettingsCardDeckResult RenderInternal(const IUiContext &Ctx, const SSettingsPageLayoutFrame &Layout, const char *pTab, const std::vector<SSettingsCardDefinition> &vCards, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &Input, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions, bool PersistentDefinitions);
@@ -168,6 +171,7 @@ private:
 	std::vector<SSettingsCardDefinition> m_vCachedDefinitions;
 	std::string m_CachedDefinitionsTab;
 	uint64_t m_CachedDefinitionsRevision = 0;
+	ESettingsCardRenderPass m_CachedDefinitionsRenderPass = ESettingsCardRenderPass::INTERACTIVE;
 	bool m_CachedDefinitionsInitialized = false;
 	bool m_CachedDefinitionsDirty = false;
 	bool m_InvalidateMeasurementsOnDefinitionsPrepare = false;

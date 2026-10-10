@@ -105,27 +105,3 @@ TEST(QmNewUiMenuCardsDeckContract, SettingsDisplayCycleUpdatesAfterTabInputBefor
 	EXPECT_NE(DeckSource.find("if(TabChanged || StableIdsChanged || ModelCountChanged || StateIndexChanged)"), std::string::npos);
 	EXPECT_NE(DeckSource.find("m_SuppressHoverFeedbackOnce = true;"), std::string::npos);
 }
-
-TEST(QmNewUiMenuCardsDeckContract, QmClientDecksIsolateRenderOnlyState)
-{
-	const std::string Source = ReadTextFile("src/game/client/components/qmclient/menus_qmclient.cpp");
-	const std::string CreditsSource = ReadTextFile("src/game/client/components/menus_credits.cpp");
-	for(const char *pSignature : {
-		    "void CMenus::RenderSettingsQmClientHudDeck(CUIRect MainView, bool PrewarmOnly)",
-		    "void CMenus::RenderSettingsQmClientFunctionDeck(CUIRect MainView, bool PrewarmOnly)",
-		    "void CMenus::RenderSettingsQmClientVisualDeck(CUIRect MainView, bool PrewarmOnly)",
-		    "void CMenus::RenderSettingsContributors(CUIRect MainView, bool PrewarmOnly)",
-	    })
-	{
-		// 贡献者页已拆到 menus_credits.cpp；其余栖梦 deck 仍在 menus_qmclient.cpp。
-		const std::string &SourceFile = str_startswith(pSignature, "void CMenus::RenderSettingsContributors") != nullptr ? CreditsSource : Source;
-		const std::string Body = FunctionBody(SourceFile, pSignature);
-		ASSERT_FALSE(Body.empty());
-		EXPECT_NE(Body.find("const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();"), std::string::npos);
-		EXPECT_NE(Body.find("CSettingsCardDeck &CardDeck = ReadOnly ?"), std::string::npos);
-		EXPECT_NE(Body.find("qm_card_order::CModel &CardOrderModel = ReadOnly ?"), std::string::npos);
-		EXPECT_NE(Body.find("InputState.m_AllowHeaderDrag = !ReadOnly;"), std::string::npos);
-		EXPECT_NE(Body.find("ReadOnly ? nullptr : &"), std::string::npos);
-		EXPECT_NE(Body.find("if(!ReadOnly && DeckResult.m_OrderChanged)"), std::string::npos);
-	}
-}

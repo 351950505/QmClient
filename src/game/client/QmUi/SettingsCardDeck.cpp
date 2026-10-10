@@ -85,6 +85,16 @@ void CSettingsCardDeck::ResetDefinitionViewState()
 	m_SuppressHoverFeedbackOnce = true;
 }
 
+ESettingsCardRenderPass CSettingsCardDeck::RenderPassMode(const IUiContext &Ctx)
+{
+	// 定义捕获只读状态；后台重建后回到前台必须重新绑定，避免卡片持续失活。
+	if(Ctx.m_pUi == nullptr)
+		return ESettingsCardRenderPass::INTERACTIVE;
+	if(Ctx.m_pUi->MeasurementOnly())
+		return ESettingsCardRenderPass::MEASUREMENT;
+	return Ctx.m_pUi->BackgroundRender() ? ESettingsCardRenderPass::BACKGROUND : ESettingsCardRenderPass::INTERACTIVE;
+}
+
 void CSettingsCardDeck::PrepareDefinitions(const std::vector<SSettingsCardDefinition> &vCards, const qm_card_order::CModel &Model)
 {
 	if(m_vDefinitionsByState.size() != (size_t)Model.Count())
@@ -152,8 +162,10 @@ SSettingsCardDeckResult CSettingsCardDeck::Render(const IUiContext &Ctx, const S
 
 SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx, const SSettingsPageLayoutFrame &Layout, const char *pTab, const std::vector<SSettingsCardDefinition> &vCards, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &RawInput, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions, bool PersistentDefinitions)
 {
-	SSettingsCardDeckInput Input = ResolveSettingsCardDeckPointerInput(RawInput, Ctx.m_pUi != nullptr && Ctx.m_pUi->PointerInputBlocked());
+	SSettingsCardDeckInput Input = ResolveSettingsCardDeckPointerInput(RawInput, Ctx.m_pUi != nullptr && (Ctx.m_pUi->RenderOnly() || Ctx.m_pUi->PointerInputBlocked()));
 	SSettingsCardDeckResult Result;
+	if(Ctx.m_pUi != nullptr && Ctx.m_pUi->RenderOnly())
+		m_Drag.Reset();
 	m_FrameRuntime.BeginFrame(Input.m_pDiagnostics);
 	if(pTab == nullptr)
 	{
@@ -453,7 +465,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 			Ctx.m_pUi->EndPreLayoutInput();
 	}
 	// 预布局回调可能刚打开颜色选择器，原始按键快照不得驱动同帧拖动。
-	Input = ResolveSettingsCardDeckPointerInput(Input, Ctx.m_pUi != nullptr && Ctx.m_pUi->PointerInputBlocked());
+	Input = ResolveSettingsCardDeckPointerInput(Input, Ctx.m_pUi != nullptr && (Ctx.m_pUi->RenderOnly() || Ctx.m_pUi->PointerInputBlocked()));
 	RebuildActiveStateIndices();
 	if(m_vActiveStateIndices != m_vPreviousActiveStateIndices || PreLayoutGeometryChanged)
 	{

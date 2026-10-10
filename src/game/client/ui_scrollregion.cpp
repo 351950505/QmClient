@@ -64,7 +64,7 @@ void CScrollRegion::Begin(CUIRect *pClipRect, vec2 *pOutOffset, const CScrollReg
 	CUIRect ScrollbarBg = SplitContentArea();
 	DrawBackground(ScrollbarBg);
 
-	if(!ContentOverflows())
+	if(!ContentOverflows() && !Ui()->RenderOnly())
 		m_ScrollState.ResetForNonScrollableContent(Ui()->IsActiveItem(&m_SliderId) && Ui()->MouseButton(0));
 	m_ContentSize = 0.0f;
 
@@ -77,6 +77,14 @@ void CScrollRegion::Begin(CUIRect *pClipRect, vec2 *pOutOffset, const CScrollReg
 void CScrollRegion::End()
 {
 	Ui()->ClipDisable();
+
+	if(Ui()->RenderOnly())
+	{
+		// 控制台只占输入，后台保留同一滚动位置和滚动条，暂停滚动状态推进。
+		if(ContentOverflows())
+			DoSlider();
+		return;
+	}
 
 	if(!m_Params.m_Interactive)
 	{
@@ -109,7 +117,7 @@ bool CScrollRegion::AddRect(const CUIRect &Rect, bool ShouldScrollHere)
 		m_ContentSize = maximum(std::ceil(Rect.x + Rect.w - (m_ClipRect.x + ContentOffset.x)), m_ContentSize);
 	else
 		m_ContentSize = maximum(Rect.y + Rect.h - (m_ClipRect.y + ContentOffset.y), m_ContentSize);
-	if(ShouldScrollHere)
+	if(ShouldScrollHere && !Ui()->RenderOnly())
 		ScrollHere();
 	return !RectClipped(Rect);
 }
@@ -383,7 +391,8 @@ void CScrollRegion::DoSlider()
 
 	if(!CanScroll || MaxSlider <= 0.0f)
 	{
-		MaintainNoScrollSliderActive();
+		if(!Ui()->RenderOnly())
+			MaintainNoScrollSliderActive();
 		const bool Active = Ui()->IsActiveItem(pId);
 		const float Rounding = m_Params.m_ScrollHorizontal ? Slider.h / 2.0f : Slider.w / 2.0f;
 		if(Ui()->QmAnimationRuntime() != nullptr)
@@ -397,9 +406,9 @@ void CScrollRegion::DoSlider()
 
 	const float MousePos = m_Params.m_ScrollHorizontal ? Ui()->MouseX() : Ui()->MouseY();
 	const bool WasActive = Ui()->ActiveItem() == pId;
-	if(m_Params.m_Interactive)
+	if(m_Params.m_Interactive && !Ui()->RenderOnly())
 		Ui()->DoButtonLogic(pId, 0, &m_RailRect, BUTTONFLAG_LEFT); // Result ignored, we only care about the button becoming and being active
-	if(m_Params.m_Interactive && Ui()->CheckActiveItem(pId))
+	if(m_Params.m_Interactive && !Ui()->RenderOnly() && Ui()->CheckActiveItem(pId))
 	{
 		if(!WasActive)
 		{
@@ -408,7 +417,7 @@ void CScrollRegion::DoSlider()
 		}
 		m_ScrollState.SetOffset(m_ScrollState.Offset() + (MousePos - (SliderPos + m_ScrollState.ThumbDragGrabOffset())) / MaxSlider * ScrollMax, Metrics, Config);
 	}
-	else
+	else if(!Ui()->RenderOnly())
 	{
 		m_ScrollState.EndThumbDrag();
 	}

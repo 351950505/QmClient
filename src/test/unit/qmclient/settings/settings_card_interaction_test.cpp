@@ -264,6 +264,17 @@ TEST(SettingsCardDeck, DefinitionsRevisionInvalidatesMeasurements)
 	EXPECT_FALSE(SettingsCardDeckDefinitionsCacheKeyChanged(true, 17, 17, "graphics", "graphics"));
 }
 
+TEST(SettingsCardDeck, CachedDefinitionsRebindAfterBackgroundAndMeasurementPasses)
+{
+	// 稳定 ID、宽度和业务版本均不变，切换绘制状态也必须丢弃捕获旧只读状态的定义。
+	EXPECT_FALSE(SettingsCardDeckDefinitionsCacheKeyChanged(true, 17, 17, "bind", "bind", ESettingsCardRenderPass::INTERACTIVE, ESettingsCardRenderPass::INTERACTIVE));
+	EXPECT_TRUE(SettingsCardDeckDefinitionsCacheKeyChanged(true, 17, 17, "bind", "bind", ESettingsCardRenderPass::INTERACTIVE, ESettingsCardRenderPass::BACKGROUND));
+	EXPECT_FALSE(SettingsCardDeckDefinitionsCacheKeyChanged(true, 17, 17, "bind", "bind", ESettingsCardRenderPass::BACKGROUND, ESettingsCardRenderPass::BACKGROUND));
+	EXPECT_TRUE(SettingsCardDeckDefinitionsCacheKeyChanged(true, 17, 17, "bind", "bind", ESettingsCardRenderPass::BACKGROUND, ESettingsCardRenderPass::INTERACTIVE));
+	EXPECT_TRUE(SettingsCardDeckDefinitionsCacheKeyChanged(true, 17, 17, "bind", "bind", ESettingsCardRenderPass::BACKGROUND, ESettingsCardRenderPass::MEASUREMENT));
+	EXPECT_TRUE(SettingsCardDeckDefinitionsCacheKeyChanged(true, 17, 17, "bind", "bind", ESettingsCardRenderPass::MEASUREMENT, ESettingsCardRenderPass::BACKGROUND));
+}
+
 TEST(SettingsCardDeck, DefaultCollapseStateUsesStableIdAcrossTabs)
 {
 	std::unordered_map<std::string, bool> States;

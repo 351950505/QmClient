@@ -116,9 +116,16 @@ inline bool SettingsCardDeckDefinitionsRevisionChanged(const bool Initialized, c
 	return !Initialized || CurrentRevision != NextRevision;
 }
 
-inline bool SettingsCardDeckDefinitionsCacheKeyChanged(const bool Initialized, const uint64_t CurrentRevision, const uint64_t NextRevision, const char *pCurrentTab, const char *pNextTab)
+enum class ESettingsCardRenderPass
 {
-	return SettingsCardDeckDefinitionsRevisionChanged(Initialized, CurrentRevision, NextRevision) ||
+	INTERACTIVE,
+	BACKGROUND,
+	MEASUREMENT,
+};
+
+inline bool SettingsCardDeckDefinitionsCacheKeyChanged(const bool Initialized, const uint64_t CurrentRevision, const uint64_t NextRevision, const char *pCurrentTab, const char *pNextTab, const ESettingsCardRenderPass CurrentRenderPass = ESettingsCardRenderPass::INTERACTIVE, const ESettingsCardRenderPass NextRenderPass = ESettingsCardRenderPass::INTERACTIVE)
+{
+	return CurrentRenderPass != NextRenderPass || SettingsCardDeckDefinitionsRevisionChanged(Initialized, CurrentRevision, NextRevision) ||
 	       std::string_view(pCurrentTab != nullptr ? pCurrentTab : "") != std::string_view(pNextTab != nullptr ? pNextTab : "");
 }
 
