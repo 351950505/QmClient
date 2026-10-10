@@ -7,6 +7,7 @@
 #include "SettingsIconFeedback.h"
 #include "SettingsPageLayout.h"
 #include "UiContext.h"
+#include "UiForms.h"
 #include "UiSurface.h"
 #include "UiSurfaceText.h"
 #include "UiTheme.h"
@@ -192,4 +193,73 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	if(ClipContent)
 		Ctx.m_pUi->ClipDisable();
 	return Frame;
+}
+
+// 作为 CMenus 的共享表单入口，沿用文字池、配置提示和临时接管策略。
+bool CMenus::DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Content, std::initializer_list<SSettingsToggleEntry> Entries, const SSettingsContentMetrics &Metrics, bool ProcessInput, ESettingsToggleGroupPass Pass)
+{
+	if(Entries.size() == 0)
+		return false;
+	const float Gap = Metrics.m_LineSpacing * 2.0f;
+	const float LabelGap = Metrics.m_LineSpacing * 0.5f;
+	m_vSettingsToggleGroupSizes.resize(Entries.size());
+	size_t Index = 0;
+	for(const auto &Entry : Entries)
+	{
+		auto &Size = m_vSettingsToggleGroupSizes[Index++];
+		Size.m_Width = std::max(TextRender()->TextWidth(Metrics.m_BodySize, Entry.m_pLabel), Metrics.m_LineHeight * 1.65f) + Gap;
+		Size.m_Height = Metrics.m_LineHeight * 2.0f + LabelGap;
+	}
+	auto &Grid = m_SettingsToggleGroupGrid;
+	ResolveSettingsToggleGrid(Content.w, m_vSettingsToggleGroupSizes, Gap, Grid);
+	Index = 0;
+	for(const auto &Entry : Entries)
+	{
+		const float LabelWidth = std::max(1.0f, Grid.m_aColumnWidths[Index % Grid.m_Columns]);
+		const float LabelHeight = std::max(Metrics.m_LineHeight, TextRender()->TextBoundingBox(Metrics.m_BodySize, Entry.m_pLabel, -1, LabelWidth).m_H);
+		m_vSettingsToggleGroupSizes[Index++].m_Height = LabelHeight + LabelGap + Metrics.m_LineHeight;
+	}
+	Grid.SetItemHeights(m_vSettingsToggleGroupSizes);
+	CUIRect Area;
+	Content.HSplitTop(Grid.Height(), &Area, &Content);
+	Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
+	if(Pass == ESettingsToggleGroupPass::LAYOUT)
+		return false;
+
+	const IUiContext Context = SettingsUiContext("settings-switch", Metrics.m_UiScale);
+	const bool CanProcessInput = ProcessInput && !m_MenuTextPlanCollecting && !Ui()->RenderOnly();
+	bool Changed = false;
+	Index = 0;
+	for(const auto &Entry : Entries)
+	{
+		const CUIRect Cell = Grid.Cell(Area, static_cast<int>(Index++));
+		const float LabelHeight = Cell.h - LabelGap - Metrics.m_LineHeight;
+		const auto Layout = ResolveSettingsToggleCell(Cell, LabelHeight, Metrics.m_LineHeight, LabelGap);
+		const void *pId = Entry.m_pId != nullptr ? Entry.m_pId : Entry.m_pValue;
+		const char *pOverrideTooltip = TemporaryOverrideTooltip(Entry.m_pValue);
+		SLabelProperties Props;
+		Props.m_MaxWidth = Layout.m_Label.w;
+		Props.m_EnableWidthCheck = false;
+		Props.m_MinimumFontSize = Metrics.m_BodySize;
+		if(pOverrideTooltip != nullptr)
+			Props.SetColor(ui_token::color::TEXT_DISABLED);
+		if(Pass == ESettingsToggleGroupPass::RENDER)
+			DoSettingsMenuLabel(Page, Tab, Subtab, Entry.m_pTextId, &Layout.m_Label, Entry.m_pLabel, Metrics.m_BodySize, TEXTALIGN_MC, Props);
+		if(m_MenuTextPlanCollecting || Ui()->RenderOnly())
+			continue;
+		Ui()->DoConfigTooltip(pId, &Cell, Entry.m_pValue);
+		const bool Clicked = CanProcessInput && Ui()->DoButtonLogic(pId, 0, &Cell, pOverrideTooltip == nullptr ? BUTTONFLAG_LEFT : BUTTONFLAG_NONE);
+		Changed = ApplySettingsToggleEntry(Entry, Clicked, CanProcessInput, pOverrideTooltip != nullptr) || Changed;
+		if(Pass == ESettingsToggleGroupPass::INPUT)
+			continue;
+		ui_widget::DrawToggle(Context, pId, SettingsToggleEntryValue(Entry), Layout.m_Control, pOverrideTooltip == nullptr, CanProcessInput, &Cell);
+		if(Context.m_pTooltips != nullptr)
+		{
+			if(pOverrideTooltip != nullptr)
+				Context.m_pTooltips->DoToolTip(pId, &Cell, pOverrideTooltip);
+			else
+				Context.m_pTooltips->DoSettingsToolTipForConfig(pId, &Cell, Entry.m_pValue, &Layout.m_Label);
+		}
+	}
+	return Changed;
 }

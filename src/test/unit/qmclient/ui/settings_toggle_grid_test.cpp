@@ -137,3 +137,114 @@ TEST(SettingsToggleGrid, IncompleteLastRowFitsMeasuredAreaAndRetainsGaps)
 	}
 	EXPECT_FLOAT_EQ(Grid.Height(), 170);
 }
+
+TEST(SettingsToggleGrid, WrappedLabelStaysAboveCenteredControl)
+{
+	const CUIRect Cell{30, 50, 120, 65};
+	const auto Layout = ResolveSettingsToggleCell(Cell, 40, 20, 5);
+	EXPECT_FLOAT_EQ(Layout.m_Label.h, 40);
+	EXPECT_FLOAT_EQ(Layout.m_Control.y, 95);
+	EXPECT_FLOAT_EQ(Layout.m_Control.x + Layout.m_Control.w * 0.5f, Cell.x + Cell.w * 0.5f);
+	EXPECT_FLOAT_EQ(Layout.m_Control.y + Layout.m_Control.h, Cell.y + Cell.h);
+}
+
+TEST(SettingsToggleGrid, NarrowCellKeepsControlInsideItsHorizontalBounds)
+{
+	const CUIRect Cell{10, 20, 12, 45};
+	const auto Layout = ResolveSettingsToggleCell(Cell, 20, 20, 5);
+	EXPECT_GE(Layout.m_Control.x, Cell.x);
+	EXPECT_LE(Layout.m_Control.x + Layout.m_Control.w, Cell.x + Cell.w);
+}
+
+TEST(SettingsToggleGrid, BooleanClicksToggleOnlyTheSelectedConfiguration)
+{
+	int First = 0;
+	int Second = 1;
+	const SSettingsToggleEntry Entry{&First, "first", "First"};
+	EXPECT_TRUE(ApplySettingsToggleEntry(Entry, true, true, false));
+	EXPECT_EQ(First, 1);
+	EXPECT_EQ(Second, 1);
+	EXPECT_TRUE(ApplySettingsToggleEntry(Entry, true, true, false));
+	EXPECT_EQ(First, 0);
+	EXPECT_FALSE(ApplySettingsToggleEntry(Entry, false, true, false));
+	EXPECT_EQ(First, 0);
+}
+
+TEST(SettingsToggleGrid, ReadOnlyAndTemporarilyOverriddenEntriesRejectClicks)
+{
+	int Value = 1;
+	const SSettingsToggleEntry Entry{&Value, "value", "Value"};
+	EXPECT_FALSE(ApplySettingsToggleEntry(Entry, true, false, false));
+	EXPECT_FALSE(ApplySettingsToggleEntry(Entry, true, true, true));
+	EXPECT_EQ(Value, 1);
+	EXPECT_TRUE(ApplySettingsToggleEntry(Entry, true, true, false));
+	EXPECT_EQ(Value, 0);
+}
+
+TEST(SettingsToggleGrid, BitmaskEntriesKeepOtherEffectsAndSupportRepeatedClicks)
+{
+	int Effects = 1 | 4;
+	const SSettingsToggleEntry Entry{&Effects, "gradient", "Gradient", "gradient", 2};
+	EXPECT_FALSE(SettingsToggleEntryValue(Entry));
+	EXPECT_TRUE(ApplySettingsToggleEntry(Entry, true, true, false));
+	EXPECT_EQ(Effects, 1 | 2 | 4);
+	EXPECT_TRUE(SettingsToggleEntryValue(Entry));
+	EXPECT_TRUE(ApplySettingsToggleEntry(Entry, true, true, false));
+	EXPECT_EQ(Effects, 1 | 4);
+}
+
+TEST(SettingsToggleGrid, DynamicGroupReflowsUsingAvailableWidth)
+{
+	const std::vector<SSettingsToggleSize> vItems(11, {100, 45});
+	SSettingsDynamicToggleGrid Grid;
+	ResolveSettingsToggleGrid(700, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 6);
+	EXPECT_EQ(Grid.m_Rows, 2);
+	ResolveSettingsToggleGrid(340, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 3);
+	EXPECT_EQ(Grid.m_Rows, 4);
+	ResolveSettingsToggleGrid(700, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 6);
+	EXPECT_EQ(Grid.m_Rows, 2);
+}
+
+TEST(SettingsToggleGrid, DynamicGroupUsesColumnMaximaAndRemeasuredRowHeights)
+{
+	std::vector<SSettingsToggleSize> vItems = {{240, 30}, {60, 50}, {220, 70}, {50, 20}};
+	SSettingsDynamicToggleGrid Grid;
+	ResolveSettingsToggleGrid(350, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 2);
+	EXPECT_FLOAT_EQ(Grid.m_aColumnWidths[0], 260);
+	EXPECT_FLOAT_EQ(Grid.m_aColumnWidths[1], 80);
+	EXPECT_FLOAT_EQ(Grid.Height(), 130);
+	vItems[0].m_Height = 80;
+	Grid.SetItemHeights(vItems);
+	const CUIRect Area{20, 40, 350, Grid.Height()};
+	EXPECT_FLOAT_EQ(Grid.Height(), 160);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 2).y, 130);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 3).y + Grid.Cell(Area, 3).h, Area.y + Area.h);
+}
+
+TEST(SettingsToggleGrid, ReusedDynamicGroupDropsPreviousWidthsHeightsAndEmptyRows)
+{
+	std::vector<SSettingsToggleSize> vItems(6, {300, 80});
+	SSettingsDynamicToggleGrid Grid;
+	ResolveSettingsToggleGrid(350, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 1);
+	EXPECT_FLOAT_EQ(Grid.Height(), 530);
+	vItems.assign(3, {50, 20});
+	ResolveSettingsToggleGrid(350, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 3);
+	EXPECT_EQ(Grid.m_Rows, 1);
+	EXPECT_FLOAT_EQ(Grid.Height(), 20);
+	vItems.clear();
+	ResolveSettingsToggleGrid(350, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Rows, 0);
+	EXPECT_FLOAT_EQ(Grid.Height(), 0);
+	vItems.assign(2, {50, 20});
+	ResolveSettingsToggleGrid(5, vItems, 10, Grid);
+	const CUIRect Area{10, 20, 5, Grid.Height()};
+	EXPECT_EQ(Grid.m_Columns, 1);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 1).w, 5);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 1).y + Grid.Cell(Area, 1).h, Area.y + Area.h);
+}

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <vector>
 
 struct SSettingsToggleSize
 {
@@ -13,19 +14,20 @@ struct SSettingsToggleSize
 	float m_Height = 0.0f;
 };
 
-template<size_t ItemCount>
-struct SSettingsToggleGrid
+template<typename TDimensions>
+struct SSettingsToggleGridLayout
 {
 	int m_Columns = 1;
 	int m_Rows = 0;
 	float m_Gap = 0.0f;
-	std::array<float, ItemCount> m_aColumnWidths{};
-	std::array<float, ItemCount> m_aRowHeights{};
+	TDimensions m_aColumnWidths{};
+	TDimensions m_aRowHeights{};
 
-	void SetItemHeights(const std::array<SSettingsToggleSize, ItemCount> &aItems)
+	template<typename TItems>
+	void SetItemHeights(const TItems &aItems)
 	{
-		m_aRowHeights.fill(0.0f);
-		for(size_t Index = 0; Index < ItemCount; ++Index)
+		std::fill(m_aRowHeights.begin(), m_aRowHeights.end(), 0.0f);
+		for(size_t Index = 0; Index < aItems.size(); ++Index)
 			m_aRowHeights[Index / m_Columns] = std::max(m_aRowHeights[Index / m_Columns], aItems[Index].m_Height);
 	}
 
@@ -51,19 +53,27 @@ struct SSettingsToggleGrid
 };
 
 template<size_t ItemCount>
-SSettingsToggleGrid<ItemCount> ResolveSettingsToggleGrid(float Width, const std::array<SSettingsToggleSize, ItemCount> &aItems, float Gap)
+using SSettingsToggleGrid = SSettingsToggleGridLayout<std::array<float, ItemCount>>;
+using SSettingsDynamicToggleGrid = SSettingsToggleGridLayout<std::vector<float>>;
+
+template<typename TItems, typename TDimensions>
+void ResolveSettingsToggleGridLayout(float Width, const TItems &aItems, float Gap, SSettingsToggleGridLayout<TDimensions> &Grid)
 {
-	SSettingsToggleGrid<ItemCount> Grid;
 	Width = std::max(0.0f, Width);
+	Grid.m_Columns = 1;
+	Grid.m_Rows = 0;
 	Grid.m_Gap = std::max(0.0f, Gap);
-	if constexpr(ItemCount == 0)
-		return Grid;
+	std::fill(Grid.m_aColumnWidths.begin(), Grid.m_aColumnWidths.end(), 0.0f);
+	std::fill(Grid.m_aRowHeights.begin(), Grid.m_aRowHeights.end(), 0.0f);
+	const int ItemCount = static_cast<int>(aItems.size());
+	if(ItemCount == 0)
+		return;
 
 	// 每列只预留本列最长项的宽度，不能用全组最长项把所有列一起撑宽。
-	for(int Columns = static_cast<int>(ItemCount); Columns >= 1; --Columns)
+	for(int Columns = ItemCount; Columns >= 1; --Columns)
 	{
-		Grid.m_aColumnWidths.fill(0.0f);
-		for(size_t Index = 0; Index < ItemCount; ++Index)
+		std::fill(Grid.m_aColumnWidths.begin(), Grid.m_aColumnWidths.end(), 0.0f);
+		for(int Index = 0; Index < ItemCount; ++Index)
 			Grid.m_aColumnWidths[Index % Columns] = std::max(Grid.m_aColumnWidths[Index % Columns], aItems[Index].m_Width);
 		float RequiredWidth = (Columns - 1) * Grid.m_Gap;
 		for(int Column = 0; Column < Columns; ++Column)
@@ -72,7 +82,7 @@ SSettingsToggleGrid<ItemCount> ResolveSettingsToggleGrid(float Width, const std:
 			continue;
 
 		Grid.m_Columns = Columns;
-		Grid.m_Rows = (static_cast<int>(ItemCount) + Columns - 1) / Columns;
+		Grid.m_Rows = (ItemCount + Columns - 1) / Columns;
 		const float ExtraWidth = std::max(0.0f, Width - RequiredWidth) / Columns;
 		float UsedWidth = 0.0f;
 		for(int Column = 0; Column < Columns; ++Column)
@@ -81,9 +91,72 @@ SSettingsToggleGrid<ItemCount> ResolveSettingsToggleGrid(float Width, const std:
 			UsedWidth += Grid.m_aColumnWidths[Column] + Grid.m_Gap;
 		}
 		Grid.SetItemHeights(aItems);
-		return Grid;
+		return;
 	}
+}
+
+template<size_t ItemCount>
+SSettingsToggleGrid<ItemCount> ResolveSettingsToggleGrid(float Width, const std::array<SSettingsToggleSize, ItemCount> &aItems, float Gap)
+{
+	SSettingsToggleGrid<ItemCount> Grid;
+	ResolveSettingsToggleGridLayout(Width, aItems, Gap, Grid);
 	return Grid;
+}
+
+// 动态分组复用菜单持有的容量，避免每张卡片在每帧重新分配尺寸数组。
+inline void ResolveSettingsToggleGrid(float Width, const std::vector<SSettingsToggleSize> &vItems, float Gap, SSettingsDynamicToggleGrid &Grid)
+{
+	Grid.m_aColumnWidths.resize(vItems.size());
+	Grid.m_aRowHeights.resize(vItems.size());
+	ResolveSettingsToggleGridLayout(Width, vItems, Gap, Grid);
+}
+
+enum class ESettingsToggleGroupPass
+{
+	RENDER,
+	LAYOUT,
+	INPUT
+};
+
+// 同组短开关的数据不拥有配置或文案；调用时提供当帧有效的地址与译文。
+struct SSettingsToggleEntry
+{
+	int *m_pValue;
+	const char *m_pTextId;
+	const char *m_pLabel;
+	const void *m_pId = nullptr;
+	int m_Mask = 0;
+};
+
+inline bool SettingsToggleEntryValue(const SSettingsToggleEntry &Entry)
+{
+	return Entry.m_Mask != 0 ? (*Entry.m_pValue & Entry.m_Mask) != 0 : *Entry.m_pValue != 0;
+}
+
+inline bool ApplySettingsToggleEntry(const SSettingsToggleEntry &Entry, bool Clicked, bool ProcessInput, bool Overridden)
+{
+	if(!Clicked || !ProcessInput || Overridden)
+		return false;
+	if(Entry.m_Mask != 0)
+		*Entry.m_pValue ^= Entry.m_Mask;
+	else
+		*Entry.m_pValue ^= 1;
+	return true;
+}
+
+struct SSettingsToggleCell
+{
+	CUIRect m_Label;
+	CUIRect m_Control;
+};
+
+inline SSettingsToggleCell ResolveSettingsToggleCell(const CUIRect &Cell, float LabelHeight, float ControlHeight, float Spacing)
+{
+	SSettingsToggleCell Layout;
+	Layout.m_Label = {Cell.x, Cell.y, Cell.w, std::max(0.0f, LabelHeight)};
+	const float Width = std::min(std::max(0.0f, Cell.w), std::max(0.0f, ControlHeight) * 1.65f);
+	Layout.m_Control = {Cell.x + (Cell.w - Width) * 0.5f, Cell.y + Layout.m_Label.h + std::max(0.0f, Spacing), Width, std::max(0.0f, ControlHeight)};
+	return Layout;
 }
 
 #endif

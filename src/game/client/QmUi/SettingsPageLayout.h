@@ -564,13 +564,6 @@ inline float ResolveQmVisualCollisionHitboxHeight(const SSettingsContentMetrics 
 	return (Enabled ? 17.0f : 1.0f) * Metrics.m_RowStep;
 }
 
-inline float ResolveQmVisualFocusModeHeight(const SSettingsContentMetrics &Metrics)
-{
-	// 无菜单上下文时按单列分组兜底；正常卡片由内容回调按实际宽度测量。
-	const float Section = Metrics.m_SmallSize + Metrics.m_LineSpacing;
-	return 23.0f * Metrics.m_RowStep + 5.0f * Section + 4.0f * Metrics.m_LineSpacing;
-}
-
 inline float ResolveSettingsHslaRowsHeight(const SSettingsContentMetrics &Metrics, const bool Alpha)
 {
 	return ResolveSettingsRowsHeight(Alpha ? 4 : 3, Metrics.m_LineHeight, Metrics.m_LineSpacing);

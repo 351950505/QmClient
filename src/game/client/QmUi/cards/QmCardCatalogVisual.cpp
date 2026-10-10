@@ -31,7 +31,7 @@ namespace qm_card_catalog
 			case EQmModuleId::WeaponAnimation:
 				return ResolveQmVisualWeaponAnimationHeight(Metrics, g_Config.m_QmWeaponSwitchAnim != 0, g_Config.m_QmWeaponReloadAnim != 0);
 			case EQmModuleId::Streamer: return Rows(3.0f);
-			case EQmModuleId::FocusMode: return ResolveQmVisualFocusModeHeight(Metrics);
+			case EQmModuleId::FocusMode: return Rows(1.0f);
 			case EQmModuleId::EntityOverlay: return Rows(9.0f);
 			case EQmModuleId::CollisionHitbox:
 				return ResolveQmVisualCollisionHitboxHeight(Metrics, g_Config.m_QmHitboxMode || g_Config.m_QmShowCollisionHitbox);
