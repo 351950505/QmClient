@@ -24164,6 +24164,22 @@ turkish = "Uzun satırları kaydır"
 polish = "Przewijanie długich linii"
 
 [[message]]
+key = "Scroll mode"
+[message.translations]
+simplified_chinese = "滚动模式"
+traditional_chinese = "捲動模式"
+japanese = "スクロールモード"
+korean = "스크롤 모드"
+russian = "Режим прокрутки"
+german = "Scrollmodus"
+spanish = "Modo de desplazamiento"
+french = "Mode de défilement"
+brazilian_portuguese = "Modo de rolagem"
+portuguese = "Modo de deslocamento"
+turkish = "Kaydırma modu"
+polish = "Tryb przewijania"
+
+[[message]]
 key = "Scroll mode: Off"
 [message.translations]
 simplified_chinese = "滚动模式：关"

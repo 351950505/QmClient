@@ -278,7 +278,7 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 				CPerfTimer HudCoreTimer;
 				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhud, "appearance-show-ingame-hud", Localize("Show ingame HUD"), &g_Config.m_ClShowhud, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
 				HudCoreToggles(LeftView);
-				LeftView.HSplitTop(MarginBetweenViews, nullptr, &LeftView);
+				LeftView.HSplitTop(AppearanceMetrics.m_SectionGap, nullptr, &LeftView);
 				CUIRect ScoreboardTitle;
 				LeftView.HSplitTop(HeadlineHeight, &ScoreboardTitle, &LeftView);
 				CUIElement &ScoreboardTitleText = SettingsTextElement(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, "appearance-scoreboard-title");

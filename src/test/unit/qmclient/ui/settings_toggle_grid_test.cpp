@@ -138,22 +138,62 @@ TEST(SettingsToggleGrid, IncompleteLastRowFitsMeasuredAreaAndRetainsGaps)
 	EXPECT_FLOAT_EQ(Grid.Height(), 170);
 }
 
-TEST(SettingsToggleGrid, WrappedLabelStaysAboveCenteredControl)
+TEST(SettingsToggleGrid, ShortLabelFitsOneTextButtonWithoutASeparateControlRow)
 {
-	const CUIRect Cell{30, 50, 120, 65};
-	const auto Layout = ResolveSettingsToggleCell(Cell, 40, 20, 5);
-	EXPECT_FLOAT_EQ(Layout.m_Label.h, 40);
-	EXPECT_FLOAT_EQ(Layout.m_Control.y, 95);
-	EXPECT_FLOAT_EQ(Layout.m_Control.x + Layout.m_Control.w * 0.5f, Cell.x + Cell.w * 0.5f);
-	EXPECT_FLOAT_EQ(Layout.m_Control.y + Layout.m_Control.h, Cell.y + Cell.h);
+	const auto Size = ResolveSettingsToggleButtonSize(100, 12, 20, 8, 3);
+	const CUIRect Button{30, 50, Size.m_Width, Size.m_Height};
+	const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, 8, 3);
+	EXPECT_FLOAT_EQ(Button.w, 116);
+	EXPECT_FLOAT_EQ(Button.h, 20);
+	EXPECT_FLOAT_EQ(Label.w, 100);
+	EXPECT_GE(Label.h, 12);
+	EXPECT_FLOAT_EQ(Label.x + Label.w * 0.5f, Button.x + Button.w * 0.5f);
+	EXPECT_FLOAT_EQ(Label.y + Label.h * 0.5f, Button.y + Button.h * 0.5f);
 }
 
-TEST(SettingsToggleGrid, NarrowCellKeepsControlInsideItsHorizontalBounds)
+TEST(SettingsToggleGrid, WrappedButtonLabelExpandsItsRowAndKeepsThePadding)
 {
-	const CUIRect Cell{10, 20, 12, 45};
-	const auto Layout = ResolveSettingsToggleCell(Cell, 20, 20, 5);
-	EXPECT_GE(Layout.m_Control.x, Cell.x);
-	EXPECT_LE(Layout.m_Control.x + Layout.m_Control.w, Cell.x + Cell.w);
+	std::array<SSettingsToggleSize, 2> aItems = {{
+		ResolveSettingsToggleButtonSize(100, 12, 20, 8, 3),
+		ResolveSettingsToggleButtonSize(100, 40, 20, 8, 3)}};
+	const auto Grid = ResolveSettingsToggleGrid(240, aItems, 8);
+	const CUIRect Area{10, 20, 240, Grid.Height()};
+	const CUIRect Label = ResolveSettingsToggleButtonLabel(Grid.Cell(Area, 1), 8, 3);
+	EXPECT_EQ(Grid.m_Columns, 2);
+	EXPECT_FLOAT_EQ(Grid.Height(), 46);
+	EXPECT_FLOAT_EQ(Label.h, 40);
+	EXPECT_FLOAT_EQ(Label.y + Label.h + 3, Area.y + Area.h);
+}
+
+TEST(SettingsToggleGrid, TinyTextButtonKeepsItsLabelInsideWithoutNegativeDimensions)
+{
+	for(const float Width : {0.0f, 5.0f, 12.0f})
+	{
+		SCOPED_TRACE(Width);
+		const CUIRect Button{10, 20, Width, 4};
+		const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, 8, 3);
+		EXPECT_GE(Label.x, Button.x);
+		EXPECT_GE(Label.y, Button.y);
+		EXPECT_GE(Label.w, 0);
+		EXPECT_GE(Label.h, 0);
+		EXPECT_LE(Label.x + Label.w, Button.x + Button.w);
+		EXPECT_LE(Label.y + Label.h, Button.y + Button.h);
+	}
+}
+
+TEST(SettingsToggleGrid, ScalingTextButtonPreservesTheLabelInsetAndMeasuredHeight)
+{
+	const auto Base = ResolveSettingsToggleButtonSize(100, 40, 20, 8, 3);
+	for(const float Scale : {0.5f, 1.25f, 2.0f})
+	{
+		SCOPED_TRACE(Scale);
+		const auto Size = ResolveSettingsToggleButtonSize(100 * Scale, 40 * Scale, 20 * Scale, 8 * Scale, 3 * Scale);
+		const CUIRect Label = ResolveSettingsToggleButtonLabel({0, 0, Size.m_Width, Size.m_Height}, 8 * Scale, 3 * Scale);
+		EXPECT_FLOAT_EQ(Size.m_Width, Base.m_Width * Scale);
+		EXPECT_FLOAT_EQ(Size.m_Height, Base.m_Height * Scale);
+		EXPECT_FLOAT_EQ(Label.w, 100 * Scale);
+		EXPECT_FLOAT_EQ(Label.h, 40 * Scale);
+	}
 }
 
 TEST(SettingsToggleGrid, BooleanClicksToggleOnlyTheSelectedConfiguration)

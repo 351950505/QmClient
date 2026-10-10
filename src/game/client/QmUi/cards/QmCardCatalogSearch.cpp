@@ -131,7 +131,7 @@ namespace qm_card_catalog
 
 		static constexpr SCardSettingSearch s_aqm_better_scoreboard[] = {
 			{Localizable("Better scoreboard"), nullptr, "更好的计分板"},
-			{Localizable("Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers"), nullptr, "满人服务器改用固定行高计分板，滚轮翻看其余玩家"},
+			{Localizable("Scroll mode"), nullptr, "滚动模式 满人服务器改用固定行高计分板，滚轮翻看其余玩家"},
 			{Localizable("Leave empty to show everyone"), nullptr, "留空显示所有玩家"},
 			{Localizable("Scoreboard filter: only show players whose name or clan contains this text"), nullptr, "计分板筛选：匹配名字或战队"},
 			{Localizable("Scoreboard point check"), nullptr, "计分板积分检查"},

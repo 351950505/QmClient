@@ -10493,6 +10493,9 @@ Screenshots
 Screenshots directory
 == Katalog zrzutów ekranu
 
+Scroll mode
+== Tryb przewijania
+
 Scroll mode: Off
 == Tryb przewijania: wyłączony
 

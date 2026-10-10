@@ -10493,6 +10493,9 @@ Screenshots
 Screenshots directory
 == Каталог скриншотов
 
+Scroll mode
+== Режим прокрутки
+
 Scroll mode: Off
 == Режим прокрутки: выкл.
 

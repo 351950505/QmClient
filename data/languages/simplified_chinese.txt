@@ -10493,6 +10493,9 @@ Screenshots
 Screenshots directory
 == 截图目录
 
+Scroll mode
+== 滚动模式
+
 Scroll mode: Off
 == 滚动模式：关
 
