@@ -18,6 +18,7 @@
 #include <engine/storage.h>
 #include <engine/textrender.h>
 
+#include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -290,48 +291,115 @@ void CMenus::RenderQmVisualFocusModeContent(CUIRect &Content, float LineHeight, 
 	const float SmallSize = CurrentSettingsContentMetrics().m_SmallSize;
 	static CButtonContainer s_ReaderButtonFocusToggle, s_ClearButtonFocusToggle;
 	RenderQmVisualCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmFocusMode, "qmclient-focus-mode-enable", Localize("Enable Zen mode"), &g_Config.m_QmFocusMode);
-	CUIRect LeftColumn, RightColumn, Row;
-	Content.VSplitMid(&LeftColumn, &RightColumn, ColumnGap);
-	auto RenderSection = [&](CUIRect &Target, const char *pTextId, const char *pLabel) {
-		Target.HSplitTop(SmallSize, &Row, &Target);
+	struct SFocusEntry
+	{
+		int *m_pConfig;
+		const char *m_pTextId;
+		const char *m_pLabel;
+	};
+	const std::array<SFocusEntry, 21> aEntries = {{
+		{&g_Config.m_QmFocusModeHideHud, "qmclient-focus-hide-hud", Localize("Hide HUD")},
+		{&g_Config.m_QmFocusModeHideMapProgress, "qmclient-focus-hide-map-progress", Localize("Hide map progress")},
+		{&g_Config.m_QmFocusModeHideInfoMessages, "qmclient-focus-hide-info-messages", Localize("Hide kill/finish messages")},
+		{&g_Config.m_QmFocusModeHideScoreboard, "qmclient-focus-hide-scoreboard", Localize("Hide scoreboard")},
+		{&g_Config.m_QmFocusModeHideNames, "qmclient-focus-hide-names", Localize("Hide names")},
+		{&g_Config.m_QmFocusModeHideNameplates, "qmclient-focus-hide-nameplates", Localize("Hide nameplates")},
+		{&g_Config.m_QmFocusModeHideDirectionIndicators, "qmclient-focus-hide-direction-indicators", Localize("Hide direction indicators")},
+		{&g_Config.m_QmFocusModeHideGuideLines, "qmclient-focus-hide-guide-lines", Localize("Hide guide lines")},
+		{&g_Config.m_QmFocusModeHideJumpEffects, "qmclient-focus-hide-jump-effects", Localize("Hide jump effects")},
+		{&g_Config.m_QmFocusModeHideKillEffects, "qmclient-focus-hide-kill-effects", Localize("Hide death/respawn effects")},
+		{&g_Config.m_QmFocusModeHideExplosionEffects, "qmclient-focus-hide-explosion-effects", Localize("Hide explosion effects")},
+		{&g_Config.m_QmFocusModeHideFreezeEffects, "qmclient-focus-hide-freeze-effects", Localize("Hide freeze effects")},
+		{&g_Config.m_QmFocusModeHideHammerEffects, "qmclient-focus-hide-hammer-effects", Localize("Hide hammer effects")},
+		{&g_Config.m_QmFocusModeHideMuzzleEffects, "qmclient-focus-hide-muzzle-effects", Localize("Hide weapon muzzle flashes")},
+		{&g_Config.m_QmFocusModeMuteJumpSounds, "qmclient-focus-mute-jump-sounds", Localize("Mute jump sounds")},
+		{&g_Config.m_QmFocusModeMuteDeathSounds, "qmclient-focus-mute-death-sounds", Localize("Mute death/respawn sounds")},
+		{&g_Config.m_QmFocusModeMuteHammerSounds, "qmclient-focus-mute-hammer-sounds", Localize("Mute hammer sounds")},
+		{&g_Config.m_QmFocusModeHideChat, "qmclient-focus-hide-chat", Localize("Hide player messages")},
+		{&g_Config.m_QmFocusModeHideSystemInfoMessages, "qmclient-focus-hide-system-info-messages", Localize("Hide join/version prompts")},
+		{&g_Config.m_QmFocusModeHideSystemMessages, "qmclient-focus-hide-system-messages", Localize("Hide server prompt notifications")},
+		{&g_Config.m_QmFocusModeHideEcho, "qmclient-focus-hide-echo", Localize("Hide Echo messages")},
+	}};
+	struct SFocusSection
+	{
+		const char *m_pTextId;
+		const char *m_pLabel;
+		size_t m_First;
+		size_t m_Count;
+	};
+	const std::array<SFocusSection, 5> aSections = {{
+		{"qmclient-focus-section-interface", Localize("Interface"), 0, 4},
+		{"qmclient-focus-section-players", Localize("Players"), 4, 4},
+		{"qmclient-focus-section-visuals", Localize("Visuals"), 8, 6},
+		{"qmclient-focus-section-audio", Localize("Audio"), 14, 3},
+		{"qmclient-focus-section-chat", Localize("Chat"), 17, 4},
+	}};
+	std::array<SSettingsToggleSize, aEntries.size()> aItemSizes{};
+	std::array<SSettingsToggleSize, aSections.size()> aSectionSizes{};
+	std::array<float, aSections.size()> aHeaderHeights{};
+	const CUIRect ControlProbe{0.0f, 0.0f, std::max(Content.w, LineHeight * 3.0f), LineHeight};
+	const float ControlSpace = ControlProbe.w - ui_widget::ResolveBooleanControlLayout(ControlProbe, true).m_LabelRect.w;
+	for(size_t Index = 0; Index < aEntries.size(); ++Index)
+		aItemSizes[Index] = {TextRender()->TextWidth(BodySize, aEntries[Index].m_pLabel) + ControlSpace, LineHeight};
+	for(size_t Index = 0; Index < aSections.size(); ++Index)
+	{
+		const auto &Section = aSections[Index];
+		aSectionSizes[Index].m_Width = TextRender()->TextWidth(SmallSize, Section.m_pLabel);
+		for(size_t Item = Section.m_First; Item < Section.m_First + Section.m_Count; ++Item)
+			aSectionSizes[Index].m_Width = std::max(aSectionSizes[Index].m_Width, aItemSizes[Item].m_Width);
+	}
+	auto Grid = ResolveSettingsToggleGrid(Content.w, aSectionSizes, ColumnGap);
+	for(size_t Index = 0; Index < aSections.size(); ++Index)
+	{
+		const auto &Section = aSections[Index];
+		const float Width = Grid.m_aColumnWidths[Index % Grid.m_Columns];
+		aHeaderHeights[Index] = std::max(SmallSize, TextRender()->TextBoundingBox(SmallSize, Section.m_pLabel, -1, std::max(1.0f, Width)).m_H);
+		aSectionSizes[Index].m_Height = aHeaderHeights[Index] + LineSpacing;
+		const float TextWidth = ui_widget::ResolveBooleanControlLayout({0.0f, 0.0f, Width, LineHeight}, true).m_LabelRect.w;
+		for(size_t Item = Section.m_First; Item < Section.m_First + Section.m_Count; ++Item)
+		{
+			aItemSizes[Item].m_Height = std::max(LineHeight, TextRender()->TextBoundingBox(BodySize, aEntries[Item].m_pLabel, -1, std::max(1.0f, TextWidth)).m_H);
+			aSectionSizes[Index].m_Height += aItemSizes[Item].m_Height + LineSpacing;
+		}
+	}
+	Grid.SetItemHeights(aSectionSizes);
+	CUIRect GridArea, Row;
+	Content.HSplitTop(Grid.Height(), &GridArea, &Content);
+	IUiContext ToggleContext = SettingsUiContext("settings-switch", CurrentSettingsContentMetrics().m_UiScale);
+	for(size_t Index = 0; Index < aSections.size(); ++Index)
+	{
+		const auto &Section = aSections[Index];
+		CUIRect Target = Grid.Cell(GridArea, static_cast<int>(Index));
+		Target.HSplitTop(aHeaderHeights[Index], &Row, &Target);
+		SLabelProperties Props;
+		Props.m_MinimumFontSize = SmallSize;
+		Props.m_EnableWidthCheck = false;
+		Props.m_MaxWidth = Row.w;
 		TextRender()->TextColor(ColorRGBA(0.72f, 0.72f, 0.78f, 0.86f));
-		RenderQmVisualLabel(pTextId, &Row, Localize(pLabel), SmallSize);
+		DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, Section.m_pTextId, &Row, Section.m_pLabel, SmallSize, TEXTALIGN_ML, Props);
 		TextRender()->TextColor(TextRender()->DefaultTextColor());
 		Target.HSplitTop(LineSpacing, nullptr, &Target);
-	};
-	auto RenderCheckbox = [&](CUIRect &Target, int *pConfig, const char *pTextId, const char *pLabel) {
-		Target.HSplitTop(LineHeight, &Row, &Target);
-		if(DoSettingsButton_CheckBox(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, pConfig, pTextId, Localize(pLabel), *pConfig, &Row))
-			*pConfig ^= 1;
-		Target.HSplitTop(LineSpacing, nullptr, &Target);
-	};
-	RenderSection(LeftColumn, "qmclient-focus-section-interface", "Interface");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideHud, "qmclient-focus-hide-hud", "Hide HUD");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideMapProgress, "qmclient-focus-hide-map-progress", "Hide map progress");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideInfoMessages, "qmclient-focus-hide-info-messages", "Hide kill/finish messages");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideScoreboard, "qmclient-focus-hide-scoreboard", "Hide scoreboard");
-	RenderSection(LeftColumn, "qmclient-focus-section-players", "Players");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideNames, "qmclient-focus-hide-names", "Hide names");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideNameplates, "qmclient-focus-hide-nameplates", "Hide nameplates");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideDirectionIndicators, "qmclient-focus-hide-direction-indicators", "Hide direction indicators");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideGuideLines, "qmclient-focus-hide-guide-lines", "Hide guide lines");
-	RenderSection(LeftColumn, "qmclient-focus-section-visuals", "Visuals");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideJumpEffects, "qmclient-focus-hide-jump-effects", "Hide jump effects");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideKillEffects, "qmclient-focus-hide-kill-effects", "Hide death/respawn effects");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideExplosionEffects, "qmclient-focus-hide-explosion-effects", "Hide explosion effects");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideFreezeEffects, "qmclient-focus-hide-freeze-effects", "Hide freeze effects");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideHammerEffects, "qmclient-focus-hide-hammer-effects", "Hide hammer effects");
-	RenderCheckbox(LeftColumn, &g_Config.m_QmFocusModeHideMuzzleEffects, "qmclient-focus-hide-muzzle-effects", "Hide weapon muzzle flashes");
-	RenderSection(RightColumn, "qmclient-focus-section-audio", "Audio");
-	RenderCheckbox(RightColumn, &g_Config.m_QmFocusModeMuteJumpSounds, "qmclient-focus-mute-jump-sounds", "Mute jump sounds");
-	RenderCheckbox(RightColumn, &g_Config.m_QmFocusModeMuteDeathSounds, "qmclient-focus-mute-death-sounds", "Mute death/respawn sounds");
-	RenderCheckbox(RightColumn, &g_Config.m_QmFocusModeMuteHammerSounds, "qmclient-focus-mute-hammer-sounds", "Mute hammer sounds");
-	RenderSection(RightColumn, "qmclient-focus-section-chat", "Chat");
-	RenderCheckbox(RightColumn, &g_Config.m_QmFocusModeHideChat, "qmclient-focus-hide-chat", "Hide player messages");
-	RenderCheckbox(RightColumn, &g_Config.m_QmFocusModeHideSystemInfoMessages, "qmclient-focus-hide-system-info-messages", "Hide join/version prompts");
-	RenderCheckbox(RightColumn, &g_Config.m_QmFocusModeHideSystemMessages, "qmclient-focus-hide-system-messages", "Hide server prompt notifications");
-	RenderCheckbox(RightColumn, &g_Config.m_QmFocusModeHideEcho, "qmclient-focus-hide-echo", "Hide Echo messages");
-	Content.y = std::max(LeftColumn.y, RightColumn.y);
+		for(size_t Item = Section.m_First; Item < Section.m_First + Section.m_Count; ++Item)
+		{
+			const auto &Entry = aEntries[Item];
+			Target.HSplitTop(aItemSizes[Item].m_Height, &Row, &Target);
+			const CUIRect ControlRow{Row.x, Row.y + (Row.h - LineHeight) * 0.5f, Row.w, LineHeight};
+			const auto Layout = ui_widget::ResolveBooleanControlLayout(ControlRow, true);
+			const CUIRect Label{Row.x, Row.y, Layout.m_LabelRect.w, Row.h};
+			Props.m_MinimumFontSize = BodySize;
+			Props.m_MaxWidth = Label.w;
+			DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, Entry.m_pTextId, &Label, Entry.m_pLabel, BodySize, TEXTALIGN_ML, Props);
+			if(!m_MenuTextPlanCollecting)
+			{
+				Ui()->DoConfigTooltip(Entry.m_pConfig, &Row, Entry.m_pConfig);
+				GameClient()->m_Tooltips.DoSettingsToolTipForConfig(Entry.m_pConfig, &Row, Entry.m_pConfig, &Label);
+				ui_widget::DrawToggle(ToggleContext, Entry.m_pConfig, *Entry.m_pConfig != 0, Layout.m_ControlRect, true, !Ui()->RenderOnly(), &Row);
+				if(!Ui()->RenderOnly() && Ui()->DoButtonLogic(Entry.m_pConfig, 0, &Row, BUTTONFLAG_LEFT))
+					*Entry.m_pConfig ^= 1;
+			}
+			Target.HSplitTop(LineSpacing, nullptr, &Target);
+		}
+	}
 	Content.HSplitTop(LineSpacing, nullptr, &Content);
 	Content.HSplitTop(LineHeight, &Row, &Content);
 	CUIRect BindLabel, BindKey;

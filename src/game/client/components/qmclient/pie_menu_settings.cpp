@@ -21,7 +21,7 @@
 #include <array>
 #include <cmath>
 
-void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly, int MaxGridColumns)
+void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly)
 {
 	CPerfTimer LayoutTimer;
 	IUiContext TextInputCtx = SettingsUiContext("settings_qmclient_pie_menu_text_inputs", UiScale);
@@ -136,14 +136,20 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 		m_ColorPickerPopupContext.m_Alpha = Entry.m_Alpha;
 		Ui()->ShowPopupColorPicker(Ui()->MouseX(), Ui()->MouseY(), &m_ColorPickerPopupContext);
 	};
-	float MinimumCellWidth = 72.0f * UiScale;
-	for(const auto &Entry : aColorEntries)
-		MinimumCellWidth = std::max(MinimumCellWidth, TextRender()->TextWidth(BodySize, Entry.m_pName) + LineSpacing * 2.0f);
-	SSettingsToggleGrid Grid = ResolveSettingsToggleGrid(Content.w, MinimumCellWidth, 0.0f, LineSpacing * 2.0f, static_cast<int>(aColorEntries.size()), MaxGridColumns);
-	float LabelHeight = LineHeight;
-	for(const auto &Entry : aColorEntries)
-		LabelHeight = std::max(LabelHeight, TextRender()->TextBoundingBox(BodySize, Entry.m_pName, -1, std::max(1.0f, Grid.m_CellWidth)).m_H);
-	Grid.m_RowHeight = LabelHeight + LineSpacing * 0.5f + LineHeight;
+	std::array<SSettingsToggleSize, qm_pie_menu::OPTION_COUNT> aItemSizes{};
+	for(size_t Index = 0; Index < aColorEntries.size(); ++Index)
+	{
+		const float ControlsWidth = LineHeight * 3.0f + LineSpacing;
+		aItemSizes[Index].m_Width = std::max(ControlsWidth, TextRender()->TextWidth(BodySize, aColorEntries[Index].m_pName)) + LineSpacing * 2.0f;
+	}
+	auto Grid = ResolveSettingsToggleGrid(Content.w, aItemSizes, LineSpacing * 2.0f);
+	for(size_t Index = 0; Index < aColorEntries.size(); ++Index)
+	{
+		const float CellWidth = Grid.m_aColumnWidths[Index % Grid.m_Columns];
+		const float LabelHeight = std::max(LineHeight, TextRender()->TextBoundingBox(BodySize, aColorEntries[Index].m_pName, -1, std::max(1.0f, CellWidth)).m_H);
+		aItemSizes[Index].m_Height = LabelHeight + LineSpacing * 0.5f + LineHeight;
+	}
+	Grid.SetItemHeights(aItemSizes);
 	CUIRect GridArea;
 	Content.HSplitTop(Grid.Height(), &GridArea, &Content);
 	for(size_t Index = 0; Index < aColorEntries.size(); ++Index)
@@ -151,10 +157,13 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 		const auto &Entry = aColorEntries[Index];
 		CUIRect Cell = Grid.Cell(GridArea, static_cast<int>(Index));
 		CUIRect Label;
+		const float LabelHeight = Cell.h - LineSpacing * 0.5f - LineHeight;
 		Cell.HSplitTop(LabelHeight, &Label, &Cell);
 		Cell.HSplitTop(LineSpacing * 0.5f, nullptr, &Cell);
 		SLabelProperties Props;
 		Props.m_MaxWidth = Label.w;
+		Props.m_MinimumFontSize = BodySize;
+		Props.m_EnableWidthCheck = false;
 		DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Entry.m_pTextId, &Label, Entry.m_pName, BodySize, TEXTALIGN_MC, Props);
 		if(!PrewarmOnly && !Ui()->RenderOnly())
 		{
