@@ -125,6 +125,7 @@ void CSettingsCardDeck::BeginDisplayCycle(uint64_t DisplayCycle, bool AnimateEnt
 {
 	if(m_FrameRuntime.BeginDisplayCycle(DisplayCycle, AnimateEntry))
 	{
+		m_Focus.Reset();
 		m_Drag.Reset();
 		m_SuppressHoverFeedbackOnce = true;
 		m_HasScrollOffset = false;
@@ -155,10 +156,14 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 	SSettingsCardDeckResult Result;
 	m_FrameRuntime.BeginFrame(Input.m_pDiagnostics);
 	if(pTab == nullptr)
+	{
+		m_Focus.Reset();
 		return Result;
+	}
 	const bool TabChanged = m_LastRenderedTab != pTab;
 	if(TabChanged)
 	{
+		m_Focus.Reset();
 		if(Ctx.m_pUi != nullptr)
 			for(const char *pStableId : m_vPreparedStableIds)
 				Ctx.m_pUi->CloseInteractionSource(this, pStableId);
@@ -261,13 +266,15 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 	auto BuildPreparedCards = [&](const std::array<std::vector<int>, 3> &aDisplayColumns) {
 		m_vPreparedCards.clear();
 		m_vPreparedCards.reserve(m_vActiveStateIndices.size());
-		auto AppendCard = [&](int StateIndex, int Column, CUIRect ColumnRect, CSettingsCardColumnFramePlan &ColumnPlan) {
+		m_PackingPlan.Reset(DrawLayout.m_ContentViewport.y, DrawLayout.m_CardGap);
+		CSettingsCardColumnFramePlan SingleColumnPlan(DrawLayout.m_ContentViewport.y, DrawLayout.m_CardGap);
+		auto AppendCard = [&](int StateIndex, int Column, CUIRect ColumnRect, bool LeadingFullWidth = false) {
 			if(StateIndex < 0 || StateIndex >= (int)m_vDefinitionsByState.size())
 				return;
 			const SSettingsCardDefinition *pDefinition = m_vDefinitionsByState[StateIndex];
 			if(pDefinition == nullptr)
 				return;
-			CUIRect Slot{ColumnRect.x, ColumnPlan.CursorY(), ColumnRect.w, 0.0f};
+			CUIRect Slot{ColumnRect.x, ColumnRect.y, ColumnRect.w, 0.0f};
 			float &CachedContentHeight = m_vContentHeights[StateIndex];
 			float &CachedContentWidth = m_vContentWidths[StateIndex];
 			uint64_t &CachedMeasureRevision = m_vMeasureRevisions[StateIndex];
@@ -329,45 +336,40 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 			ContentHeightTargetChanged = ContentHeightTargetChanged || HeightTargetChanged;
 			ContentHeightAnimationActive = ContentHeightAnimationActive || Runtime.m_ContentHeightWasActive;
 			const float ContentHeight = std::max(0.0f, Runtime.m_AnimatedContentHeight);
-			const SSettingsCardFrame Frame = ResolveSettingsCardHeaderActions(
+			SSettingsCardFrame Frame = ResolveSettingsCardHeaderActions(
 				BuildSettingsCardFrame(Slot, pDefinition->m_Spec, ContentHeight, Ctx.m_UiScale),
 				pDefinition->m_LeadingHeaderActionWidth, pDefinition->m_Spec.m_pInfo != nullptr && pDefinition->m_Spec.m_pInfo[0] != '\0');
+			const SSettingsCardColumnFrame Placement = DrawLayout.m_TwoColumns ? m_PackingPlan.Append(Column, Frame.m_Rect.h, LeadingFullWidth) : SingleColumnPlan.Append(Frame.m_Rect.h);
+			Frame = ResolveSettingsCardDrawFrame(Frame, 0.0f, Placement.m_Y - Frame.m_Rect.y);
 			m_vPreparedCards.push_back({pDefinition, StateIndex, Column, Frame, TargetContentHeight, HeightInitializedThisFrame, Runtime.m_ContentHeightWasActive});
-			ColumnPlan.Append(Frame.m_Rect.h);
 		};
-		auto AppendColumn = [&](const std::vector<int> &vStateIndices, int Column, CUIRect ColumnRect, CSettingsCardColumnFramePlan &ColumnPlan) {
+		auto AppendColumn = [&](const std::vector<int> &vStateIndices, int Column, CUIRect ColumnRect) {
 			for(const int StateIndex : vStateIndices)
-				AppendCard(StateIndex, Column, ColumnRect, ColumnPlan);
+				AppendCard(StateIndex, Column, ColumnRect);
 		};
 
 		if(DrawLayout.m_TwoColumns && !aDisplayColumns[0].empty())
 		{
-			CSettingsCardColumnFramePlan LeftPlan(DrawLayout.m_aColumns[0].y, DrawLayout.m_CardGap);
-			CSettingsCardColumnFramePlan RightPlan(DrawLayout.m_aColumns[1].y, DrawLayout.m_CardGap);
+			int FullWidthIndex = 0;
 			ForEachSettingsCardDeckVisualOrder(aDisplayColumns, [&](int StateIndex, int Column) {
 				if(Column == 1)
-					AppendCard(StateIndex, Column, DrawLayout.m_aColumns[0], LeftPlan);
+					AppendCard(StateIndex, Column, DrawLayout.m_aColumns[0]);
 				else if(Column == 2)
-					AppendCard(StateIndex, Column, DrawLayout.m_aColumns[1], RightPlan);
+					AppendCard(StateIndex, Column, DrawLayout.m_aColumns[1]);
 				else
 				{
-					CSettingsCardColumnFramePlan FullPlan(std::max(LeftPlan.CursorY(), RightPlan.CursorY()), DrawLayout.m_CardGap);
-					AppendCard(StateIndex, 0, DrawLayout.m_ContentViewport, FullPlan);
-					LeftPlan.SetCursorY(FullPlan.CursorY());
-					RightPlan.SetCursorY(FullPlan.CursorY());
+					AppendCard(StateIndex, 0, DrawLayout.m_ContentViewport, FullWidthIndex < VisualOptions.m_LeadingFullWidthCards);
+					++FullWidthIndex;
 				} }, VisualOptions.m_LeadingFullWidthCards);
 		}
 		else if(DrawLayout.m_TwoColumns)
 		{
-			CSettingsCardColumnFramePlan LeftPlan(DrawLayout.m_aColumns[0].y, DrawLayout.m_CardGap);
-			CSettingsCardColumnFramePlan RightPlan(DrawLayout.m_aColumns[1].y, DrawLayout.m_CardGap);
-			AppendColumn(aDisplayColumns[1], 1, DrawLayout.m_aColumns[0], LeftPlan);
-			AppendColumn(aDisplayColumns[2], 2, DrawLayout.m_aColumns[1], RightPlan);
+			AppendColumn(aDisplayColumns[1], 1, DrawLayout.m_aColumns[0]);
+			AppendColumn(aDisplayColumns[2], 2, DrawLayout.m_aColumns[1]);
 		}
 		else
 		{
-			CSettingsCardColumnFramePlan ColumnPlan(DrawLayout.m_ContentViewport.y, DrawLayout.m_CardGap);
-			ForEachSettingsCardDeckVisualOrder(aDisplayColumns, [&](int StateIndex, int Column) { AppendCard(StateIndex, Column, DrawLayout.m_ContentViewport, ColumnPlan); }, VisualOptions.m_LeadingFullWidthCards);
+			ForEachSettingsCardDeckVisualOrder(aDisplayColumns, [&](int StateIndex, int Column) { AppendCard(StateIndex, Column, DrawLayout.m_ContentViewport); }, VisualOptions.m_LeadingFullWidthCards);
 		}
 	};
 
@@ -634,6 +636,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 			});
 		}
 	}
+	m_Focus.BeginFrame(Input.m_MousePressed, Ctx.m_pUi != nullptr && !Ctx.m_pUi->RenderOnly());
 	for(const SPreparedCard &Card : m_vPreparedCards)
 	{
 		SRuntimeState &Runtime = m_vRuntimeStates[Card.m_StateIndex];
@@ -745,6 +748,10 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 						Ctx.m_pTooltips->DoSmallToolTip(&Runtime.m_WidthButtonId, &Button, Card.m_Column == 0 ? Localize("Default width") : Localize("Full width"), 10.0f * Ctx.m_UiScale);
 				}
 			};
+			// 命中与绘制使用同一动画矩形，且遵守弹层和滚动裁剪的输入隔离。
+			const SSettingsCardFrame FocusFrame = ResolveSettingsCardDrawFrame(Frame, State.m_DrawOffsetX, State.m_DrawOffsetY);
+			m_Focus.Observe(pStableId, Ctx.m_pUi != nullptr && !Ctx.m_pUi->PointerInputBlocked() && PointInRect(ScrollViewport, Input.m_MouseX, Input.m_MouseY) && Ctx.m_pUi->MouseHovered(&FocusFrame.m_Rect));
+			State.m_Focused = m_Focus.IsFocused(pStableId);
 			SettingsCard(Ctx, Frame, Card.m_pDefinition->m_Spec, State, VisualOptions,
 				SettingsCardDeckRendersContent(Collapsed) ? Card.m_pDefinition->m_Render : FSettingsCardRender{}, HeaderAction,
 				SettingsCardDeckRendersContent(Collapsed) ? Card.m_pDefinition->m_RenderMeasured : FSettingsCardRenderMeasured{}, &PointerInsideDrawFrame);
@@ -759,6 +766,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 			Runtime.m_PointerInsideLastFrame = false;
 	}
 
+	m_Focus.EndFrame();
 	if(pScrollRegion != nullptr)
 		pScrollRegion->End();
 	for(SRuntimeState &Runtime : m_vRuntimeStates)

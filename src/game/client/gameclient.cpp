@@ -667,7 +667,6 @@ void CGameClient::OnConsoleInit()
 	AddComponent(&m_CustomCommunities, "custom_communities");
 	AddComponent(&m_PlayerPoints, "player_points");
 	AddComponent(&m_Emoticon.m_RenderProjectiles, "emoticon_projectiles");
-	AddComponent(&m_DecorativeProjectiles, "qm_decorative_projectiles");
 	AddComponent(&m_Hud, "hud");
 	AddComponent(&m_Spectator, "spectator");
 	AddComponent(&m_Emoticon, "emoticon");
@@ -1177,7 +1176,6 @@ void CGameClient::PrewarmSettingsRuntimeCachesDuringLoading(const char *pLoading
 	LogSettingsLoadingPrewarmEvent(Client(), "startup_text_prewarm_end", State.m_CompletedSteps, 1, 0, State.m_ConsecutiveNoProgressSteps, 0, 0);
 
 	// ESC 菜单的文本 plan/容器依赖打开后的菜单生命周期，不能在加载阶段预热
-	// （详见 docs/superpowers/plans/2026-09-09-Windows图形掉帧撕裂与连接中断调查.md §14/§16）。
 	// ESC 的字形与 plan 现在改由菜单关闭时的空闲帧预热（CMenus::OnUpdate / OnRender）。
 }
 

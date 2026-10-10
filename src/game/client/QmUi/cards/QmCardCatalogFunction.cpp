@@ -2,10 +2,9 @@
 #include "QmCardCatalogInternal.h"
 #include "QmCardMeasureRevision.h"
 
-#include <game/client/QmUi/QmImeAppearance.h>
-
 #include <engine/shared/config.h>
 
+#include <game/client/QmUi/QmImeAppearance.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/components/menus.h>
 #include <game/client/gameclient.h>
@@ -190,7 +189,7 @@ namespace qm_card_catalog
 			case EQmModuleId::Gores:
 				return Row() * (3.0f + (g_Config.m_QmAxiomAutoLogin ? 2.0f : 0.0f) + ((g_Config.m_QmGores || g_Config.m_QmGoresAutoEnable) ? 7.0f : 0.0f));
 			case EQmModuleId::KeyBinds: return Rows(8.0f);
-			case EQmModuleId::Emoticons: return Rows(7.0f);
+			case EQmModuleId::Emoticons: return Rows(3.0f);
 			case EQmModuleId::Ime: return QmImeAppearanceCardHeight(LineHeight, Metrics.m_ButtonHeight, LineSpacing);
 			case EQmModuleId::BetterScoreboard: return Rows(5.0f);
 			case EQmModuleId::BlockWords: return Row() * (g_Config.m_QmBlockWordsAction == 0 ? 7.0f : 4.0f) + CalcQiaFenInputHeight(QmCardRenderHook::TextRenderer(pMenus), g_Config.m_QmBlockWordsList, std::max(1.0f, ContentWidth - LabelWidth), BodySize, std::clamp(2.0f * UiScale, 1.0f, 2.0f), LineHeight);
@@ -208,7 +207,7 @@ namespace qm_card_catalog
 				const bool IsDeeplBackend = str_comp_nocase(g_Config.m_QmTranslateBackend, "deepl") == 0;
 				const bool ShowAdvanced = g_Config.m_QmTranslateShowAdvanced != 0;
 				// 常驻行：收/发自动翻译、译文字号、翻译服务、收/发目标语言、高级选项开关。
-				float Height = Rows(9.0f); // 常驻测试按钮与诊断开关
+				float Height = Rows(10.0f); // 常驻测试按钮与诊断开关
 				if(IsBaiduBackend)
 					Height += Row() * 2.0f;
 				if(IsMymemoryBackend)
