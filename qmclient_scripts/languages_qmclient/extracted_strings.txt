@@ -231,7 +231,6 @@ Allow voting to pause players (instead of moving to spectators)
 Allows maps to render with more detail
 Alpha
 Also apply to dummy
-Also send the original text when translating outgoing messages
 Always show
 Always show chat
 Always show local time
@@ -3546,7 +3545,6 @@ Send aim data with sub-tick precision
 Send client input to others before correct input (increases server bandwidth)
 Send emote when entering freeze
 Send emoticon in water
-Send original text with translation
 Send probability
 Send Rate
 Send sampling and token limit parameters
@@ -3823,6 +3821,7 @@ Show only frozen Tees in indicators
 Show only modified config variables
 Show only servers with unfinished maps
 Show only team chat messages
+Show original text below outgoing translation
 Show other players' coordinates
 Show other players' hook collision lines
 Show other players' hook collision lines (2 always shown)
@@ -3915,6 +3914,7 @@ Show the Gores team drown board
 Show the number of frozen tees
 Show the number of tees still alive
 Show the occasional sponsor reminder in the main menu
+Show the original text locally below translated outgoing messages
 Show the pet
 Show the screen center line
 Show the server rules
@@ -4530,19 +4530,19 @@ Translate received messages to
 Translate UI
 Translate:
 Translated chat text size as a percentage of the original text (50-100)
+Translated message could not be queued; original was not sent
 Translated text hidden due to streamer mode
 Translated text size
 Translating to %s...
-Translation backend invalid, sending original
 Translation button active color
 Translation button cancel color
+Translation canceled because the sender changed
 Translation color alpha migration completed flag
 Translation diagnostics
 Translation menu background color
 Translation menu normal color
 Translation menu selected color
 Translation model was not found. Check the model name.
-Translation queue full, sending original
 Translation service
 Translation service authentication failed. Check the API key and service address.
 Translation service is not configured correctly.

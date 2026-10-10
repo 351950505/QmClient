@@ -698,9 +698,6 @@ Alpha
 Also apply to dummy
 == 同时应用到分身
 
-Also send the original text when translating outgoing messages
-== 翻译发出的消息时同时发送原文
-
 Always show
 == 始终显示
 
@@ -10643,9 +10640,6 @@ Send emote when entering freeze
 Send emoticon in water
 == 水中发送表情
 
-Send original text with translation
-== 翻译发送的消息时同时发送原文
-
 Send probability
 == 发送概率
 
@@ -11474,6 +11468,9 @@ Show only servers with unfinished maps
 Show only team chat messages
 == 只显示队伍聊天消息
 
+Show original text below outgoing translation
+== 在出站译文下方显示原文
+
 Show other players' coordinates
 == 显示他人坐标
 
@@ -11749,6 +11746,9 @@ Show the number of tees still alive
 
 Show the occasional sponsor reminder in the main menu
 == 在主菜单偶尔显示赞助提醒
+
+Show the original text locally below translated outgoing messages
+== 只在本地发送译文下方显示原文，不向服务器发送原文
 
 Show the pet
 == 显示宠物
@@ -13595,6 +13595,9 @@ Translate:
 Translated chat text size as a percentage of the original text (50-100)
 == 聊天译文字号相对于原文字号的百分比（50-100）
 
+Translated message could not be queued; original was not sent
+== 译文未能加入发送队列，原文未发送
+
 Translated text hidden due to streamer mode
 == 由于主播模式，隐藏翻译文本
 
@@ -13604,14 +13607,14 @@ Translated text size
 Translating to %s...
 == 正在翻译为 %s……
 
-Translation backend invalid, sending original
-== 翻译后端无效，发送原文
-
 Translation button active color
 == 翻译按钮开启时的颜色
 
 Translation button cancel color
 == 翻译按钮取消时的颜色
+
+Translation canceled because the sender changed
+== 发送者已改变，翻译已取消
 
 Translation color alpha migration completed flag
 == 翻译颜色透明度迁移已完成标记
@@ -13630,9 +13633,6 @@ Translation menu selected color
 
 Translation model was not found. Check the model name.
 == 未找到翻译模型，请检查模型名称。
-
-Translation queue full, sending original
-== 翻译队列已满，发送原文
 
 Translation service
 == 翻译服务

@@ -31,6 +31,12 @@ namespace ui_widget
 
 	namespace
 	{
+		// 表单外观共享父层显隐语义，不再把页面背景透明度乘入控件颜色。
+		void DrawControlSurface(const IUiContext &Ctx, const CUIRect &Rect, ColorRGBA Fill, ColorRGBA Border, float Radius, float BorderWidth = 0.0f, int Corners = IGraphics::CORNER_ALL)
+		{
+			DrawRoundedSurface(Ctx, Rect, Ctx.m_pUi->ScaleControlAlpha(Fill), Ctx.m_pUi->ScaleControlAlpha(Border), Radius, BorderWidth, Corners);
+		}
+
 		void DrawTextFieldFocusBorder(const IUiContext &Ctx, const CUIRect &Rect, float Alpha);
 		void DrawTextFieldFocusBorder(const IUiContext &Ctx, CLineInput *pInput, const CUIRect &Rect);
 		void DrawTextFieldFocusBorder(const IUiContext &Ctx, CLineInput *pInput, const CUIRect &Rect, bool Multiline);
@@ -55,7 +61,7 @@ namespace ui_widget
 			ColorRGBA Border = pBorderColorOverride != nullptr ? *pBorderColorOverride : Theme.m_Border;
 			if(pBorderColorOverride == nullptr)
 				Border.a = std::max(Border.a, 0.24f);
-			DrawRoundedSurface(Ctx, Rect, Fill, Ctx.m_pUi->ScaleBackgroundAlpha(Border), Radius, BorderWidthOverride, Corners);
+			DrawControlSurface(Ctx, Rect, Fill, Border, Radius, BorderWidthOverride, Corners);
 		}
 
 		bool NumericFieldTextIsInfinite(const char *pText)
@@ -76,7 +82,7 @@ namespace ui_widget
 			ColorRGBA RingColor = Theme.m_FocusRing;
 			RingColor.a *= Alpha;
 			// 激活态直接把外壳边框画粗并换成强调色，不做外扩光圈。
-			DrawRoundedSurface(Ctx, Rect, ResolveConfiguredInputSurface(), Ctx.m_pUi->ScaleBackgroundAlpha(RingColor), ui_token::radius::BASE, Theme.m_FocusRingWidth);
+			DrawControlSurface(Ctx, Rect, ResolveConfiguredInputSurface(), RingColor, ui_token::radius::BASE, Theme.m_FocusRingWidth);
 		}
 
 		void DrawTextFieldFocusBorder(const IUiContext &Ctx, CLineInput *pInput, const CUIRect &Rect)
@@ -180,14 +186,26 @@ namespace ui_widget
 		const int TextAlign = InlineTrailingText ? TEXTALIGN_MR : ResolveInputFieldTextAlign(Options);
 		if(Ctx.m_pUi->RenderOnly())
 		{
-			// 文本计划只收集稳定文本，不绘制输入框 chrome，也不修改输入、焦点或动画状态。
+			CUiScopedSurfaceText SurfaceText(Ctx.m_pUi->TextRender(), ResolveConfiguredInputSurface(Options.m_ProcessInput));
+			// 后台只补绘外观，不进入会同步输入、焦点或动画的交互路径。
+			if(!Ctx.m_pUi->MeasurementOnly())
+			{
+				const ColorRGBA Plate = ResolveConfiguredInputSurface(Options.m_ProcessInput);
+				DrawTextFieldShell(Ctx, Layout.m_ShellRect, Plate, Options.m_Corners, ui_token::radius::BASE);
+				const ColorRGBA IconColor = ResolveUiSurfaceIconColor(Plate, Ctx.m_pUi->TextRender()->GetTextColor());
+				DrawInputFieldIcon(Ctx, Layout.m_IconRect, Options.m_pLeadingIcon != nullptr ? Options.m_pLeadingIcon : (Search ? FontIcons::FONT_ICON_MAGNIFYING_GLASS : nullptr), IconColor, Options.m_LeadingQmIcon >= 0 ? Options.m_LeadingQmIcon : (Search ? static_cast<int>(EQmIcon::SEARCH) : -1));
+				if(Options.m_Clearable)
+					DrawInputFieldIcon(Ctx, Layout.m_ClearRect, FontIcons::FONT_ICON_XMARK, IconColor, static_cast<int>(EQmIcon::CLOSE));
+				if(HasTrailingAction)
+					DrawInputFieldIcon(Ctx, TrailingRect, Options.m_pTrailingActionIcon, IconColor, Options.m_TrailingActionQmIcon);
+			}
 			const char *pPlaceholder = Options.m_pPlaceholder != nullptr ? Options.m_pPlaceholder : (Search ? Localize("Search") : nullptr);
 			if(WasEmpty && pPlaceholder != nullptr)
 				Ctx.m_pUi->DoLabel(&TextRect, pPlaceholder, FontSize, TextAlign);
-			else if(!WasEmpty && !pInput->IsHidden())
+			else if(!WasEmpty && (!pInput->IsHidden() || !Ctx.m_pUi->MeasurementOnly()))
 			{
 				const CQmCardLabelHintScope PreserveInput(Ctx.m_pUi, false);
-				Ctx.m_pUi->DoLabel(&TextRect, pInput->GetString(), FontSize, TextAlign);
+				Ctx.m_pUi->DoLabel(&TextRect, pInput->GetDisplayedString(), FontSize, TextAlign);
 			}
 			if(Options.m_pTrailingText != nullptr && TrailingRect.w > 0.0f)
 				Ctx.m_pUi->DoLabel(&TrailingRect, Options.m_pTrailingText, FontSize * 0.82f, TEXTALIGN_MC);
@@ -332,6 +350,14 @@ namespace ui_widget
 		if(Ctx.m_pUi == nullptr || pInput == nullptr)
 			return;
 
+		if(Ctx.m_pUi->RenderOnly())
+		{
+			if(!pInput->IsEmpty() && (!pInput->IsHidden() || !Ctx.m_pUi->MeasurementOnly()))
+				Ctx.m_pUi->DoLabel(&Rect, pInput->GetDisplayedString(), FontSize, TEXTALIGN_ML);
+			else if(pInput->IsEmpty() && pPlaceholder != nullptr)
+				Ctx.m_pUi->DoLabel(&Rect, pPlaceholder, FontSize, TEXTALIGN_ML);
+			return;
+		}
 		pInput->SetEmptyText(pPlaceholder);
 		CUIRect TextRect = Rect;
 		TextRect.VMargin(2.0f, &TextRect);
@@ -347,6 +373,8 @@ namespace ui_widget
 			return {};
 		if(Ctx.m_pUi->RenderOnly())
 		{
+			if(!Ctx.m_pUi->MeasurementOnly())
+				DrawTextFieldShell(Ctx, Rect, ResolveConfiguredInputSurface(true), Options.m_Corners, ui_token::radius::BASE);
 			char aValue[32];
 			str_format(aValue, sizeof(aValue), "%d", std::clamp(*pValue, Min, Max));
 			const float FontSize = std::min(Options.m_FontSize, Rect.h * CUi::ms_FontmodHeight * 0.8f);
@@ -469,7 +497,7 @@ namespace ui_widget
 		}
 		if(RenderOnly)
 		{
-			const int PreviewStoredValue = *pValue;
+			const int PreviewStoredValue = !Ctx.m_pUi->MeasurementOnly() && pState->m_HasPendingValue ? pState->m_PendingStoredValue : *pValue;
 			const bool IsInfinite = SliderInputIsInfiniteValue(PreviewStoredValue, Infinite);
 			int StoredValue = PreviewStoredValue;
 			if(!IsInfinite && !NoClampValue)
@@ -482,6 +510,12 @@ namespace ui_widget
 				str_copy(aValue, Options.m_pMaxText);
 			else
 				str_format(aValue, sizeof(aValue), "%d", DisplayValue);
+			if(!Ctx.m_pUi->MeasurementOnly())
+			{
+				DrawTextFieldShell(Ctx, InputField, ResolveConfiguredInputSurface(true), IGraphics::CORNER_ALL, ui_token::radius::BASE);
+				if(HasSlider)
+					RenderHorizontalSlider(Ctx, pId, ScrollBar, IsInfinite ? 1.0f : std::clamp(pScale->ToRelative(StoredValue, SliderMin, FiniteSliderMax), 0.0f, 1.0f) * (Infinite ? NumericFieldInfiniteEndpointStart(ScrollBar.w, Ctx.m_UiScale) : 1.0f));
+			}
 			const float FieldFontSize = std::min(Options.m_FontSize, InputField.h * CUi::ms_FontmodHeight * 0.8f);
 			if(HasSuffix)
 			{
@@ -648,7 +682,7 @@ namespace ui_widget
 		if(Ctx.m_pUi == nullptr)
 			return;
 		Ctx.m_pUi->DoConfigTooltip(pId, pHitRect != nullptr ? pHitRect : &Rect, pId);
-		if(Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi->MeasurementOnly())
 			return;
 		CUiScopedGaussianBlurSuppression GaussianBlurSuppression(Ctx.m_pUi);
 		const SUiTheme Theme = ThemeFor(Ctx);
@@ -657,7 +691,7 @@ namespace ui_widget
 		ColorRGBA Track = Style.m_Track;
 		float Progress = Value ? 1.0f : 0.0f;
 		CUiV2AnimationRuntime *pAnim = Ctx.m_pAnim != nullptr ? Ctx.m_pAnim : Ctx.m_pUi->QmAnimationRuntime();
-		if(Animate && Enabled && pAnim != nullptr)
+		if(Animate && Enabled && pAnim != nullptr && !Ctx.m_pUi->RenderOnly())
 		{
 			const uint64_t TrackKey = BuildUiAnimNodeKey(Ctx.m_ScopeHash ^ 0xA5A5ull, reinterpret_cast<uint64_t>(pId));
 			Track = ResolveUiAnimValueColor(*pAnim, TrackKey, Track, ui_token::motion::BTN_HOVER.m_DurationSec, ui_token::motion::BTN_HOVER.m_Easing);
@@ -665,11 +699,11 @@ namespace ui_widget
 			Progress = ResolveUiAnimSpringValue(*pAnim, KnobKey, EUiAnimProperty::COLOR_MIX, Progress, ui_token::motion::TOGGLE);
 		}
 		const SToggleLayout Layout = ResolveToggleLayout(Rect, Progress);
-		const bool Hovered = Enabled && Ctx.m_pUi->Enabled() && Ctx.m_pUi->MouseHovered(pHitRect != nullptr ? pHitRect : &Rect);
+		const bool Hovered = !Ctx.m_pUi->RenderOnly() && Enabled && Ctx.m_pUi->Enabled() && Ctx.m_pUi->MouseHovered(pHitRect != nullptr ? pHitRect : &Rect);
 		const bool Pressed = Hovered && Ctx.m_pUi->CheckActiveItem(pId) && Ctx.m_pUi->MouseButton(0);
 		const auto Feedback = ResolveUiToggleFeedbackStyle(Style, Track, Backdrop, Enabled, Hovered, Pressed);
-		DrawRoundedSurface(Ctx, Layout.m_Track, Feedback.m_Track, Feedback.m_Border, ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
-		DrawRoundedSurface(Ctx, Layout.m_Knob, Feedback.m_Knob, ColorRGBA(), ui_token::radius::PILL);
+		DrawControlSurface(Ctx, Layout.m_Track, Feedback.m_Track, Feedback.m_Border, ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
+		DrawControlSurface(Ctx, Layout.m_Knob, Feedback.m_Knob, ColorRGBA(), ui_token::radius::PILL);
 	}
 
 	void DrawMarkedControl(const IUiContext &Ctx, const void *pId, const char *pMark, const CUIRect &Rect, const CUIRect *pHitRect)
@@ -688,9 +722,9 @@ namespace ui_widget
 
 	bool Toggle(const IUiContext &Ctx, const void *pId, bool *pValue, const CUIRect &Rect, bool ProcessInput, bool Animate)
 	{
-		if(Ctx.m_pUi == nullptr || pValue == nullptr || Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi == nullptr || pValue == nullptr)
 			return false;
-		const bool Clicked = ProcessInput && Ctx.m_pUi->DoButtonLogic(pId, 0, &Rect, BUTTONFLAG_LEFT) != 0;
+		const bool Clicked = !Ctx.m_pUi->RenderOnly() && ProcessInput && Ctx.m_pUi->DoButtonLogic(pId, 0, &Rect, BUTTONFLAG_LEFT) != 0;
 		if(Clicked)
 			*pValue = !*pValue;
 		DrawToggle(Ctx, pId, *pValue, Rect, true, Animate);
@@ -699,27 +733,27 @@ namespace ui_widget
 
 	void DrawScrollbarHandle(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, bool Enabled, const ColorRGBA *pColorInner)
 	{
-		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->MeasurementOnly())
 			return;
-		const SUiSliderStyle Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), Ctx.m_pUi->HotItem() == pId, Ctx.m_pUi->CheckActiveItem(pId), Enabled);
+		const SUiSliderStyle Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->HotItem() == pId, !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->CheckActiveItem(pId), Enabled);
 		// 滑块是前景反馈，背景透明度仅作用于轨道；保留强调色自身 alpha 和禁用态。
-		DrawRoundedSurface(Ctx, Rect, Style.m_Handle, Style.m_Border, ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
+		DrawControlSurface(Ctx, Rect, Style.m_Handle, Style.m_Border, ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
 		if(pColorInner != nullptr)
 		{
 			CUIRect Inner;
 			Rect.Margin(std::min(2.0f, std::min(Rect.w, Rect.h) * 0.25f), &Inner);
-			DrawRoundedSurface(Ctx, Inner, *pColorInner, ColorRGBA(), ui_token::radius::PILL);
+			DrawControlSurface(Ctx, Inner, *pColorInner, ColorRGBA(), ui_token::radius::PILL);
 		}
 	}
 
 	void RenderHorizontalSlider(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, float Current, const ColorRGBA *pColorInner)
 	{
-		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->MeasurementOnly())
 			return;
 		const auto Layout = ResolveHorizontalSliderLayout(Rect, Current);
-		const auto Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), Ctx.m_pUi->HotItem() == pId, Ctx.m_pUi->CheckActiveItem(pId));
-		DrawRoundedSurface(Ctx, Layout.m_Track, Ctx.m_pUi->ScaleBackgroundAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
-		DrawRoundedSurface(Ctx, Layout.m_Fill, Ctx.m_pUi->ScaleBackgroundAlpha(Style.m_Fill), ColorRGBA(), ui_token::radius::PILL);
+		const auto Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->HotItem() == pId, !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->CheckActiveItem(pId));
+		DrawControlSurface(Ctx, Layout.m_Track, Ctx.m_pUi->ScaleBackgroundAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
+		DrawControlSurface(Ctx, Layout.m_Fill, Style.m_Fill, ColorRGBA(), ui_token::radius::PILL);
 		DrawScrollbarHandle(Ctx, pId, Layout.m_Handle, true, pColorInner);
 	}
 
@@ -733,10 +767,13 @@ namespace ui_widget
 		Track.VSplitRight(ui_token::spacing::SM, &Track, nullptr);
 
 		const float Normalized = std::clamp((*pValue - Min) / (Max - Min), 0.0f, 1.0f);
-		const float NewNormalized = Ctx.m_pUi->DoScrollbarH(pId, &Track, Normalized);
+		if(Ctx.m_pUi->RenderOnly())
+			RenderHorizontalSlider(Ctx, pId, Track, Normalized);
+		const float NewNormalized = Ctx.m_pUi->RenderOnly() ? Normalized : Ctx.m_pUi->DoScrollbarH(pId, &Track, Normalized);
 		const float NewValue = Min + NewNormalized * (Max - Min);
-		const bool Changed = std::abs(NewValue - *pValue) > 1e-4f;
-		*pValue = NewValue;
+		const bool Changed = !Ctx.m_pUi->RenderOnly() && std::abs(NewValue - *pValue) > 1e-4f;
+		if(!Ctx.m_pUi->RenderOnly())
+			*pValue = NewValue;
 
 		char aBuf[32];
 		if(pSuffix != nullptr && pSuffix[0] != '\0')

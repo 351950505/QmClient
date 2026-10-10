@@ -93,7 +93,7 @@ void CMenus::RenderQmFunctionTranslateContent(CUIRect &Content, float LineHeight
 	Content.HSplitTop(LineSpacing, nullptr, &Content);
 
 	Content.HSplitTop(LineHeight, &Row, &Content);
-	RenderCheckbox(&g_Config.m_QmTranslateOutgoingSendOriginal, "Send original text with translation", Localize("Send original text with translation"), &g_Config.m_QmTranslateOutgoingSendOriginal, &Row, LineHeight);
+	RenderCheckbox(&g_Config.m_QmTranslateOutgoingShowOriginal, "Show original text below outgoing translation", Localize("Show original text below outgoing translation"), &g_Config.m_QmTranslateOutgoingShowOriginal, &Row, LineHeight);
 	Content.HSplitTop(LineSpacing, nullptr, &Content);
 
 	Content.HSplitTop(LineHeight, &Row, &Content);

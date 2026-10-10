@@ -1960,8 +1960,8 @@ void CGameConsole::OnRender()
 
 	const float ConsoleHeight = ConsoleHeightScale * MaxConsoleHeight;
 
-	const ColorRGBA ShadowColor = ColorRGBA(0.0f, 0.0f, 0.0f, 0.4f);
-	const ColorRGBA TransparentColor = ColorRGBA(0.0f, 0.0f, 0.0f, 0.0f);
+	const ColorRGBA ShadowColor = LocalConsole ? Palette.m_Shadow : ColorRGBA(0.0f, 0.0f, 0.0f, 0.4f);
+	const ColorRGBA TransparentColor = ShadowColor.WithAlpha(0.0f);
 	const ColorRGBA aBackgroundColors[NUM_CONSOLETYPES] = {ColorRGBA(0.2f, 0.2f, 0.2f, 0.9f), ColorRGBA(0.4f, 0.2f, 0.2f, 0.9f)};
 	const ColorRGBA aBorderColors[NUM_CONSOLETYPES] = {ColorRGBA(0.1f, 0.1f, 0.1f, 0.9f), ColorRGBA(0.2f, 0.1f, 0.1f, 0.9f)};
 
@@ -2001,7 +2001,7 @@ void CGameConsole::OnRender()
 	// bottom border
 	Graphics()->TextureClear();
 	Graphics()->QuadsBegin();
-	Graphics()->SetColor(aBorderColors[m_ConsoleType]);
+	Graphics()->SetColor(LocalConsole ? Palette.m_Border : aBorderColors[m_ConsoleType]);
 	IGraphics::CQuadItem QuadItemBorder(0.0f, ConsoleHeight, Screen.w, 1.0f);
 	Graphics()->QuadsDrawTL(&QuadItemBorder, 1);
 	Graphics()->QuadsEnd();

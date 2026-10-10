@@ -857,6 +857,7 @@ private:
 	IInput *m_pInput;
 	ITextRender *m_pTextRender;
 	float m_BackgroundAlphaScale = 1.0f;
+	float m_ControlAlphaScale = 1.0f;
 	struct SQmCachedIconLabel
 	{
 		std::string m_Text;
@@ -903,6 +904,14 @@ public:
 	IGraphics *Graphics() const { return m_pGraphics; }
 	IInput *Input() const { return m_pInput; }
 	ITextRender *TextRender() const { return m_pTextRender; }
+	// 背景透明度只作用于页面及轨道；控件自身颜色只乘父层显隐系数。
+	float ControlAlphaScale() const { return m_ControlAlphaScale; }
+	void SetControlAlphaScale(float AlphaScale) { m_ControlAlphaScale = std::clamp(AlphaScale, 0.0f, 1.0f); }
+	ColorRGBA ScaleControlAlpha(ColorRGBA Color) const
+	{
+		Color.a *= m_ControlAlphaScale;
+		return Color;
+	}
 	float BackgroundAlphaScale() const { return m_BackgroundAlphaScale; }
 	void SetBackgroundAlphaScale(float AlphaScale) { m_BackgroundAlphaScale = std::clamp(AlphaScale, 0.0f, 1.0f); }
 	ColorRGBA ScaleBackgroundAlpha(ColorRGBA Color) const
@@ -966,6 +975,8 @@ public:
 		if(m_BackgroundRenderDepth > 0)
 			--m_BackgroundRenderDepth;
 	}
+	// 文本预热不绘制外观；后台绘制保留外观，但同样禁止交互。
+	bool MeasurementOnly() const { return m_RenderOnlyDepth > 0; }
 	bool RenderOnly() const { return m_RenderOnlyDepth > 0 || m_BackgroundRenderDepth > 0; }
 	void BeginPreLayoutInput() { ++m_PreLayoutInputDepth; }
 	void EndPreLayoutInput()
@@ -1470,6 +1481,48 @@ public:
 	}
 	CUiScopedInteractionOwner(const CUiScopedInteractionOwner &) = delete;
 	CUiScopedInteractionOwner &operator=(const CUiScopedInteractionOwner &) = delete;
+};
+
+// 父层淡入淡出按层相乘，离开作用域后恢复，避免页面背景设置串入控件颜色。
+class CUiScopedControlAlphaScale
+{
+	CUi *m_pUi;
+	float m_Previous;
+	ITextRender *m_pTextRender;
+	ColorRGBA m_PreviousText;
+	ColorRGBA m_PreviousOutline;
+	ColorRGBA m_PreviousSelection;
+
+public:
+	CUiScopedControlAlphaScale(CUi *pUi, float Alpha) :
+		m_pUi(pUi), m_Previous(pUi != nullptr ? pUi->ControlAlphaScale() : 1.0f), m_pTextRender(pUi != nullptr ? pUi->TextRender() : nullptr)
+	{
+		const float Scale = std::clamp(Alpha, 0.0f, 1.0f);
+		if(m_pUi != nullptr)
+			m_pUi->SetControlAlphaScale(m_Previous * Scale);
+		if(m_pTextRender != nullptr)
+		{
+			m_PreviousText = m_pTextRender->GetTextColor();
+			m_PreviousOutline = m_pTextRender->GetTextOutlineColor();
+			m_PreviousSelection = m_pTextRender->GetTextSelectionColor();
+			m_pTextRender->TextColor(m_PreviousText.WithMultipliedAlpha(Scale));
+			m_pTextRender->TextOutlineColor(m_PreviousOutline.WithMultipliedAlpha(Scale));
+			m_pTextRender->TextSelectionColor(m_PreviousSelection.WithMultipliedAlpha(Scale));
+		}
+	}
+	~CUiScopedControlAlphaScale()
+	{
+		if(m_pUi != nullptr)
+			m_pUi->SetControlAlphaScale(m_Previous);
+		if(m_pTextRender != nullptr)
+		{
+			m_pTextRender->TextColor(m_PreviousText);
+			m_pTextRender->TextOutlineColor(m_PreviousOutline);
+			m_pTextRender->TextSelectionColor(m_PreviousSelection);
+		}
+	}
+	CUiScopedControlAlphaScale(const CUiScopedControlAlphaScale &) = delete;
+	CUiScopedControlAlphaScale &operator=(const CUiScopedControlAlphaScale &) = delete;
 };
 
 #endif

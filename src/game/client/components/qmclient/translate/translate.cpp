@@ -277,12 +277,12 @@ bool CTranslate::TryTranslateOutgoingChat(int Team, const char *pText)
 		return true;
 	}
 
-	// 保留原文时必须先接纳；聊天队列拒绝后本入口结束，不启动只剩译文的任务。
-	const auto SendOriginal = [&] { return GameClient()->m_Chat.SendChatQueued(Team, Text.c_str(), false); };
-	const auto StartTranslation = [&](bool OriginalSent) {
+	const auto StartTranslation = [&] {
 		STranslateJob Job;
 		Job.m_Outgoing = true;
-		Job.m_OriginalSent = OriginalSent;
+		Job.m_DisplayOriginal = g_Config.m_QmTranslateOutgoingShowOriginal != 0;
+		Job.m_Connection = g_Config.m_ClDummy;
+		Job.m_LocalClientId = GameClient()->m_aLocalIds[Job.m_Connection];
 		Job.m_Team = Team;
 		Job.m_OriginalText = Text;
 		str_copy(Job.m_aTarget, Target.c_str(), sizeof(Job.m_aTarget));
@@ -301,7 +301,7 @@ bool CTranslate::TryTranslateOutgoingChat(int Team, const char *pText)
 		GameClient()->m_Chat.Echo(aBuf);
 		return m_Jobs.Submit(std::move(Job), GetMaxConcurrency());
 	};
-	CChat::TryStartOutgoingTranslation(g_Config.m_QmTranslateOutgoingSendOriginal != 0, SendOriginal, StartTranslation);
+	StartTranslation();
 	// 显式请求已处理，拒绝时也不能让下游再次发送或翻译。
 	return true;
 }
@@ -335,8 +335,20 @@ void CTranslate::OnRender()
 					str_copy(aBuf, Localize(TranslateNoticeSource(ETranslateNotice::INVALID_RESPONSE)));
 				GameClient()->m_Chat.Echo(aBuf);
 			}
-			if(!Completed.m_SendText.empty())
-				GameClient()->m_Chat.SendChatQueued(Job.m_Team, Completed.m_SendText.c_str(), false);
+			if(Completed.m_Success)
+			{
+				// 翻译期间退出、切换身份或断开分身，不能借用另一连接发送。
+				if(Job.m_Connection < IClient::CONN_MAIN || Job.m_Connection > IClient::CONN_DUMMY || Job.m_LocalClientId < 0 || Job.m_LocalClientId != GameClient()->m_aLocalIds[Job.m_Connection] || (Job.m_Connection == IClient::CONN_DUMMY && !Client()->DummyConnected()))
+				{
+					GameClient()->m_Chat.Echo(Localize("Translation canceled because the sender changed"));
+					continue;
+				}
+				if(!DispatchOutgoingTranslation(Completed, [&](int Team, const char *pTranslated, const char *pLocalOriginal, int Connection) {
+					   const auto Result = GameClient()->m_Chat.SendChatQueued(Team, pTranslated, false, pLocalOriginal, Connection);
+					   return Result == CChat::EChatSendResult::SENT || Result == CChat::EChatSendResult::QUEUED;
+				   }))
+					GameClient()->m_Chat.Echo(Localize("Translated message could not be queued; original was not sent"));
+			}
 			continue;
 		}
 		CChat::CLine *pLine = GameClient()->m_Chat.GetLineByIndex(Job.m_LineIndex);
@@ -437,18 +449,17 @@ void CTranslate::StartAutoOutgoingTranslate(int Team, const char *pText)
 {
 	if(!m_Jobs.CanSubmit(GetMaxConcurrency()))
 	{
-		GameClient()->m_Chat.Echo(Localize("Translation queue full, sending original"));
-		GameClient()->m_Chat.SendChatQueued(Team, pText, false);
+		GameClient()->m_Chat.Echo(Localize("Too many translation tasks"));
 		return;
 	}
 
-	// 保留原文时必须先接纳；聊天队列拒绝后本入口结束，不启动只剩译文的任务。
-	const auto SendOriginal = [&] { return GameClient()->m_Chat.SendChatQueued(Team, pText, false); };
-	const auto StartTranslation = [&](bool OriginalSent) {
+	const auto StartTranslation = [&] {
 		STranslateJob Job;
 		Job.m_Outgoing = true;
 		Job.m_AutoTriggered = true;
-		Job.m_OriginalSent = OriginalSent;
+		Job.m_DisplayOriginal = g_Config.m_QmTranslateOutgoingShowOriginal != 0;
+		Job.m_Connection = g_Config.m_ClDummy;
+		Job.m_LocalClientId = GameClient()->m_aLocalIds[Job.m_Connection];
 		Job.m_OriginalText = pText;
 		Job.m_Team = Team;
 		const char *pTarget = GetEffectiveTranslateTarget(g_Config.m_QmTranslateOutgoingTarget);
@@ -464,9 +475,7 @@ void CTranslate::StartAutoOutgoingTranslate(int Team, const char *pText)
 
 		if(!Job.m_pBackend)
 		{
-			GameClient()->m_Chat.Echo(Localize("Translation backend invalid, sending original"));
-			if(!OriginalSent)
-				GameClient()->m_Chat.SendChatQueued(Team, pText, false);
+			GameClient()->m_Chat.Echo(Localize("Invalid translation backend"));
 			return false;
 		}
 
@@ -475,7 +484,7 @@ void CTranslate::StartAutoOutgoingTranslate(int Team, const char *pText)
 		GameClient()->m_Chat.Echo(aBuf);
 		return m_Jobs.Submit(std::move(Job), GetMaxConcurrency());
 	};
-	CChat::TryStartOutgoingTranslation(g_Config.m_QmTranslateOutgoingSendOriginal != 0, SendOriginal, StartTranslation);
+	StartTranslation();
 }
 
 int CTranslate::GetMaxConcurrency() const

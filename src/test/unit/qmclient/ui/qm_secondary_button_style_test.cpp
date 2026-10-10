@@ -149,3 +149,55 @@ TEST(QmButtonStyle, DisabledListEntryIgnoresHoverAndPress)
 	EXPECT_EQ(DisabledPress.m_Fill, Disabled.m_Fill);
 	EXPECT_EQ(DisabledPress.m_Border, Disabled.m_Border);
 }
+
+TEST(QmControlSurface, ConfiguredButtonColorAndOpacityRemainIndependentOfInterfaceBackground)
+{
+	struct SRestoreConfig
+	{
+		CConfig m_Previous = g_Config;
+		~SRestoreConfig() { g_Config = m_Previous; }
+	} Restore;
+	g_Config.m_QmUiDropdownColor = ColorHSLA(0, 1, 0.5f).Pack(false);
+	g_Config.m_QmUiDropdownOpacity = 40;
+	const ColorRGBA Button = ResolveConfiguredControlSurface();
+	EXPECT_GT(Button.r, 0.99f);
+	EXPECT_LT(Button.g, 0.01f);
+	EXPECT_LT(Button.b, 0.01f);
+	EXPECT_FLOAT_EQ(Button.a, 0.4f);
+	for(const unsigned BackgroundColor : {0x000000u, 0x0000FFu})
+	{
+		g_Config.m_QmUiColor = BackgroundColor;
+		for(const int BackgroundOpacity : {0, 20, 100})
+		{
+			SCOPED_TRACE(::testing::Message() << "background=" << BackgroundColor << " opacity=" << BackgroundOpacity);
+			g_Config.m_QmUiOpacity = BackgroundOpacity;
+			EXPECT_EQ(ResolveConfiguredControlSurface(), Button);
+			const ColorRGBA Disabled = ResolveConfiguredControlSurface(false);
+			EXPECT_FLOAT_EQ(Disabled.r, Button.r);
+			EXPECT_FLOAT_EQ(Disabled.g, Button.g);
+			EXPECT_FLOAT_EQ(Disabled.b, Button.b);
+			EXPECT_FLOAT_EQ(Disabled.a, 0.26f);
+			EXPECT_EQ(ResolveConfiguredIconButtonSurface(ColorRGBA(0.2f, 0.4f, 0.8f, 0.3f)), ColorRGBA(0.2f, 0.4f, 0.8f, 0.3f));
+		}
+	}
+}
+
+TEST(QmControlSurface, OwnOpacityIsClampedBeforeApplyingDisabledState)
+{
+	struct SCase
+	{
+		int m_Opacity;
+		float m_EnabledAlpha;
+		float m_DisabledAlpha;
+	};
+	for(const SCase Case : {SCase{-20, 0.0f, 0.0f}, SCase{0, 0.0f, 0.0f}, SCase{40, 0.4f, 0.26f}, SCase{100, 1.0f, 0.65f}, SCase{120, 1.0f, 0.65f}})
+	{
+		SCOPED_TRACE(Case.m_Opacity);
+		const ColorRGBA Enabled = ResolveUiControlSurface(0x0000FF, Case.m_Opacity);
+		const ColorRGBA Disabled = ResolveUiControlSurface(0x0000FF, Case.m_Opacity, false);
+		EXPECT_EQ(Enabled.WithAlpha(1), ColorRGBA(1, 1, 1, 1));
+		EXPECT_EQ(Disabled.WithAlpha(1), ColorRGBA(1, 1, 1, 1));
+		EXPECT_FLOAT_EQ(Enabled.a, Case.m_EnabledAlpha);
+		EXPECT_FLOAT_EQ(Disabled.a, Case.m_DisabledAlpha);
+	}
+}

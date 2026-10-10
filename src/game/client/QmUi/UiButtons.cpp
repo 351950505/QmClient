@@ -39,25 +39,25 @@ namespace ui_widget
 		auto Style = ResolveUiButtonStyle(Options.m_Role, Base, Backdrop, Theme, State);
 		if(Options.m_TransparentInactive && !State.m_Hovered)
 			Style.m_Border = ColorRGBA();
-		if(pUi->RenderOnly())
+		if(pUi->MeasurementOnly())
 			return Style.m_Fill;
 
 		CUiScopedGaussianBlurSuppression GaussianBlurSuppression(pUi);
 		CUiV2AnimationRuntime *pAnim = Ctx.m_pAnim != nullptr ? Ctx.m_pAnim : pUi->QmAnimationRuntime();
-		if(pId != nullptr && pAnim != nullptr && Options.m_Enabled)
+		if(pId != nullptr && pAnim != nullptr && Options.m_Enabled && !pUi->RenderOnly())
 		{
 			const uint64_t NodeKey = BuildUiAnimNodeKey(Ctx.m_ScopeHash, reinterpret_cast<uint64_t>(pId));
 			const SUiAnimTransition &Transition = State.m_Pressed ? ui_token::motion::BTN_PRESS : ui_token::motion::BTN_HOVER;
 			Style.m_Fill = ResolveUiAnimValueColor(*pAnim, NodeKey, Style.m_Fill, Transition.m_DurationSec, Transition.m_Easing);
 		}
-		const ColorRGBA Fill = pUi->ScaleBackgroundAlpha(Style.m_Fill);
-		DrawRoundedSurface(Ctx, Rect, Fill, pUi->ScaleBackgroundAlpha(Style.m_Border), Options.m_Radius, Options.m_BorderWidth, Options.m_Corners);
+		const ColorRGBA Fill = pUi->ScaleControlAlpha(Style.m_Fill);
+		DrawRoundedSurface(Ctx, Rect, Fill, pUi->ScaleControlAlpha(Style.m_Border), Options.m_Radius, Options.m_BorderWidth, Options.m_Corners);
 		return Fill;
 	}
 
 	int DoIconButton(const IUiContext &Ctx, const void *pId, EQmIcon Icon, const char *pFallbackIcon, int Checked, const CUIRect &Rect, unsigned Flags, int Corners, bool Enabled, std::optional<ColorRGBA> Color, bool ShowSlash, bool TransparentInactive)
 	{
-		if(Ctx.m_pUi == nullptr || pId == nullptr || Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi == nullptr || pId == nullptr || Ctx.m_pUi->MeasurementOnly())
 			return 0;
 		CUi *pUi = Ctx.m_pUi;
 		const CUIRect ButtonRect = QmUiSquareIconButtonRect(Rect);
@@ -92,11 +92,11 @@ namespace ui_widget
 				pGraphics->SetColor(SlashColor);
 				pGraphics->QuadsDrawFreeform(&Quad, 1);
 			};
-			DrawSlash(Label.w * 0.18f, ColorRGBA(0.0f, 0.0f, 0.0f, 0.65f));
-			DrawSlash(Label.w * 0.10f, ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f));
+			DrawSlash(Label.w * 0.18f, pUi->ScaleControlAlpha(ColorRGBA(0.0f, 0.0f, 0.0f, 0.65f)));
+			DrawSlash(Label.w * 0.10f, pUi->ScaleControlAlpha(ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f)));
 			pGraphics->QuadsEnd();
 		}
-		return Options.m_Enabled ? pUi->DoButtonLogic(pId, Checked, &ButtonRect, Flags) : 0;
+		return Options.m_Enabled && !pUi->RenderOnly() ? pUi->DoButtonLogic(pId, Checked, &ButtonRect, Flags) : 0;
 	}
 
 	namespace

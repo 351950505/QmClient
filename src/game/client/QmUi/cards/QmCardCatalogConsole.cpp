@@ -77,7 +77,7 @@ void CMenus::RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetr
 			{Localize("Console selected search match color"), &g_Config.m_QmConsoleSearchSelectedColor, DefaultConfig::QmConsoleSearchSelectedColor}};
 		for(size_t i = 0; i < std::size(aColors); ++i)
 			DoLine_ColorPicker(&Controls.m_aColorReset[i], Metrics, &Content, aColors[i].m_pLabel, aColors[i].m_pValue,
-				color_cast<ColorRGBA>(ColorHSLA(aColors[i].m_Default)), false, nullptr, false, false);
+				color_cast<ColorRGBA>(ColorHSLA(aColors[i].m_Default)), false, nullptr, false, true);
 	}
 
 	const auto Palette = QmConsoleAppearance::Palette(g_Config);

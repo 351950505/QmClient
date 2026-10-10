@@ -698,9 +698,6 @@ Alpha
 Also apply to dummy
 == Aplicar também ao dummy
 
-Also send the original text when translating outgoing messages
-== Enviar também o texto original ao traduzir mensagens enviadas
-
 Always show
 == Mostrar sempre
 
@@ -10643,9 +10640,6 @@ Send emote when entering freeze
 Send emoticon in water
 == Enviar emoticon na água
 
-Send original text with translation
-== Enviar o texto original juntamente com a tradução
-
 Send probability
 == Probabilidade de envio
 
@@ -11474,6 +11468,9 @@ Show only servers with unfinished maps
 Show only team chat messages
 == Mostrar apenas mensagens de chat de equipa
 
+Show original text below outgoing translation
+== Mostrar o texto original abaixo da tradução das mensagens enviadas
+
 Show other players' coordinates
 == Mostrar coordenadas de outros jogadores
 
@@ -11749,6 +11746,9 @@ Show the number of tees still alive
 
 Show the occasional sponsor reminder in the main menu
 == Mostrar ocasionalmente o lembrete no menu principal
+
+Show the original text locally below translated outgoing messages
+== Mostrar o texto original apenas localmente abaixo das mensagens traduzidas enviadas, sem enviar o original ao servidor
 
 Show the pet
 == Mostrar o animal de estimação
@@ -13595,6 +13595,9 @@ Translate:
 Translated chat text size as a percentage of the original text (50-100)
 == Tamanho do texto traduzido do chat como percentagem do tamanho do texto original (50-100)
 
+Translated message could not be queued; original was not sent
+== Não foi possível adicionar a mensagem traduzida à fila de envio; o original não foi enviado
+
 Translated text hidden due to streamer mode
 == Texto traduzido oculto devido ao modo de streamer
 
@@ -13604,14 +13607,14 @@ Translated text size
 Translating to %s...
 == A traduzir para %s...
 
-Translation backend invalid, sending original
-== Backend de tradução inválido, a enviar original
-
 Translation button active color
 == Cor do botão de tradução quando ativado
 
 Translation button cancel color
 == Cor do botão de tradução quando cancelado
+
+Translation canceled because the sender changed
+== Tradução cancelada porque o remetente mudou
 
 Translation color alpha migration completed flag
 == Indicador de migração de alfa das cores de tradução concluída
@@ -13630,9 +13633,6 @@ Translation menu selected color
 
 Translation model was not found. Check the model name.
 == Modelo de tradução não encontrado. Verifique o nome do modelo.
-
-Translation queue full, sending original
-== Fila de tradução cheia, a enviar original
 
 Translation service
 == Serviço de tradução

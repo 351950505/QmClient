@@ -61,7 +61,8 @@ void RenderSettingsCardHeaderIcon(const IUiContext &Ctx, const CUIRect &Rect, co
 	const CUIRect &ChromeRect = Rect;
 	const float Radius = std::min(ui_token::radius::TIGHT * UiScale, std::min(ChromeRect.w, ChromeRect.h) * 0.25f);
 	const ColorRGBA ChromeColor(1.0f, 1.0f, 1.0f, (Hovered ? (Ctx.m_pUi->MouseButton(0) ? 0.36f : 0.28f) : 0.18f) * Alpha);
-	DrawRoundedSurface(Ctx, ChromeRect, ChromeColor, ChromeColor, Radius);
+	if(!Ctx.m_pUi->MeasurementOnly())
+		DrawRoundedSurface(Ctx, ChromeRect, ChromeColor, ChromeColor, Radius);
 	const bool Pressed = Hovered && Ctx.m_pUi->MouseButton(0);
 	const uint64_t NodeKey = BuildUiAnimNodeKey(Ctx.m_ScopeHash ^ str_quickhash("card-icon-feedback"), reinterpret_cast<uint64_t>(pId));
 	const float Scale = Ctx.m_pAnim != nullptr && pId != nullptr ? ResolveSettingsIconScale(*Ctx.m_pAnim, NodeKey, Hovered, Pressed, !Ctx.m_pUi->RenderOnly()) : 1.0f;
@@ -107,7 +108,7 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 
 	SUiTheme Fallback;
 	const SUiTheme &Theme = SettingsCardTheme(Ctx, Fallback);
-	const bool DrawCardChrome = SettingsCardShouldDrawChrome(Ctx.m_pUi != nullptr && Ctx.m_pUi->RenderOnly());
+	const bool DrawCardChrome = SettingsCardShouldDrawChrome(Ctx.m_pUi != nullptr && Ctx.m_pUi->MeasurementOnly());
 	// 普通 hover 只触发悬浮说明；重排与拖放反馈只改变边框，卡片背景透明度保持稳定，避免滚动或切页时闪烁。
 	// 完成反馈只属于显式拖放。普通高度/布局变化不得改变卡片 chrome，
 	// 否则半透明卡片在展开、折叠或首次布局时会表现为一次亮闪。
@@ -182,6 +183,7 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 		Ctx.m_pUi->ClipEnable(&ClipRect);
 	}
 	CUiScopedSurfaceText SurfaceText(Ctx.m_pTextRender, Surface);
+	CUiScopedControlAlphaScale ContentAlpha(Ctx.m_pUi, DrawState.m_DrawAlpha);
 	if(RenderMeasured)
 	{
 		CUIRect ContentRect = DrawFrame.m_ContentRect;

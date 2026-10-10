@@ -377,6 +377,8 @@ void CUi::RenderPopupMenus()
 			// The popup render function can open/close popups, which may resize the vector and thus
 			// invalidate the variable PopupMenu. We therefore store pId in a separate variable.
 			CUiScopedSurfaceText SurfaceText(TextRender(), ForegroundSurface);
+			// 公共控件跟随真实弹层入场透明度，不借用页面背景透明度。
+			CUiScopedControlAlphaScale ContentAlpha(this, AnimAlphaMul);
 			CUiScopedInteractionOwner InteractionOwner(this, PopupMenu.m_Source.Context(), PopupMenu.m_Source.CardId());
 			m_pRenderingPopupId = pId;
 			Result = PopupMenu.m_pfnFunc(PopupMenu.m_pContext, PopupRect, Active);

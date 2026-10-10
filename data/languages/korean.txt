@@ -698,9 +698,6 @@ Alpha
 Also apply to dummy
 == 더미에도 적용
 
-Also send the original text when translating outgoing messages
-== 발신 메시지 번역 시 원문도 함께 전송
-
 Always show
 == 항상 표시
 
@@ -10643,9 +10640,6 @@ Send emote when entering freeze
 Send emoticon in water
 == 물 속에서 이모티콘 보내기
 
-Send original text with translation
-== 발신 메시지 번역 시 원문도 전송
-
 Send probability
 == 보낼 확률
 
@@ -11474,6 +11468,9 @@ Show only servers with unfinished maps
 Show only team chat messages
 == 팀 채팅 메시지만 표시
 
+Show original text below outgoing translation
+== 발신 번역문 아래에 원문 표시
+
 Show other players' coordinates
 == 다른 플레이어의 좌표 표시
 
@@ -11749,6 +11746,9 @@ Show the number of tees still alive
 
 Show the occasional sponsor reminder in the main menu
 == 메인 메뉴에서 후원 알림을 가끔 표시
+
+Show the original text locally below translated outgoing messages
+== 전송한 번역 메시지 아래에 원문을 로컬에서만 표시하며, 원문은 서버로 전송하지 않습니다
 
 Show the pet
 == 펫 표시
@@ -13595,6 +13595,9 @@ Translate:
 Translated chat text size as a percentage of the original text (50-100)
 == 원문 글자 크기에 대한 채팅 번역문 글자 크기의 백분율 (50-100)
 
+Translated message could not be queued; original was not sent
+== 번역 메시지를 전송 대기열에 추가하지 못했습니다. 원문은 전송되지 않았습니다
+
 Translated text hidden due to streamer mode
 == 스트리머 모드로 인해 번역 텍스트 숨김
 
@@ -13604,14 +13607,14 @@ Translated text size
 Translating to %s...
 == %s(으)로 번역 중...
 
-Translation backend invalid, sending original
-== 번역 백엔드가 유효하지 않음, 원문 전송
-
 Translation button active color
 == 번역 버튼 활성화 시 색상
 
 Translation button cancel color
 == 번역 버튼 취소 시 색상
+
+Translation canceled because the sender changed
+== 발신자가 변경되어 번역이 취소되었습니다
 
 Translation color alpha migration completed flag
 == 번역 색상 알파 마이그레이션 완료 플래그
@@ -13630,9 +13633,6 @@ Translation menu selected color
 
 Translation model was not found. Check the model name.
 == 번역 모델을 찾을 수 없습니다. 모델 이름을 확인하세요.
-
-Translation queue full, sending original
-== 번역 대기열이 가득 참, 원문 전송
 
 Translation service
 == 번역 서비스

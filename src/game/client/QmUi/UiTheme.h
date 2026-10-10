@@ -87,6 +87,8 @@ struct SUiTheme
 	ColorRGBA m_FocusRing;
 	ColorRGBA m_Accent;
 	ColorRGBA m_Selected;
+	// 旋钮是独立的前景角色，默认保持白色，不借用自动文本对比色。
+	ColorRGBA m_ToggleKnob = ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f);
 	ColorRGBA m_TextTitle;
 	ColorRGBA m_TextBody;
 	ColorRGBA m_TextSmall;
@@ -101,11 +103,11 @@ struct SUiToggleStyle
 	ColorRGBA m_Border;
 };
 
-inline SUiToggleStyle ResolveUiToggleStyle(const SUiTheme &Theme, ColorRGBA ControlSurface, ColorRGBA Backdrop, bool Value, bool Enabled)
+inline SUiToggleStyle ResolveUiToggleStyle(const SUiTheme &Theme, ColorRGBA ControlSurface, ColorRGBA, bool Value, bool Enabled)
 {
 	SUiToggleStyle Style;
 	Style.m_Track = Value ? Theme.m_Accent : ControlSurface;
-	Style.m_Knob = ResolveUiSurfaceForeground(Style.m_Track, Backdrop);
+	Style.m_Knob = Theme.m_ToggleKnob;
 	if(!Enabled)
 	{
 		Style.m_Track.a *= 0.65f;
@@ -191,6 +193,7 @@ inline ColorRGBA ResolveDropdownSurface(unsigned BackgroundColor, int Opacity)
 }
 
 // 普通按钮与下拉触发器沿用已保存配置键。
+// 表面只使用自身透明度与禁用衰减；父层入场透明度由绘制层应用，界面背景透明度不属于按钮角色。
 inline ColorRGBA ResolveUiControlSurface(unsigned BackgroundColor, int Opacity, bool Enabled = true)
 {
 	return ResolveDropdownSurface(BackgroundColor, Opacity).WithMultipliedAlpha(Enabled ? 1.0f : 0.65f);

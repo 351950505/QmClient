@@ -1,8 +1,8 @@
 {
   "summary": {
-    "must_i18n": 9733,
-    "business_data": 13810,
-    "test_only": 5319,
+    "must_i18n": 9735,
+    "business_data": 13813,
+    "test_only": 5380,
     "needs_review": 553,
     "violation": 0
   },
@@ -10488,182 +10488,182 @@
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 825,
-      "text": "Also send the original text when translating outgoing messages",
-      "category": "must_i18n",
-      "reason": "active source key (indirect)"
-    },
-    {
-      "file": "src/engine/shared/config_variables_qmclient.h",
       "line": 826,
-      "text": "Auto-translation mode (0=Trigger on common source languages only, 1=Always translate)",
+      "text": "Show the original text locally below translated outgoing messages",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
       "line": 827,
+      "text": "Auto-translation mode (0=Trigger on common source languages only, 1=Always translate)",
+      "category": "must_i18n",
+      "reason": "active source key (indirect)"
+    },
+    {
+      "file": "src/engine/shared/config_variables_qmclient.h",
+      "line": 828,
       "text": "Outgoing translation target language code",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 830,
+      "line": 831,
       "text": "Tencent Cloud Translation endpoint",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 831,
+      "line": 832,
       "text": "Tencent Cloud Translation SecretId",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 832,
+      "line": 833,
       "text": "Tencent Cloud Translation SecretKey",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 833,
+      "line": 834,
       "text": "Tencent Cloud Translation region",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 836,
+      "line": 837,
       "text": "LibreTranslate endpoint",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 837,
+      "line": 838,
       "text": "LibreTranslate API Key",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 840,
+      "line": 841,
       "text": "APP ID",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 841,
+      "line": 842,
       "text": "API key",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 844,
+      "line": 845,
       "text": "DeepL API Key (free keys end with :fx)",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 847,
+      "line": 848,
       "text": "Translation color alpha migration completed flag",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 848,
+      "line": 849,
       "text": "Translation button cancel color",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 849,
+      "line": 850,
       "text": "Translation button active color",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 850,
+      "line": 851,
       "text": "Translation menu background color",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 851,
+      "line": 852,
       "text": "Translation menu selected color",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 852,
+      "line": 853,
       "text": "Translation menu normal color",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 855,
+      "line": 856,
       "text": "Show jump hint based on fractional part of position",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 856,
+      "line": 857,
       "text": "Jump hint defaults migration completed flag",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 857,
+      "line": 858,
       "text": "Jump hint text (use \\n for newline)",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 858,
+      "line": 859,
       "text": "Jump hint color",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 859,
+      "line": 860,
       "text": "Jump hint horizontal position (% of screen width)",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 860,
+      "line": 861,
       "text": "Jump hint vertical position (% of screen height)",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 861,
+      "line": 862,
       "text": "Jump hint font size",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
-      "line": 864,
+      "line": 865,
       "text": "Auto-follow friend server switch delay (seconds)",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
@@ -14562,14 +14562,14 @@
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 184,
+      "line": 202,
       "text": "Search",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 224,
+      "line": 242,
       "text": "Search",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -35710,14 +35710,14 @@
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTranslateContent.cpp",
       "line": 96,
-      "text": "Send original text with translation",
+      "text": "Show original text below outgoing translation",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTranslateContent.cpp",
       "line": 96,
-      "text": "Send original text with translation",
+      "text": "Show original text below outgoing translation",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
@@ -38663,140 +38663,140 @@
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 984,
+      "line": 986,
       "text": "Say in chat",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 985,
+      "line": 987,
       "text": "Say in team chat",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 986,
+      "line": 988,
       "text": "Enable chat with all/team mode",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 987,
+      "line": 989,
       "text": "Show chat",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 988,
+      "line": 990,
       "text": "Echo the text in chat window",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 989,
+      "line": 991,
       "text": "Clear chat messages",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2573,
+      "line": 2586,
       "text": "Translated text hidden due to streamer mode",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3050,
+      "line": 3056,
       "text": "All",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3050,
+      "line": 3056,
       "text": "Chat",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3050,
+      "line": 3056,
       "text": "Team",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3836,
+      "line": 3870,
       "text": "Right-click to disable auto-translate",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3836,
+      "line": 3870,
       "text": "Right-click to enable auto-translate",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 4032,
+      "line": 4066,
       "text": "Chat",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 4079,
+      "line": 4113,
       "text": "Copy",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 4084,
+      "line": 4118,
       "text": "Add one",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 4089,
+      "line": 4123,
       "text": "Reply",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 4094,
+      "line": 4128,
       "text": "Spectate",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 4105,
+      "line": 4139,
       "text": "Mute player",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 4110,
+      "line": 4144,
       "text": "Add to blocked words",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 4115,
+      "line": 4149,
       "text": "Copy name",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -55015,28 +55015,42 @@
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate.cpp",
-      "line": 406,
+      "line": 343,
+      "text": "Translation canceled because the sender changed",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/translate/translate.cpp",
+      "line": 350,
+      "text": "Translated message could not be queued; original was not sent",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/translate/translate.cpp",
+      "line": 418,
       "text": "FTAPI auto-translate is disabled to prevent overload. Enable in settings if needed.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate.cpp",
-      "line": 440,
-      "text": "Translation queue full, sending original",
+      "line": 452,
+      "text": "Too many translation tasks",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate.cpp",
-      "line": 467,
-      "text": "Translation backend invalid, sending original",
+      "line": 478,
+      "text": "Invalid translation backend",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate.cpp",
-      "line": 474,
+      "line": 483,
       "text": "Translating to %s...",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -57696,119 +57710,119 @@
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1613,
+      "line": 1612,
       "text": "Connected",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1613,
+      "line": 1612,
       "text": "Preparing demo playback",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1614,
+      "line": 1613,
       "text": "Initializing map logic",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1637,
+      "line": 1636,
       "text": "Sending initial client info",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1970,
+      "line": 1969,
       "text": "Ok",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1970,
+      "line": 1969,
       "text": "Warning",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3250,
+      "line": 3252,
       "text": "Quitting. Please wait…",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3252,
+      "line": 3254,
       "text": "Restarting. Please wait…",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8417,
+      "line": 8419,
       "text": "Loading skin files",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9121,
+      "line": 9123,
       "text": "Team save in progress. You'll be able to load with '/load %s'",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9127,
+      "line": 9129,
       "text": "Team save in progress. You'll be able to load with '/load %s' if save is successful or with '/load %s' if it fails",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9157,
+      "line": 9159,
       "text": "Team successfully saved by %s. The database connection failed, using generated save code instead to avoid collisions. Use '/load %s' to continue",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9164,
+      "line": 9166,
       "text": "Team successfully saved by %s. The database connection failed, using generated save code instead to avoid collisions. Use '/load %s' on %s to continue",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9173,
+      "line": 9175,
       "text": "Save failed!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 1915,
+      "line": 1917,
       "text": "Search",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/ui_popups.cpp",
-      "line": 603,
+      "line": 605,
       "text": "Yes",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/ui_popups.cpp",
-      "line": 604,
+      "line": 606,
       "text": "No",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -72657,14 +72671,14 @@
     },
     {
       "file": "src/game/client/QmUi/SettingsCard.cpp",
-      "line": 154,
+      "line": 155,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/QmUi/SettingsCard.cpp",
-      "line": 158,
+      "line": 159,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
@@ -72909,56 +72923,56 @@
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 67,
+      "line": 73,
       "text": "inf",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 67,
+      "line": 73,
       "text": "infinite",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 67,
+      "line": 73,
       "text": "∞",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 351,
+      "line": 379,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 484,
+      "line": 512,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 534,
+      "line": 568,
       "text": "â",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 743,
+      "line": 780,
       "text": "%.2f%s",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/QmUi/UiForms.cpp",
-      "line": 745,
+      "line": 782,
       "text": "%.2f",
       "category": "business_data",
       "reason": "numeric display format template"
@@ -106467,332 +106481,325 @@
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 448,
+      "line": 449,
       "text": "/login ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 449,
+      "line": 450,
       "text": "/register ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 450,
+      "line": 451,
       "text": "/code ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 451,
+      "line": 452,
       "text": "/timeout ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 452,
+      "line": 453,
       "text": "/save ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 453,
+      "line": 454,
       "text": "/load ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 728,
+      "line": 729,
       "text": "event=server_message_presentation line_age_ms=%.0f class=%d state=%d force_visible=%d show_large=%d text_container=%d text_container_valid=%d render_alpha=%.3f layout_visibility=%.3f",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 733,
+      "line": 734,
       "text": "perf/autodiag_chat",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 819,
+      "line": 821,
       "text": "all",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 821,
+      "line": 823,
       "text": "team",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 824,
+      "line": 826,
       "text": "chat",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 824,
+      "line": 826,
       "text": "expected all or team as mode",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 959,
+      "line": 961,
       "text": "— %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 960,
+      "line": 962,
       "text": "chat/client",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 975,
+      "line": 977,
       "text": "— %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 976,
+      "line": 978,
       "text": "chat/client",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 984,
+      "line": 986,
       "text": "r[message]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 984,
+      "line": 986,
       "text": "say",
       "category": "business_data",
       "reason": "chat, vote, or bind command data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 985,
+      "line": 987,
       "text": "r[message]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 985,
+      "line": 987,
       "text": "say_team",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 986,
+      "line": 988,
       "text": "chat",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 986,
+      "line": 988,
       "text": "s['team'|'all'] ?r[message]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 987,
+      "line": 989,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 987,
+      "line": 989,
       "text": "+show_chat",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 988,
+      "line": 990,
       "text": "echo",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 988,
+      "line": 990,
       "text": "r[message]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 989,
+      "line": 991,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 989,
+      "line": 991,
       "text": "clear_chat",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 995,
+      "line": 997,
       "text": "cl_chat_old",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 996,
+      "line": 998,
       "text": "cl_chat_size",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 997,
+      "line": 999,
       "text": "cl_chat_width",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 999,
+      "line": 1001,
       "text": "center_x",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 999,
+      "line": 1001,
       "text": "center_y",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1005,
+      "line": 1007,
       "text": "qm_chat_%s_gradient_%s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1249,
+      "line": 1251,
       "text": "/",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1253,
+      "line": 1255,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1253,
+      "line": 1255,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1339,
+      "line": 1341,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1339,
+      "line": 1341,
       "text": "\"",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1354,
+      "line": 1356,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1356,
+      "line": 1358,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1356,
+      "line": 1358,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1358,
+      "line": 1360,
       "text": ":",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1493,
+      "line": 1495,
       "text": "chat/server",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1506,
+      "line": 1508,
       "text": "event=server_message_received handled=%d show_chat_system=%d notifications=%d focus_hide_info=%d focus_hide_prompt=%d route=%d class=%d text_len=%d",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1510,
+      "line": 1512,
       "text": "perf/autodiag_chat",
       "category": "business_data",
       "reason": "command, config, or machine token"
-    },
-    {
-      "file": "src/game/client/components/chat.cpp",
-      "line": 1519,
-      "text": "' invited you to team ",
-      "category": "business_data",
-      "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
@@ -106803,31 +106810,24 @@
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1522,
+      "line": 1523,
       "text": "' invited you to team ",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1522,
+      "line": 1524,
+      "text": "' invited you to team ",
+      "category": "business_data",
+      "reason": "machine/log/matcher call argument"
+    },
+    {
+      "file": "src/game/client/components/chat.cpp",
+      "line": 1524,
       "text": ". Use /team ",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
-    },
-    {
-      "file": "src/game/client/components/chat.cpp",
-      "line": 1526,
-      "text": "' 邀请你加入 ",
-      "category": "business_data",
-      "reason": "chat command preview, preview fixture, or streamer mask data"
-    },
-    {
-      "file": "src/game/client/components/chat.cpp",
-      "line": 1526,
-      "text": "。输入 /team ",
-      "category": "business_data",
-      "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
@@ -106838,742 +106838,763 @@
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1529,
-      "text": "' 邀请你加入 ",
-      "category": "business_data",
-      "reason": "chat command preview, preview fixture, or streamer mask data"
-    },
-    {
-      "file": "src/game/client/components/chat.cpp",
-      "line": 1529,
+      "line": 1528,
       "text": "。输入 /team ",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1532,
+      "line": 1530,
       "text": "' 邀请你加入 ",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1533,
-      "text": " 队",
+      "line": 1531,
+      "text": "' 邀请你加入 ",
+      "category": "business_data",
+      "reason": "chat command preview, preview fixture, or streamer mask data"
+    },
+    {
+      "file": "src/game/client/components/chat.cpp",
+      "line": 1531,
+      "text": "。输入 /team ",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
       "line": 1534,
+      "text": "' 邀请你加入 ",
+      "category": "business_data",
+      "reason": "chat command preview, preview fixture, or streamer mask data"
+    },
+    {
+      "file": "src/game/client/components/chat.cpp",
+      "line": 1535,
       "text": " 队",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1540,
+      "line": 1536,
+      "text": " 队",
+      "category": "business_data",
+      "reason": "chat command preview, preview fixture, or streamer mask data"
+    },
+    {
+      "file": "src/game/client/components/chat.cpp",
+      "line": 1542,
       "text": "/team %s",
       "category": "business_data",
       "reason": "chat or console command template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1611,
+      "line": 1613,
       "text": "Team successfully saved by ",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1612,
+      "line": 1614,
       "text": ". Use '/load ",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1613,
+      "line": 1615,
       "text": "' on ",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1614,
+      "line": 1616,
       "text": " to continue",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1614,
+      "line": 1616,
       "text": "' to continue",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1651,
+      "line": 1653,
       "text": "qmclient",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1653,
+      "line": 1655,
       "text": "chat",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1653,
+      "line": 1655,
       "text": "Failed to create chat log root folder",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1658,
+      "line": 1660,
       "text": "chat",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1658,
+      "line": 1660,
       "text": "Failed to create chat log folder '%s'",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1670,
+      "line": 1672,
       "text": "%Y-%m-%d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1686,
+      "line": 1688,
       "text": "%Y-%m-%d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1706,
+      "line": 1708,
       "text": "client %d",
       "category": "business_data",
       "reason": "console command format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1715,
+      "line": 1717,
       "text": "%s/%s%s%s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1718,
+      "line": 1720,
       "text": "[%s] [%s] %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1720,
+      "line": 1722,
       "text": "[%s] [%s] %s: %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1731,
+      "line": 1733,
       "text": "chat",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1731,
+      "line": 1733,
       "text": "Failed to open chat log '%s'",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1746,
+      "line": 1748,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1748,
+      "line": 1750,
       "text": "chat/all",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1753,
+      "line": 1755,
       "text": "*** ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1754,
+      "line": 1756,
       "text": "chat/server",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1760,
+      "line": 1762,
       "text": "chat/client",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1785,
+      "line": 1787,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1789,
+      "line": 1791,
       "text": "chat/whisper",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1795,
+      "line": 1797,
       "text": "chat/team",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1808,
+      "line": 1810,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1808,
+      "line": 1810,
       "text": "%s%s%s",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1808,
+      "line": 1810,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1869,
+      "line": 1871,
       "text": ",",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1895,
-      "text": "chat/whisper",
-      "category": "business_data",
-      "reason": "command, config, or machine token"
-    },
-    {
-      "file": "src/game/client/components/chat.cpp",
       "line": 1897,
-      "text": "chat/team",
+      "text": "chat/whisper",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
       "line": 1899,
-      "text": "chat/server",
+      "text": "chat/team",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
       "line": 1901,
-      "text": "chat/client",
+      "text": "chat/server",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
       "line": 1903,
-      "text": "chat/all",
+      "text": "chat/client",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
       "line": 1905,
+      "text": "chat/all",
+      "category": "business_data",
+      "reason": "command, config, or machine token"
+    },
+    {
+      "file": "src/game/client/components/chat.cpp",
+      "line": 1907,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1909,
+      "line": 1911,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1909,
+      "line": 1911,
       "text": "%s%s%s",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1909,
+      "line": 1911,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1919,
+      "line": 1921,
       "text": ",",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1928,
+      "line": 1930,
       "text": " [%d]: ",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1936,
+      "line": 1938,
       "text": " [%d]",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1981,
+      "line": 1983,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2036,
+      "line": 2042,
       "text": ", ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2040,
+      "line": 2046,
       "text": "屏蔽词: %s",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2042,
+      "line": 2048,
       "text": "chat/blocklist",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2230,
+      "line": 2238,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2242,
+      "line": 2250,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2291,
+      "line": 2299,
       "text": "%s: %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2292,
+      "line": 2300,
       "text": "DDNet Chat",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2381,
+      "line": 2389,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2428,
+      "line": 2436,
       "text": "event=server_message_prepare_skip reason=collapsed class=%d text_container=%d text_container_valid=%d",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2430,
+      "line": 2438,
       "text": "perf/autodiag_chat",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2524,
+      "line": 2532,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2527,
+      "line": 2535,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2535,
+      "line": 2543,
       "text": "[%d] ",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2537,
+      "line": 2545,
       "text": " [%d]",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2542,
+      "line": 2550,
       "text": "'",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2542,
+      "line": 2550,
       "text": "Team save in progress. You'll be able to load with '/load ",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2544,
+      "line": 2552,
       "text": "Team save in progress. You'll be able to load with '/load *** *** ***'",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2546,
+      "line": 2554,
       "text": "if it fails",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2546,
+      "line": 2554,
       "text": "Team save in progress. You'll be able to load with '/load",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2548,
+      "line": 2556,
       "text": "Team save in progress. You'll be able to load with '/load *** *** ***' if save is successful or with '/load *** *** ***' if it fails",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2550,
+      "line": 2558,
       "text": " to continue",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2550,
+      "line": 2558,
       "text": "Team successfully saved by ",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2552,
+      "line": 2560,
       "text": "Team successfully saved by ***. Use '/load *** *** ***' to continue",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2613,
+      "line": 2626,
       "text": ",",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2628,
+      "line": 2641,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2695,
+      "line": 2708,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2776,
+      "line": 2789,
       "text": ",",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2799,
+      "line": 2812,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2862,
+      "line": 2875,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2962,
+      "line": 2975,
       "text": "event=server_message_upload_requested class=%d text_container=%d text_buffering=%d",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 2964,
+      "line": 2977,
       "text": "perf/autodiag_chat",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3051,
+      "line": 3057,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3077,
+      "line": 3083,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3467,
+      "line": 3473,
       "text": "event=server_message_render_skip reason=invalid_text_container class=%d text_container=%d",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3468,
+      "line": 3474,
       "text": "perf/autodiag_chat",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3551,
+      "line": 3557,
       "text": "Welcome to QmClient",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3553,
+      "line": 3559,
       "text": "Let's go!",
       "category": "business_data",
       "reason": "chat command preview, preview fixture, or streamer mask data"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3562,
+      "line": 3568,
       "text": "%s: %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3961,
+      "line": 3756,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 3970,
+      "line": 3995,
+      "text": "",
+      "category": "business_data",
+      "reason": "empty or whitespace literal"
+    },
+    {
+      "file": "src/game/client/components/chat.cpp",
+      "line": 4004,
       "text": "%s: ",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 38,
+      "line": 40,
       "text": "ddnet-saves.txt",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 141,
+      "line": 125,
       "text": "/login",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 172,
+      "line": 156,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 173,
+      "line": 157,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 174,
+      "line": 158,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 195,
+      "line": 179,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 404,
+      "line": 393,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 405,
+      "line": 394,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 406,
+      "line": 395,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 484,
+      "line": 473,
       "text": "/w \"",
       "category": "business_data",
       "reason": "chat or console command template"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 496,
+      "line": 485,
       "text": "say /spec \"",
       "category": "business_data",
       "reason": "chat, vote, or bind command data"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 505,
+      "line": 494,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 505,
+      "line": 494,
       "text": "*** ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 507,
+      "line": 496,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 508,
+      "line": 497,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 534,
+      "line": 523,
       "text": "/team ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/chat.h",
-      "line": 538,
+      "line": 527,
       "text": "/vote particle",
       "category": "business_data",
       "reason": "chat or console command template"
@@ -126535,6 +126556,20 @@
       "reason": "numeric display format template"
     },
     {
+      "file": "src/game/client/components/qmclient/chat_translation_notes.h",
+      "line": 31,
+      "text": "",
+      "category": "business_data",
+      "reason": "empty or whitespace literal"
+    },
+    {
+      "file": "src/game/client/components/qmclient/chat_translation_notes.h",
+      "line": 85,
+      "text": "",
+      "category": "business_data",
+      "reason": "empty or whitespace literal"
+    },
+    {
       "file": "src/game/client/components/qmclient/collision_hitbox.cpp",
       "line": 2,
       "text": "collision_hitbox.h",
@@ -139640,28 +139675,28 @@
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate.cpp",
-      "line": 363,
+      "line": 375,
       "text": "MyMemory",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate.cpp",
-      "line": 398,
+      "line": 410,
       "text": "ftapi",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate.cpp",
-      "line": 430,
+      "line": 442,
       "text": "auto",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate.cpp",
-      "line": 461,
+      "line": 472,
       "text": "auto",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
@@ -140942,7 +140977,7 @@
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate_jobs.h",
-      "line": 21,
+      "line": 23,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
@@ -153759,434 +153794,420 @@
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1920,
+      "line": 1919,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1926,
+      "line": 1925,
       "text": "clear: overlay=%d background=%06x entities_background=%06x clear_rgb=%.3f,%.3f,%.3f entities_map='%s'",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1926,
+      "line": 1925,
       "text": "gfx/entities",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1956,
+      "line": 1955,
       "text": "update_positions",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1979,
+      "line": 1978,
       "text": "camera_and_cursor",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 1990,
+      "line": 1989,
       "text": "ui_runtime_v2",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2000,
+      "line": 1999,
       "text": "component_menus",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2021,
+      "line": 2020,
       "text": "components_total",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2029,
+      "line": 2028,
       "text": "input_clear_and_candidates",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2042,
+      "line": 2041,
       "text": "gameclient_onrender_total",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2136,
+      "line": 2135,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2189,
+      "line": 2188,
       "text": "frame_drop",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2189,
+      "line": 2188,
       "text": "sustained_low",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2193,
+      "line": 2192,
       "text": " classification=%s end_reason=%s window_start_frame=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2193,
+      "line": 2192,
       "text": " segment=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2193,
+      "line": 2192,
       "text": " target_fps=300 target_ms=%.6f sample_frames=%d sample_seconds=%.3f below_target_frames=%d fps_avg=%.3f fps_min=%.3f fps_1pct_low=%.3f frame_ms_avg=%.3f frame_ms_p95=%.3f frame_ms_p99=%.3f frame_ms_max=%.3f cap_limited=%d cap_reason=%s context=%s page=%s tab=%s",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2193,
+      "line": 2192,
       "text": " window_end_frame=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2193,
+      "line": 2192,
       "text": " worst_frame=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2193,
+      "line": 2192,
       "text": "schema=1 event=stutter_event stutter_id=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2218,
+      "line": 2217,
       "text": "perf/stutter",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2220,
+      "line": 2219,
       "text": "perf/stutter",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2229,
+      "line": 2228,
       "text": " scope=component owner=client module=%s callback=%s sample_count=%d total_ms=%.3f avg_ms=%.3f p95_ms=%.3f max_ms=%.3f max_frame=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2229,
+      "line": 2228,
       "text": " segment=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2229,
+      "line": 2228,
       "text": "schema=1 event=component_sample stutter_id=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2241,
+      "line": 2240,
       "text": "perf/stutter",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2243,
+      "line": 2242,
       "text": "perf/stutter",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2245,
+      "line": 2244,
       "text": "on_update",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2246,
+      "line": 2245,
       "text": "on_render",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2251,
+      "line": 2250,
       "text": "qm_",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2251,
+      "line": 2250,
       "text": "qmclient",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2252,
+      "line": 2251,
       "text": "tc_",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2252,
+      "line": 2251,
       "text": "tclient",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2256,
+      "line": 2255,
       "text": " frame=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2256,
+      "line": 2255,
       "text": " owner=%s feature=%s module=unmapped config_enabled=1 config_value=%d hud_visible=-1 settings_visible=-1 executed_in_frame=-1 executed_in_window=-1 current_page=%s current_tab=%s",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2256,
+      "line": 2255,
       "text": " segment=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2256,
+      "line": 2255,
       "text": "schema=1 event=feature_snapshot stutter_id=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2266,
+      "line": 2265,
       "text": "perf/stutter",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2268,
+      "line": 2267,
       "text": "perf/stutter",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2448,
+      "line": 2450,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2453,
+      "line": 2455,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2455,
+      "line": 2457,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2467,
+      "line": 2469,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2514,
+      "line": 2516,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2613,
+      "line": 2615,
       "text": "'",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2679,
+      "line": 2681,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2695,
+      "line": 2697,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2705,
+      "line": 2707,
       "text": "'",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2719,
+      "line": 2721,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2753,
+      "line": 2755,
       "text": "0.6 and 0.7 tune message id do not match",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2797,
+      "line": 2799,
       "text": "client",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 2797,
+      "line": 2799,
       "text": "dropped weird message '%s' (%d), failed on '%s'",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3153,
+      "line": 3155,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3254,
+      "line": 3256,
       "text": "Invalid client state for quitting message",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3433,
+      "line": 3435,
       "text": "pred_event",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3433,
+      "line": 3435,
       "text": "snapshot sound=%d snaptick=%d pos=%.1f,%.1f predicted_handled=%d unplayed=%d",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3506,
+      "line": 3508,
       "text": "hammerhit-effect duplicate-delivery suppressed snaptick=%d pos=%.1f,%.1f",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3506,
+      "line": 3508,
       "text": "pred_event",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3513,
+      "line": 3515,
       "text": "hammerhit-effect source=snapshot snaptick=%d pos=%.1f,%.1f attacker=%d target=%d",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3513,
+      "line": 3515,
       "text": "pred_event",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3565,
-      "text": "fastcap",
-      "category": "business_data",
-      "reason": "machine/log/matcher call argument"
-    },
-    {
-      "file": "src/game/client/gameclient.cpp",
-      "line": 3565,
-      "text": "race",
-      "category": "business_data",
-      "reason": "machine/log/matcher call argument"
-    },
-    {
-      "file": "src/game/client/gameclient.cpp",
-      "line": 3566,
+      "line": 3567,
       "text": "fastcap",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
@@ -154194,615 +154215,629 @@
     {
       "file": "src/game/client/gameclient.cpp",
       "line": 3567,
+      "text": "race",
+      "category": "business_data",
+      "reason": "machine/log/matcher call argument"
+    },
+    {
+      "file": "src/game/client/gameclient.cpp",
+      "line": 3568,
+      "text": "fastcap",
+      "category": "business_data",
+      "reason": "machine/log/matcher call argument"
+    },
+    {
+      "file": "src/game/client/gameclient.cpp",
+      "line": 3569,
       "text": "fng",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3568,
+      "line": 3570,
       "text": "ddrace",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3568,
+      "line": 3570,
       "text": "mkrace",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3569,
+      "line": 3571,
       "text": "ddnet",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3569,
+      "line": 3571,
       "text": "ddracenet",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3570,
+      "line": 3572,
       "text": "bw",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3570,
+      "line": 3572,
       "text": "bw  ",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3571,
+      "line": 3573,
       "text": "city",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3572,
+      "line": 3574,
       "text": "CTF",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3572,
+      "line": 3574,
       "text": "DM",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3572,
+      "line": 3574,
       "text": "TDM",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3573,
+      "line": 3575,
       "text": "+",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 3826,
+      "line": 3828,
       "text": "nameless tee",
       "category": "business_data",
       "reason": "fallback name, debug log, console diagnostic, or server save message data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 4341,
+      "line": 4343,
       "text": "CTF",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 4341,
+      "line": 4343,
       "text": "DM",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 4341,
+      "line": 4343,
       "text": "TDM",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 4698,
+      "line": 4700,
       "text": "/lock 1",
       "category": "business_data",
       "reason": "chat or console command template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 5608,
+      "line": 5610,
       "text": "client",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 5608,
+      "line": 5610,
       "text": "prediction error",
       "category": "business_data",
       "reason": "fallback name, debug log, console diagnostic, or server save message data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 5613,
+      "line": 5615,
       "text": "\\t%d %d %d (%d %d)",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 5613,
+      "line": 5615,
       "text": "client",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 5830,
+      "line": 5832,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 6573,
+      "line": 6575,
       "text": "client",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 6573,
+      "line": 6575,
       "text": "You have to be connected to a 0.7 server to use 'ready_change'",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 6760,
+      "line": 6762,
       "text": "the tuning was missed",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 6760,
+      "line": 6762,
       "text": "tunezone",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 6766,
+      "line": 6768,
       "text": "tunezone",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 6766,
+      "line": 6768,
       "text": "waiting for tuning for zone %d",
       "category": "business_data",
       "reason": "console command format template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7161,
+      "line": 7163,
       "text": "pred_event",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7161,
+      "line": 7163,
       "text": "predict-play sound=%d tick=%d pos=%.1f,%.1f",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7171,
+      "line": 7173,
       "text": "hammerhit-effect source=predict tick=%d pos=%.1f,%.1f",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7171,
+      "line": 7173,
       "text": "pred_event",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7490,
+      "line": 7492,
       "text": "gui_cursor",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7502,
+      "line": 7504,
       "text": "strong_weak",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7534,
+      "line": 7536,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7538,
+      "line": 7540,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7542,
+      "line": 7544,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7546,
+      "line": 7548,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7550,
+      "line": 7552,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7554,
+      "line": 7556,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7555,
+      "line": 7557,
       "text": "gui_cursor",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7558,
+      "line": 7560,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7562,
+      "line": 7564,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7563,
+      "line": 7565,
       "text": "strong_weak",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7577,
+      "line": 7579,
       "text": "gfx",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7577,
+      "line": 7579,
       "text": "graphics resources were reset, reloading game assets (generation %u)",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7596,
+      "line": 7598,
       "text": "game assets reloaded after graphics resources reset",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7596,
+      "line": 7598,
       "text": "gfx",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7711,
+      "line": 7713,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7719,
+      "line": 7721,
       "text": "assets/game/%s/%s",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7721,
+      "line": 7723,
       "text": "assets/game/%s.png",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7900,
+      "line": 7902,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7908,
+      "line": 7910,
       "text": "assets/emoticons/%s/%s",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7910,
+      "line": 7912,
       "text": "assets/emoticons/%s.png",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7959,
+      "line": 7961,
       "text": "Emoticon asset '%s' is empty and stays blank",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7959,
+      "line": 7961,
       "text": "graphics",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7977,
+      "line": 7979,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7985,
+      "line": 7987,
       "text": "assets/particles/%s/%s",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 7987,
+      "line": 7989,
       "text": "assets/particles/%s.png",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8114,
+      "line": 8116,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8122,
+      "line": 8124,
       "text": "assets/hud/%s/%s",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8124,
+      "line": 8126,
       "text": "assets/hud/%s.png",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8178,
+      "line": 8180,
       "text": "graphics",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8178,
+      "line": 8180,
       "text": "HUD asset '%s' is empty and stays blank",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8233,
+      "line": 8235,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8241,
+      "line": 8243,
       "text": "assets/extras/%s/%s",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8243,
+      "line": 8245,
       "text": "assets/extras/%s.png",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8410,
+      "line": 8412,
       "text": "SkinDescriptorFlags invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8417,
+      "line": 8419,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8540,
+      "line": 8542,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8540,
+      "line": 8542,
       "text": "stale tee render info repaired: skin='%s' flags=%u attempt=%d",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8561,
+      "line": 8563,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8561,
+      "line": 8563,
       "text": "stale client tee render info repaired: skin='%s' flags=%u attempt=%d",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8621,
+      "line": 8623,
       "text": "gun_curvature",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8622,
+      "line": 8624,
       "text": "gun_speed",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8623,
+      "line": 8625,
       "text": "shotgun_curvature",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8624,
+      "line": 8626,
       "text": "shotgun_speed",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8625,
+      "line": 8627,
       "text": "shotgun_speeddiff",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8699,
+      "line": 8701,
       "text": "map-internal setting overridden by database",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8699,
+      "line": 8701,
       "text": "mapbugs",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8702,
+      "line": 8704,
       "text": "mapbugs",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8702,
+      "line": 8704,
       "text": "unknown map bug '%s', ignoring",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 8705,
+      "line": 8707,
       "text": "unreachable",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9138,
+      "line": 9140,
       "text": "Team successfully saved by %s. Use '/load %s' to continue",
       "category": "business_data",
       "reason": "fallback name, debug log, console diagnostic, or server save message data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9145,
+      "line": 9147,
       "text": "Team successfully saved by %s. Use '/load %s' on %s to continue",
       "category": "business_data",
       "reason": "fallback name, debug log, console diagnostic, or server save message data"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9198,
+      "line": 9200,
       "text": "Failed to open the saves file '%s'",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9198,
+      "line": 9200,
       "text": "saves",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/gameclient.cpp",
-      "line": 9281,
+      "line": 9283,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
@@ -156664,161 +156699,161 @@
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 308,
+      "line": 309,
       "text": "gaussian blur scope underflow",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 315,
+      "line": 316,
       "text": "gaussian blur suppression scope underflow",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 424,
+      "line": 425,
       "text": "blur unavailable this frame (prepare failed)",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 424,
+      "line": 425,
       "text": "ui/blur",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 669,
+      "line": 670,
       "text": "hot=%p nexthot=%p active=%p lastactive=%p",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 706,
+      "line": 707,
       "text": "CUi::ConvertMouseMove CursorType %d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 901,
+      "line": 902,
       "text": "render-only UI scope underflow",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 924,
+      "line": 925,
       "text": "no clip region",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 931,
+      "line": 932,
       "text": "no clip region",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 937,
+      "line": 938,
       "text": "no clip region",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 1082,
+      "line": 1083,
       "text": "m_ActiveButtonLogicButton invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 1134,
+      "line": 1135,
       "text": "m_ActiveDraggableButtonLogicButton invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2154,
+      "line": 2156,
       "text": "%s %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2161,
+      "line": 2163,
       "text": "%s #%0*",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2163,
+      "line": 2165,
       "text": "%s %",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2166,
+      "line": 2168,
       "text": "#%0*",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2168,
+      "line": 2170,
       "text": "%",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2284,
+      "line": 2286,
       "text": "m_ActiveValueSelectorState.m_Button invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2577,
+      "line": 2579,
       "text": "%s: %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2579,
+      "line": 2581,
       "text": "%s: %i%s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2583,
+      "line": 2585,
       "text": "%s: ∞",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2721,
+      "line": 2723,
       "text": "%02d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2723,
+      "line": 2725,
       "text": "%03d",
       "category": "business_data",
       "reason": "numeric display format template"
@@ -156839,7 +156874,7 @@
     },
     {
       "file": "src/game/client/ui.h",
-      "line": 1251,
+      "line": 1262,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
@@ -156881,42 +156916,42 @@
     },
     {
       "file": "src/game/client/ui_popups.cpp",
-      "line": 699,
+      "line": 701,
       "text": "Selection popup opened without a scroll region",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui_popups.cpp",
-      "line": 699,
+      "line": 701,
       "text": "ui",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui_popups.cpp",
-      "line": 796,
+      "line": 798,
       "text": "dropdown_first_wheel",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/ui_popups.cpp",
-      "line": 951,
+      "line": 953,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/ui_popups.cpp",
-      "line": 1184,
+      "line": 1186,
       "text": "A: %d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui_popups.cpp",
-      "line": 1278,
+      "line": 1280,
       "text": "Color picker mode invalid: %d",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
@@ -184225,13 +184260,6 @@
     },
     {
       "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
-      "line": 75,
-      "text": "你好 original",
-      "category": "test_only",
-      "reason": "test fixture or assertion text"
-    },
-    {
-      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
       "line": 148,
       "text": "你好",
       "category": "test_only",
@@ -184269,6 +184297,69 @@
       "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
       "line": 241,
       "text": "成功",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
+      "line": 326,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
+      "line": 342,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
+      "line": 352,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
+      "line": 364,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
+      "line": 377,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
+      "line": 385,
+      "text": "old dummy",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
+      "line": 393,
+      "text": "new dummy",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
+      "line": 399,
+      "text": "new dummy",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/translate/translate_jobs_integration_test.cpp",
+      "line": 400,
+      "text": "fresh translation",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
@@ -184374,6 +184465,62 @@
       "file": "src/test/integration/qmclient/translate/translate_services_test.cpp",
       "line": 285,
       "text": "\",\"message\":\"vendor message\"}}",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 50,
+      "text": "server filter",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 51,
+      "text": "original placeholder",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 53,
+      "text": "pending integer",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 54,
+      "text": "pending numeric",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 86,
+      "text": "server filter",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 87,
+      "text": "original placeholder",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 90,
+      "text": "pending integer",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 91,
+      "text": "pending numeric",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
@@ -196159,6 +196306,307 @@
       "reason": "test fixture or assertion text"
     },
     {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 8,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 13,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 20,
+      "text": "你好",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 27,
+      "text": "你好",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 28,
+      "text": "您好",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 35,
+      "text": "old original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 38,
+      "text": "new original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 39,
+      "text": "new original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 76,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 77,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 83,
+      "text": "dropped original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 84,
+      "text": "new original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 86,
+      "text": "another original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 88,
+      "text": "fresh original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 89,
+      "text": "fresh original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 95,
+      "text": "main original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 96,
+      "text": "old dummy",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 99,
+      "text": "main original",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 100,
+      "text": "new dummy",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp",
+      "line": 101,
+      "text": "new dummy",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 20,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 44,
+      "text": "第二条原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 45,
+      "text": "第三条原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 60,
+      "text": "第二条原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 67,
+      "text": "第三条原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 117,
+      "text": "主身原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 118,
+      "text": "分身原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 129,
+      "text": "主身原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 138,
+      "text": "dummy first",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 140,
+      "text": "dummy second",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 152,
+      "text": "旧原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 254,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 267,
+      "text": "原文",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 274,
+      "text": "你好",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 275,
+      "text": "您好",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 282,
+      "text": "你好",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 284,
+      "text": "您好",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 291,
+      "text": "dummy first",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 293,
+      "text": "dummy second",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 296,
+      "text": "new first",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 297,
+      "text": "new second",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 306,
+      "text": "new first",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp",
+      "line": 307,
+      "text": "new second",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
       "file": "src/test/unit/qmclient/client/qm_rank_demo_manifest_test.cpp",
       "line": 17,
       "text": "teleport 2",
@@ -200024,7 +200472,14 @@
     },
     {
       "file": "src/test/unit/qmclient/ui/QmAnimFormsTest.cpp",
-      "line": 219,
+      "line": 215,
+      "text": " surface=",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/ui/QmAnimFormsTest.cpp",
+      "line": 259,
       "text": " value=",
       "category": "test_only",
       "reason": "test fixture or assertion text"
@@ -200578,6 +201033,13 @@
     {
       "file": "src/test/unit/qmclient/ui/qm_secondary_button_style_test.cpp",
       "line": 69,
+      "text": " opacity=",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/qmclient/ui/qm_secondary_button_style_test.cpp",
+      "line": 172,
       "text": " opacity=",
       "category": "test_only",
       "reason": "test fixture or assertion text"
@@ -202945,7 +203407,7 @@
     },
     {
       "file": "src/game/client/components/chat.cpp",
-      "line": 1524,
+      "line": 1526,
       "text": "' invited you to team ",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
@@ -205724,7 +206186,7 @@
     },
     {
       "file": "src/game/client/components/qmclient/translate/translate_jobs.cpp",
-      "line": 40,
+      "line": 46,
       "text": "Empty translation result",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"

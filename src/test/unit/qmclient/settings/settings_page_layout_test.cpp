@@ -403,20 +403,6 @@ TEST(QmConsoleSettingsPanelLayout, ActivePopupWheelOwnerWinsAndConsumesOnlyOnce)
 	EXPECT_FLOAT_EQ(Delta, -1.0f);
 }
 
-TEST(QmConsoleSettingsPanelLayout, CustomColorRowsConsumeButtonHeightWithoutTrailingGap)
-{
-	for(float Width : {160.0f, 320.0f, 440.0f})
-	{
-		SCOPED_TRACE(Width);
-		const auto Metrics = ResolveSettingsContentMetrics(Width);
-		const auto Row = ResolveSettingsColorRowLayout({0, 0, Width, 1000}, Metrics, false, false);
-		EXPECT_FLOAT_EQ(Row.m_ConsumedHeight, Metrics.m_ButtonHeight);
-		EXPECT_FLOAT_EQ(QmConsoleSettingsLayout::ContentHeight(Metrics, true, 10) -
-					QmConsoleSettingsLayout::ContentHeight(Metrics, false, 10),
-			9.0f * Row.m_ConsumedHeight);
-	}
-}
-
 TEST(SettingsPageLayout, LegacyRnnoiseModeDoesNotReserveFallbackRows)
 {
 	for(const float Width : {420.0f, 700.0f, 1000.0f})

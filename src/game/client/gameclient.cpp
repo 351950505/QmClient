@@ -2330,6 +2330,9 @@ void CGameClient::ProcessQmStutterFrame()
 
 void CGameClient::OnDummyDisconnect()
 {
+	// 断开时取消该连接的译文与附注，重连即使复用玩家编号也不能继承旧任务。
+	m_Translate.InvalidateOutgoingConnection(IClient::CONN_DUMMY);
+	m_Chat.InvalidateOutgoingConnection(IClient::CONN_DUMMY);
 	TClientComponent().CancelSoloSplit();
 	for(auto &Hammer : m_aDummyHammerInputs)
 		Hammer.Reset();

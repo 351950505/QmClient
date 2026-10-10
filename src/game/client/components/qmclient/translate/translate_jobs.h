@@ -15,8 +15,10 @@ struct STranslateJob
 	unsigned int m_TranslationId = 0;
 	bool m_Outgoing = false;
 	bool m_AutoTriggered = false;
-	// 原文已随翻译请求一起发送；失败回退时不再重复发送原文。
-	bool m_OriginalSent = false;
+	// 只控制服务器回显下方的本地原文附注，绝不作为聊天发送内容。
+	bool m_DisplayOriginal = true;
+	int m_Connection = 0;
+	int m_LocalClientId = -1;
 	int m_Team = 0;
 	char m_aTarget[16] = "";
 	std::string m_OriginalText;
@@ -26,9 +28,12 @@ struct STranslateCompletion
 {
 	STranslateJob m_Job;
 	bool m_Success;
-	// 只有成功译文或自动出站失败恢复原文时才产生发送内容。
+	// 仅成功译文可作为发送内容；失败、拒绝、取消均不回退发送原文。
 	std::string m_SendText;
 };
+
+// 分发器只调用一次译文发送入口，原文通过独立的本地附注参数传递。
+bool DispatchOutgoingTranslation(const STranslateCompletion &Completed, const std::function<bool(int, const char *, const char *, int)> &SendTranslated);
 
 // 收发任务共用容量，完成或取消时统一释放后端。
 class CTranslateJobQueue
@@ -40,6 +45,7 @@ public:
 	bool Submit(STranslateJob Job, int Limit);
 	size_t Size() const { return m_vJobs.size(); }
 	void Clear() { m_vJobs.clear(); }
+	void CancelOutgoing(int Connection);
 	std::vector<STranslateCompletion> Update(const std::function<bool(const STranslateJob &)> &IncomingStillValid);
 };
 

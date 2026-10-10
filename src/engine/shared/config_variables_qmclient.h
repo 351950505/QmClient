@@ -822,7 +822,8 @@ MACRO_CONFIG_STR(QmTranslateSource, qm_translate_source, 16, "auto", CFGFLAG_CLI
 
 // Translate - Auto Outgoing - 自动翻译发送消息
 MACRO_CONFIG_INT(QmTranslateAutoOutgoing, qm_translate_auto_outgoing, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Auto-translate outgoing messages")
-MACRO_CONFIG_INT(QmTranslateOutgoingSendOriginal, qm_translate_outgoing_send_original, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Also send the original text when translating outgoing messages")
+// 保存键沿用旧版本名称；现在只控制本地原文附注，不发送原文。
+MACRO_CONFIG_INT(QmTranslateOutgoingShowOriginal, qm_translate_outgoing_send_original, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Show the original text locally below translated outgoing messages")
 MACRO_CONFIG_INT(QmTranslateAutoOutgoingMode, qm_translate_auto_outgoing_mode, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Auto-translation mode (0=Trigger on common source languages only, 1=Always translate)")
 MACRO_CONFIG_STR(QmTranslateOutgoingTarget, qm_translate_outgoing_target, 16, "en", CFGFLAG_CLIENT | CFGFLAG_SAVE, "Outgoing translation target language code")
 

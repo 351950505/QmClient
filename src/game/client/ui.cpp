@@ -195,6 +195,7 @@ ITextRender *CUIElementBase::TextRender() const { return ms_pUi->TextRender(); }
 
 void CUi::Init(IKernel *pKernel)
 {
+	m_ControlAlphaScale = 1.0f;
 	m_pClient = pKernel->RequestInterface<IClient>();
 	m_pGraphics = pKernel->RequestInterface<IGraphics>();
 	m_pInput = pKernel->RequestInterface<IInput>();

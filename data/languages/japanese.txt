@@ -698,9 +698,6 @@ Alpha
 Also apply to dummy
 == ダミーにも適用する
 
-Also send the original text when translating outgoing messages
-== 送信メッセージの翻訳時にも原文を送る
-
 Always show
 == 常に表示
 
@@ -10643,9 +10640,6 @@ Send emote when entering freeze
 Send emoticon in water
 == 水中で表情を送信
 
-Send original text with translation
-== 送信メッセージの翻訳時に原文も送信
-
 Send probability
 == 送信確率
 
@@ -11474,6 +11468,9 @@ Show only servers with unfinished maps
 Show only team chat messages
 == チームチャットメッセージのみ表示
 
+Show original text below outgoing translation
+== 送信する翻訳文の下に原文を表示
+
 Show other players' coordinates
 == 他のプレイヤーの座標を表示
 
@@ -11749,6 +11746,9 @@ Show the number of tees still alive
 
 Show the occasional sponsor reminder in the main menu
 == メインメニューでスポンサー通知を時々表示する
+
+Show the original text locally below translated outgoing messages
+== 送信した翻訳メッセージの下に原文をローカルでのみ表示し、原文はサーバーに送信しません
 
 Show the pet
 == ペットを表示
@@ -13595,6 +13595,9 @@ Translate:
 Translated chat text size as a percentage of the original text (50-100)
 == チャット翻訳文の文字サイズを原文の文字サイズに対する割合で指定（50-100）
 
+Translated message could not be queued; original was not sent
+== 翻訳メッセージを送信キューに追加できませんでした。原文は送信されていません
+
 Translated text hidden due to streamer mode
 == ストリーマーモードのため翻訳テキストを非表示
 
@@ -13604,14 +13607,14 @@ Translated text size
 Translating to %s...
 == %s に翻訳中...
 
-Translation backend invalid, sending original
-== 翻訳バックエンドが無効なため、原文を送信
-
 Translation button active color
 == 翻訳ボタンオン時の色
 
 Translation button cancel color
 == 翻訳ボタンオフ時の色
+
+Translation canceled because the sender changed
+== 送信者が変更されたため、翻訳をキャンセルしました
 
 Translation color alpha migration completed flag
 == 翻訳カラーのアルファ移行完了フラグ
@@ -13630,9 +13633,6 @@ Translation menu selected color
 
 Translation model was not found. Check the model name.
 == 翻訳モデルが見つかりません。モデル名を確認してください。
-
-Translation queue full, sending original
-== 翻訳キューが満杯のため、原文を送信
 
 Translation service
 == 翻訳サービス

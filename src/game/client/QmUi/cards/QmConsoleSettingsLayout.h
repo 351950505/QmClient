@@ -15,7 +15,7 @@ namespace QmConsoleSettingsLayout
 	{
 		// 两个数值、一个开关、方案标题、三个方案按钮及重置按钮。
 		return 8.0f * Metrics.m_RowStep + PreviewHeight(FontSize) + Metrics.m_LineSpacing +
-		       (Custom ? 9.0f * Metrics.m_ButtonHeight : 0.0f);
+		       (Custom ? 9.0f * ResolveSettingsColorRowLayout({}, Metrics, false).m_ConsumedHeight : 0.0f);
 	}
 
 	inline CUIRect PanelRect(const CUIRect &Viewport, bool Custom, int FontSize)

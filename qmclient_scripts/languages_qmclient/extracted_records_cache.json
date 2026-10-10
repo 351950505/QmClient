@@ -2301,7 +2301,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 4084
+      "line": 4118
     },
     {
       "key": "Add quad",
@@ -2441,7 +2441,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 4110
+      "line": 4144
     },
     {
       "key": "Add to category",
@@ -3022,7 +3022,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 3050
+      "line": 3056
     },
     {
       "key": "All",
@@ -3338,13 +3338,6 @@
       "source": "src/game/client/QmUi/cards/QmCardCatalogSkin.cpp",
       "context": "",
       "line": 107
-    },
-    {
-      "key": "Also send the original text when translating outgoing messages",
-      "category": "indirect",
-      "source": "src/engine/shared/config_variables_qmclient.h",
-      "context": "",
-      "line": 825
     },
     {
       "key": "Always show",
@@ -3778,7 +3771,7 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 841
+      "line": 842
     },
     {
       "key": "API key",
@@ -3813,7 +3806,7 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 840
+      "line": 841
     },
     {
       "key": "APP ID",
@@ -5290,7 +5283,7 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 864
+      "line": 865
     },
     {
       "key": "Auto-lock after joining lockable team",
@@ -5451,7 +5444,7 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 826
+      "line": 827
     },
     {
       "key": "Auto-unspec when unfrozen",
@@ -8083,14 +8076,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 3050
+      "line": 3056
     },
     {
       "key": "Chat",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 4032
+      "line": 4066
     },
     {
       "key": "Chat",
@@ -9364,7 +9357,7 @@
       "category": "register_help",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 989
+      "line": 991
     },
     {
       "key": "Clear current cut (right click to clear all cuts)",
@@ -11114,7 +11107,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1613
+      "line": 1612
     },
     {
       "key": "Connected, no one is speaking",
@@ -11842,7 +11835,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 4079
+      "line": 4113
     },
     {
       "key": "Copy a .qmconfig file into the package folder, then refresh.",
@@ -11877,7 +11870,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 4115
+      "line": 4149
     },
     {
       "key": "Copy name",
@@ -14082,7 +14075,7 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 844
+      "line": 845
     },
     {
       "key": "DeepL API quota depends on your subscription. Get an API key at deepl.com.",
@@ -17344,7 +17337,7 @@
       "category": "register_help",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 988
+      "line": 990
     },
     {
       "key": "Edge margin",
@@ -18163,7 +18156,7 @@
       "category": "register_help",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 986
+      "line": 988
     },
     {
       "key": "Enable cheats for your current team's run, but you can't earn a rank",
@@ -23210,7 +23203,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/translate/translate.cpp",
       "context": "",
-      "line": 406
+      "line": 418
     },
     {
       "key": "Full",
@@ -27599,7 +27592,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1614
+      "line": 1613
     },
     {
       "key": "Input",
@@ -28204,6 +28197,13 @@
       "line": 295
     },
     {
+      "key": "Invalid translation backend",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/translate/translate.cpp",
+      "context": "",
+      "line": 478
+    },
+    {
       "key": "Invalid X coordinate.",
       "category": "indirect",
       "source": "src/game/client/components/qmclient/hud_notifications/hud_notification_static_rules.h",
@@ -28649,28 +28649,28 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 858
+      "line": 859
     },
     {
       "key": "Jump hint defaults migration completed flag",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 856
+      "line": 857
     },
     {
       "key": "Jump hint font size",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 861
+      "line": 862
     },
     {
       "key": "Jump hint horizontal position (% of screen width)",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 859
+      "line": 860
     },
     {
       "key": "Jump hint text",
@@ -28684,14 +28684,14 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 857
+      "line": 858
     },
     {
       "key": "Jump hint vertical position (% of screen height)",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 860
+      "line": 861
     },
     {
       "key": "Jump to beginning of animation.",
@@ -30084,14 +30084,14 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 837
+      "line": 838
     },
     {
       "key": "LibreTranslate endpoint",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 836
+      "line": 837
     },
     {
       "key": "license",
@@ -30931,7 +30931,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 8417
+      "line": 8419
     },
     {
       "key": "Loading sound files",
@@ -33794,7 +33794,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 4105
+      "line": 4139
     },
     {
       "key": "Mute player status sounds",
@@ -35096,7 +35096,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/ui_popups.cpp",
       "context": "",
-      "line": 604
+      "line": 606
     },
     {
       "key": "No",
@@ -37231,7 +37231,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1970
+      "line": 1969
     },
     {
       "key": "Old chat style: no tee icons, no background",
@@ -38302,7 +38302,7 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 827
+      "line": 828
     },
     {
       "key": "Outline",
@@ -41172,7 +41172,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1613
+      "line": 1612
     },
     {
       "key": "Presentation animations",
@@ -42572,7 +42572,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 3250
+      "line": 3252
     },
     {
       "key": "R",
@@ -45393,7 +45393,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 4089
+      "line": 4123
     },
     {
       "key": "Reply content",
@@ -46170,7 +46170,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 3252
+      "line": 3254
     },
     {
       "key": "Restore a recently used Tee skin",
@@ -46436,14 +46436,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 3836
+      "line": 3870
     },
     {
       "key": "Right-click to enable auto-translate",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 3836
+      "line": 3870
     },
     {
       "key": "Right-click to remove from favorites",
@@ -47185,7 +47185,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9173
+      "line": 9175
     },
     {
       "key": "Save file with the specified name.",
@@ -47598,7 +47598,7 @@
       "category": "register_help",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 984
+      "line": 986
     },
     {
       "key": "Say in chat",
@@ -47612,7 +47612,7 @@
       "category": "register_help",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 985
+      "line": 987
     },
     {
       "key": "Scale %",
@@ -48130,14 +48130,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/UiForms.cpp",
       "context": "",
-      "line": 184
+      "line": 202
     },
     {
       "key": "Search",
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/UiForms.cpp",
       "context": "",
-      "line": 224
+      "line": 242
     },
     {
       "key": "Search",
@@ -48256,7 +48256,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/ui.cpp",
       "context": "",
-      "line": 1915
+      "line": 1917
     },
     {
       "key": "Search and navigate settings",
@@ -48903,20 +48903,6 @@
       "line": 54
     },
     {
-      "key": "Send original text with translation",
-      "category": "indirect",
-      "source": "src/game/client/QmUi/cards/QmCardCatalogTranslateContent.cpp",
-      "context": "",
-      "line": 96
-    },
-    {
-      "key": "Send original text with translation",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/QmUi/cards/QmCardCatalogTranslateContent.cpp",
-      "context": "",
-      "line": 96
-    },
-    {
       "key": "Send probability",
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogFunctionContent.cpp",
@@ -49012,7 +48998,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1637
+      "line": 1636
     },
     {
       "key": "Sending locally, suggest the other party unmute or confirm they can receive",
@@ -50447,7 +50433,7 @@
       "category": "register_help",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 987
+      "line": 989
     },
     {
       "key": "Show chat (2 always show large chat area)",
@@ -51728,7 +51714,7 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 855
+      "line": 856
     },
     {
       "key": "Show jumps indicator",
@@ -52184,6 +52170,20 @@
       "source": "src/engine/shared/config_variables.h",
       "context": "",
       "line": 99
+    },
+    {
+      "key": "Show original text below outgoing translation",
+      "category": "indirect",
+      "source": "src/game/client/QmUi/cards/QmCardCatalogTranslateContent.cpp",
+      "context": "",
+      "line": 96
+    },
+    {
+      "key": "Show original text below outgoing translation",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/QmUi/cards/QmCardCatalogTranslateContent.cpp",
+      "context": "",
+      "line": 96
     },
     {
       "key": "Show other players' coordinates",
@@ -53227,6 +53227,13 @@
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
       "line": 180
+    },
+    {
+      "key": "Show the original text locally below translated outgoing messages",
+      "category": "indirect",
+      "source": "src/engine/shared/config_variables_qmclient.h",
+      "context": "",
+      "line": 826
     },
     {
       "key": "Show the pet",
@@ -55452,7 +55459,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 4094
+      "line": 4128
     },
     {
       "key": "Spectate",
@@ -57867,7 +57874,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 3050
+      "line": 3056
     },
     {
       "key": "Team",
@@ -58210,7 +58217,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9121
+      "line": 9123
     },
     {
       "key": "Team save in progress. You'll be able to load with '/load %s' if save is successful or with '/load %s' if it fails",
@@ -58231,7 +58238,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9127
+      "line": 9129
     },
     {
       "key": "Team successfully saved by %s. The database connection failed, using generated save code instead to avoid collisions. Use '/load %s' on %s to continue",
@@ -58252,7 +58259,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9164
+      "line": 9166
     },
     {
       "key": "Team successfully saved by %s. The database connection failed, using generated save code instead to avoid collisions. Use '/load %s' to continue",
@@ -58273,7 +58280,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9157
+      "line": 9159
     },
     {
       "key": "Team tee glow",
@@ -59092,28 +59099,28 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 830
+      "line": 831
     },
     {
       "key": "Tencent Cloud Translation region",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 833
+      "line": 834
     },
     {
       "key": "Tencent Cloud Translation SecretId",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 831
+      "line": 832
     },
     {
       "key": "Tencent Cloud Translation SecretKey",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 832
+      "line": 833
     },
     {
       "key": "Test map locally",
@@ -61314,6 +61321,13 @@
       "line": 276
     },
     {
+      "key": "Too many translation tasks",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/translate/translate.cpp",
+      "context": "",
+      "line": 452
+    },
+    {
       "key": "Tool 'Make borders'",
       "category": "localize_or_localizable",
       "source": "src/game/editor/mapitems/map.cpp",
@@ -61776,11 +61790,18 @@
       "line": 783
     },
     {
+      "key": "Translated message could not be queued; original was not sent",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/translate/translate.cpp",
+      "context": "",
+      "line": 350
+    },
+    {
       "key": "Translated text hidden due to streamer mode",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/chat.cpp",
       "context": "",
-      "line": 2573
+      "line": 2586
     },
     {
       "key": "Translated text size",
@@ -61801,35 +61822,35 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/translate/translate.cpp",
       "context": "",
-      "line": 474
-    },
-    {
-      "key": "Translation backend invalid, sending original",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/translate/translate.cpp",
-      "context": "",
-      "line": 467
+      "line": 483
     },
     {
       "key": "Translation button active color",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 849
+      "line": 850
     },
     {
       "key": "Translation button cancel color",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 848
+      "line": 849
+    },
+    {
+      "key": "Translation canceled because the sender changed",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/translate/translate.cpp",
+      "context": "",
+      "line": 343
     },
     {
       "key": "Translation color alpha migration completed flag",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 847
+      "line": 848
     },
     {
       "key": "Translation diagnostics",
@@ -61857,21 +61878,21 @@
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 850
+      "line": 851
     },
     {
       "key": "Translation menu normal color",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 852
+      "line": 853
     },
     {
       "key": "Translation menu selected color",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
-      "line": 851
+      "line": 852
     },
     {
       "key": "Translation model was not found. Check the model name.",
@@ -61879,13 +61900,6 @@
       "source": "src/game/client/components/qmclient/translate/translate_backend.cpp",
       "context": "",
       "line": 1634
-    },
-    {
-      "key": "Translation queue full, sending original",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/translate/translate.cpp",
-      "context": "",
-      "line": 440
     },
     {
       "key": "Translation service",
@@ -65532,7 +65546,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1970
+      "line": 1969
     },
     {
       "key": "Water hammer highlight",
@@ -66806,7 +66820,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/ui_popups.cpp",
       "context": "",
-      "line": 603
+      "line": 605
     },
     {
       "key": "Yes",
