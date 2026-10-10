@@ -73,6 +73,12 @@ CUiScopedQuadBatch::~CUiScopedQuadBatch()
 		m_pUi->EndQuadBatch();
 }
 
+// 默认作用域继承外层淡入透明度，独立弹层与菜单内弹层共用同一模糊链。
+CUiScopedGaussianBlur::CUiScopedGaussianBlur(CUi *pUi) :
+	CUiScopedGaussianBlur(pUi, pUi != nullptr && pUi->GaussianBlurScopeActive() ? pUi->GaussianBlurScopeAlpha() : 1.0f)
+{
+}
+
 CUiScopedGaussianBlur::CUiScopedGaussianBlur(CUi *pUi, float Alpha) :
 	m_pUi(pUi)
 {
@@ -490,7 +496,7 @@ void CUi::BeginWheelOwnershipFrame()
 		RawDelta += 120.0f;
 	if(ConsumeHotkey(HOTKEY_SCROLL_DOWN))
 		RawDelta -= 120.0f;
-	m_WheelOwnership.BeginFrame(FrameId, RawDelta, Input() != nullptr && Input()->AltIsPressed());
+	BeginWheelOwnershipFrame(FrameId, RawDelta, Input() != nullptr && Input()->AltIsPressed());
 }
 
 void CUi::RegisterWheelOwner(const void *pOwnerId, EUiWheelOwnerPriority Priority, const CUIRect &HotRect, bool Eligible)
@@ -797,6 +803,8 @@ void CUi::UpdateTouchState(CTouchState &State) const
 
 bool CUi::ConsumeHotkey(EHotkey Hotkey)
 {
+	if(RenderOnly())
+		return false;
 	const bool Pressed = m_HotkeysPressed & Hotkey;
 	m_HotkeysPressed &= ~Hotkey;
 	return Pressed;
@@ -1429,9 +1437,18 @@ bool CUi::DrawCachedQmIconLabel(const CUIRect &Rect, const char *pText, float Si
 	return true;
 }
 
+const char *CUi::PrepareCardLabel(const CUIRect *pRect, const char *pText, bool Render) const
+{
+	return m_CardLabelHintsEnabled && m_pQmTooltips != nullptr && TextRender()->GetFontPreset() != EFontPreset::ICON_FONT ?
+		       m_pQmTooltips->PrepareCardLabel(pRect, pText, Render && !RenderOnly()) :
+		       pText;
+}
+
 CLabelResult CUi::DoLabel(const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps) const
 {
+	pText = PrepareCardLabel(pRect, pText);
 	const SQmIconLabelGlyphs Icons = QmIconLabelGlyphs(TextRender()->GetFontPreset(), pText);
+	const CQmIconLabelFontScope FontScope(*TextRender(), Icons);
 	if(Icons.m_Count > 0 && pRect->w >= Size * Icons.m_Count && pRect->h >= Size && LabelProps.m_vColorSplits.empty() && LabelProps.m_MaxWidth < 0 && DrawCachedQmIconLabel(*pRect, pText, Size, Align, Icons.m_Count))
 		return CLabelResult{};
 
@@ -1461,7 +1478,10 @@ CLabelResult CUi::DoLabel(const CUIRect *pRect, const char *pText, float Size, i
 
 void CUi::DoLabel(CUIElement::SUIElementRect &RectEl, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps, int StrLen, const CTextCursor *pReadCursor) const
 {
+	if(StrLen < 0 && pReadCursor == nullptr)
+		pText = PrepareCardLabel(pRect, pText);
 	const auto Icons = pReadCursor == nullptr ? QmIconLabelGlyphs(TextRender()->GetFontPreset(), pText, StrLen) : SQmIconLabelGlyphs{};
+	const CQmIconLabelFontScope FontScope(*TextRender(), Icons);
 	RectEl.m_aQmIcons = Icons.m_aIcons;
 	RectEl.m_NumQmIcons = Icons.m_Count;
 	RectEl.m_FontPreset = TextRender()->GetFontPreset();
@@ -1517,11 +1537,14 @@ void CUi::RenderLabelTextContainerAligned(const CUIElement::SUIElementRect &Rect
 
 void CUi::DoLabelStreamed(CUIElement::SUIElementRect &RectEl, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps, int StrLen, const CTextCursor *pReadCursor, bool Render, bool *pTextContainerRecreated) const
 {
+	if(StrLen < 0 && pReadCursor == nullptr)
+		pText = PrepareCardLabel(pRect, pText, Render);
 	const int Flags = GetFlagsForLabelProperties(LabelProps, pReadCursor);
 	const int ReadCursorGlyphCount = pReadCursor == nullptr ? -1 : pReadCursor->m_GlyphCount;
 	bool NeedsRecreate = false;
 	bool ColorChanged = RectEl.m_TextColor != TextRender()->GetTextColor() || RectEl.m_TextOutlineColor != TextRender()->GetTextOutlineColor();
 	const auto Icons = pReadCursor == nullptr ? QmIconLabelGlyphs(TextRender()->GetFontPreset(), pText, StrLen) : SQmIconLabelGlyphs{};
+	const CQmIconLabelFontScope FontScope(*TextRender(), Icons);
 	bool StyleChanged = RectEl.m_FontPreset != TextRender()->GetFontPreset() || RectEl.m_NumQmIcons != Icons.m_Count || RectEl.m_aQmIcons != Icons.m_aIcons || RectEl.m_FontSize != Size || RectEl.m_TextAlign != Align || RectEl.m_LabelMaxWidth != LabelProps.m_MaxWidth || RectEl.m_LabelFlags != Flags;
 	if(ColorChanged)
 	{
@@ -1572,6 +1595,8 @@ void CUi::DoLabelStreamed(CUIElement::SUIElementRect &RectEl, const CUIRect *pRe
 		TmpRect.h = pRect->h;
 
 		DoLabel(RectEl, &TmpRect, pText, Size, TEXTALIGN_TL, LabelProps, StrLen, pReadCursor);
+		// 容器按左上角创建，缓存记录调用者的实际对齐，避免每帧重复重建。
+		RectEl.m_TextAlign = Align;
 	}
 
 	if(Render && RectEl.m_UITextContainer.Valid())
@@ -1617,7 +1642,8 @@ bool CUi::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 	bool Active = m_pLastActiveItem == pLineInput;
 	const bool Changed = pLineInput->WasChanged();
 	const bool CursorChanged = pLineInput->WasCursorChanged();
-	const bool SubmitPressed = Input()->KeyPress(KEY_RETURN) || Input()->KeyPress(KEY_KP_ENTER) || ConsumeHotkey(HOTKEY_ENTER);
+	// 只查看已路由的确认事件，保留给外层提交；IME 已消费的 Enter 不应从原始按键状态绕回来。
+	const bool SubmitPressed = Active && RenderOptions.m_ReleaseFocusOnEnter && (m_HotkeysPressed & HOTKEY_ENTER) != 0;
 	const bool ClickedOutside = (MouseButtonClicked(0) || MouseButtonClicked(1)) && !Inside;
 
 	bool JustGotActive = false;
@@ -1936,16 +1962,19 @@ int CUi::DoButton_Menu(CUIElement &UIElement, const CButtonContainer *pId, const
 
 	// 只缓存文字。背景和状态反馈由公共按钮绘制，避免为每个状态重复缓存矩形。
 	bool NeedsRecalc = !UIElement.AreRectsInit() || !UIElement.Rect(0)->m_UITextContainer.Valid();
-	const char *pText = nullptr;
+	const char *pText = m_CardLabelHintsEnabled && !Props.m_UseIconFont ? GetTextLambda() : nullptr;
+	if(pText != nullptr)
+		PrepareCardLabel(&Text, pText);
 	if(UIElement.AreRectsInit())
 	{
 		const CUIElement::SUIElementRect &Cached = *UIElement.Rect(0);
 		NeedsRecalc |= Cached.m_FontSize != FontSize;
 		if(Props.m_HintCanChangePositionOrSize)
 			NeedsRecalc |= Cached.m_X != pRect->x || Cached.m_Y != pRect->y || Cached.m_Width != pRect->w || Cached.m_Height != pRect->h;
-		if(Props.m_HintRequiresStringCheck)
+		if(Props.m_HintRequiresStringCheck || pText != nullptr)
 		{
-			pText = GetTextLambda();
+			if(pText == nullptr)
+				pText = GetTextLambda();
 			NeedsRecalc |= str_comp(Cached.m_Text.c_str(), pText) != 0;
 		}
 	}
@@ -2050,7 +2079,8 @@ bool CUi::DrawQmIcon(const CUIRect &Rect, EQmIcon Icon, const char *pFallbackIco
 	const EFontPreset PreviousPreset = pTextRender->GetFontPreset();
 	pTextRender->TextColor(ConfiguredQmUiIconColor(Color, Icon));
 	const CQmIconSemanticColorScope SemanticColorScope(QmUiIconHasSemanticColor(Icon));
-	pTextRender->SetFontPreset(EFontPreset::ICON_FONT);
+	// 实心态切换 Fill 字面渲染同一码位；字形文本与度量不变，缓存按预设自然隔离。
+	pTextRender->SetFontPreset(QmUiIconFilledStyle(Icon) ? EFontPreset::ICON_FONT_FILL : EFontPreset::ICON_FONT);
 	pTextRender->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING);
 	DoLabel(&Rect, pFallbackIcon, QmIconFontSize(Rect), TEXTALIGN_MC);
 	pTextRender->SetRenderFlags(PreviousFlags);

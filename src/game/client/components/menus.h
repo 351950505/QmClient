@@ -124,7 +124,6 @@ struct SSettingsCardDeckVisualOptions;
 enum class EQmChatGradientRole;
 struct SQmGradientGeometryBinding;
 struct SQmGradientGeometryState;
-struct SQmBrowserStatusLayout;
 
 class CMenus;
 
@@ -2325,7 +2324,7 @@ protected:
 	bool m_ServerBrowserShouldRevealSelection;
 	std::vector<CUIElement *> m_avpServerBrowserUiElements[IServerBrowser::NUM_TYPES];
 	void RenderServerbrowserServerList(CUIRect View, bool &WasListboxItemActivated);
-	void RenderServerbrowserStatusBox(const SQmBrowserStatusLayout &Layout, bool WasListboxItemActivated);
+	void RenderServerbrowserStatusBox(CUIRect StatusBox, bool WasListboxItemActivated);
 	void RenderServerbrowserMapFilterSelector(CUIRect Selector);
 	enum class EConnectIntent
 	{
@@ -2503,6 +2502,11 @@ public:
 	bool ClaimOnlineReplaySpectatorBind(int Key);
 	bool IsActive() const { return m_MenuActive; }
 	bool IsSettingsPageActive() const;
+	std::array<int, 9> TooltipContext() const
+	{
+		return {m_MenuActive, m_MenuPage, m_GamePage, m_Popup, g_Config.m_UiSettingsPage,
+			m_QmClientSettingsTab, m_TClientSettingsTab, m_AppearanceSettingsTab, m_CreditsSettingsTab};
+	}
 	const char *CurrentQmUiPerfPage() const;
 	const char *CurrentQmUiPerfOperation() const;
 	int IdleRenderFrameRate() const;
@@ -2656,6 +2660,8 @@ public:
 	int m_TClientSettingsTab = 0;
 	int m_AppearanceSettingsTab = APPEARANCE_TAB_HUD;
 	CLineInputBuffered<128> m_GlobalCardSearchInput;
+	// 进入「搜索」设置页时自动聚焦输入框的一次性请求标志（渲染侧消费）。
+	bool m_FocusSettingsSearchOnEntry = false;
 	void ClearQmClientSettingsSearchInputs();
 
 	// DDRace
@@ -3145,6 +3151,8 @@ private:
 	SSettingsCardDeckDisplayCycleState m_SettingsCardDeckDisplayState;
 	SSettingsShellLayoutFrame m_SettingsShellLayout;
 	SSettingsContentMetrics m_SettingsContentMetrics;
+	std::vector<SSettingsToggleSize> m_vSettingsToggleGroupSizes;
+	SSettingsDynamicToggleGrid m_SettingsToggleGroupGrid;
 	bool m_SettingsShellLayoutValid = false;
 
 	CCommunityIcons m_CommunityIcons;
@@ -3264,6 +3272,7 @@ private:
 	void RenderQmVisualSkinTransitionContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmVisualSkinAppearanceContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmVisualFocusModeContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float ColumnGap, float LabelWidth);
+	void RenderQmVisualSpectatorModeContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmVisualCameraViewContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	bool RenderQmHudCheckbox(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue);
 	bool HandleQmHudCheckboxInput(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, int *pValue);
@@ -3296,7 +3305,7 @@ private:
 	CTranslateProbe m_TranslateProbe;
 	int m_TranslateProbeDiagnostics = 0;
 	void RenderQmFunctionTranslateContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
-	void RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly, int MaxGridColumns);
+	void RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly);
 	void RenderQmFunctionFavoriteMapsContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, bool PrewarmOnly);
 	void RenderQmFunctionHJAssistContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmHudBindStatusContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);

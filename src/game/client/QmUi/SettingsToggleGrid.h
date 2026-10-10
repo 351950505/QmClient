@@ -4,34 +4,111 @@
 #include <game/client/ui_rect.h>
 
 #include <algorithm>
-#include <cmath>
+#include <array>
+#include <cstddef>
+#include <vector>
 
-struct SSettingsToggleGrid
+struct SSettingsToggleSize
+{
+	float m_Width = 0.0f;
+	float m_Height = 0.0f;
+};
+
+template<typename TDimensions>
+struct SSettingsToggleGridLayout
 {
 	int m_Columns = 1;
 	int m_Rows = 0;
-	float m_CellWidth = 0.0f;
-	float m_RowHeight = 0.0f;
 	float m_Gap = 0.0f;
+	TDimensions m_aColumnWidths{};
+	TDimensions m_aRowHeights{};
 
-	float Height() const { return m_Rows > 0 ? m_Rows * m_RowHeight + (m_Rows - 1) * m_Gap : 0.0f; }
+	template<typename TItems>
+	void SetItemHeights(const TItems &aItems)
+	{
+		std::fill(m_aRowHeights.begin(), m_aRowHeights.end(), 0.0f);
+		for(size_t Index = 0; Index < aItems.size(); ++Index)
+			m_aRowHeights[Index / m_Columns] = std::max(m_aRowHeights[Index / m_Columns], aItems[Index].m_Height);
+	}
+
+	float Height() const
+	{
+		float Height = std::max(0, m_Rows - 1) * m_Gap;
+		for(int Row = 0; Row < m_Rows; ++Row)
+			Height += m_aRowHeights[Row];
+		return Height;
+	}
+
 	CUIRect Cell(const CUIRect &Area, int Index) const
 	{
-		return {Area.x + Index % m_Columns * (m_CellWidth + m_Gap), Area.y + Index / m_Columns * (m_RowHeight + m_Gap), m_CellWidth, m_RowHeight};
+		const int Column = Index % m_Columns;
+		const int Row = Index / m_Columns;
+		CUIRect Cell{Area.x, Area.y, m_aColumnWidths[Column], m_aRowHeights[Row]};
+		for(int Previous = 0; Previous < Column; ++Previous)
+			Cell.x += m_aColumnWidths[Previous] + m_Gap;
+		for(int Previous = 0; Previous < Row; ++Previous)
+			Cell.y += m_aRowHeights[Previous] + m_Gap;
+		return Cell;
 	}
 };
 
-inline SSettingsToggleGrid ResolveSettingsToggleGrid(float Width, float MinimumCellWidth, float RowHeight, float Gap, int Count, int MaxColumns)
+template<size_t ItemCount>
+using SSettingsToggleGrid = SSettingsToggleGridLayout<std::array<float, ItemCount>>;
+using SSettingsDynamicToggleGrid = SSettingsToggleGridLayout<std::vector<float>>;
+
+template<typename TItems, typename TDimensions>
+void ResolveSettingsToggleGridLayout(float Width, const TItems &aItems, float Gap, SSettingsToggleGridLayout<TDimensions> &Grid)
 {
-	SSettingsToggleGrid Grid;
-	Grid.m_Gap = std::max(0.0f, Gap);
-	Grid.m_RowHeight = std::max(0.0f, RowHeight);
 	Width = std::max(0.0f, Width);
-	const int FittingColumns = static_cast<int>(std::floor((Width + Grid.m_Gap) / std::max(1.0f, MinimumCellWidth + Grid.m_Gap)));
-	Grid.m_Columns = std::clamp(FittingColumns, 1, std::min(std::max(1, Count), std::clamp(MaxColumns, 1, 4)));
-	Grid.m_Rows = (std::max(0, Count) + Grid.m_Columns - 1) / Grid.m_Columns;
-	Grid.m_CellWidth = std::max(0.0f, (Width - (Grid.m_Columns - 1) * Grid.m_Gap) / Grid.m_Columns);
+	Grid.m_Columns = 1;
+	Grid.m_Rows = 0;
+	Grid.m_Gap = std::max(0.0f, Gap);
+	std::fill(Grid.m_aColumnWidths.begin(), Grid.m_aColumnWidths.end(), 0.0f);
+	std::fill(Grid.m_aRowHeights.begin(), Grid.m_aRowHeights.end(), 0.0f);
+	const int ItemCount = static_cast<int>(aItems.size());
+	if(ItemCount == 0)
+		return;
+
+	// 每列只预留本列最长项的宽度，不能用全组最长项把所有列一起撑宽。
+	for(int Columns = ItemCount; Columns >= 1; --Columns)
+	{
+		std::fill(Grid.m_aColumnWidths.begin(), Grid.m_aColumnWidths.end(), 0.0f);
+		for(int Index = 0; Index < ItemCount; ++Index)
+			Grid.m_aColumnWidths[Index % Columns] = std::max(Grid.m_aColumnWidths[Index % Columns], aItems[Index].m_Width);
+		float RequiredWidth = (Columns - 1) * Grid.m_Gap;
+		for(int Column = 0; Column < Columns; ++Column)
+			RequiredWidth += Grid.m_aColumnWidths[Column];
+		if(RequiredWidth > Width && Columns > 1)
+			continue;
+
+		Grid.m_Columns = Columns;
+		Grid.m_Rows = (ItemCount + Columns - 1) / Columns;
+		const float ExtraWidth = std::max(0.0f, Width - RequiredWidth) / Columns;
+		float UsedWidth = 0.0f;
+		for(int Column = 0; Column < Columns; ++Column)
+		{
+			Grid.m_aColumnWidths[Column] = Column + 1 == Columns ? std::max(0.0f, Width - UsedWidth) : Grid.m_aColumnWidths[Column] + ExtraWidth;
+			UsedWidth += Grid.m_aColumnWidths[Column] + Grid.m_Gap;
+		}
+		Grid.SetItemHeights(aItems);
+		return;
+	}
+}
+
+template<size_t ItemCount>
+SSettingsToggleGrid<ItemCount> ResolveSettingsToggleGrid(float Width, const std::array<SSettingsToggleSize, ItemCount> &aItems, float Gap)
+{
+	SSettingsToggleGrid<ItemCount> Grid;
+	ResolveSettingsToggleGridLayout(Width, aItems, Gap, Grid);
 	return Grid;
+}
+
+// 动态分组复用菜单持有的容量，避免每张卡片在每帧重新分配尺寸数组。
+inline void ResolveSettingsToggleGrid(float Width, const std::vector<SSettingsToggleSize> &vItems, float Gap, SSettingsDynamicToggleGrid &Grid)
+{
+	Grid.m_aColumnWidths.resize(vItems.size());
+	Grid.m_aRowHeights.resize(vItems.size());
+	ResolveSettingsToggleGridLayout(Width, vItems, Gap, Grid);
 }
 
 enum class ESettingsToggleGroupPass
@@ -65,11 +142,6 @@ inline bool ApplySettingsToggleEntry(const SSettingsToggleEntry &Entry, bool Cli
 	else
 		*Entry.m_pValue ^= 1;
 	return true;
-}
-
-inline int ResolveSettingsToggleGroupColumnLimit(float Width, float HalfWidth, bool TwoColumns)
-{
-	return TwoColumns && Width <= HalfWidth ? 2 : 4;
 }
 
 struct SSettingsToggleCell

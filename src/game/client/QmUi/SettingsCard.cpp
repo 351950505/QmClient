@@ -90,6 +90,7 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const CUIRect &Slot, cons
 
 SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame &Frame, const SSettingsCardSpec &Spec, const SSettingsCardVisualState &State, const SSettingsCardDeckVisualOptions &VisualOptions, const FSettingsCardRender &Render, const FSettingsCardHeaderAction &HeaderAction, const FSettingsCardRenderMeasured &RenderMeasured, bool *pPointerInside)
 {
+	const CQmCardLabelHintScope LabelHints(Ctx.m_pUi);
 	const float UiScale = Ctx.m_UiScale > 0.0f ? Ctx.m_UiScale : 1.0f;
 	SSettingsCardVisualState DrawState = State;
 	SSettingsCardFrame DrawFrame = ResolveSettingsCardDrawFrame(Frame, State.m_DrawOffsetX, State.m_DrawOffsetY);
@@ -200,16 +201,25 @@ bool CMenus::DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Conte
 	if(Entries.size() == 0)
 		return false;
 	const float Gap = Metrics.m_LineSpacing * 2.0f;
-	float MinimumWidth = 72.0f * Metrics.m_UiScale;
-	for(const auto &Entry : Entries)
-		MinimumWidth = std::max(MinimumWidth, TextRender()->TextWidth(Metrics.m_BodySize, Entry.m_pLabel) + Gap);
-	const int MaxColumns = ResolveSettingsToggleGroupColumnLimit(Content.w, m_SettingsShellLayout.m_aColumns[0].w, m_SettingsShellLayoutValid && m_SettingsShellLayout.m_TwoColumns);
-	SSettingsToggleGrid Grid = ResolveSettingsToggleGrid(Content.w, MinimumWidth, 0.0f, Gap, static_cast<int>(Entries.size()), MaxColumns);
-	float LabelHeight = Metrics.m_LineHeight;
-	for(const auto &Entry : Entries)
-		LabelHeight = std::max(LabelHeight, TextRender()->TextBoundingBox(Metrics.m_BodySize, Entry.m_pLabel, -1, std::max(1.0f, Grid.m_CellWidth)).m_H);
 	const float LabelGap = Metrics.m_LineSpacing * 0.5f;
-	Grid.m_RowHeight = LabelHeight + LabelGap + Metrics.m_LineHeight;
+	m_vSettingsToggleGroupSizes.resize(Entries.size());
+	size_t Index = 0;
+	for(const auto &Entry : Entries)
+	{
+		auto &Size = m_vSettingsToggleGroupSizes[Index++];
+		Size.m_Width = std::max(TextRender()->TextWidth(Metrics.m_BodySize, Entry.m_pLabel), Metrics.m_LineHeight * 1.65f) + Gap;
+		Size.m_Height = Metrics.m_LineHeight * 2.0f + LabelGap;
+	}
+	auto &Grid = m_SettingsToggleGroupGrid;
+	ResolveSettingsToggleGrid(Content.w, m_vSettingsToggleGroupSizes, Gap, Grid);
+	Index = 0;
+	for(const auto &Entry : Entries)
+	{
+		const float LabelWidth = std::max(1.0f, Grid.m_aColumnWidths[Index % Grid.m_Columns]);
+		const float LabelHeight = std::max(Metrics.m_LineHeight, TextRender()->TextBoundingBox(Metrics.m_BodySize, Entry.m_pLabel, -1, LabelWidth).m_H);
+		m_vSettingsToggleGroupSizes[Index++].m_Height = LabelHeight + LabelGap + Metrics.m_LineHeight;
+	}
+	Grid.SetItemHeights(m_vSettingsToggleGroupSizes);
 	CUIRect Area;
 	Content.HSplitTop(Grid.Height(), &Area, &Content);
 	Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
@@ -219,15 +229,17 @@ bool CMenus::DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Conte
 	const IUiContext Context = SettingsUiContext("settings-switch", Metrics.m_UiScale);
 	const bool CanProcessInput = ProcessInput && !m_MenuTextPlanCollecting && !Ui()->RenderOnly();
 	bool Changed = false;
-	int Index = 0;
+	Index = 0;
 	for(const auto &Entry : Entries)
 	{
-		const CUIRect Cell = Grid.Cell(Area, Index++);
+		const CUIRect Cell = Grid.Cell(Area, static_cast<int>(Index++));
+		const float LabelHeight = Cell.h - LabelGap - Metrics.m_LineHeight;
 		const auto Layout = ResolveSettingsToggleCell(Cell, LabelHeight, Metrics.m_LineHeight, LabelGap);
 		const void *pId = Entry.m_pId != nullptr ? Entry.m_pId : Entry.m_pValue;
 		const char *pOverrideTooltip = TemporaryOverrideTooltip(Entry.m_pValue);
 		SLabelProperties Props;
 		Props.m_MaxWidth = Layout.m_Label.w;
+		Props.m_EnableWidthCheck = false;
 		Props.m_MinimumFontSize = Metrics.m_BodySize;
 		if(pOverrideTooltip != nullptr)
 			Props.SetColor(ui_token::color::TEXT_DISABLED);

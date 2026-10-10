@@ -24,7 +24,6 @@
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/components/binds.h>
 #include <game/client/components/menus.h>
-#include <game/client/components/qmclient/decorative_throw_policy.h>
 #include <game/client/components/qmclient/perf_logging.h>
 #include <game/client/components/qmclient/qm_music_hook_registry.h>
 #include <game/client/components/qmclient/qmclient_utils.h>
@@ -126,7 +125,7 @@ void CMenus::RenderQmFunctionGoresContent(CUIRect &Content, float LineHeight, fl
 	};
 	RenderCheckbox(&g_Config.m_QmGores, "qmclient-gores-enable", "Enable Gores mode", &g_Config.m_QmGores);
 	RenderCheckbox(&g_Config.m_QmAxiomAutoLogin, "qmclient-gores-axiom-auto-login", "Auto login Axiom server", &g_Config.m_QmAxiomAutoLogin);
-	const char *pAxiomHelp = Localize("Use the passwords registered on Axiom for your main and dummy accounts separately. This option does not register accounts.");
+	const char *pAxiomHelp = Localize("Your account is your in-game name — register it on the Axiom website. Fill in the registered main and dummy passwords. This option does not register accounts.");
 	GameClient()->m_Tooltips.DoToolTipForRect(&g_Config.m_QmAxiomAutoLogin, &Row, pAxiomHelp);
 
 	if(g_Config.m_QmAxiomAutoLogin)
@@ -153,6 +152,15 @@ void CMenus::RenderQmFunctionGoresContent(CUIRect &Content, float LineHeight, fl
 		RenderPassword("qmclient-gores-axiom-main-password", "Axiom main account password", s_AxiomLoginPassword, s_AxiomPasswordToggleButton, s_ShowAxiomPassword);
 		RenderPassword("qmclient-gores-axiom-dummy-password", "Axiom dummy password", s_AxiomDummyLoginPassword, s_AxiomDummyPasswordToggleButton, s_ShowAxiomDummyPassword);
 	}
+
+	// Axiom 官网入口：注册账号、找回密码都从这里进。
+	Content.HSplitTop(LineHeight, &Row, &Content);
+	Row.VSplitLeft(LabelWidth, &LabelColumn, &ControlColumn);
+	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-gores-axiom-website", &LabelColumn, Localize("Axiom website"), BodySize, TEXTALIGN_ML, {}, (int)LabelColumn.w);
+	static CButtonContainer s_AxiomWebsiteButton;
+	if(!PrewarmOnly && !Ui()->RenderOnly() && Ui()->DoButton_QmIcon(&s_AxiomWebsiteButton, EQmIcon::ARROW_UP_RIGHT_FROM_SQUARE, FONT_ICON_ARROW_UP_RIGHT_FROM_SQUARE, 0, &ControlColumn, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL))
+		Client()->ViewLink("https://axiom.teeworlds.cn/");
+	Content.HSplitTop(LineSpacing, nullptr, &Content);
 
 	RenderCheckbox(&g_Config.m_QmGoresAutoEnable, "qmclient-gores-auto-enable", "Auto enable in Gores mode", &g_Config.m_QmGoresAutoEnable);
 	if(g_Config.m_QmGores || g_Config.m_QmGoresAutoEnable)
@@ -401,15 +409,6 @@ void CMenus::RenderQmFunctionEmoticonsContent(CUIRect &Content, float LineHeight
 	Content.HSplitTop(LineHeight, &Row, &Content);
 	RenderQmFunctionCheckbox(&g_Config.m_QmShowOtherLaunchEmotes, "Show other players' launched emoticons", Localize("Show other players' launched emoticons"), &g_Config.m_QmShowOtherLaunchEmotes, &Row, false);
 	Content.HSplitTop(LineSpacing, nullptr, &Content);
-	Content.HSplitTop(LineHeight, &Row, &Content);
-	RenderQmFunctionCheckbox(&g_Config.m_QmDecorativeThrows, "Decorative throws", Localize("Decorative throws"), &g_Config.m_QmDecorativeThrows, &Row, false);
-	Content.HSplitTop(LineSpacing, nullptr, &Content);
-	static CButtonContainer s_aThrowReaders[QmDecorativeThrow::COUNT];
-	static CButtonContainer s_aThrowClearers[QmDecorativeThrow::COUNT];
-	const char *apThrowLabels[] = {Localize("Throw grass key"), Localize("Throw tomato key"), Localize("Throw egg key")};
-	const char *apThrowCommands[] = {"qm_throw grass", "qm_throw tomato", "qm_throw egg"};
-	for(int Type = 0; Type < QmDecorativeThrow::COUNT; ++Type)
-		RenderQmHudKeyBindRow(Content, s_aThrowReaders[Type], s_aThrowClearers[Type], apThrowLabels[Type], apThrowCommands[Type], LineHeight, BodySize, LineSpacing, LabelWidth);
 	RenderQmHudKeyBindRow(Content, s_ReaderButtonLaunchEmote, s_ClearButtonLaunchEmote,
 		Localize("Launch emote key"), "toggle_emote_launcher", LineHeight, BodySize, LineSpacing, LabelWidth);
 }

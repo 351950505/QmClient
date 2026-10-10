@@ -18,6 +18,7 @@
 #include <engine/storage.h>
 #include <engine/textrender.h>
 
+#include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -290,15 +291,25 @@ void CMenus::RenderQmVisualChatBubbleContent(CUIRect &Content, float LineHeight,
 
 void CMenus::RenderQmVisualFocusModeContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float ColumnGap, float LabelWidth)
 {
-	const float SmallSize = CurrentSettingsContentMetrics().m_SmallSize;
+	SSettingsContentMetrics Metrics = CurrentSettingsContentMetrics();
+	Metrics.m_LineHeight = LineHeight;
+	Metrics.m_BodySize = BodySize;
+	Metrics.m_LineSpacing = LineSpacing;
+	const float SmallSize = Metrics.m_SmallSize;
 	static CButtonContainer s_ReaderButtonFocusToggle, s_ClearButtonFocusToggle;
 	RenderQmVisualCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmFocusMode, "qmclient-focus-mode-enable", Localize("Enable Zen mode"), &g_Config.m_QmFocusMode);
 	CUIRect Row;
 	(void)ColumnGap;
 	auto RenderSection = [&](CUIRect &Target, const char *pTextId, const char *pLabel) {
-		Target.HSplitTop(SmallSize, &Row, &Target);
+		const char *pLocalizedLabel = Localize(pLabel);
+		const float HeaderHeight = std::max(SmallSize, TextRender()->TextBoundingBox(SmallSize, pLocalizedLabel, -1, std::max(1.0f, Target.w)).m_H);
+		Target.HSplitTop(HeaderHeight, &Row, &Target);
+		SLabelProperties Props;
+		Props.m_MinimumFontSize = SmallSize;
+		Props.m_EnableWidthCheck = false;
+		Props.m_MaxWidth = Row.w;
 		TextRender()->TextColor(ColorRGBA(0.72f, 0.72f, 0.78f, 0.86f));
-		RenderQmVisualLabel(pTextId, &Row, Localize(pLabel), SmallSize);
+		DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, pTextId, &Row, pLocalizedLabel, SmallSize, TEXTALIGN_ML, Props);
 		TextRender()->TextColor(TextRender()->DefaultTextColor());
 		Target.HSplitTop(LineSpacing, nullptr, &Target);
 	};
@@ -310,7 +321,7 @@ void CMenus::RenderQmVisualFocusModeContent(CUIRect &Content, float LineHeight, 
 			{&g_Config.m_QmFocusModeHideInfoMessages, "qmclient-focus-hide-info-messages", Localize("Hide kill/finish messages")},
 			{&g_Config.m_QmFocusModeHideScoreboard, "qmclient-focus-hide-scoreboard", Localize("Hide scoreboard")},
 		},
-		CurrentSettingsContentMetrics());
+		Metrics);
 	RenderSection(Content, "qmclient-focus-section-players", "Players");
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, Content,
 		{
@@ -319,7 +330,7 @@ void CMenus::RenderQmVisualFocusModeContent(CUIRect &Content, float LineHeight, 
 			{&g_Config.m_QmFocusModeHideDirectionIndicators, "qmclient-focus-hide-direction-indicators", Localize("Hide direction indicators")},
 			{&g_Config.m_QmFocusModeHideGuideLines, "qmclient-focus-hide-guide-lines", Localize("Hide guide lines")},
 		},
-		CurrentSettingsContentMetrics());
+		Metrics);
 	RenderSection(Content, "qmclient-focus-section-visuals", "Visuals");
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, Content,
 		{
@@ -330,7 +341,7 @@ void CMenus::RenderQmVisualFocusModeContent(CUIRect &Content, float LineHeight, 
 			{&g_Config.m_QmFocusModeHideHammerEffects, "qmclient-focus-hide-hammer-effects", Localize("Hide hammer effects")},
 			{&g_Config.m_QmFocusModeHideMuzzleEffects, "qmclient-focus-hide-muzzle-effects", Localize("Hide weapon muzzle flashes")},
 		},
-		CurrentSettingsContentMetrics());
+		Metrics);
 	RenderSection(Content, "qmclient-focus-section-audio", "Audio");
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, Content,
 		{
@@ -338,7 +349,7 @@ void CMenus::RenderQmVisualFocusModeContent(CUIRect &Content, float LineHeight, 
 			{&g_Config.m_QmFocusModeMuteDeathSounds, "qmclient-focus-mute-death-sounds", Localize("Mute death/respawn sounds")},
 			{&g_Config.m_QmFocusModeMuteHammerSounds, "qmclient-focus-mute-hammer-sounds", Localize("Mute hammer sounds")},
 		},
-		CurrentSettingsContentMetrics());
+		Metrics);
 	RenderSection(Content, "qmclient-focus-section-chat", "Chat");
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, Content,
 		{
@@ -347,7 +358,7 @@ void CMenus::RenderQmVisualFocusModeContent(CUIRect &Content, float LineHeight, 
 			{&g_Config.m_QmFocusModeHideSystemMessages, "qmclient-focus-hide-system-messages", Localize("Hide server prompt notifications")},
 			{&g_Config.m_QmFocusModeHideEcho, "qmclient-focus-hide-echo", Localize("Hide Echo messages")},
 		},
-		CurrentSettingsContentMetrics());
+		Metrics);
 	Content.HSplitTop(LineSpacing, nullptr, &Content);
 	Content.HSplitTop(LineHeight, &Row, &Content);
 	CUIRect BindLabel, BindKey;
@@ -368,6 +379,22 @@ void CMenus::RenderQmVisualFocusModeContent(CUIRect &Content, float LineHeight, 
 		}
 		else
 			g_CommandBindCache.erase("toggle qm_focus_mode 0 1");
+	}
+}
+
+void CMenus::RenderQmVisualSpectatorModeContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
+{
+	RenderQmVisualCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmCinematicCamera, "qmclient-spectator-smoothing", Localize("Smooth free spectator camera"), &g_Config.m_QmCinematicCamera);
+	if(g_Config.m_QmCinematicCamera)
+	{
+		static int s_SmoothnessInputId;
+		CUIRect Row, LabelColumn, ControlColumn;
+		Content.HSplitTop(LineHeight, &Row, &Content);
+		Row.VSplitLeft(LabelWidth, &LabelColumn, &ControlColumn);
+		RenderQmVisualLabel("qmclient-cinematic-camera-smoothness", &LabelColumn, Localize("Cinematic smoothness"), BodySize);
+		GameClient()->m_Tooltips.DoSettingsToolTipForConfig(&s_SmoothnessInputId, &Row, &g_Config.m_QmCinematicCameraSmoothness, &LabelColumn);
+		RenderQmSettingsSliderWithValueInput(&s_SmoothnessInputId, ControlColumn, &g_Config.m_QmCinematicCameraSmoothness, 0, 100, "%", PrewarmOnly);
+		Content.HSplitTop(LineSpacing, nullptr, &Content);
 	}
 }
 
@@ -399,7 +426,6 @@ void CMenus::RenderQmVisualCameraViewContent(CUIRect &Content, float LineHeight,
 		RenderValue("qmclient-camera-dynamic-fov-intensity", "Dynamic FOV intensity", &s_QmDynamicFovAmountInputId, &g_Config.m_QmDynamicFovAmount, 0, 200);
 		RenderValue("qmclient-camera-dynamic-fov-smoothness", "Dynamic FOV smoothness", &s_QmDynamicFovSmoothnessInputId, &g_Config.m_QmDynamicFovSmoothness, 0, 100, "%");
 	}
-	RenderQmVisualCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmCinematicCamera, "Cinematic camera", Localize("Cinematic camera"), &g_Config.m_QmCinematicCamera);
 	RenderQmVisualCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmZoomInstantReverse, "Instant zoom reverse", Localize("Instant zoom reverse"), &g_Config.m_QmZoomInstantReverse);
 	static int s_QmUiScaleInputId;
 	RenderValue("qmclient-ui-scale", "UI scale", &s_QmUiScaleInputId, &g_Config.m_QmUiScale, 50, 200, "%", CUi::SCROLLBAR_OPTION_DELAYUPDATE);
