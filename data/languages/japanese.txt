@@ -10493,6 +10493,9 @@ Screenshots
 Screenshots directory
 == スクリーンショットディレクトリ
 
+Scroll mode
+== スクロールモード
+
 Scroll mode: Off
 == スクロールモード: オフ
 

@@ -10493,6 +10493,9 @@ Screenshots
 Screenshots directory
 == 스크린샷 디렉터리
 
+Scroll mode
+== 스크롤 모드
+
 Scroll mode: Off
 == 스크롤 모드: 끄기
 

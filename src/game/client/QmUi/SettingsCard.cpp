@@ -6,8 +6,8 @@
 #include "SettingsCardInfo.h"
 #include "SettingsIconFeedback.h"
 #include "SettingsPageLayout.h"
+#include "UiButtons.h"
 #include "UiContext.h"
-#include "UiForms.h"
 #include "UiSurface.h"
 #include "UiSurfaceText.h"
 #include "UiTheme.h"
@@ -200,24 +200,25 @@ bool CMenus::DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Conte
 {
 	if(Entries.size() == 0)
 		return false;
-	const float Gap = Metrics.m_LineSpacing * 2.0f;
-	const float LabelGap = Metrics.m_LineSpacing * 0.5f;
+	const float Gap = Metrics.m_LineSpacing;
+	const float PaddingX = std::max(Metrics.m_LineSpacing, Metrics.m_BodySize * 0.5f);
+	const float PaddingY = Metrics.m_LineSpacing * 0.5f;
 	m_vSettingsToggleGroupSizes.resize(Entries.size());
 	size_t Index = 0;
 	for(const auto &Entry : Entries)
 	{
 		auto &Size = m_vSettingsToggleGroupSizes[Index++];
-		Size.m_Width = std::max(TextRender()->TextWidth(Metrics.m_BodySize, Entry.m_pLabel), Metrics.m_LineHeight * 1.65f) + Gap;
-		Size.m_Height = Metrics.m_LineHeight * 2.0f + LabelGap;
+		Size = ResolveSettingsToggleButtonSize(TextRender()->TextWidth(Metrics.m_BodySize, Entry.m_pLabel), Metrics.m_BodySize, Metrics.m_LineHeight, PaddingX, PaddingY);
 	}
 	auto &Grid = m_SettingsToggleGroupGrid;
 	ResolveSettingsToggleGrid(Content.w, m_vSettingsToggleGroupSizes, Gap, Grid);
 	Index = 0;
 	for(const auto &Entry : Entries)
 	{
-		const float LabelWidth = std::max(1.0f, Grid.m_aColumnWidths[Index % Grid.m_Columns]);
-		const float LabelHeight = std::max(Metrics.m_LineHeight, TextRender()->TextBoundingBox(Metrics.m_BodySize, Entry.m_pLabel, -1, LabelWidth).m_H);
-		m_vSettingsToggleGroupSizes[Index++].m_Height = LabelHeight + LabelGap + Metrics.m_LineHeight;
+		const CUIRect Button{0, 0, Grid.m_aColumnWidths[Index % Grid.m_Columns], Metrics.m_LineHeight};
+		const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY);
+		const float LabelHeight = TextRender()->TextBoundingBox(Metrics.m_BodySize, Entry.m_pLabel, -1, std::max(1.0f, Label.w)).m_H;
+		m_vSettingsToggleGroupSizes[Index++].m_Height = ResolveSettingsToggleButtonSize(0, LabelHeight, Metrics.m_LineHeight, PaddingX, PaddingY).m_Height;
 	}
 	Grid.SetItemHeights(m_vSettingsToggleGroupSizes);
 	CUIRect Area;
@@ -226,40 +227,61 @@ bool CMenus::DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Conte
 	if(Pass == ESettingsToggleGroupPass::LAYOUT)
 		return false;
 
-	const IUiContext Context = SettingsUiContext("settings-switch", Metrics.m_UiScale);
-	const bool CanProcessInput = ProcessInput && !m_MenuTextPlanCollecting && !Ui()->RenderOnly();
 	bool Changed = false;
 	Index = 0;
 	for(const auto &Entry : Entries)
 	{
 		const CUIRect Cell = Grid.Cell(Area, static_cast<int>(Index++));
-		const float LabelHeight = Cell.h - LabelGap - Metrics.m_LineHeight;
-		const auto Layout = ResolveSettingsToggleCell(Cell, LabelHeight, Metrics.m_LineHeight, LabelGap);
-		const void *pId = Entry.m_pId != nullptr ? Entry.m_pId : Entry.m_pValue;
-		const char *pOverrideTooltip = TemporaryOverrideTooltip(Entry.m_pValue);
-		SLabelProperties Props;
-		Props.m_MaxWidth = Layout.m_Label.w;
-		Props.m_EnableWidthCheck = false;
-		Props.m_MinimumFontSize = Metrics.m_BodySize;
+		Changed = DoSettingsToggleButton(Page, Tab, Subtab, Cell, Entry, Metrics, ProcessInput, Pass) || Changed;
+	}
+	return Changed;
+}
+
+bool CMenus::DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect &Button, const SSettingsToggleEntry &Entry, const SSettingsContentMetrics &Metrics, bool ProcessInput, ESettingsToggleGroupPass Pass)
+{
+	if(Pass == ESettingsToggleGroupPass::LAYOUT)
+		return false;
+	const float PaddingX = std::max(Metrics.m_LineSpacing, Metrics.m_BodySize * 0.5f);
+	const float PaddingY = Metrics.m_LineSpacing * 0.5f;
+	const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY);
+	const IUiContext Context = SettingsUiContext("settings-toggle-button", Metrics.m_UiScale);
+	const bool CanProcessInput = ProcessInput && !m_MenuTextPlanCollecting && !Ui()->RenderOnly();
+	const void *pId = Entry.m_pId != nullptr ? Entry.m_pId : Entry.m_pValue;
+	const char *pOverrideTooltip = TemporaryOverrideTooltip(Entry.m_pValue);
+	bool Changed = false;
+	if(!m_MenuTextPlanCollecting && !Ui()->RenderOnly())
+	{
+		Ui()->DoConfigTooltip(pId, &Button, Entry.m_pValue);
+		const bool Clicked = CanProcessInput && Ui()->DoButtonLogic(pId, 0, &Button, pOverrideTooltip == nullptr ? BUTTONFLAG_LEFT : BUTTONFLAG_NONE);
+		Changed = ApplySettingsToggleEntry(Entry, Clicked, CanProcessInput, pOverrideTooltip != nullptr);
+	}
+	if(Pass == ESettingsToggleGroupPass::INPUT)
+		return Changed;
+	ui_widget::SButtonSurfaceOptions Options;
+	Options.m_Enabled = pOverrideTooltip == nullptr;
+	Options.m_Selected = SettingsToggleEntryValue(Entry);
+	Options.m_Radius *= Metrics.m_UiScale;
+	// 与 F1 筛选相同，以选中底色表达启用状态，不再另画滑动开关。
+	Options.m_Color = Options.m_Selected ? color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)).WithAlpha(1.0f) : ResolveConfiguredControlSurface();
+	ColorRGBA Fill = *Options.m_Color;
+	if(!Options.m_Enabled)
+		Fill.a *= 0.65f;
+	if(!m_MenuTextPlanCollecting)
+		Fill = ui_widget::DrawButtonSurface(Context, CanProcessInput ? pId : nullptr, Button, Options);
+	const CUiScopedSurfaceText SurfaceText(TextRender(), Fill);
+	SLabelProperties Props;
+	Props.m_MaxWidth = Label.w;
+	Props.m_EnableWidthCheck = false;
+	Props.m_MinimumFontSize = Metrics.m_BodySize;
+	if(pOverrideTooltip != nullptr)
+		Props.SetColor(ui_token::color::TEXT_DISABLED);
+	DoSettingsMenuLabel(Page, Tab, Subtab, Entry.m_pTextId, &Label, Entry.m_pLabel, Metrics.m_BodySize, TEXTALIGN_MC, Props);
+	if(!m_MenuTextPlanCollecting && !Ui()->RenderOnly() && Context.m_pTooltips != nullptr)
+	{
 		if(pOverrideTooltip != nullptr)
-			Props.SetColor(ui_token::color::TEXT_DISABLED);
-		if(Pass == ESettingsToggleGroupPass::RENDER)
-			DoSettingsMenuLabel(Page, Tab, Subtab, Entry.m_pTextId, &Layout.m_Label, Entry.m_pLabel, Metrics.m_BodySize, TEXTALIGN_MC, Props);
-		if(m_MenuTextPlanCollecting || Ui()->RenderOnly())
-			continue;
-		Ui()->DoConfigTooltip(pId, &Cell, Entry.m_pValue);
-		const bool Clicked = CanProcessInput && Ui()->DoButtonLogic(pId, 0, &Cell, pOverrideTooltip == nullptr ? BUTTONFLAG_LEFT : BUTTONFLAG_NONE);
-		Changed = ApplySettingsToggleEntry(Entry, Clicked, CanProcessInput, pOverrideTooltip != nullptr) || Changed;
-		if(Pass == ESettingsToggleGroupPass::INPUT)
-			continue;
-		ui_widget::DrawToggle(Context, pId, SettingsToggleEntryValue(Entry), Layout.m_Control, pOverrideTooltip == nullptr, CanProcessInput, &Cell);
-		if(Context.m_pTooltips != nullptr)
-		{
-			if(pOverrideTooltip != nullptr)
-				Context.m_pTooltips->DoToolTip(pId, &Cell, pOverrideTooltip);
-			else
-				Context.m_pTooltips->DoSettingsToolTipForConfig(pId, &Cell, Entry.m_pValue, &Layout.m_Label);
-		}
+			Context.m_pTooltips->DoToolTip(pId, &Button, pOverrideTooltip);
+		else
+			Context.m_pTooltips->DoSettingsToolTipForConfig(pId, &Button, Entry.m_pValue, &Label);
 	}
 	return Changed;
 }

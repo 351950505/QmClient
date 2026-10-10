@@ -136,18 +136,31 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 		m_ColorPickerPopupContext.m_Alpha = Entry.m_Alpha;
 		Ui()->ShowPopupColorPicker(Ui()->MouseX(), Ui()->MouseY(), &m_ColorPickerPopupContext);
 	};
+	SSettingsContentMetrics ToggleMetrics = CurrentSettingsContentMetrics();
+	ToggleMetrics.m_UiScale = UiScale;
+	ToggleMetrics.m_LineHeight = LineHeight;
+	ToggleMetrics.m_BodySize = BodySize;
+	ToggleMetrics.m_LineSpacing = LineSpacing;
+	const float PaddingX = std::max(LineSpacing, BodySize * 0.5f);
+	const float PaddingY = LineSpacing * 0.5f;
+	const auto OptionButtonRect = [LineHeight, LineSpacing](CUIRect Cell) {
+		// 色块位于按钮右侧，两个命中区域始终分离。
+		Cell.w = std::max(0.0f, Cell.w - std::min(LineHeight, Cell.w) - LineSpacing);
+		return Cell;
+	};
 	std::array<SSettingsToggleSize, qm_pie_menu::OPTION_COUNT> aItemSizes{};
 	for(size_t Index = 0; Index < aColorEntries.size(); ++Index)
 	{
-		const float ControlsWidth = LineHeight * 3.0f + LineSpacing;
-		aItemSizes[Index].m_Width = std::max(ControlsWidth, TextRender()->TextWidth(BodySize, aColorEntries[Index].m_pName)) + LineSpacing * 2.0f;
+		aItemSizes[Index] = ResolveSettingsToggleButtonSize(TextRender()->TextWidth(BodySize, aColorEntries[Index].m_pName), BodySize, LineHeight, PaddingX, PaddingY);
+		aItemSizes[Index].m_Width += LineHeight + LineSpacing;
 	}
-	auto Grid = ResolveSettingsToggleGrid(Content.w, aItemSizes, LineSpacing * 2.0f);
+	auto Grid = ResolveSettingsToggleGrid(Content.w, aItemSizes, LineSpacing);
 	for(size_t Index = 0; Index < aColorEntries.size(); ++Index)
 	{
-		const float CellWidth = Grid.m_aColumnWidths[Index % Grid.m_Columns];
-		const float LabelHeight = std::max(LineHeight, TextRender()->TextBoundingBox(BodySize, aColorEntries[Index].m_pName, -1, std::max(1.0f, CellWidth)).m_H);
-		aItemSizes[Index].m_Height = LabelHeight + LineSpacing * 0.5f + LineHeight;
+		const CUIRect Button = OptionButtonRect({0, 0, Grid.m_aColumnWidths[Index % Grid.m_Columns], LineHeight});
+		const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY);
+		const float LabelHeight = TextRender()->TextBoundingBox(BodySize, aColorEntries[Index].m_pName, -1, std::max(1.0f, Label.w)).m_H;
+		aItemSizes[Index].m_Height = ResolveSettingsToggleButtonSize(0, LabelHeight, LineHeight, PaddingX, PaddingY).m_Height;
 	}
 	Grid.SetItemHeights(aItemSizes);
 	CUIRect GridArea;
@@ -155,27 +168,13 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 	for(size_t Index = 0; Index < aColorEntries.size(); ++Index)
 	{
 		const auto &Entry = aColorEntries[Index];
-		CUIRect Cell = Grid.Cell(GridArea, static_cast<int>(Index));
-		CUIRect Label;
-		const float LabelHeight = Cell.h - LineSpacing * 0.5f - LineHeight;
-		Cell.HSplitTop(LabelHeight, &Label, &Cell);
-		Cell.HSplitTop(LineSpacing * 0.5f, nullptr, &Cell);
-		SLabelProperties Props;
-		Props.m_MaxWidth = Label.w;
-		Props.m_MinimumFontSize = BodySize;
-		Props.m_EnableWidthCheck = false;
-		DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Entry.m_pTextId, &Label, Entry.m_pName, BodySize, TEXTALIGN_MC, Props);
-		if(!PrewarmOnly && !Ui()->RenderOnly())
+		const CUIRect Cell = Grid.Cell(GridArea, static_cast<int>(Index));
+		DoSettingsToggleButton(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, OptionButtonRect(Cell),
+			{Entry.m_pEnabled, Entry.m_pTextId, Entry.m_pName}, ToggleMetrics, !PrewarmOnly);
+		if(!PrewarmOnly && !m_MenuTextPlanCollecting && !Ui()->RenderOnly())
 		{
 			const float SwatchSize = std::min(LineHeight, Cell.w);
-			const float ControlGap = std::min(LineSpacing, std::max(0.0f, Cell.w - SwatchSize));
-			const float ToggleWidth = std::min(LineHeight * 2.0f, std::max(0.0f, Cell.w - SwatchSize - ControlGap));
-			const float GroupWidth = ToggleWidth + ControlGap + SwatchSize;
-			const CUIRect Toggle{Cell.x + (Cell.w - GroupWidth) * 0.5f, Cell.y, ToggleWidth, LineHeight};
-			const CUIRect Swatch{Toggle.x + ToggleWidth + ControlGap, Cell.y, SwatchSize, LineHeight};
-			bool Enabled = *Entry.m_pEnabled != 0;
-			if(ui_widget::Toggle(TextInputCtx, Entry.m_pEnabled, &Enabled, Toggle))
-				*Entry.m_pEnabled = Enabled;
+			const CUIRect Swatch{Cell.x + Cell.w - SwatchSize, Cell.y + (Cell.h - SwatchSize) * 0.5f, SwatchSize, SwatchSize};
 			Swatch.Draw(color_cast<ColorRGBA>(ColorHSLA(*Entry.m_pColorValue, Entry.m_Alpha)), IGraphics::CORNER_ALL, CornerRadius * 0.5f);
 			if(Ui()->DoButtonLogic(Entry.m_pColorValue, 0, &Swatch, BUTTONFLAG_LEFT))
 				OpenColorPopup(Entry);

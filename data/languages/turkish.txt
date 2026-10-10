@@ -10493,6 +10493,9 @@ Screenshots
 Screenshots directory
 == Ekran görüntüleri dizini
 
+Scroll mode
+== Kaydırma modu
+
 Scroll mode: Off
 == Kaydırma modu: kapalı
 

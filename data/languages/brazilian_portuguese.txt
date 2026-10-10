@@ -10493,6 +10493,9 @@ Screenshots
 Screenshots directory
 == Diretório de capturas de tela
 
+Scroll mode
+== Modo de rolagem
+
 Scroll mode: Off
 == Modo de rolagem: desativado
 

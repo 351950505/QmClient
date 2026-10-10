@@ -144,19 +144,21 @@ inline bool ApplySettingsToggleEntry(const SSettingsToggleEntry &Entry, bool Cli
 	return true;
 }
 
-struct SSettingsToggleCell
+inline SSettingsToggleSize ResolveSettingsToggleButtonSize(float LabelWidth, float LabelHeight, float MinimumHeight, float HorizontalPadding, float VerticalPadding)
 {
-	CUIRect m_Label;
-	CUIRect m_Control;
-};
+	return {
+		std::max(0.0f, LabelWidth) + std::max(0.0f, HorizontalPadding) * 2.0f,
+		std::max(std::max(0.0f, MinimumHeight), std::max(0.0f, LabelHeight) + std::max(0.0f, VerticalPadding) * 2.0f)};
+}
 
-inline SSettingsToggleCell ResolveSettingsToggleCell(const CUIRect &Cell, float LabelHeight, float ControlHeight, float Spacing)
+// 文本按钮的内边距同时用于译文测量和绘制，窄按钮不能产生负的正文区域。
+inline CUIRect ResolveSettingsToggleButtonLabel(const CUIRect &Button, float HorizontalPadding, float VerticalPadding)
 {
-	SSettingsToggleCell Layout;
-	Layout.m_Label = {Cell.x, Cell.y, Cell.w, std::max(0.0f, LabelHeight)};
-	const float Width = std::min(std::max(0.0f, Cell.w), std::max(0.0f, ControlHeight) * 1.65f);
-	Layout.m_Control = {Cell.x + (Cell.w - Width) * 0.5f, Cell.y + Layout.m_Label.h + std::max(0.0f, Spacing), Width, std::max(0.0f, ControlHeight)};
-	return Layout;
+	const float Width = std::max(0.0f, Button.w);
+	const float Height = std::max(0.0f, Button.h);
+	const float PaddingX = std::clamp(HorizontalPadding, 0.0f, Width * 0.5f);
+	const float PaddingY = std::clamp(VerticalPadding, 0.0f, Height * 0.5f);
+	return {Button.x + PaddingX, Button.y + PaddingY, Width - PaddingX * 2.0f, Height - PaddingY * 2.0f};
 }
 
 #endif

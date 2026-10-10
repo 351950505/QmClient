@@ -10493,6 +10493,9 @@ Screenshots
 Screenshots directory
 == Répertoire des captures d'écran
 
+Scroll mode
+== Mode de défilement
+
 Scroll mode: Off
 == Mode défilement : désactivé
 
