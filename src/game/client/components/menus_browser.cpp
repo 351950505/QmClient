@@ -797,6 +797,8 @@ void CMenus::RenderServerbrowserServerList(CUIRect View, bool &WasListboxItemAct
 			break;
 		}
 	}
+	// 列表行和滚动条保留原有淡化，不影响上方表头及空列表提示中的按钮。
+	CUiBackgroundAlphaScaleScope ListOpacityScope(Ui(), SERVER_LIST_SCROLLBAR_RAIL_ALPHA_SCALE);
 	s_ListBox.DoStart(ms_ListheaderHeight, NumServers, 1, 3, SelectedServerIndex, &View, false);
 
 	const bool RevealSelection = m_ServerBrowserShouldRevealSelection;
@@ -4189,8 +4191,7 @@ void CMenus::RenderServerbrowserToolBox(CUIRect ToolBox)
 
 void CMenus::RenderServerbrowser(CUIRect MainView, bool DrawBackground)
 {
-	CUiBackgroundAlphaScaleScope BackgroundAlphaScaleScope(Ui(), g_Config.m_QmUiOpacity / 100.0f);
-
+	// 面板颜色自行处理透明度，不再整体缩放独立配置的按钮和输入框。
 	// 首次打开菜单时先复用现有 community 选择结果。缓存哈希、过滤器重建
 	// 和列表刷新放到下一帧，避免 ESC 首帧同步执行后台元数据整理。
 	if(m_MenuOpenFrame > 0)
@@ -4276,10 +4277,7 @@ void CMenus::RenderServerbrowser(CUIRect MainView, bool DrawBackground)
 			Ui()->ClipEnable(&ServerListBase);
 			ServerList.x += TransitionOffset;
 		}
-		{
-			CUiBackgroundAlphaScaleScope ListOpacityScope(Ui(), SERVER_LIST_SCROLLBAR_RAIL_ALPHA_SCALE);
-			RenderServerbrowserServerList(ServerList, WasListboxItemActivated);
-		}
+		RenderServerbrowserServerList(ServerList, WasListboxItemActivated);
 		if(DoClip)
 		{
 			if(TransitionAlpha > 0.0f)
