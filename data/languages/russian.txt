@@ -293,6 +293,9 @@ A demo with this name already exists
 A folder with this name already exists
 == Папка с таким именем уже существует
 
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
+== Выбранный вручную исходный файл имеет приоритет над кандидатом из списка. Заменяется только этот вариант.
+
 a player
 == игрок
 
@@ -617,6 +620,9 @@ Aim
 Aim bind
 == Привязка оси
 
+Air jump
+== Прыжок в воздухе
+
 Alive notification color
 == Цвет уведомления о жизни
 
@@ -643,6 +649,9 @@ All combined
 
 All players
 == Все игроки
+
+All sounds
+== Все звуки
 
 All stars
 == Все звезды
@@ -991,9 +1000,6 @@ Audio packets
 
 Audio packs
 == Аудиопакеты
-
-Audio slots
-== Аудиослоты
 
 AUS
 == Австралия
@@ -1757,6 +1763,12 @@ Cannot join the target player's team
 Cannot swap: the other player is not in your team
 == Невозможно обменяться: другой игрок не в вашей команде
 
+Capture the flag
+== Захват флага (CTF)
+
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
+== Сигнал события режима захвата флага; используется на CTF-серверах, а не в обычных гонках DDNet.
+
 Card height animation
 == Анимация высоты карточки настроек
 
@@ -1882,6 +1894,9 @@ Chat gradient vertical position percentage
 
 Chat log retention days
 == Дни хранения лога чата
+
+Chat mention / vote alert
+== Упоминание в чате / голосование
 
 Chat message
 == Сообщение чата
@@ -4514,9 +4529,6 @@ Export name contains invalid characters.
 Export selected
 == Экспортировать выбранное
 
-Export selected file
-== Экспортировать выбранный файл
-
 Export to clipboard
 == Экспорт в буфер обмена
 
@@ -4787,6 +4799,21 @@ First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 == На переполненных серверах строки таблицы имеют фиксированную высоту, остальных игроков просматривайте колесом мыши
 
+Flag captured
+== Флаг захвачен
+
+Flag dropped
+== Флаг потерян
+
+Flag grab: enemy side
+== Взятие флага: сторона врага
+
+Flag grab: player side
+== Взятие флага: сторона игрока
+
+Flag returned
+== Флаг возвращён
+
 Flip:
 == Отразить:
 
@@ -4919,6 +4946,9 @@ Freeze border color
 Freeze Collision Border Color
 == Цвет границы коллизии заморозки
 
+Freeze heart / health pickup
+== Замораживающее сердце / подбор здоровья
+
 Freeze laser collision volume
 == Объём столкновения замораживающего лазера
 
@@ -5005,6 +5035,9 @@ Friends
 
 Friends only
 == Только друзья
+
+Frozen fire attempt
+== Попытка выстрела в заморозке
 
 Frozen prediction margin
 == Запас предсказания во время заморозки
@@ -5345,6 +5378,18 @@ Greeting text
 Grenade
 == Граната
 
+Grenade explosion
+== Взрыв гранаты
+
+Grenade launch
+== Выстрел гранатомёта
+
+Grenade pickup
+== Подбор гранатомёта
+
+Ground jump
+== Прыжок с земли
+
 Group name
 == Имя группы
 
@@ -5354,8 +5399,14 @@ GUI cursor assets
 Guide line color
 == Цвет направляющей линии
 
+Gun fire
+== Выстрел из пистолета
+
 Hammer
 == Молот
+
+Hammer hit
+== Удар молотом
 
 Hammer interaction
 == Взаимодействие молота
@@ -5365,6 +5416,9 @@ Hammer Mode
 
 Hammer skin steal
 == Кража скина молотом
+
+Hammer swing
+== Взмах молотом
 
 Hammer: %s
 == Молот: %s
@@ -5600,6 +5654,9 @@ Highlighted message
 Highlighted message color
 == Цвет выделенного сообщения
 
+Hit feedback
+== Подтверждение попадания
+
 Hitbox Mode Freeze Border Color
 == Цвет границ Freeze в режиме хитбоксов
 
@@ -5630,6 +5687,12 @@ Hold left click for free camera
 Hook
 == Крюк
 
+Hook attaches to ground
+== Хук зацепился за поверхность
+
+Hook attaches to player
+== Хук зацепился за игрока
+
 Hook collision line
 == Линия столкновения крюка
 
@@ -5648,11 +5711,17 @@ Hook Collisions
 Hook collisions
 == Столкновения крюка
 
+Hook hits unhookable surface
+== Хук ударился о незацепляемую поверхность
+
 Hook interaction
 == Взаимодействие крюка
 
 Hook line tip
 == Кончик линии крюка
+
+Hook loop
+== Циклический звук хука
 
 Hook Strength
 == Сила крюка
@@ -5845,6 +5914,12 @@ Import from clipboard
 
 Improved anti ping
 == Улучшенный антипинг
+
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+== В DDNet проигрывается, когда замораживающее сердце замораживает игрока. В других режимах может использоваться при подборе здоровья.
+
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
+== В DDNet проигрывается при изъятии оружия. В других режимах может использоваться при подборе брони.
 
 In memory of me
 == В память обо мне
@@ -6146,6 +6221,9 @@ Item
 Item type
 == Тип предмета
 
+Its use depends on the server or game mode.
+== Использование зависит от сервера или режима игры.
+
 j = Latency jitter
 == j = Джиттер задержки
 
@@ -6368,6 +6446,9 @@ Label type
 LAN
 == ЛВС
 
+Landing
+== Приземление
+
 Language
 == Язык
 
@@ -6389,6 +6470,9 @@ Large text for friend join (use %s for friend name)
 Laser
 == Лазер
 
+Laser / shotgun bounce
+== Рикошет лазера / дробовика
+
 Laser / shotgun interaction
 == Взаимодействие лазера / дробовика
 
@@ -6397,6 +6481,9 @@ Laser colors
 
 Laser effect enhancement
 == Улучшение эффекта лазера
+
+Laser fire
+== Выстрел лазера
 
 Laser glow intensity (0-100)
 == Интенсивность свечения лазера (0-100)
@@ -7184,6 +7271,9 @@ Menu main panel background color
 Menu main panel opacity
 == Непрозрачность главной панели меню
 
+Menu music
+== Музыка в меню
+
 Menu opacity (0-100)
 == Непрозрачность меню (0-100)
 
@@ -7402,6 +7492,9 @@ Multi-View
 
 Multiple exact Axiom players found
 == Найдено несколько игроков Axiom с точным совпадением
+
+Music
+== Музыка
 
 Music player volume
 == Громкость музыкального проигрывателя
@@ -7730,8 +7823,20 @@ Next weapon
 Nickname
 == Никнейм
 
+Ninja attack
+== Атака катаной ниндзя
+
+Ninja hit
+== Попадание катаной ниндзя
+
+Ninja pickup
+== Подбор катаны ниндзя
+
 No
 == Нет
+
+No ammunition
+== Нет патронов
 
 No animation
 == Без анимации
@@ -7751,9 +7856,6 @@ No assets found.
 No audio issues detected
 == Проблем с аудио не обнаружено
 
-No audio slots found.
-== Аудиослоты не найдены.
-
 No buttons match your filter criteria
 == Нет кнопок, соответствующих вашему фильтру
 
@@ -7762,6 +7864,9 @@ No callable peer found
 
 No candidate file selected.
 == Файл-кандидат не выбран.
+
+No candidate files match this search.
+== Нет файлов-кандидатов, соответствующих поиску.
 
 No changes since last save
 == Нет изменений с последнего сохранения
@@ -7927,6 +8032,9 @@ No servers match your filter criteria
 
 No skins match your filter criteria
 == Нет скинов, соответствующих вашим критериям фильтра
+
+No sounds match this search.
+== Нет звуков, соответствующих поиску.
 
 No space for button
 == Нет места для кнопки
@@ -8276,11 +8384,17 @@ Original message language
 Other
 == Другое
 
+Other game modes
+== Другие режимы игры
+
 Other modes
 == Другие режимы
 
 Other players' hook line width
 == Ширина линии крюка других игроков
+
+Other sounds
+== Прочие звуки
 
 Others
 == Другие
@@ -8528,6 +8642,9 @@ Pick the source that matches your music app and keep it playing; the lyrics foll
 Pickup range
 == Диапазон подбора
 
+Pickups
+== Подбираемые предметы
+
 Pie menu
 == Круговое меню
 
@@ -8606,6 +8723,78 @@ Play/pause the current demo
 Playback volume
 == Громкость воспроизведения
 
+Played for chat highlights and vote alerts when their notification sound is enabled.
+== Проигрывается при упоминаниях в чате и оповещениях о голосовании, если включён звук уведомлений.
+
+Played for incoming player chat messages when their notification sound is enabled.
+== Проигрывается при получении сообщений чата от игроков, если включён звук уведомлений.
+
+Played for incoming server chat messages when their notification sound is enabled.
+== Проигрывается при получении сообщений от сервера, если включён звук уведомлений.
+
+Played when a grenade explodes.
+== Проигрывается при взрыве гранаты.
+
+Played when a laser or DDNet shotgun beam bounces.
+== Проигрывается при рикошете луча лазера или дробовика в DDNet.
+
+Played when a ninja dash hits another player.
+== Проигрывается, когда рывок с катаной ниндзя задевает другого игрока.
+
+Played when a player dies, including suicide.
+== Проигрывается при гибели игрока, включая самоубийство.
+
+Played when a player spawns or respawns.
+== Проигрывается при появлении или возрождении игрока.
+
+Played when firing this weapon.
+== Проигрывается при стрельбе из этого оружия.
+
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+== Проигрывается при прыжке с земли. Файлы левой и правой ноги относятся к этой одной группе звука.
+
+Played when moving fast on the ground and pressing the opposite direction.
+== Проигрывается при быстром движении по земле и нажатии противоположного направления.
+
+Played when picking up a grenade weapon.
+== Проигрывается при подборе гранатомёта.
+
+Played when picking up a shotgun or laser weapon.
+== Проигрывается при подборе дробовика или лазера.
+
+Played when pressing fire while frozen.
+== Проигрывается при нажатии кнопки огня в заморозке.
+
+Played when starting a ninja dash attack.
+== Проигрывается в начале рывка с катаной ниндзя.
+
+Played when swinging the hammer, even without hitting a player.
+== Проигрывается при взмахе молотом, даже без попадания по игроку.
+
+Played when switching the active weapon.
+== Проигрывается при смене активного оружия.
+
+Played when the hammer hits another player.
+== Проигрывается, когда молот попадает по другому игроку.
+
+Played when the hook attaches to a hookable surface.
+== Проигрывается, когда хук цепляется за подходящую поверхность.
+
+Played when the hook attaches to another player.
+== Проигрывается, когда хук цепляется за другого игрока.
+
+Played when the hook hits an unhookable surface.
+== Проигрывается, когда хук ударяется о незацепляемую поверхность.
+
+Played when using the second jump in the air.
+== Проигрывается при использовании второго прыжка в воздухе.
+
+Played when weapon teleportation moves the player in DDNet.
+== Проигрывается в DDNet, когда эффект оружейного телепорта перемещает игрока.
+
+Played while offline when menu music is enabled.
+== Проигрывается вне сервера, когда включена музыка в меню.
+
 Player
 == Игрок
 
@@ -8614,6 +8803,9 @@ Player already invited
 
 Player body color
 == Цвет тела игрока
+
+Player chat message
+== Сообщение игрока в чате
 
 Player clan
 == Клан игрока
@@ -8626,6 +8818,9 @@ Player country filter in server browser (ISO 3166-1 numeric)
 
 Player country:
 == Страна игрока:
+
+Player death
+== Смерть игрока
 
 Player decoration color
 == Цвет украшения игрока
@@ -8713,6 +8908,12 @@ Player skin marking
 
 Player skin used for volleyball appearance
 == Скин игрока для внешнего вида в волейболе
+
+Player spawn
+== Появление игрока
+
+Player state
+== Состояние игрока
 
 Player stats
 == Статистика игрока
@@ -9554,6 +9755,9 @@ Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
 == Зарегистрировать сервер на мастер-сервере для публичного списка, принимает разделённые запятыми протоколы, например 'ipv4,ipv6'
 
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
+== Звук зарегистрирован; в этом сервере DDNet прямого триггера не найдено, но другие серверы могут его использовать.
+
 Regular
 == Обычный
 
@@ -9562,9 +9766,6 @@ Regular background color
 
 Regular expression
 == Регулярное выражение
-
-Relative path
-== Относительный путь
 
 Relative X position of the draggable back button
 == Относительная позиция X перетаскиваемой кнопки «Назад»
@@ -9853,6 +10054,9 @@ Replace non-friend names with ID
 
 Replace non-friend skins with default
 == Символы замены
+
+Replace selected variant
+== Заменить выбранный вариант
 
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 == Заменить настройки, привязки клавиш и перечисленные файлы cfg, затем перезапустить клиент? Сначала будет создана резервная копия текущих настроек.
@@ -10601,9 +10805,6 @@ Selected %d
 Selected button not visible
 == Выбранная кнопка не видна
 
-Selected candidate
-== Выбранный кандидат
-
 Selected candidate %d/%d under cursor.
 == Выбран кандидат %d/%d под курсором.
 
@@ -10748,6 +10949,9 @@ Server list is more than five minutes old
 Server list refresh failed; showing the previous list
 == Не удалось обновить список серверов; показан предыдущий список
 
+Server message
+== Сообщение сервера
+
 Server name
 == Имя сервера
 
@@ -10777,6 +10981,9 @@ Server URL
 
 Server-assigned style
 == Стиль, назначенный сервером
+
+Server-dependent
+== Зависит от сервера
 
 Set all to Rifle
 == Установить все на винтовку
@@ -10889,11 +11096,20 @@ Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
 == Скорость мерцания
 
+Short pain voice
+== Короткий вскрик от боли
+
 Short server names
 == Короткие названия серверов
 
 Shotgun
 == Дробовик
+
+Shotgun / laser pickup
+== Подбор дробовика / лазера
+
+Shotgun fire
+== Выстрел дробовика
 
 Shotgun Laser Inner Color
 == Внутренний цвет лазера дробовика
@@ -11945,6 +12161,9 @@ Size of key press icons
 Size of strength/weakness icon and number
 == Размер иконки и числа силы/слабости
 
+Skidding
+== Скольжение при торможении
+
 Skin
 == Скин
 
@@ -12214,6 +12433,9 @@ Sound buffer size (large may cause delay)
 
 Sound error
 == Ошибка звука
+
+Sound variants
+== Варианты звука
 
 Sound volume
 == Громкость звука
@@ -12859,6 +13081,9 @@ Tee collision (Tee to Tee)
 
 Tee color
 == Цвет ти
+
+Tee cry
+== Плач Tee
 
 Tee death probe
 == Проверка смерти Tee
@@ -14564,6 +14789,12 @@ Weapon range color
 Weapon reload animation probability
 == Вероятность анимации перезарядки оружия
 
+Weapon removal / armor pickup
+== Изъятие оружия / подбор брони
+
+Weapon switch
+== Смена оружия
+
 Weapon switch animation
 == Анимация смены оружия
 
@@ -14593,6 +14824,9 @@ Weapon switch easing
 
 Weapon switch rotation
 == Вращение при переключении оружия
+
+Weapon teleport
+== Оружейный телепорт
 
 Weapon Trajectory
 == Траектория оружия

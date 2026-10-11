@@ -35,6 +35,7 @@
 #include <game/client/components/menus_ingame_touch_controls.h>
 #include <game/client/components/menus_settings_controls.h>
 #include <game/client/components/menus_start.h>
+#include <game/client/components/qmclient/audio_pack_catalog.h>
 #include <game/client/components/qmclient/browser_friend_list.h>
 #include <game/client/components/qmclient/demo_cut.h>
 #include <game/client/components/qmclient/local_save_display.h>
@@ -495,15 +496,7 @@ public:
 		char m_aSourceAsset[64] = {0};
 	};
 
-	struct SAudioPackSlot
-	{
-		const char *m_pDisplayName = nullptr;
-		const char *m_pSetName = nullptr;
-		const char *m_pRelativePath = nullptr;
-		int m_SetId = -1;
-		int m_VariantIndex = 0;
-		int m_VariantCount = 0;
-	};
+	using SAudioPackSlot = qm_audio_pack::SSlot;
 
 	struct SAudioPackCandidateEntry
 	{
@@ -1458,6 +1451,7 @@ private:
 		bool m_Open = false;
 		bool m_Initialized = false;
 		int m_SelectedSlotIndex = 0;
+		int m_Category = 0;
 		int m_SelectedCandidateIndex = -1;
 		CLineInputBuffered<64> m_FilterInput;
 		CLineInputBuffered<64> m_CandidateFilterInput;
@@ -1515,6 +1509,7 @@ private:
 
 	SAudioPackEditorState m_AudioPackEditorState;
 	SAssetsEditorState m_AssetsEditorState;
+	void RefreshAudioPackList();
 	void AudioPackEditorOpen(const char *pPackName);
 	void AudioPackEditorClose();
 	void AudioPackEditorSetStatus(const char *pMessage, bool IsError);

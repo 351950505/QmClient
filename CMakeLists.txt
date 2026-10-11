@@ -3233,6 +3233,9 @@ if(CLIENT)
     QmUi/cards/QmConfigPackageCard.cpp
     QmUi/cards/QmCardCatalogPlayer.cpp
     QmUi/cards/QmCardCatalogGraphics.cpp
+    QmUi/AudioPackEditor.cpp
+    QmUi/AudioPackEditorLayout.h
+    components/qmclient/audio_pack_catalog.h
     QmUi/cards/QmCardCatalogSound.cpp
     QmUi/cards/QmCardCatalogAppearance.cpp
     QmUi/cards/QmCardCatalogDDNet.cpp

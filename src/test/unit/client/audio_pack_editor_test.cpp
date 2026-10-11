@@ -1,5 +1,6 @@
 #include <base/system.h>
 
+#include <game/client/QmUi/AudioPackEditorLayout.h>
 #include <game/client/components/menus.h>
 
 #include <gtest/gtest.h>
@@ -141,4 +142,134 @@ TEST(AudioPackEditor, ExportSourcePathPrefersManualImportOverSelectedCandidate)
 	EXPECT_EQ(CMenus::ResolveAudioPackExportSourcePath("audio/default/music_menu.wv", "C:/temp/custom_music.wv"), "C:/temp/custom_music.wv");
 	EXPECT_EQ(CMenus::ResolveAudioPackExportSourcePath("audio/default/music_menu.wv", ""), "audio/default/music_menu.wv");
 	EXPECT_TRUE(CMenus::ResolveAudioPackExportSourcePath("", "").empty());
+}
+
+TEST(AudioPackCatalog, EveryGeneratedSoundGroupHasUsageAndKeepsEveryVariant)
+{
+	const auto vSlots = CMenus::BuildAudioPackSlots();
+	const auto vGroups = qm_audio_pack::BuildGroups(vSlots);
+	ASSERT_EQ(vGroups.size(), (size_t)g_pData->m_NumSounds);
+	std::set<int> SeenSlots;
+	for(const auto &Group : vGroups)
+	{
+		ASSERT_NE(Group.m_pInfo, nullptr);
+		EXPECT_STREQ(Group.m_pInfo->m_pSetName, Group.m_pSetName);
+		EXPECT_NE(Group.m_pInfo->m_pUsage[0], '\0');
+		EXPECT_EQ(Group.m_vSlotIndices.size(), (size_t)g_pData->m_aSounds[Group.m_SetId].m_NumSounds);
+		for(int SlotIndex : Group.m_vSlotIndices)
+		{
+			ASSERT_GE(SlotIndex, 0);
+			ASSERT_LT(SlotIndex, (int)vSlots.size());
+			EXPECT_TRUE(SeenSlots.insert(SlotIndex).second);
+			EXPECT_EQ(vSlots[SlotIndex].m_SetId, Group.m_SetId);
+		}
+	}
+	EXPECT_EQ(SeenSlots.size(), vSlots.size());
+}
+
+TEST(AudioPackCatalog, FilenameSearchFindsTheWholeGroupIncludingOtherVariants)
+{
+	const auto vSlots = CMenus::BuildAudioPackSlots();
+	const auto vGroups = qm_audio_pack::BuildGroups(vSlots);
+	const auto vVisible = qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::ALL, "WP_GUN_FIRE-03");
+	ASSERT_EQ(vVisible.size(), 1u);
+	const auto &Group = vGroups[vVisible[0]];
+	EXPECT_STREQ(Group.m_pSetName, "gun_fire");
+	ASSERT_EQ(Group.m_vSlotIndices.size(), 3u);
+	EXPECT_STREQ(vSlots[Group.m_vSlotIndices.front()].m_pRelativePath, "wp_gun_fire-01.wv");
+}
+
+namespace
+{
+	const char *TranslateAudioCatalogForTest(const char *pText)
+	{
+		if(str_comp(pText, "Ground jump") == 0)
+			return "地面起跳";
+		if(str_comp(pText, "Movement") == 0)
+			return "移动";
+		if(str_comp(pText, qm_audio_pack::SoundInfo("player_jump").m_pUsage) == 0)
+			return "左右脚文件在地面跳跃时使用";
+		return pText;
+	}
+}
+
+TEST(AudioPackCatalog, SearchIncludesTranslatedNameUsageAndCategory)
+{
+	const auto vSlots = CMenus::BuildAudioPackSlots();
+	const auto vGroups = qm_audio_pack::BuildGroups(vSlots);
+	for(const char *pQuery : {"地面起跳", "左右脚"})
+	{
+		SCOPED_TRACE(pQuery);
+		const auto vVisible = qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::ALL, pQuery, TranslateAudioCatalogForTest);
+		ASSERT_EQ(vVisible.size(), 1u);
+		EXPECT_STREQ(vGroups[vVisible[0]].m_pSetName, "player_jump");
+	}
+	const auto vMovement = qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::ALL, "移动", TranslateAudioCatalogForTest);
+	ASSERT_FALSE(vMovement.empty());
+	for(int Index : vMovement)
+		EXPECT_EQ(vGroups[Index].m_pInfo->m_Category, qm_audio_pack::ECategory::MOVEMENT);
+}
+
+TEST(AudioPackCatalog, CategoryAndSearchBothRestrictResults)
+{
+	const auto vSlots = CMenus::BuildAudioPackSlots();
+	const auto vGroups = qm_audio_pack::BuildGroups(vSlots);
+	EXPECT_TRUE(qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::HOOK, "gun_fire").empty());
+	EXPECT_TRUE(qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::ALL, "missing_sound_file").empty());
+	EXPECT_EQ(qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::ALL, "").size(), vGroups.size());
+	const auto vHook = qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::HOOK, "");
+	ASSERT_FALSE(vHook.empty());
+	for(int Index : vHook)
+		EXPECT_EQ(vGroups[Index].m_pInfo->m_Category, qm_audio_pack::ECategory::HOOK);
+}
+
+TEST(AudioPackCatalog, SelectingAGroupKeepsItsVariantAndSwitchingGroupsSelectsTheFirstVariant)
+{
+	const auto vSlots = CMenus::BuildAudioPackSlots();
+	const auto vGroups = qm_audio_pack::BuildGroups(vSlots);
+	const auto vGun = qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::ALL, "wp_gun_fire-01");
+	ASSERT_EQ(vGun.size(), 1u);
+	const auto &Gun = vGroups[vGun[0]];
+	ASSERT_GE(Gun.m_vSlotIndices.size(), 2u);
+	EXPECT_EQ(qm_audio_pack::SelectGroupSlot(Gun, Gun.m_vSlotIndices[1]), Gun.m_vSlotIndices[1]);
+	EXPECT_EQ(qm_audio_pack::SelectedGroup(vGroups, Gun.m_vSlotIndices[1]), vGun[0]);
+	const auto vMenu = qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::ALL, "music_menu.wv");
+	ASSERT_EQ(vMenu.size(), 1u);
+	const auto &Menu = vGroups[vMenu[0]];
+	EXPECT_EQ(qm_audio_pack::SelectGroupSlot(Menu, Gun.m_vSlotIndices[1]), Menu.m_vSlotIndices.front());
+	EXPECT_EQ(qm_audio_pack::SelectedGroup(vGroups, -1), -1);
+}
+
+TEST(AudioPackCatalog, UnrecognizedSoundsRemainAccessibleWithoutInventingUsage)
+{
+	const std::vector<qm_audio_pack::SSlot> vSlots = {{"future.wv", "future_sound", "future.wv", 100, 0, 1}};
+	const auto vGroups = qm_audio_pack::BuildGroups(vSlots);
+	ASSERT_EQ(vGroups.size(), 1u);
+	EXPECT_EQ(vGroups[0].m_pInfo->m_Category, qm_audio_pack::ECategory::OTHER);
+	EXPECT_EQ(vGroups[0].m_pInfo->m_Context, qm_audio_pack::EContext::SERVER_DEPENDENT);
+	EXPECT_EQ(qm_audio_pack::FilterGroups(vGroups, vSlots, qm_audio_pack::ECategory::OTHER, "future.wv").size(), 1u);
+}
+
+TEST(AudioPackEditorLayout, NarrowAndScaledViewsKeepBothPanelsInsideTheViewport)
+{
+	for(const auto &[Width, Scale] : {std::pair{900.0f, 1.0f}, {420.0f, 1.0f}, {900.0f, 2.0f}, {0.0f, 1.0f}})
+	{
+		SCOPED_TRACE(Width);
+		SCOPED_TRACE(Scale);
+		const CUIRect View{20.0f, 30.0f, Width, 400.0f};
+		const auto Layout = qm_audio_pack::ResolveEditorLayout(View, Scale);
+		for(const CUIRect &Panel : {Layout.m_Catalog, Layout.m_Workspace})
+		{
+			EXPECT_GE(Panel.w, 0.0f);
+			EXPECT_GE(Panel.h, 0.0f);
+			EXPECT_GE(Panel.x, View.x);
+			EXPECT_GE(Panel.y, View.y);
+			EXPECT_LE(Panel.x + Panel.w, View.x + View.w + 0.001f);
+			EXPECT_LE(Panel.y + Panel.h, View.y + View.h + 0.001f);
+		}
+		if(Layout.m_Stacked)
+			EXPECT_LE(Layout.m_Catalog.y + Layout.m_Catalog.h, Layout.m_Workspace.y);
+		else
+			EXPECT_LE(Layout.m_Catalog.x + Layout.m_Catalog.w, Layout.m_Workspace.x);
+	}
 }
