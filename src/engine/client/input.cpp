@@ -64,12 +64,7 @@ void CInput::AddKeyEvent(int Key, int Flags)
 
 void CInput::AddTextEvent(const char *pText)
 {
-	CEvent Event;
-	Event.m_Key = KEY_UNKNOWN;
-	Event.m_Flags = FLAG_TEXT;
-	str_copy(Event.m_aText, pText);
-	Event.m_InputCount = m_InputCounter;
-	m_vInputEvents.emplace_back(Event);
+	AppendSdlTextEvents(m_vInputEvents, pText, m_InputCounter);
 }
 
 CInput::CInput()

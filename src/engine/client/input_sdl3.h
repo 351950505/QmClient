@@ -1,9 +1,38 @@
 #ifndef ENGINE_CLIENT_INPUT_SDL3_H
 #define ENGINE_CLIENT_INPUT_SDL3_H
 
+#include <base/str.h>
+
+#include <engine/input.h>
 #include <engine/keys.h>
 
 #include <SDL3/SDL_scancode.h>
+
+#include <cstdint>
+#include <vector>
+
+// SDL3 不再替应用拆分长文本，保留现有事件容量并按完整 UTF-8 字符分块。
+inline void AppendSdlTextEvents(std::vector<IInput::CEvent> &vEvents, const char *pText, uint32_t InputCount)
+{
+	do
+	{
+		IInput::CEvent Event{};
+		Event.m_Key = KEY_UNKNOWN;
+		Event.m_Flags = IInput::FLAG_TEXT;
+		Event.m_InputCount = InputCount;
+		int Bytes = 0;
+		while(pText[Bytes])
+		{
+			const int Next = str_utf8_forward(pText, Bytes);
+			if(Next >= static_cast<int>(sizeof(Event.m_aText)))
+				break;
+			Bytes = Next;
+		}
+		str_copy(Event.m_aText, pText, Bytes + 1);
+		vEvents.emplace_back(Event);
+		pText += Bytes;
+	} while(*pText);
+}
 
 // 配置中的数字键位和键名沿用旧编号，不能直接把 SDL3 扫描码当作游戏键位。
 inline int SdlScancodeToKey(SDL_Scancode Scancode)

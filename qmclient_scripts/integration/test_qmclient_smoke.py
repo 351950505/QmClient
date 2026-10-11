@@ -19,7 +19,7 @@ class QmClientSmokeRunnerTest(unittest.TestCase):
 	def test_required_smoke_scenarios_are_registered(self):
 		self.assertEqual(
 			set(SMOKE_TESTS),
-			{"plain_connection", "focus_configuration", "gores_configuration", "connection_shutdown"},
+			{"plain_connection", "focus_configuration", "gores_configuration", "connection_shutdown", "default_media_directory_startup", "custom_media_directory_startup"},
 		)
 
 	def test_exit_code_formatter_describes_missing_and_normal_exit(self):
