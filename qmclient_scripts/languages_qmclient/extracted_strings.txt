@@ -14,6 +14,7 @@
 %d points
 %d selected items were deleted, but %d items could not be deleted. The first failing item was '%s'.
 %d teams
+%d words loaded
 %d. %s | main: %s | dummy: %s
 %d/%d KiB (%.1f KiB/s)
 %ds left
@@ -269,6 +270,7 @@ APP ID
 Appearance
 Appearance and command highlighting of the local console
 Appearance of help bubbles
+Append saved word list chunk
 Append to log file instead of overwriting
 Applied to %d same-family part(s).
 Applies to single-color and rainbow overrides.
@@ -583,6 +585,8 @@ Cancel translation test
 Cancel your swap request
 Candidate files
 Cannot join the target player's team
+Cannot open word list file. Previous words remain active.
+Cannot read complete word list file. Previous words remain active.
 Cannot swap: the other player is not in your team
 Card height animation
 Card list entry animation
@@ -635,6 +639,7 @@ Chat sound volume
 Chat translation settings
 Chat width
 Chat word filtering
+Chat word list file
 Cheats are disabled on this server
 Cheats are enabled on this server
 check ddnet-saves.txt in config_directory.
@@ -2032,6 +2037,7 @@ Invalid ID
 Invalid map file or filename.
 Invalid option
 Invalid or duplicate configuration path.
+Invalid quoted word. Use one word per line.
 Invalid save number. Use a number from the save list.
 Invalid spectator id used
 Invalid sponsor code
@@ -3197,6 +3203,7 @@ Reload the censorlist
 Reload the map
 Reload the map while preserving the state of tees and teams
 Reload the maplist
+Reload word list files
 Reloaded images.
 Reloaded images. %d slot(s) fell back to main asset.
 Remote console
@@ -4164,6 +4171,7 @@ Stop rendering text overlays in editor or with entities: higher = less detail = 
 Stop server
 Stop the current demo
 Streamer mode
+Streamer word list file
 Strength icons assets
 Strength of the vertical or pop wave. Zero keeps the title still.
 Stress system (debug builds only).
@@ -4734,6 +4742,7 @@ Use warlist colors instead of regular colors
 Use warlist groups for indicator
 Used by active shared text and numeric input fields
 Uses the active action with the current aiming position.
+UTF-8 text, one word per line (max 2 MiB).
 v = Velocity
 V-Sync
 VAD allow list (comma-separated)
@@ -4923,6 +4932,11 @@ Windowed borderless
 Windowed fullscreen
 Word Filter
 Word filter action: 0=replace matching words, 1=hide entire message
+Word list entries cannot contain control characters.
+Word list exceeds 100000 unique entries.
+Word list file
+Word list file exceeds 2 MiB.
+Word list must be UTF-8 text without NUL characters.
 Write local console contents to a text file
 Write performance debug logs to dedicated file
 Write remote console contents to a text file

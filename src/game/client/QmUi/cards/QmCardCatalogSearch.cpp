@@ -163,6 +163,7 @@ namespace qm_card_catalog
 			{nullptr, "qm_block_words_console_color", nullptr},
 			{nullptr, "qm_block_words_enabled", nullptr},
 			{nullptr, "qm_block_words_list", nullptr},
+			{nullptr, "qm_block_words_file", "文件词表 读取文件 外部词库"},
 			{nullptr, "qm_block_words_mode", nullptr},
 			{nullptr, "qm_block_words_multi_replace", nullptr},
 			{nullptr, "qm_block_words_replacement_char", nullptr},
@@ -1403,6 +1404,7 @@ namespace qm_card_catalog
 		static constexpr SCardSettingSearch s_aqm_streamer[] = {
 			{Localizable("Filter sensitive words"), nullptr, "过滤内置敏感词 屏蔽词 反规避"},
 			{nullptr, "qm_streamer_filter_words", nullptr},
+			{nullptr, "qm_streamer_words_file", "文件词表 读取文件 外部词库"},
 			{Localizable("Replace non-friend names with ID"), nullptr, "用 ID 替换非好友名称"},
 			{Localizable("Replace non-friend skins with default"), nullptr, "用默认皮肤替换非好友皮肤"},
 			{Localizable("Use default flags on scoreboard"), nullptr, "在计分板上使用默认旗帜"},

@@ -652,10 +652,10 @@ void CGameConsole::CInstance::PumpBacklogPending()
 	for(CBacklogEntry *pEntry = m_Backlog.First(); pEntry; pEntry = m_Backlog.Next(pEntry))
 	{
 		const int PreviousLineCount = pEntry->m_LineCount;
-		// 在主线程处理输出副本；每条记录只做一次匹配。
-		if(g_Config.m_QmStreamerFilterWords && !pEntry->m_StreamerWordsFiltered)
+		// 在主线程处理输出副本；同一词表版本内每条记录只做一次匹配。
+		if(g_Config.m_QmStreamerFilterWords && pEntry->m_StreamerWordsRevision != QmStreamerWordFilter::Revision())
 		{
-			pEntry->m_StreamerWordsFiltered = true;
+			pEntry->m_StreamerWordsRevision = QmStreamerWordFilter::Revision();
 			const bool TextChanged = QmStreamerWordFilter::Filter(pEntry->m_aText, true);
 			if(TextChanged)
 			{
@@ -1155,7 +1155,7 @@ void CGameConsole::CInstance::PrintLine(const char *pLine, int Len, ColorRGBA Pr
 	pEntry->m_ExportId = m_NextExportId++;
 	pEntry->m_ExportSelected = false;
 	pEntry->m_CommandEcho = CommandEcho;
-	pEntry->m_StreamerWordsFiltered = false;
+	pEntry->m_StreamerWordsRevision = 0;
 	if(NumColorSpans > 0)
 		m_PendingColorSpansByExportId[pEntry->m_ExportId].assign(pColorSpans, pColorSpans + NumColorSpans);
 	if(pChatMetadata)

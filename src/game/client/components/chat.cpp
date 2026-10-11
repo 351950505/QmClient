@@ -6,6 +6,7 @@
 #include <base/log.h>
 #include <base/log_color.h>
 
+#include <engine/config.h>
 #include <engine/editor.h>
 #include <engine/external/regex.h>
 #include <engine/graphics.h>
@@ -48,6 +49,7 @@
 #include <iterator>
 #include <limits>
 #include <string>
+#include <unordered_set>
 
 char CChat::ms_aDisplayText[MAX_LINE_LENGTH] = "";
 
@@ -135,9 +137,8 @@ static void ParseBlockWordsList(const char *pList, std::vector<std::string> &Out
 	if(!pList || pList[0] == '\0')
 		return;
 
-	char aBuf[1024];
-	str_copy(aBuf, pList, sizeof(aBuf));
-	char *pCursor = aBuf;
+	std::string Buffer(pList);
+	char *pCursor = Buffer.data();
 
 	while(*pCursor)
 	{
@@ -181,6 +182,7 @@ namespace
 	{
 		std::string m_List;
 		int m_Mode = -1;
+		uint64_t m_FileRevision = 0;
 		std::vector<std::string> m_Words;
 		std::vector<Regex> m_Regexes;
 	};
@@ -242,15 +244,20 @@ namespace
 	}
 } // namespace
 
-static void UpdateBlockWordsCache(CBlockWordsCache &Cache)
+static void UpdateBlockWordsCache(CBlockWordsCache &Cache, const QmWordFilterList::CFileList &File)
 {
-	if(Cache.m_List == g_Config.m_QmBlockWordsList && Cache.m_Mode == g_Config.m_QmBlockWordsMode)
+	if(Cache.m_List == g_Config.m_QmBlockWordsList && Cache.m_Mode == g_Config.m_QmBlockWordsMode && Cache.m_FileRevision == File.Revision())
 		return;
 
 	Cache.m_List = g_Config.m_QmBlockWordsList;
 	Cache.m_Mode = g_Config.m_QmBlockWordsMode;
+	Cache.m_FileRevision = File.Revision();
 
 	ParseBlockWordsList(Cache.m_List.c_str(), Cache.m_Words);
+	std::unordered_set<std::string> Seen(Cache.m_Words.begin(), Cache.m_Words.end());
+	for(const std::string &Word : File.Words())
+		if(Seen.insert(Word).second)
+			Cache.m_Words.push_back(Word);
 	Cache.m_Regexes.clear();
 
 	if(Cache.m_Mode == BLOCK_WORDS_MODE_REGEX || Cache.m_Mode == BLOCK_WORDS_MODE_BOTH)
@@ -335,13 +342,13 @@ static bool ReplaceRegexWords(std::string &Text, std::vector<Regex> &Regexes, ch
 	return AnyReplaced;
 }
 
-static bool ApplyBlockWords(std::string &Text, std::vector<std::string> *pMatched)
+static bool ApplyBlockWords(std::string &Text, std::vector<std::string> *pMatched, const QmWordFilterList::CFileList &File)
 {
-	if(!g_Config.m_QmBlockWordsEnabled || g_Config.m_QmBlockWordsList[0] == '\0')
+	if(!g_Config.m_QmBlockWordsEnabled || (g_Config.m_QmBlockWordsList[0] == '\0' && File.Words().empty()))
 		return false;
 
 	static CBlockWordsCache s_Cache;
-	UpdateBlockWordsCache(s_Cache);
+	UpdateBlockWordsCache(s_Cache, File);
 	if(s_Cache.m_Words.empty())
 		return false;
 
@@ -980,8 +987,40 @@ void CChat::Echo(const char *pString, bool ForceVisible)
 	EchoLine(pString, ForceVisible);
 }
 
+void CChat::SaveBlockWords(IConfigManager *pConfig, void *)
+{
+	static_assert(sizeof(g_Config.m_QmBlockWordsList) == QmWordFilterList::INLINE_CAPACITY);
+	for(const std::string &Line : QmWordFilterList::SerializeInline(g_Config.m_QmBlockWordsList))
+		pConfig->WriteLine(Line.c_str());
+}
+
+void CChat::ConAppendBlockWords(IConsole::IResult *pResult, void *pUserData)
+{
+	if(!QmWordFilterList::AppendInlineHexChunk(g_Config.m_QmBlockWordsList, sizeof(g_Config.m_QmBlockWordsList), pResult->GetString(0)))
+		static_cast<CChat *>(pUserData)->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "blocklist", "Cannot append word list: invalid UTF-8 or capacity exceeded");
+}
+
+void CChat::ConReloadWordFiles(IConsole::IResult *, void *pUserData)
+{
+	auto *pThis = static_cast<CChat *>(pUserData);
+	pThis->ReloadWordFilterFile(false);
+	pThis->ReloadWordFilterFile(true);
+}
+
+void CChat::ReloadWordFilterFile(bool Streamer, bool Force)
+{
+	auto &File = Streamer ? m_StreamerWordsFile : m_BlockWordsFile;
+	const uint64_t PreviousRevision = File.Revision();
+	File.Refresh(Storage(), Streamer ? g_Config.m_QmStreamerWordsFile : g_Config.m_QmBlockWordsFile, Force);
+	if(Streamer && (Force || File.Revision() != PreviousRevision))
+		QmStreamerWordFilter::SetAdditionalWords(File.Words());
+}
+
 void CChat::OnConsoleInit()
 {
+	ConfigManager()->RegisterCallback(SaveBlockWords, this);
+	Console()->Register("qm_block_words_list_append", "s[hex]", CFGFLAG_CLIENT, ConAppendBlockWords, this, "Append saved word list chunk");
+	Console()->Register("qm_reload_word_files", "", CFGFLAG_CLIENT, ConReloadWordFiles, this, "Reload word list files");
 	Console()->Register("say", "r[message]", CFGFLAG_CLIENT, ConSay, this, "Say in chat");
 	Console()->Register("say_team", "r[message]", CFGFLAG_CLIENT, ConSayTeam, this, "Say in team chat");
 	Console()->Register("chat", "s['team'|'all'] ?r[message]", CFGFLAG_CLIENT, ConChat, this, "Enable chat with all/team mode");
@@ -993,6 +1032,8 @@ void CChat::OnConsoleInit()
 void CChat::OnInit()
 {
 	Reset();
+	ReloadWordFilterFile(false);
+	ReloadWordFilterFile(true);
 	Console()->Chain("cl_chat_old", ConchainChatOld, this);
 	Console()->Chain("cl_chat_size", ConchainChatFontSize, this);
 	Console()->Chain("cl_chat_width", ConchainChatWidth, this);
@@ -2021,12 +2062,14 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		IsLocalBlockWordsClient = ClientId == GameClient()->m_Snap.m_LocalClientId;
 	const bool CanHideBlockWordsMessage = ShouldHideBlockWordsMessage(BlockWordsAction, true, ClientId, IsLocalBlockWordsClient, Team);
-	if(g_Config.m_QmBlockWordsEnabled && g_Config.m_QmBlockWordsList[0] != '\0' &&
+	ReloadWordFilterFile(false, false);
+	ReloadWordFilterFile(true, false);
+	if(g_Config.m_QmBlockWordsEnabled && (g_Config.m_QmBlockWordsList[0] != '\0' || !m_BlockWordsFile.Words().empty()) &&
 		(BlockWordsAction == EBlockWordsAction::REPLACE || CanHideBlockWordsMessage))
 	{
 		std::string Text = pLine;
 		std::vector<std::string> *pMatched = g_Config.m_QmBlockWordsShowConsole ? &BlockedWords : nullptr;
-		if(ApplyBlockWords(Text, pMatched))
+		if(ApplyBlockWords(Text, pMatched, m_BlockWordsFile))
 		{
 			FlushPendingConsoleLine(true);
 			if(g_Config.m_QmBlockWordsShowConsole && !BlockedWords.empty())
@@ -3003,9 +3046,12 @@ bool CChat::OnPrepareLines(float y)
 void CChat::OnRender()
 {
 	m_TranslateButton.m_RectValid = false;
-	if(m_LastStreamerFilterWords != g_Config.m_QmStreamerFilterWords)
+	ReloadWordFilterFile(false, false);
+	ReloadWordFilterFile(true, false);
+	if(m_LastStreamerFilterWords != g_Config.m_QmStreamerFilterWords || m_LastStreamerFilterRevision != QmStreamerWordFilter::Revision())
 	{
 		m_LastStreamerFilterWords = g_Config.m_QmStreamerFilterWords;
+		m_LastStreamerFilterRevision = QmStreamerWordFilter::Revision();
 		if(g_Config.m_QmStreamerFilterWords)
 		{
 			for(auto &Line : m_aLines)

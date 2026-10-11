@@ -46,6 +46,9 @@
 %d teams
 == %d개 팀
 
+%d words loaded
+== 단어 %d개 불러옴
+
 %d. %s | main: %s | dummy: %s
 == %d. %s | 본체: %s | 더미: %s
 
@@ -811,6 +814,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == 도움말 말풍선 모양
+
+Append saved word list chunk
+== 저장된 단어 목록 조각 추가
 
 Append to log file instead of overwriting
 == 덮어쓰기 대신 로그 파일에 추가
@@ -1754,6 +1760,12 @@ Candidate files
 Cannot join the target player's team
 == 대상 플레이어의 팀에 참가할 수 없습니다
 
+Cannot open word list file. Previous words remain active.
+== 단어 목록 파일을 열 수 없습니다. 이전 단어 목록을 유지합니다.
+
+Cannot read complete word list file. Previous words remain active.
+== 단어 목록 파일을 완전히 읽을 수 없습니다. 이전 단어 목록을 유지합니다.
+
 Cannot swap: the other player is not in your team
 == 스왑할 수 없음: 상대방이 당신의 팀에 없습니다
 
@@ -1909,6 +1921,9 @@ Chat width
 
 Chat word filtering
 == 채팅 단어 필터링
+
+Chat word list file
+== 채팅 차단 단어 파일
 
 Cheats are disabled on this server
 == 이 서버에서는 치트가 비활성화되어 있습니다
@@ -6101,6 +6116,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == 설정 경로가 올바르지 않거나 중복됩니다.
 
+Invalid quoted word. Use one word per line.
+== 따옴표로 감싼 단어 형식이 잘못되었습니다. 줄마다 단어 하나를 쓰세요.
+
 Invalid save number. Use a number from the save list.
 == 유효하지 않은 저장 번호입니다. 목록의 번호를 사용하세요.
 
@@ -9596,6 +9614,9 @@ Reload the map while preserving the state of tees and teams
 Reload the maplist
 == 맵 목록 다시 로드
 
+Reload word list files
+== 단어 목록 파일 다시 불러오기
+
 Reloaded images.
 == 이미지를 다시 불러왔습니다.
 
@@ -12497,6 +12518,9 @@ Stop the current demo
 Streamer mode
 == 스트리머 모드
 
+Streamer word list file
+== 스트리머 모드 단어 목록 파일
+
 Strength icons assets
 == 강도 아이콘 에셋
 
@@ -14207,6 +14231,9 @@ Used by active shared text and numeric input fields
 Uses the active action with the current aiming position.
 == 현재 조준 위치로 활성 작업을 사용합니다.
 
+UTF-8 text, one word per line (max 2 MiB).
+== UTF-8 텍스트, 줄마다 단어 하나(최대 2 MiB).
+
 v = Velocity
 == v = 속도
 
@@ -14773,6 +14800,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == 단어 필터 동작: 0=일치하는 단어 교체, 1=메시지 전체 숨기기
+
+Word list entries cannot contain control characters.
+== 단어에 제어 문자를 사용할 수 없습니다.
+
+Word list exceeds 100000 unique entries.
+== 고유 단어 수가 100000개를 초과합니다.
+
+Word list file
+== 단어 목록 파일
+
+Word list file exceeds 2 MiB.
+== 단어 목록 파일이 2 MiB를 초과합니다.
+
+Word list must be UTF-8 text without NUL characters.
+== 단어 목록은 NUL 문자 없는 UTF-8 텍스트여야 합니다.
 
 Write local console contents to a text file
 == 로컬 콘솔 내용을 텍스트 파일로 저장

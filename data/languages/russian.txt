@@ -46,6 +46,9 @@
 %d teams
 == %d команд
 
+%d words loaded
+== Загружено слов: %d
+
 %d. %s | main: %s | dummy: %s
 == %d. %s | основной: %s | дамми: %s
 
@@ -811,6 +814,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == Внешний вид всплывающих подсказок
+
+Append saved word list chunk
+== Добавить сохранённый фрагмент списка слов
 
 Append to log file instead of overwriting
 == Добавлять в файл журнала вместо перезаписи
@@ -1754,6 +1760,12 @@ Candidate files
 Cannot join the target player's team
 == Нельзя вступить в команду выбранного игрока
 
+Cannot open word list file. Previous words remain active.
+== Не удалось открыть файл. Прежний список слов остаётся активным.
+
+Cannot read complete word list file. Previous words remain active.
+== Не удалось прочитать весь файл. Прежний список слов остаётся активным.
+
 Cannot swap: the other player is not in your team
 == Невозможно обменяться: другой игрок не в вашей команде
 
@@ -1909,6 +1921,9 @@ Chat width
 
 Chat word filtering
 == Фильтрация слов в чате
+
+Chat word list file
+== Файл списка слов чата
 
 Cheats are disabled on this server
 == На этом сервере читы отключены
@@ -6101,6 +6116,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == Некорректный или повторяющийся путь к файлу настроек.
 
+Invalid quoted word. Use one word per line.
+== Неверный формат слова в кавычках. Укажите одно слово в строке.
+
 Invalid save number. Use a number from the save list.
 == Неверный номер сохранения. Выберите номер из списка.
 
@@ -9596,6 +9614,9 @@ Reload the map while preserving the state of tees and teams
 Reload the maplist
 == Перезагрузить список карт
 
+Reload word list files
+== Перезагрузить файлы списков слов
+
 Reloaded images.
 == Изображения перезагружены.
 
@@ -12497,6 +12518,9 @@ Stop the current demo
 Streamer mode
 == Режим стримера
 
+Streamer word list file
+== Файл списка слов для режима стримера
+
 Strength icons assets
 == Ресурсы иконок силы
 
@@ -14207,6 +14231,9 @@ Used by active shared text and numeric input fields
 Uses the active action with the current aiming position.
 == Использует активное действие с текущей позицией прицеливания.
 
+UTF-8 text, one word per line (max 2 MiB).
+== Текст UTF-8, одно слово в строке (до 2 MiB).
+
 v = Velocity
 == v = Скорость
 
@@ -14773,6 +14800,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == Действие фильтра слов: 0=заменять совпадающие слова, 1=скрывать сообщение целиком
+
+Word list entries cannot contain control characters.
+== Слова не могут содержать управляющие символы.
+
+Word list exceeds 100000 unique entries.
+== Список превышает 100000 уникальных слов.
+
+Word list file
+== Файл списка слов
+
+Word list file exceeds 2 MiB.
+== Файл списка слов превышает 2 MiB.
+
+Word list must be UTF-8 text without NUL characters.
+== Список слов должен быть текстом UTF-8 без символов NUL.
 
 Write local console contents to a text file
 == Записать содержимое локальной консоли в текстовый файл
