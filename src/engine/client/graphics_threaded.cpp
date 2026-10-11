@@ -23,13 +23,11 @@
 #include <game/client/components/qmclient/media_paths.h>
 #include <game/localization.h>
 
+#include <SDL3/SDL_video.h>
+
 #include <cinttypes>
 #include <limits>
 #include <thread>
-
-#if defined(CONF_BACKEND_VULKAN)
-#include <SDL3/SDL.h>
-#endif
 
 #if defined(CONF_PLATFORM_MACOS)
 #include <os/log.h>

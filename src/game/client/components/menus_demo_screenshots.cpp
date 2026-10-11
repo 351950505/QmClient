@@ -94,7 +94,7 @@ void CMenus::OpenDemoScreenshotViewer(const CDemoItem &Item)
 	str_format(aPath, sizeof(aPath), "%s/%s", m_aCurrentDemoFolder, Item.m_aFilename);
 	char aFullPath[IO_MAX_PATH_LENGTH];
 	Storage()->GetCompletePath(Item.m_StorageType, aPath, aFullPath, sizeof(aFullPath));
-	if(!OpenQmScreenshotViewer(aFullPath, Localize("Error opening screenshot"), Localize("Unable to open the screenshot file")))
+	if(!OpenQmScreenshotViewer(Client(), aFullPath, Localize("Error opening screenshot"), Localize("Unable to open the screenshot file")))
 		PopupMessage(Localize("Error opening screenshot"), Localize("Unable to open the screenshot file"), Localize("Ok"));
 }
 

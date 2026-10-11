@@ -5,6 +5,7 @@
 
 #include <base/system.h>
 
+#include <engine/client.h>
 #include <engine/gfx/image_manipulation.h>
 #include <engine/storage.h>
 
@@ -30,11 +31,11 @@
 #include <thread>
 #endif
 
-bool OpenQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char *pErrorMessage)
+bool OpenQmScreenshotViewer(IClient *pClient, const char *pPath, const char *pErrorTitle, const char *pErrorMessage)
 {
 #if defined(CONF_PLATFORM_ANDROID) || defined(CONF_PLATFORM_IOS) || defined(CONF_PLATFORM_EMSCRIPTEN)
 	// 移动端和浏览器保留平台原有的文件打开能力。
-	return open_file(pPath) != 0;
+	return pClient->ViewFile(pPath);
 #else
 	std::string Path = pPath;
 	if(fs_is_relative_path(pPath))

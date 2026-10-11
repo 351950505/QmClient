@@ -33,7 +33,6 @@ public:
 	bool SwitchWindowScreen(int Index, bool MoveToCenter) override { throw std::logic_error("unexpected graphics boundary: SwitchWindowScreen"); }
 	bool SetVSync(bool State) override { throw std::logic_error("unexpected graphics boundary: SetVSync"); }
 	bool SetMultiSampling(uint32_t ReqMultiSamplingCount, uint32_t &MultiSamplingCountBackend) override { throw std::logic_error("unexpected graphics boundary: SetMultiSampling"); }
-	uint32_t GetWindowId() const override { return 0; }
 	int GetWindowScreen() override { throw std::logic_error("unexpected graphics boundary: GetWindowScreen"); }
 	void Move(int x, int y) override { throw std::logic_error("unexpected graphics boundary: Move"); }
 	bool Resize(int w, int h, int RefreshRate) override { throw std::logic_error("unexpected graphics boundary: Resize"); }

@@ -5,6 +5,19 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 # shellcheck source=scripts/compile_libs/_build_common.sh
 source "${SCRIPT_DIR}/../../scripts/compile_libs/_build_common.sh"
 
+# CI 安装了多个 NDK 时仍使用声明的版本，不能被主机上更新的目录覆盖。
+if [ -n "${ANDROID_NDK_VERSION:-}" ]; then
+	ANDROID_NDK_ROOT="${ANDROID_HOME}/ndk/${ANDROID_NDK_VERSION}"
+	if [ ! -d "${ANDROID_NDK_ROOT}" ]; then
+		log_error "Requested Android NDK was not found: ${ANDROID_NDK_ROOT}"
+		exit 1
+	fi
+	export ANDROID_NDK_ROOT
+	export ANDROID_NDK_HOME="${ANDROID_NDK_ROOT}"
+	export ANDROID_TOOLCHAIN_ROOT="${ANDROID_NDK_ROOT}/toolchains/llvm/prebuilt/${HOST_OS}-x86_64"
+	ANDROID_NDK_FOUND=1
+fi
+
 assert_android_ndk_found
 
 ANDROID_SUB_BUILD_DIR=build_arch
