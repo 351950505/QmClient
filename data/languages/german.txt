@@ -4736,6 +4736,9 @@ Filter out servers without friends
 Filter out spectators from player count
 == Zuschauer von der Spieleranzahl ausfiltern
 
+Filter sensitive words
+== Sensible Wörter filtern
+
 Filtered word console color
 == Konsolenfarbe für blockierte Wörter
 

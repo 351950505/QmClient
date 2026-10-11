@@ -4736,6 +4736,9 @@ Filter out servers without friends
 Filter out spectators from player count
 == 從玩家號碼中過濾掉觀眾
 
+Filter sensitive words
+== 過濾內建敏感詞
+
 Filtered word console color
 == 被屏蔽詞控制台顏色
 

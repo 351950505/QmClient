@@ -56,6 +56,7 @@ void CMenus::RenderQmVisualStreamerContent(CUIRect &Content, float LineHeight, f
 	Metrics.m_LineSpacing = LineSpacing;
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, Content,
 		{
+			{&g_Config.m_QmStreamerFilterWords, "Filter sensitive words", Localize("Filter sensitive words")},
 			{&g_Config.m_QmStreamerHideNames, "Replace non-friend names with ID", Localize("Replace non-friend names with ID")},
 			{&g_Config.m_QmStreamerHideSkins, "Replace non-friend skins with default", Localize("Replace non-friend skins with default")},
 			{&g_Config.m_QmStreamerScoreboardDefaultFlags, "Use default flags on scoreboard", Localize("Use default flags on scoreboard")},

@@ -1401,6 +1401,8 @@ namespace qm_card_catalog
 		};
 
 		static constexpr SCardSettingSearch s_aqm_streamer[] = {
+			{Localizable("Filter sensitive words"), nullptr, "过滤内置敏感词 屏蔽词 反规避"},
+			{nullptr, "qm_streamer_filter_words", nullptr},
 			{Localizable("Replace non-friend names with ID"), nullptr, "用 ID 替换非好友名称"},
 			{Localizable("Replace non-friend skins with default"), nullptr, "用默认皮肤替换非好友皮肤"},
 			{Localizable("Use default flags on scoreboard"), nullptr, "在计分板上使用默认旗帜"},
