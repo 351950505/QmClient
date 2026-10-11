@@ -4334,9 +4334,6 @@ Endless hook has been activated
 Endless hook has been deactivated
 == Endloser Haken wurde deaktiviert
 
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== Flussstil des Endlos-Hakenrings (0=einfarbig, 1=Regenbogen, 2=statisch)
-
 Endpoint
 == Endpunkt
 
@@ -4789,9 +4786,6 @@ Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 
 Flip:
 == Spiegeln:
-
-Flow style
-== Flussstil
 
 Folder
 == Ordner
@@ -12385,9 +12379,6 @@ Start skin queue from a random position when entering a map
 
 Statboard
 == Statistiktafel
-
-Static
-== Statisch
 
 Stats
 == Statistik

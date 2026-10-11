@@ -4334,9 +4334,6 @@ Endless hook has been activated
 Endless hook has been deactivated
 == 无限钩已关闭
 
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== 无限钩圆环流动样式（0=单色，1=彩虹，2=静止）
-
 Endpoint
 == 端点
 
@@ -4789,9 +4786,6 @@ Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 
 Flip:
 == 翻转：
-
-Flow style
-== 流动样式
 
 Folder
 == 文件夹
@@ -12385,9 +12379,6 @@ Start skin queue from a random position when entering a map
 
 Statboard
 == 统计板
-
-Static
-== 静止
 
 Stats
 == 统计

@@ -179,7 +179,7 @@ TEST(QmHudHookCountdown, WallHookNeverStartsARing)
 	EXPECT_FLOAT_EQ(Ring.Visual().m_Alpha, 0.0f);
 }
 
-TEST(QmHudHookCountdown, EndlessHookStaysFullAndBlue)
+TEST(QmHudHookCountdown, EndlessHookDoesNotConsumeTimedProgress)
 {
 	CQmHookCountdown Ring;
 	auto Input = PlayerHook();
@@ -187,8 +187,7 @@ TEST(QmHudHookCountdown, EndlessHookStaysFullAndBlue)
 	Input.m_HookTick = 1000.0f;
 	Ring.Update(Input, 1.0f);
 	EXPECT_FLOAT_EQ(Ring.Visual().m_Progress, 1.0f);
-	EXPECT_GT(Ring.Visual().m_Color.b, Ring.Visual().m_Color.r);
-	EXPECT_GT(Ring.Visual().m_Color.b, Ring.Visual().m_Color.g);
+	EXPECT_TRUE(Ring.Visual().m_EndlessHook);
 }
 
 TEST(QmHudHookCountdown, EndlessHookAdvancesTheFlowPhaseAndLoops)
@@ -200,7 +199,7 @@ TEST(QmHudHookCountdown, EndlessHookAdvancesTheFlowPhaseAndLoops)
 	EXPECT_TRUE(Ring.Visual().m_EndlessHook);
 	Ring.Update(Input, QM_HOOK_COUNTDOWN_FLOW_PERIOD_SECONDS * 0.25f);
 	EXPECT_NEAR(Ring.Visual().m_FlowPhase, 0.25f, 0.0001f);
-	// 越过一圈后按 fmod 循环回小相位，光弧持续流动不溢出。
+	// 越过一圈后按 fmod 循环回小相位，彩虹持续流动不溢出。
 	Ring.Update(Input, QM_HOOK_COUNTDOWN_FLOW_PERIOD_SECONDS * 0.9f);
 	EXPECT_NEAR(Ring.Visual().m_FlowPhase, 0.15f, 0.0001f);
 }
@@ -213,19 +212,23 @@ TEST(QmHudHookCountdown, NormalHookDoesNotUseTheFlowOverlay)
 	Ring.Update(Input, 0.2f);
 	EXPECT_FALSE(Ring.Visual().m_EndlessHook);
 	EXPECT_FLOAT_EQ(Ring.Visual().m_FlowPhase, 0.0f);
+	EXPECT_FLOAT_EQ(Ring.Visual().m_BreathPhase, 0.0f);
 }
 
-TEST(QmHudHookCountdown, FlowStylePassesThroughToTheVisual)
+TEST(QmHudHookCountdown, EndlessBreathingLoopsIndependentlyOfRainbowFlow)
 {
 	CQmHookCountdown Ring;
 	auto Input = PlayerHook();
 	Input.m_EndlessHook = true;
-	Input.m_FlowStyle = static_cast<int>(EQmHookCountdownFlowStyle::RAINBOW);
 	Ring.Update(Input, 0.0f);
-	EXPECT_EQ(Ring.Visual().m_FlowStyle, static_cast<int>(EQmHookCountdownFlowStyle::RAINBOW));
-	Input.m_FlowStyle = static_cast<int>(EQmHookCountdownFlowStyle::STATIC);
-	Ring.Update(Input, 0.0f);
-	EXPECT_EQ(Ring.Visual().m_FlowStyle, static_cast<int>(EQmHookCountdownFlowStyle::STATIC));
+	EXPECT_FLOAT_EQ(Ring.Visual().m_BreathPhase, 0.0f);
+	Ring.Update(Input, QM_HOOK_COUNTDOWN_BREATH_PERIOD_SECONDS * 0.5f);
+	EXPECT_NEAR(Ring.Visual().m_BreathPhase, 0.5f, 0.0001f);
+	EXPECT_GT(QmHookCountdownBreath(Ring.Visual().m_BreathPhase), 0.99f);
+	EXPECT_NE(Ring.Visual().m_FlowPhase, Ring.Visual().m_BreathPhase);
+	Ring.Update(Input, QM_HOOK_COUNTDOWN_BREATH_PERIOD_SECONDS * 0.5f);
+	EXPECT_NEAR(Ring.Visual().m_BreathPhase, 0.0f, 0.0001f);
+	EXPECT_LT(QmHookCountdownBreath(Ring.Visual().m_BreathPhase), 0.01f);
 }
 
 TEST(QmHueToRgb, MapsPrimaryHuesAndCyclesAroundTheWheel)
@@ -380,6 +383,7 @@ TEST(QmHudHookCountdown, InvalidFrameTimeKeepsEndlessAnimationFiniteAndRecoverab
 	{
 		Ring.Update(Input, Delta);
 		EXPECT_FLOAT_EQ(Ring.Visual().m_FlowPhase, Before.m_FlowPhase);
+		EXPECT_FLOAT_EQ(Ring.Visual().m_BreathPhase, Before.m_BreathPhase);
 		EXPECT_FLOAT_EQ(Ring.Visual().m_Alpha, Before.m_Alpha);
 		EXPECT_FLOAT_EQ(Ring.Visual().m_Scale, Before.m_Scale);
 	}
@@ -405,21 +409,65 @@ TEST(QmHudHookCountdown, EndlessHookCanReturnToTimedHookAndResetForAnotherConnec
 	Input.m_EndlessHook = true;
 	Ring.Update(Input, 0.0f);
 	EXPECT_FLOAT_EQ(Ring.Visual().m_FlowPhase, 0.0f);
+	EXPECT_FLOAT_EQ(Ring.Visual().m_BreathPhase, 0.0f);
 	EXPECT_TRUE(Ring.Visual().m_EndlessHook);
 }
 
-TEST(QmHudHookCountdown, RainbowFlowChangesWithTimeAndKeepsTheTailGradient)
+TEST(QmHudHookCountdown, RainbowTravelsAlongThePathAndClosesWithoutAColorSeam)
 {
-	const auto Start = QmHookCountdownFlowColor(0.0f, 0.0f);
-	const auto Later = QmHookCountdownFlowColor(1.0f / 3.0f, 0.0f);
-	EXPECT_FLOAT_EQ(Start.r, 1.0f);
-	EXPECT_FLOAT_EQ(Start.g, 0.0f);
-	EXPECT_FLOAT_EQ(Later.r, 0.0f);
-	EXPECT_FLOAT_EQ(Later.g, 1.0f);
-	const auto Tail = QmHookCountdownFlowColor(0.0f, 1.0f);
-	EXPECT_FLOAT_EQ(Tail.g, 1.0f);
-	EXPECT_FLOAT_EQ(Tail.b, 1.0f);
-	const auto Looped = QmHookCountdownFlowColor(1.0f, 0.0f);
-	EXPECT_FLOAT_EQ(Looped.r, Start.r);
-	EXPECT_FLOAT_EQ(Looped.g, Start.g);
+	const auto At = [](float Phase, float PathPosition) {
+		const ColorRGBA Color = QmHookCountdownFlowColor(Phase, PathPosition);
+		return std::tuple{Color.r, Color.g, Color.b, Color.a};
+	};
+	EXPECT_NE(At(0.0f, 0.0f), At(0.25f, 0.0f));
+	EXPECT_NE(At(0.0f, 0.0f), At(0.0f, 0.25f));
+	// 同一颜色在时间前进后到达更远的位置，走完整圈后无跳变。
+	EXPECT_EQ(At(0.0f, 0.0f), At(0.25f, 0.25f));
+	EXPECT_EQ(At(0.25f, 0.0f), At(0.25f, 1.0f));
+	EXPECT_EQ(At(0.0f, 0.0f), At(1.0f, 0.0f));
+}
+
+TEST(QmHudHookInfinity, ClosedPathKeepsFiniteUnitNormalsForTheGlow)
+{
+	const auto &aPath = QmHookCountdownInfinityPath();
+	EXPECT_EQ(aPath.front().m_Position, aPath.back().m_Position);
+	EXPECT_EQ(aPath.front().m_Normal, aPath.back().m_Normal);
+	EXPECT_FLOAT_EQ(aPath.front().m_PathPosition, 0.0f);
+	EXPECT_FLOAT_EQ(aPath.back().m_PathPosition, 1.0f);
+	for(size_t i = 0; i < aPath.size(); ++i)
+	{
+		SCOPED_TRACE(i);
+		EXPECT_TRUE(std::isfinite(aPath[i].m_Position.x));
+		EXPECT_TRUE(std::isfinite(aPath[i].m_Position.y));
+		EXPECT_NEAR(length(aPath[i].m_Normal), 1.0f, 0.0001f);
+		if(i != 0)
+			EXPECT_GT(aPath[i].m_PathPosition, aPath[i - 1].m_PathPosition);
+	}
+}
+
+TEST(QmHudHookInfinity, PathCrossesTheCenterBetweenSymmetricLobes)
+{
+	const auto &aPath = QmHookCountdownInfinityPath();
+	const size_t Quarter = (aPath.size() - 1) / 4;
+	EXPECT_GT(aPath.front().m_Position.x, 0.0f);
+	EXPECT_LT(aPath[Quarter * 2].m_Position.x, 0.0f);
+	EXPECT_NEAR(length(aPath[Quarter].m_Position), 0.0f, 0.0001f);
+	EXPECT_NEAR(length(aPath[Quarter * 3].m_Position), 0.0f, 0.0001f);
+	EXPECT_NEAR(aPath.front().m_Position.x, -aPath[Quarter * 2].m_Position.x, 0.0001f);
+}
+
+TEST(QmHudHookCountdown, ReleaseKeepsBreathingUntilBothPhasesAreCleared)
+{
+	CQmHookCountdown Ring;
+	auto Input = PlayerHook();
+	Input.m_EndlessHook = true;
+	Ring.Update(Input, 0.2f);
+	const float BeforeRelease = Ring.Visual().m_BreathPhase;
+	Input.m_HookAttached = false;
+	Ring.Update(Input, 0.05f);
+	EXPECT_GT(Ring.Visual().m_BreathPhase, BeforeRelease);
+	Ring.Update(Input, 0.2f);
+	EXPECT_FLOAT_EQ(Ring.Visual().m_Alpha, 0.0f);
+	EXPECT_FLOAT_EQ(Ring.Visual().m_FlowPhase, 0.0f);
+	EXPECT_FLOAT_EQ(Ring.Visual().m_BreathPhase, 0.0f);
 }

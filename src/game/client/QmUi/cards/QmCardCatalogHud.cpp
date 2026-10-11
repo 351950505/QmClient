@@ -97,7 +97,6 @@ namespace qm_card_catalog
 						Content.HSplitTop(ColorLayout.m_ConsumedHeight, nullptr, &Content);
 					}
 					Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, LineHeight, LineSpacing, &g_Config.m_QmHookCountdown, &g_Config.m_QmHookCountdown) || Changed;
-					Content.HSplitTop(LineHeight + LineSpacing, nullptr, &Content); // 无限钩流动样式行
 					Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, LineHeight, LineSpacing, &g_Config.m_QmSwitchCountdown, &g_Config.m_QmSwitchCountdown) || Changed;
 					if(g_Config.m_QmSwitchCountdown)
 					{
