@@ -129,7 +129,7 @@ public:
 	static void BeginLinePresentation(SPresentationState &Presentation, int64_t Now, bool GentleRefresh);
 	static void UpdateLinePresentation(SPresentationState &Presentation, int64_t LineTime, int64_t Now, float DeltaSeconds, bool ShowLargeArea, bool ForceVisible, int64_t LargeAreaOpenTick, float RecallDelaySeconds, bool ExtraAnimations = true);
 	static float SmoothPresentationY(float CurrentY, float TargetY, float DeltaSeconds);
-	static bool CanMergePlayerMessages(int PreviousClientId, int PreviousTeam, const char *pPreviousText, int64_t PreviousTime, int ClientId, int Team, const char *pText, int64_t Now);
+	static bool CanMergePlayerMessages(int PreviousClientId, int PreviousTeam, const char *pPreviousText, int64_t PreviousTime, int ClientId, int Team, const char *pText, int64_t Now, bool Highlighted = false);
 	// echo 合并的窗口判定：上一次同文本 echo 发生在 LastTime，当前时间为 Now，
 	// 窗口为 WindowMs 毫秒（0 表示关闭合并）。时间倒流或超出窗口都返回 false。
 	static bool EchoRepeatWithinWindow(int64_t Now, int64_t LastTime, int WindowMs);
@@ -696,9 +696,9 @@ static inline float ChatPresentationTicksToSeconds(int64_t Ticks)
 	return Ticks <= 0 ? 0.0f : Ticks / (float)time_freq();
 }
 
-inline bool CChat::CanMergePlayerMessages(int PreviousClientId, int PreviousTeam, const char *pPreviousText, int64_t PreviousTime, int ClientId, int Team, const char *pText, int64_t Now)
+inline bool CChat::CanMergePlayerMessages(int PreviousClientId, int PreviousTeam, const char *pPreviousText, int64_t PreviousTime, int ClientId, int Team, const char *pText, int64_t Now, bool Highlighted)
 {
-	if(PreviousClientId < 0 || ClientId < 0 || PreviousTeam >= TEAM_WHISPER_SEND || Team >= TEAM_WHISPER_SEND)
+	if(Highlighted || PreviousClientId < 0 || ClientId < 0 || PreviousTeam >= TEAM_WHISPER_SEND || Team >= TEAM_WHISPER_SEND)
 		return false;
 	if(PreviousTeam != Team)
 		return false;

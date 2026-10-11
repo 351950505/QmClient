@@ -8006,9 +8006,6 @@ No functions bound
 No input device available
 == 系統沒有可用輸入設備
 
-No items to write
-== 沒有可寫入的項目
-
 No local saves file found (ddnet-saves.txt)
 == 未找到本地存檔文件（ddnet-saves.txt）
 

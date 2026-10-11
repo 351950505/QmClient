@@ -3,9 +3,8 @@
 #include <base/str.h>
 #include <base/system.h>
 
+#include <engine/shared/localization.h>
 #include <engine/storage.h>
-
-#include <game/localization.h>
 
 #include <algorithm>
 #include <unordered_set>
@@ -14,26 +13,26 @@
 namespace
 {
 
-std::string_view Trim(std::string_view Text)
-{
-	const size_t Start = Text.find_first_not_of(" \t\r");
-	if(Start == std::string_view::npos)
-		return {};
-	return Text.substr(Start, Text.find_last_not_of(" \t\r") - Start + 1);
-}
-
-std::string Quote(std::string_view Text)
-{
-	std::string Result = "\"";
-	for(char Character : Text)
+	std::string_view Trim(std::string_view Text)
 	{
-		if(Character == '\\' || Character == '"')
-			Result += '\\';
-		Result += Character;
+		const size_t Start = Text.find_first_not_of(" \t\r");
+		if(Start == std::string_view::npos)
+			return {};
+		return Text.substr(Start, Text.find_last_not_of(" \t\r") - Start + 1);
 	}
-	Result += '"';
-	return Result;
-}
+
+	std::string Quote(std::string_view Text)
+	{
+		std::string Result = "\"";
+		for(char Character : Text)
+		{
+			if(Character == '\\' || Character == '"')
+				Result += '\\';
+			Result += Character;
+		}
+		Result += '"';
+		return Result;
+	}
 
 }
 
@@ -126,7 +125,8 @@ bool QmWordFilterList::AppendInlineHexChunk(char *pList, size_t Capacity, const 
 		{
 			const char Character = pChunk[Position + Offset];
 			const int Digit = Character >= '0' && Character <= '9' ? Character - '0' :
-					  Character >= 'a' && Character <= 'f' ? Character - 'a' + 10 : -1;
+					  Character >= 'a' && Character <= 'f' ? Character - 'a' + 10 :
+										 -1;
 			if(Digit < 0)
 				return false;
 			Byte = Byte * 16 + Digit;

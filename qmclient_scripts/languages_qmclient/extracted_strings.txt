@@ -2667,7 +2667,6 @@ No favorite maps yet
 No filter
 No functions bound
 No input device available
-No items to write
 No local saves file found (ddnet-saves.txt)
 No local servers found (ports %d-%d)
 No login required

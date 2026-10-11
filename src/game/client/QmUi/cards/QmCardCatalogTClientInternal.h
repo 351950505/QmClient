@@ -58,7 +58,6 @@ namespace qm_tclient_cards
 		CUi *m_pUi;
 	};
 
-
 	enum
 	{
 		TCLIENT_TAB_SETTINGS = 0,

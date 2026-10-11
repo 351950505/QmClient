@@ -40,6 +40,14 @@ TEST(QmChatMessageMerge, EligibilityUsesExactTextSlidingWindowAndMatchingChannel
 	EXPECT_FALSE(CChat::CanMergePlayerMessages(2, 0, "same", Start, 7, 0, "same", Start - 1));
 }
 
+TEST(QmChatMessageMerge, HighlightedMessagesAreNotMerged)
+{
+	const int64_t Start = TestTicks(10.0f);
+	const int64_t Now = Start + TestTicks(0.1f);
+	EXPECT_FALSE(CChat::CanMergePlayerMessages(2, 0, "same", Start, 7, 0, "same", Now, true));
+	EXPECT_TRUE(CChat::CanMergePlayerMessages(2, 0, "same", Start, 7, 0, "same", Now, false));
+}
+
 TEST(QmChatInteractions, ClampBacklogLine)
 {
 	EXPECT_EQ(CChat::ClampBacklogLine(-3, 10, 4), 0);

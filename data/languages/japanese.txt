@@ -8006,9 +8006,6 @@ No functions bound
 No input device available
 == 利用可能な入力デバイスがありません
 
-No items to write
-== 書き込む項目がありません
-
 No local saves file found (ddnet-saves.txt)
 == ローカルセーブファイルが見つかりません（ddnet-saves.txt）
 

@@ -28,11 +28,11 @@
 #include <game/client/animstate.h>
 #include <game/client/components/chat.h>
 #include <game/client/components/hud_editor.h>
+#include <game/client/components/qmclient/auto_vote.h>
 #include <game/client/components/qmclient/data_version.h>
 #include <game/client/components/qmclient/keyword_reply_rules.h>
 #include <game/client/components/qmclient/modes.h>
 #include <game/client/components/qmclient/weapon_animation.h>
-#include <game/client/components/qmclient/auto_vote.h>
 #include <game/client/gameclient.h>
 #include <game/client/prediction/entities/character.h>
 #include <game/client/render.h>

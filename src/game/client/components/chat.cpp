@@ -2179,14 +2179,14 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 		GameClient()->m_QmClient.PlayerChatStyle(ClientId), Highlighted, Team == 1, Team >= 2,
 		CustomColor.has_value(), ChatEmoji != EQmChatEmoji::NONE);
 
-	if(g_Config.m_QmMessageMerge && !Highlighted &&
+	if(g_Config.m_QmMessageMerge &&
 		PreviousLine.m_Initialized &&
 		(PreviousLine.m_ConsoleSuppressed || m_PendingConsoleLineIndex == m_CurrentLine) &&
 		PreviousLine.m_CustomColor == CustomColor &&
 		PreviousLine.m_ForceVisible == ForceVisible &&
 		PreviousLine.m_ConsoleSuppressed == BlockWordsConsolePrinted &&
 		PreviousLine.m_ChatEmoji == ChatEmoji &&
-		CanMergePlayerMessages(PreviousLine.m_ClientId, PreviousLine.m_TeamNumber, PreviousLine.m_aMergeText, PreviousLine.m_Time, ClientId, Team, aMergeText, Now))
+		CanMergePlayerMessages(PreviousLine.m_ClientId, PreviousLine.m_TeamNumber, PreviousLine.m_aMergeText, PreviousLine.m_Time, ClientId, Team, aMergeText, Now, Highlighted))
 	{
 		PreviousLine.m_TimesRepeated++;
 		PreviousLine.m_SponsorChatStyle = QmSponsorChatMergedStyle(PreviousLine.m_SponsorChatStyle, SponsorChatStyle);

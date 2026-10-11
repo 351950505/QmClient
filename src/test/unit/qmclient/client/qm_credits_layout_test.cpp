@@ -81,7 +81,11 @@ TEST(QmCreditsLayout, UnifiedLegacyPageSplitsIntoCurrentTabs)
 
 	ASSERT_TRUE(qm_card_registry::RepairLegacyCreditsTabs(Model));
 	EXPECT_EQ(Model.StableIdOrder("deck:", "credits-qmclient", 1), (std::vector<std::string>{"deck:qmclient-contributors-title", "deck:qmclient-contributors-community"}));
-	EXPECT_EQ(Model.StableIdOrder("deck:", "credits-qmclient", 2), (std::vector<std::string>{"deck:qmclient-contributors-title-display", "deck:qmclient-contributors-sponsors"}));
+	EXPECT_EQ(Model.StableIdOrder("deck:", "credits-qmclient", 2), (std::vector<std::string>{"deck:qmclient-contributors-sponsors"}));
+	const int DisplayIndex = Model.FindByStableId("deck:qmclient-contributors-title-display");
+	ASSERT_GE(DisplayIndex, 0);
+	EXPECT_STREQ(Model.Entry(DisplayIndex).m_pDefaultTab, "appearance-name-plate");
+	EXPECT_EQ(Model.Entry(DisplayIndex).m_Column, 1);
 	EXPECT_EQ(Model.StableIdOrder("deck:", "credits-links", 2), (std::vector<std::string>{"deck:qmclient-contributors-ddnet"}));
 	EXPECT_EQ(Model.StableIdOrder("deck:", "credits-links", 1), (std::vector<std::string>{"deck:credits-friend-links", "deck:tclient-info-developers"}));
 	const int FilesIndex = Model.FindByStableId("deck:tclient-info-files");

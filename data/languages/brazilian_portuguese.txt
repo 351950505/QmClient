@@ -8006,9 +8006,6 @@ No functions bound
 No input device available
 == Nenhum dispositivo de entrada disponível
 
-No items to write
-== Nenhum item para escrever
-
 No local saves file found (ddnet-saves.txt)
 == Nenhum arquivo de saves local encontrado (ddnet-saves.txt)
 

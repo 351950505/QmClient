@@ -231,8 +231,7 @@ public:
 
 	CBgDrawItem() = delete;
 	CBgDrawItem(CGameClient &This, vec2 StartPos) :
-		m_This(This), m_PathContainer(*This.Graphics()),
-		m_Stroke(CBgDrawItemDataPoint(StartPos, CurrentWidth(), CurrentColor()))
+		m_This(This), m_PathContainer(*This.Graphics()), m_Stroke(CBgDrawItemDataPoint(StartPos, CurrentWidth(), CurrentColor()))
 	{
 		m_PathContainer.Update(Data());
 	}

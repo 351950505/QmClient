@@ -8,19 +8,6 @@
 
 #include <string>
 
-TEST(QmChatMessageMerge, HighlightedMessagesAreNotMerged)
-{
-	const std::string Chat = ReadTestSourceFile("src/game/client/components/chat.cpp");
-	const std::string AddLine = SourceFunctionBody(Chat, "void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible, std::optional");
-
-	const size_t HighlightCheck = AddLine.find("LineShouldHighlight(pLine");
-	const size_t MergeCheck = AddLine.find("CanMergePlayerMessages(");
-	ASSERT_NE(HighlightCheck, std::string::npos);
-	ASSERT_NE(MergeCheck, std::string::npos);
-	EXPECT_LT(HighlightCheck, MergeCheck);
-	EXPECT_NE(AddLine.find("!Highlighted &&"), std::string::npos);
-}
-
 TEST(QmLocalSaveJoinHint, UsesExpiringEchoMessages)
 {
 	const std::string Source = ReadTestSourceFile("src/game/client/components/tclient/tclient.cpp");

@@ -16,7 +16,8 @@ namespace
 				return false;
 			std::snprintf(pBuf, Length, "%s", vLines[Index++].c_str());
 			return true;
-		}, Data);
+		},
+			Data);
 	}
 }
 
@@ -53,7 +54,8 @@ TEST(QmBgDrawFile, SavedStrokeRetainsEveryPointOnRead)
 	ASSERT_TRUE(BgDrawFile::Write([&](const char *pLine) {
 		vLines.emplace_back(pLine);
 		return true;
-	}, Original));
+	},
+		Original));
 	CBgDrawItemData Loaded;
 	ASSERT_TRUE(ReadLines(vLines, Loaded));
 	ASSERT_EQ(Loaded.size(), Original.size());

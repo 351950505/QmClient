@@ -8006,9 +8006,6 @@ No functions bound
 No input device available
 == Kullanılabilir giriş cihazı yok
 
-No items to write
-== Yazılacak öğe yok
-
 No local saves file found (ddnet-saves.txt)
 == Yerel kayıt dosyası bulunamadı (ddnet-saves.txt)
 

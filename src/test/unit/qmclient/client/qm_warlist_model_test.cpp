@@ -1,6 +1,6 @@
-#include <game/client/components/qmclient/warlist_model.h>
-
 #include <engine/shared/config.h>
+
+#include <game/client/components/qmclient/warlist_model.h>
 
 #include <gtest/gtest.h>
 
