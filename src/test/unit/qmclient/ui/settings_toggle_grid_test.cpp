@@ -26,6 +26,76 @@ TEST(SettingsToggleGrid, EachColumnUsesItsOwnLongestItem)
 	EXPECT_FLOAT_EQ(Grid.Cell(Area, 1).x - Grid.Cell(Area, 0).x - Grid.Cell(Area, 0).w, 10);
 }
 
+TEST(SettingsToggleGrid, FiveTogglesUseThreeAndTwoInsteadOfLeavingOneOnTheLastRow)
+{
+	const std::array<SSettingsToggleSize, 5> aItems = {{{220, 30}, {90, 50}, {170, 80}, {150, 100}, {220, 40}}};
+	const auto Grid = ResolveSettingsToggleGrid(660, aItems, 10);
+	const CUIRect Area{20, 40, 660, Grid.Height()};
+	EXPECT_EQ(Grid.m_Columns, 3);
+	EXPECT_EQ(Grid.m_Rows, 2);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 2).y, Area.y);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 3).y, Grid.Cell(Area, 4).y);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 3).x, Area.x);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 4).x - Grid.Cell(Area, 3).x - Grid.Cell(Area, 3).w, 10);
+	EXPECT_FLOAT_EQ(Grid.Height(), 190);
+	for(int Index = 0; Index < static_cast<int>(aItems.size()); ++Index)
+	{
+		const auto Cell = Grid.Cell(Area, Index);
+		EXPECT_GE(Cell.w, aItems[Index].m_Width);
+		EXPECT_GE(Cell.h, aItems[Index].m_Height);
+		EXPECT_LE(Cell.x + Cell.w, Area.x + Area.w);
+		EXPECT_LE(Cell.y + Cell.h, Area.y + Area.h);
+	}
+}
+
+TEST(SettingsToggleGrid, FourDynamicTogglesUseTwoPerRowAndReflowWhenResized)
+{
+	const std::vector<SSettingsToggleSize> vItems = {{240, 30}, {200, 30}, {200, 30}, {240, 30}};
+	SSettingsDynamicToggleGrid Grid;
+	ResolveSettingsToggleGrid(660, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 2);
+	EXPECT_EQ(Grid.m_Rows, 2);
+	const CUIRect Area{20, 40, 660, Grid.Height()};
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 0).y, Grid.Cell(Area, 1).y);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 2).y, Grid.Cell(Area, 3).y);
+	EXPECT_FLOAT_EQ(Grid.Cell(Area, 3).x + Grid.Cell(Area, 3).w, Area.x + Area.w);
+
+	ResolveSettingsToggleGrid(910, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 4);
+	EXPECT_EQ(Grid.m_Rows, 1);
+	ResolveSettingsToggleGrid(660, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 2);
+	EXPECT_EQ(Grid.m_Rows, 2);
+	ResolveSettingsToggleGrid(250, vItems, 10, Grid);
+	EXPECT_EQ(Grid.m_Columns, 1);
+	EXPECT_EQ(Grid.m_Rows, 4);
+}
+
+TEST(SettingsToggleGrid, BalancedColumnsMustStillFitTheReassignedLabels)
+{
+	const std::array<SSettingsToggleSize, 5> aItems = {{{300, 30}, {50, 30}, {50, 30}, {50, 30}, {300, 30}}};
+	const auto Grid = ResolveSettingsToggleGrid(480, aItems, 10);
+	const CUIRect Area{20, 40, 480, Grid.Height()};
+	EXPECT_EQ(Grid.m_Columns, 4);
+	EXPECT_EQ(Grid.m_Rows, 2);
+	for(int Index = 0; Index < static_cast<int>(aItems.size()); ++Index)
+	{
+		const auto Cell = Grid.Cell(Area, Index);
+		EXPECT_GE(Cell.w, aItems[Index].m_Width);
+		EXPECT_LE(Cell.x + Cell.w, Area.x + Area.w);
+	}
+}
+
+TEST(SettingsToggleGrid, BalancingDoesNotAddRowsToANarrowGroup)
+{
+	std::array<SSettingsToggleSize, 7> aItems;
+	aItems.fill({100, 30});
+	const auto Grid = ResolveSettingsToggleGrid(320, aItems, 10);
+	EXPECT_EQ(Grid.m_Columns, 3);
+	EXPECT_EQ(Grid.m_Rows, 3);
+	EXPECT_FLOAT_EQ(Grid.Height(), 110);
+}
+
 TEST(SettingsToggleGrid, ColumnFitChecksTheActualAssignment)
 {
 	const std::array<SSettingsToggleSize, 6> aItems = {{{300, 30}, {100, 30}, {100, 30}, {300, 30}, {100, 30}, {100, 30}}};
