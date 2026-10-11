@@ -18,21 +18,16 @@ namespace ui_widget
 		void DrawSliderFill(const IUiContext &Ctx, const CUIRect &Fill, const SDiscreteSliderStyle &Style, float Alpha)
 		{
 			const float Radius = Fill.h * 0.5f;
-			const ColorRGBA BaseColor = Style.m_Gradient ? Style.m_GradientEnd : Style.m_Color;
-			DrawRoundedSurface(Ctx, Fill, BaseColor.WithAlpha(Alpha), ColorRGBA(), Radius);
 			if(Style.m_Gradient && Fill.w > Fill.h)
 			{
-				CUIRect Cap = Fill;
-				Cap.w = Fill.h;
-				DrawRoundedSurface(Ctx, Cap, Style.m_GradientStart.WithAlpha(Alpha), ColorRGBA(), Radius);
-				// 渐变矩形只落在胶囊中段，左右圆帽仍走统一圆角绘制。
-				CUIRect Middle = Fill;
-				Middle.HMargin(Radius, &Middle);
+				// 两半共用中间色，各自只保留外侧圆角，不再叠画独立圆帽。
 				CUIRect Left, Right;
-				Middle.VSplitMid(&Left, &Right);
-				Left.Draw4(Style.m_GradientStart.WithAlpha(Alpha), Style.m_GradientMiddle.WithAlpha(Alpha), Style.m_GradientStart.WithAlpha(Alpha), Style.m_GradientMiddle.WithAlpha(Alpha), IGraphics::CORNER_NONE, 0.0f);
-				Right.Draw4(Style.m_GradientMiddle.WithAlpha(Alpha), Style.m_GradientEnd.WithAlpha(Alpha), Style.m_GradientMiddle.WithAlpha(Alpha), Style.m_GradientEnd.WithAlpha(Alpha), IGraphics::CORNER_NONE, 0.0f);
+				Fill.VSplitMid(&Left, &Right);
+				Left.Draw4(Style.m_GradientStart.WithAlpha(Alpha), Style.m_GradientMiddle.WithAlpha(Alpha), Style.m_GradientStart.WithAlpha(Alpha), Style.m_GradientMiddle.WithAlpha(Alpha), IGraphics::CORNER_L, Radius);
+				Right.Draw4(Style.m_GradientMiddle.WithAlpha(Alpha), Style.m_GradientEnd.WithAlpha(Alpha), Style.m_GradientMiddle.WithAlpha(Alpha), Style.m_GradientEnd.WithAlpha(Alpha), IGraphics::CORNER_R, Radius);
 			}
+			else
+				DrawRoundedSurface(Ctx, Fill, Style.m_Color.WithAlpha(Alpha), ColorRGBA(), Radius);
 
 			const float Time = Ctx.m_pAnim != nullptr && g_Config.m_QmUiMotionLevel != 0 ? Ctx.m_pAnim->TimeSec() : 0.0f;
 			for(int Index = 0; Index < Style.m_ParticleCount; ++Index)
@@ -97,11 +92,16 @@ namespace ui_widget
 
 		const bool HasSelection = *pValue >= Min && *pValue <= Max;
 		const SDiscreteSliderStyle Style = ResolveDiscreteSliderStyle(*pValue, Min, Max);
-		const float CenterX = Geometry.Position(DiscreteSliderNormalizedValue(*pValue, Min, Max));
+		const float Normalized = DiscreteSliderNormalizedValue(*pValue, Min, Max);
+		float Emphasis = Active ? 1.0f : (Hovered ? 0.5f : 0.0f);
+		if(Ctx.m_pAnim != nullptr && !pUi->RenderOnly())
+		{
+			const uint64_t NodeKey = BuildUiAnimNodeKey(Ctx.m_ScopeHash, reinterpret_cast<uint64_t>(pId));
+			Emphasis = std::clamp(ResolveUiAnimSpringValue(*Ctx.m_pAnim, NodeKey, EUiAnimProperty::SCALE, Emphasis, ui_token::motion::SLIDER_KNOB_SPRING, 2), 0.0f, 1.0f);
+		}
 		if(HasSelection && *pValue > Min)
 		{
-			CUIRect Fill = Geometry.m_Track;
-			Fill.w = CenterX - Fill.x;
+			const CUIRect Fill = Geometry.FillRect(Normalized, Emphasis);
 			DrawSliderFill(Ctx, Fill, Style, Alpha);
 		}
 
@@ -123,16 +123,10 @@ namespace ui_widget
 			}
 		}
 
-		float Emphasis = Active ? 1.0f : (Hovered ? 0.5f : 0.0f);
-		if(Ctx.m_pAnim != nullptr && !pUi->RenderOnly())
-		{
-			const uint64_t NodeKey = BuildUiAnimNodeKey(Ctx.m_ScopeHash, reinterpret_cast<uint64_t>(pId));
-			Emphasis = std::clamp(ResolveUiAnimSpringValue(*Ctx.m_pAnim, NodeKey, EUiAnimProperty::SCALE, Emphasis, ui_token::motion::SLIDER_KNOB_SPRING, 2), 0.0f, 1.0f);
-		}
 		if(HasSelection)
 		{
 			// 位置直接吸附当前档位，只对悬停大小做动画，避免旋钮滞后于已选档位。
-			const CUIRect Knob = Geometry.KnobRect(DiscreteSliderNormalizedValue(*pValue, Min, Max), Emphasis);
+			const CUIRect Knob = Geometry.KnobRect(Normalized, Emphasis);
 			DrawRoundedSurface(Ctx, Knob, SharedStyle.m_Handle.WithMultipliedAlpha(Alpha), SharedStyle.m_Border.WithMultipliedAlpha(Alpha), ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
 		}
 
