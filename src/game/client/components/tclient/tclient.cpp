@@ -2920,6 +2920,8 @@ void CTClient::SetForcedAspect()
 			GameScreenAspectOverride = AspectRatio / 100.0f;
 	}
 
+	if(const float ReplayAspect = GameClient()->m_DemoCamera.AspectOverride(); ReplayAspect > 0.0f)
+		GameScreenAspectOverride = ReplayAspect;
 	Graphics()->SetGameScreenAspectOverride(GameScreenAspectOverride);
 	Graphics()->SetForcedAspect(Force);
 }

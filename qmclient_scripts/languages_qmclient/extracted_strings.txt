@@ -162,6 +162,7 @@ Add friends by entering their name below or by clicking their name in the player
 Add function
 Add Group
 Add Item
+Add keyframe
 Add latency for antiping (0 to disable)
 Add one
 Add team clan:
@@ -570,6 +571,7 @@ Camera drift smoothness (0=instant, 100=smoothest)
 Camera follow cursor dead zone
 Camera follow cursor factor
 Camera movement transition amount, 0=instant, 100=slow and smooth
+Camera path
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 Camera view
 Can only drop onto same-size parts.
@@ -1089,6 +1091,7 @@ Delete selected items
 Delete skin
 Delete this preset
 Demo
+Demo cut saved, but its camera path could not be saved
 Demo directory
 Demo display
 Demo effects
@@ -1286,6 +1289,7 @@ Echo the text in chat window
 Edge margin
 Edit
 Edit audio pack
+Edit camera
 Edit color
 Edit Entry
 Edit HUD
@@ -1326,6 +1330,7 @@ Enable background 3D particle trail
 Enable bounce-in entrance animation when country flags finish loading
 Enable camera drift
 Enable camera drift effect, slightly drags camera based on speed
+Enable camera path
 Enable chat mention sound
 Enable chat message sound
 Enable chat with all/team mode
@@ -1534,12 +1539,14 @@ Failed to export demo cut
 Failed to export skin files.
 Failed to fetch the replay list
 Failed to load
+Failed to load camera path
 Failed to load main asset: %s
 Failed to prepare main asset image.
 Failed to preview candidate file.
 Failed to preview import file.
 Failed to read saves file
 Failed to record video. See local console for details.
+Failed to save camera path
 Failed to save demo
 Failed to save screenshot
 Failed to save video
@@ -1752,6 +1759,7 @@ Go back the specified duration
 Go forward one marker
 Go forward one tick
 Go forward the specified duration
+Go to keyframe
 Gores
 Gores actor
 Gores auto weapon switch
@@ -1876,6 +1884,7 @@ Hitbox Mode Player Scope: 0=local, 1=local+clone, 2=all
 Hitbox Mode Tee Collision Color
 Hitbox Mode Weapon Interaction Color
 HJ assist
+Hold
 Hold gun higher like TW 0.6.1 and earlier
 Hold left click for free camera
 Hook
@@ -2100,6 +2109,7 @@ Key Sticking: On
 Key Sticking: Reset Self
 Keyboard focus ring color
 Keyboard size
+Keyframe %d/%d: %s
 Keyword reply
 Keyword reply rules (each line: [rename] [regex] keyword=>reply)
 Keyword reply use Dummy
@@ -2465,6 +2475,7 @@ Move a friend category to a position
 Move left
 Move player to spectators
 Move right
+Move the free camera, then add a keyframe at the current demo time.
 Move to category
 Movement
 Moves to the point with x/y-coordinates ii
@@ -2593,6 +2604,7 @@ No audio issues detected
 No audio slots found.
 No buttons match your filter criteria
 No callable peer found
+No camera keyframes
 No candidate file selected.
 No changes since last save
 No chat log selected
@@ -3006,6 +3018,7 @@ Preview hook collision colors and line styles
 Preview import file
 Preview laser bodies, outlines, and impacts
 Preview loading…
+Preview path
 Preview player and dummy appearance
 Preview player and dummy nameplates
 Preview player nameplate
@@ -3863,6 +3876,7 @@ Show own hook collision lines (2 always shown)
 Show own nameplate coordinates
 Show own nametag (for demo recording)
 Show own player's hook collision line
+Show path
 Show pause/play indicator when changing
 Show pending crash reports in a window at startup (0 = keep them on disk and log a line instead)
 Show performance graphs.
@@ -4044,6 +4058,7 @@ Slow down the demo
 Small Tee size
 Smaller tees
 Smart
+Smooth
 Smooth and accurate blur with the highest GPU cost.
 Smooth camera switch animation time when spectating (in ms, 0=off)
 Smooth Dynamic Camera
@@ -4172,6 +4187,7 @@ Stop following
 Stop following a player across servers
 Stop key input on switch (0=off, 1=dummy, 2=player)
 Stop practice
+Stop preview
 Stop preview (P)
 Stop record
 Stop recording
@@ -4622,6 +4638,7 @@ Unable to load savegame: data corrupted
 Unable to load savegame: loaded on a different server
 Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
+Unable to record camera keyframe
 Unable to rename the demo
 Unable to rename the folder
 Unable to rename the screenshot
@@ -4680,6 +4697,7 @@ Update
 Update a rcon key
 Update a rcon key with prehashed data
 Update failed. Please try again
+Update keyframe
 Update notice
 Update or add a specific war group
 Update package available

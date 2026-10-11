@@ -491,6 +491,9 @@ Add Group
 Add Item
 == 添加项
 
+Add keyframe
+== 添加关键帧
+
 Add latency for antiping (0 to disable)
 == 为抗延迟添加延迟（0 为禁用）
 
@@ -1714,6 +1717,9 @@ Camera follow cursor factor
 
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == 相机移动的过渡量，0=即时，100=缓慢且平滑
+
+Camera path
+== 相机路径
 
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == 光标快速移动期间相机减速的量。高值可能会导致相机移动延迟
@@ -3272,6 +3278,9 @@ Delete this preset
 Demo
 == 回放
 
+Demo cut saved, but its camera path could not be saved
+== 裁剪回放已保存，但相机路径保存失败
+
 Demo directory
 == 回放保存目录
 
@@ -3863,6 +3872,9 @@ Edit
 Edit audio pack
 == 编辑音频包
 
+Edit camera
+== 编辑镜头
+
 Edit color
 == 编辑配色
 
@@ -3982,6 +3994,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == 启用相机漂移效果，让镜头根据移动速度产生轻微拖拽
+
+Enable camera path
+== 启用相机路径
 
 Enable chat mention sound
 == 启用聊天被提及消息提示音
@@ -4607,6 +4622,9 @@ Failed to fetch the replay list
 Failed to load
 == 加载失败
 
+Failed to load camera path
+== 无法加载相机路径
+
 Failed to load main asset: %s
 == 加载主材质失败：%s
 
@@ -4624,6 +4642,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == 视频录制失败，详情请查看本地控制台。
+
+Failed to save camera path
+== 无法保存相机路径
 
 Failed to save demo
 == 回放保存失败
@@ -5261,6 +5282,9 @@ Go forward one tick
 Go forward the specified duration
 == 快进指定时长
 
+Go to keyframe
+== 定位关键帧
+
 Gores
 == Gores 模式
 
@@ -5632,6 +5656,9 @@ Hitbox Mode Weapon Interaction Color
 
 HJ assist
 == HJ 大佬辅助
+
+Hold
+== 保持
 
 Hold gun higher like TW 0.6.1 and earlier
 == 像 TW 0.6.1 及更早版本一样，tee 将枪握得更高一点
@@ -6304,6 +6331,9 @@ Keyboard focus ring color
 
 Keyboard size
 == 键盘大小
+
+Keyframe %d/%d: %s
+== 关键帧 %d/%d：%s
 
 Keyword reply
 == 关键词回复
@@ -7400,6 +7430,9 @@ Move player to spectators
 Move right
 == 向右移动
 
+Move the free camera, then add a keyframe at the current demo time.
+== 移动自由相机，在当前回放时间添加关键帧。
+
 Move to category
 == 移动到分类
 
@@ -7783,6 +7816,9 @@ No buttons match your filter criteria
 
 No callable peer found
 == 当前未发现可通话对端
+
+No camera keyframes
+== 尚无相机关键帧
 
 No candidate file selected.
 == 未选择候选文件。
@@ -9022,6 +9058,9 @@ Preview laser bodies, outlines, and impacts
 
 Preview loading…
 == 预览加载中…
+
+Preview path
+== 预览路径
 
 Preview player and dummy appearance
 == 预览玩家和分身外观
@@ -11594,6 +11633,9 @@ Show own nametag (for demo recording)
 Show own player's hook collision line
 == 显示自己的钩子辅助线
 
+Show path
+== 显示路径
+
 Show pause/play indicator when changing
 == 在更改时显示暂停/播放指示器
 
@@ -12137,6 +12179,9 @@ Smaller tees
 Smart
 == 智能
 
+Smooth
+== 平滑
+
 Smooth and accurate blur with the highest GPU cost.
 == 平滑且准确的模糊效果，但 GPU 开销最高。
 
@@ -12520,6 +12565,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 
 Stop practice
 == 停止练习
+
+Stop preview
+== 停止预览
 
 Stop preview (P)
 == 停止预览 (P)
@@ -13871,6 +13919,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == 无法打开截图文件
 
+Unable to record camera keyframe
+== 无法记录相机关键帧
+
 Unable to rename the demo
 == 无法重命名这个回放
 
@@ -14044,6 +14095,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == 更新失败，请重试
+
+Update keyframe
+== 更新关键帧
 
 Update notice
 == 更新提示

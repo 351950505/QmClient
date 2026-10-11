@@ -198,6 +198,11 @@ void CCamera::ResetAutoSpecCamera()
 
 void CCamera::UpdateCamera()
 {
+	if(const auto View = GameClient()->m_DemoCamera.PlaybackView())
+	{
+		SetDemoView(View->m_Center, View->m_Zoom);
+		return;
+	}
 	RemoveDynamicFovZoom();
 
 	// use hardcoded smooth camera for spectating unless player explicitly turn it off
@@ -430,6 +435,11 @@ void CCamera::UpdateCamera()
 
 void CCamera::OnRender()
 {
+	if(const auto View = GameClient()->m_DemoCamera.PlaybackView())
+	{
+		SetDemoView(View->m_Center, View->m_Zoom);
+		return;
+	}
 	if(m_CameraSmoothing)
 	{
 		if(!GameClient()->m_Snap.m_SpecInfo.m_Active)
@@ -742,6 +752,27 @@ void CCamera::SetView(ivec2 Pos, bool Relative)
 	m_ForceFreeviewPos = vec2(
 		std::clamp(UntestedViewPos.x, 200.0f, Collision()->GetWidth() * 32 - 200.0f),
 		std::clamp(UntestedViewPos.y, 200.0f, Collision()->GetHeight() * 32 - 200.0f));
+}
+
+// 镜头轨迹已经给出最终取景，不再叠加自动镜头、动态视野或鼠标阻尼。
+void CCamera::SetDemoView(vec2 Center, float Zoom)
+{
+	m_Center = m_PrevCenter = Center;
+	m_Zoom = m_ZoomSmoothingTarget = m_UserZoomTarget = std::clamp(Zoom, MinZoomLevel(), MaxZoomLevel());
+	m_ZoomSet = true;
+	m_Zooming = false;
+	m_ZoomSmoothingIsReset = false;
+	m_AutoSpecCameraZooming = false;
+	m_DynamicFovAppliedFactor = 1.0f;
+	m_DynamicFovCurrent = m_DynamicFovTarget = 1.0f;
+	m_DriftCurrentOffset = m_DriftTargetOffset = vec2(0.0f, 0.0f);
+	m_CameraSmoothing = false;
+	m_FreeviewCameraSmoothing.Reset();
+	m_ForceFreeview = false;
+	m_PrevSpecId = GameClient()->m_Snap.m_SpecInfo.m_SpectatorId;
+	m_WasSpectating = GameClient()->m_Snap.m_SpecInfo.m_Active;
+	if(GameClient()->m_Snap.m_SpecInfo.m_Active && !GameClient()->m_Snap.m_SpecInfo.m_UsePosition)
+		GameClient()->m_Controls.m_aMousePos[g_Config.m_ClDummy] = Center;
 }
 
 void CCamera::SetViewWorld(vec2 Pos)

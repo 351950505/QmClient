@@ -8,11 +8,12 @@
 namespace qm_demo_ui
 {
 	constexpr float DISPLAY_HEIGHT = 116.0f;
+	constexpr float CAMERA_HEIGHT = 146.0f;
 
-	inline CUIRect PlayerRect(const CUIRect &Screen, bool DisplayExpanded)
+	inline CUIRect PlayerRect(const CUIRect &Screen, bool DisplayExpanded, bool CameraExpanded = false)
 	{
 		const float Width = std::min(640.0f, std::max(0.0f, Screen.w - 24.0f));
-		const float Height = 120.0f + (DisplayExpanded ? DISPLAY_HEIGHT + 6.0f : 0.0f);
+		const float Height = 120.0f + (DisplayExpanded ? DISPLAY_HEIGHT + 6.0f : 0.0f) + (CameraExpanded ? CAMERA_HEIGHT + 6.0f : 0.0f);
 		return {Screen.x + (Screen.w - Width) * 0.5f, Screen.y + Screen.h - Height - 12.0f, Width, Height};
 	}
 

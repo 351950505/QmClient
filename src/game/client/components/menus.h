@@ -1838,6 +1838,7 @@ protected:
 	bool m_DemoExportDisplayExpanded = false;
 	bool m_DemoDisplayExpanded = false;
 	CButtonContainer m_DemoDisplayButton;
+	CButtonContainer m_DemoCameraButton;
 	CButtonContainer m_DemoExportDisplayButton;
 	COnlineReplayShortcutClaims m_OnlineReplayShortcutClaims;
 	CLineInputBuffered<IO_MAX_PATH_LENGTH> m_DemoSearchInput;
@@ -2133,6 +2134,7 @@ protected:
 	void RenderDemoPlayerSliceSavePopup(CUIRect MainView);
 	// 回放/导出共用的显示选项面板与其折叠开关。
 	void RenderDemoDisplaySettings(CUIRect View, bool Enabled = true);
+	void RenderDemoCameraPanel(CUIRect View, bool Enabled);
 	void RenderDemoDisplayToggle(const CUIRect &Rect, bool &Expanded, CButtonContainer &Button, bool Enabled = true);
 	bool m_DemoBrowserListInitialized = false;
 	void RenderDemoBrowser(CUIRect MainView);
@@ -2677,6 +2679,7 @@ public:
 	void DemolistPopulate();
 	void RefreshFilteredDemos();
 	void DemoSeekTick(IDemoPlayer::ETickOffset TickOffset);
+	bool DemoSeekToTick(int Tick);
 	bool m_Dummy;
 
 	const char *GetCurrentDemoFolder() const { return m_aCurrentDemoFolder; }
