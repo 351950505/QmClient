@@ -3898,6 +3898,7 @@ Show status bar
 Show strength/weakness in nametag (0=off, 1=icon, 2=icon+number)
 Show swap option
 Show synchronized sponsor chat styles
+Show system fonts
 Show system media info on HUD
 Show TClient config variables
 Show team

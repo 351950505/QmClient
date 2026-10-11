@@ -116,6 +116,9 @@ def verify(package: Path, runtime_manifest: Path, tools_manifest: Path, portable
 	misplaced = [name for name in executables if len(PurePosixPath(name).parts) != 2 or "\\" in name]
 	if missing or extra or misplaced or len(roots) != 1:
 		raise ValueError(f"invalid Windows executable payload: missing/duplicate={missing}, extra={extra}, misplaced={misplaced}")
+	# 包根必须携带 steam_appid.txt（SteamAPI_Init 在 CWD 查找），缺失会让非 Steam 位置启动失去运行状态与时长统计。
+	if not any(PurePosixPath(name).parts[1:] == ("steam_appid.txt",) for name in names):
+		raise ValueError("Windows package is missing root steam_appid.txt")
 
 
 def main() -> int:

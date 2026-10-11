@@ -110,6 +110,9 @@ void CUi::RenderPopupMenus()
 	CUiScopedGaussianBlur PopupBlurScope(this);
 	// 禁用弹层模糊时，背景和分隔线的半透明绘制也不能触发自动背板模糊。
 	CUiScopedGaussianBlurSuppression PopupBlurSuppression(this, g_Config.m_QmUiPopupBlur == 0);
+	// 页面文字绘制晚于菜单背板捕获；弹层栈需要完整页面的新快照，栈内继续复用。
+	if(!m_vPopupMenus.empty() && g_Config.m_QmUiPopupBlur != 0 && GaussianBlurScopeActive())
+		m_GaussianBlurPrepared = false;
 	m_RenderingPopupMenus = true;
 	const float Now = Client()->LocalTime();
 	for(size_t i = 0; i < m_vPopupMenus.size(); ++i)
@@ -687,6 +690,10 @@ void CUi::SSelectionPopupContext::Reset()
 	m_SpecialFontRenderMode = false;
 	m_FontFaceAvailabilityCheck = false;
 	m_FontFamilySelection = false;
+	m_Searchable = false;
+	m_FocusSearch = false;
+	m_SearchInput.Clear();
+	m_Search.Reset();
 }
 
 CUi::EPopupMenuFunctionResult CUi::PopupSelection(void *pContext, CUIRect View, bool Active)
@@ -701,22 +708,50 @@ CUi::EPopupMenuFunctionResult CUi::PopupSelection(void *pContext, CUIRect View, 
 		log_error("ui", "Selection popup opened without a scroll region");
 		return CUi::POPUP_CLOSE_CURRENT;
 	}
+	if(pSelectionPopup->m_Searchable)
+	{
+		CUIRect SearchRect;
+		View.HSplitTop(pSelectionPopup->m_EntryHeight, &SearchRect, &View);
+		View.HSplitTop(pSelectionPopup->m_EntrySpacing, nullptr, &View);
+		pSelectionPopup->m_SearchInput.SetEmptyText(Localize("Search"));
+		SEditBoxRenderOptions SearchOptions;
+		SearchOptions.m_ReleaseFocusOnEnter = false;
+		pUI->DoClearableEditBox(&pSelectionPopup->m_SearchInput, &SearchRect, pSelectionPopup->m_FontSize, IGraphics::CORNER_ALL, {}, SearchOptions);
+		if(Active && pSelectionPopup->m_FocusSearch)
+		{
+			pUI->SetActiveItem(&pSelectionPopup->m_SearchInput);
+			pSelectionPopup->m_SearchInput.Activate(EInputPriority::UI);
+			pUI->TrackActiveTextInput(&pSelectionPopup->m_SearchInput);
+			pSelectionPopup->m_FocusSearch = false;
+		}
+	}
+	if(pSelectionPopup->m_Search.Update(pSelectionPopup->m_vEntries, pSelectionPopup->m_Searchable ? pSelectionPopup->m_SearchInput.GetString() : "") && pSelectionPopup->m_Searchable)
+	{
+		pSelectionPopup->m_ActiveIndex = pSelectionPopup->m_Search.Indices().empty() ? -1 : 0;
+		pSelectionPopup->m_ScrollToActiveItem = true;
+	}
+	const auto &vVisible = pSelectionPopup->m_Search.Indices();
 
 	// 键盘输入属于栈顶子层，父菜单失活时不能停止导航或让父层抢走按键。
 	SQmDropdownInput KeyboardInput;
+	KeyboardInput.m_KeepOpenWhenEmpty = pSelectionPopup->m_Searchable;
 	if(Active)
 	{
-		KeyboardInput.m_KeyUp = pUI->ConsumeHotkey(HOTKEY_UP);
-		KeyboardInput.m_KeyDown = pUI->ConsumeHotkey(HOTKEY_DOWN);
-		KeyboardInput.m_KeyEnter = pUI->ConsumeHotkey(HOTKEY_ENTER);
+		// IME 组合期间，方向键和回车属于候选词窗口。
+		if(pUI->Input() == nullptr || !pUI->Input()->HasComposition())
+		{
+			KeyboardInput.m_KeyUp = pUI->ConsumeHotkey(HOTKEY_UP);
+			KeyboardInput.m_KeyDown = pUI->ConsumeHotkey(HOTKEY_DOWN);
+			KeyboardInput.m_KeyEnter = pUI->ConsumeHotkey(HOTKEY_ENTER);
+		}
 		KeyboardInput.m_KeyEscape = pUI->ConsumeHotkey(HOTKEY_ESCAPE);
 	}
 	const int PreviousActiveIndex = pSelectionPopup->m_ActiveIndex;
-	const SQmDropdownUpdateResult KeyboardResult = QmUpdateDropdownPopupSelection(KeyboardInput, pSelectionPopup->m_vEntries.size(), Active, pSelectionPopup->m_ActiveIndex);
+	const SQmDropdownUpdateResult KeyboardResult = QmUpdateDropdownPopupSelection(KeyboardInput, vVisible.size(), Active, pSelectionPopup->m_ActiveIndex);
 	if(KeyboardResult.m_Selected)
 	{
-		pSelectionPopup->m_SelectionIndex = KeyboardResult.m_SelectedIndex;
-		pSelectionPopup->m_pSelection = &pSelectionPopup->m_vEntries[KeyboardResult.m_SelectedIndex];
+		pSelectionPopup->m_SelectionIndex = pSelectionPopup->m_Search.SourceIndex(KeyboardResult.m_SelectedIndex);
+		pSelectionPopup->m_pSelection = &pSelectionPopup->m_vEntries[pSelectionPopup->m_SelectionIndex];
 	}
 	if(KeyboardResult.m_Closed)
 		return CUi::POPUP_CLOSE_CURRENT;
@@ -734,7 +769,9 @@ CUi::EPopupMenuFunctionResult CUi::PopupSelection(void *pContext, CUIRect View, 
 	ScrollParams.m_pWheelOwnerId = pSelectionPopup;
 	ScrollParams.m_WheelOwnerPreRegistered = true;
 	const float PopupOuterHeight = (SPopupMenu::POPUP_BORDER + SPopupMenu::POPUP_MARGIN) * 2.0f;
-	pScrollRegion->SetContentHeightForNextFrame(std::max(0.0f, pSelectionPopup->m_PopupPolicy.m_ContentHeight - PopupOuterHeight));
+	const float MessageHeight = pUI->TextRender()->TextBoundingBox(pSelectionPopup->m_FontSize, pSelectionPopup->m_aMessage, -1, pSelectionPopup->m_Width).m_H;
+	const auto ListPolicy = QmResolveDropdownPopupPolicy(vVisible.size(), pSelectionPopup->m_EntryHeight, pSelectionPopup->m_EntrySpacing, pSelectionPopup->m_aMessage[0] != '\0', MessageHeight, PopupOuterHeight);
+	pScrollRegion->SetContentHeightForNextFrame(std::max(0.0f, ListPolicy.m_ContentHeight - PopupOuterHeight));
 	pScrollRegion->Begin(&View, &ScrollOffset, &ScrollParams);
 	View.y += ScrollOffset.y;
 
@@ -753,8 +790,9 @@ CUi::EPopupMenuFunctionResult CUi::PopupSelection(void *pContext, CUIRect View, 
 
 	size_t Index = 0;
 	int VisibleEntries = 0;
-	for(const auto &Entry : pSelectionPopup->m_vEntries)
+	for(int SourceIndex : vVisible)
 	{
+		const auto &Entry = pSelectionPopup->m_vEntries[SourceIndex];
 		if(pSelectionPopup->m_aMessage[0] != '\0' || Index != 0)
 			View.HSplitTop(pSelectionPopup->m_EntrySpacing, nullptr, &View);
 		View.HSplitTop(pSelectionPopup->m_EntryHeight, &Slot, &View);
@@ -772,18 +810,20 @@ CUi::EPopupMenuFunctionResult CUi::PopupSelection(void *pContext, CUIRect View, 
 				pUI->TextRender()->SetFontPreviewFace(FaceAvailable ? PreviewName.c_str() : nullptr);
 			}
 			// 活动项与悬浮项使用同一种整行背景，避免左侧竖条与条目背景重叠。
-			CButtonContainer *pButton = &pSelectionPopup->m_vButtonContainers[Index];
+			CButtonContainer *pButton = &pSelectionPopup->m_vButtonContainers[SourceIndex];
 			const bool Hovered = pUI->HotItem() == pButton || pUI->CheckActiveItem(pButton);
 			const std::optional<ColorRGBA> EntryColor = ActiveEntry ? std::optional<ColorRGBA>(pSelectionPopup->m_ActiveEntryColor) : Hovered ? pSelectionPopup->m_HoverEntryColor :
 																			    std::nullopt;
 			if(pUI->DoButton_PopupMenu(pButton, Entry.c_str(), &Slot, pSelectionPopup->m_FontSize, TEXTALIGN_ML, pSelectionPopup->m_EntryPadding, pSelectionPopup->m_TransparentButtons, true, EntryColor, pSelectionPopup->m_MinimumFontSize))
 			{
 				pSelectionPopup->m_pSelection = &Entry;
-				pSelectionPopup->m_SelectionIndex = Index;
+				pSelectionPopup->m_SelectionIndex = SourceIndex;
 			}
 		}
 		++Index;
 	}
+	if(vVisible.empty())
+		pUI->DoLabel(&View, Localize("No results"), pSelectionPopup->m_FontSize, TEXTALIGN_ML);
 	// TClient
 	if(pSelectionPopup->m_SpecialFontRenderMode)
 		pUI->TextRender()->SetFontPreviewFace(nullptr);
@@ -813,7 +853,9 @@ void CUi::ShowPopupSelection(float X, float Y, SSelectionPopupContext *pContext)
 	const bool HasMessage = pContext->m_aMessage[0] != '\0';
 	const STextBoundingBox TextBoundingBox = TextRender()->TextBoundingBox(pContext->m_FontSize, pContext->m_aMessage, -1, pContext->m_Width);
 	const float OuterHeight = (SPopupMenu::POPUP_BORDER + SPopupMenu::POPUP_MARGIN) * 2;
-	pContext->m_PopupPolicy = QmResolveDropdownPopupPolicy(pContext->m_vEntries.size(), pContext->m_EntryHeight, pContext->m_EntrySpacing, HasMessage, TextBoundingBox.m_H, OuterHeight);
+	const float SearchHeight = pContext->m_Searchable ? pContext->m_EntryHeight + pContext->m_EntrySpacing : 0.0f;
+	const size_t ItemCount = pContext->m_Searchable ? std::max<size_t>(1, pContext->m_Search.Indices().size()) : pContext->m_vEntries.size();
+	pContext->m_PopupPolicy = QmResolveDropdownPopupPolicy(ItemCount, pContext->m_EntryHeight, pContext->m_EntrySpacing, HasMessage, TextBoundingBox.m_H, OuterHeight + SearchHeight);
 	const float PopupHeight = pContext->m_PopupPolicy.m_PreferredHeight;
 	if(pContext->m_Viewport.w <= 0.0f || pContext->m_Viewport.h <= 0.0f)
 		pContext->m_Viewport = *Screen();
@@ -848,7 +890,7 @@ void CUi::ShowPopupSelection(float X, float Y, SSelectionPopupContext *pContext)
 		GeometryConfig.m_Margin = Margin;
 		GeometryConfig.m_RowHeight = pContext->m_EntryHeight;
 		GeometryConfig.m_RowSpacing = pContext->m_EntrySpacing;
-		GeometryConfig.m_FixedHeight = QmDropdownFixedHeight(HasMessage, TextBoundingBox.m_H, OuterHeight);
+		GeometryConfig.m_FixedHeight = QmDropdownFixedHeight(HasMessage, TextBoundingBox.m_H, OuterHeight + SearchHeight);
 		GeometryConfig.m_LeadingRowSpacing = HasMessage ? pContext->m_EntrySpacing : 0.0f;
 		// 外框包裹模式：弹层与锚点按钮严格对齐（宽度/左缘），渲染端的
 		// HasAlignedAnchor 判定才能稳定成立，边框连成一个整体。
@@ -1042,11 +1084,14 @@ int CUi::DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, 
 		State.m_SelectionPopupContext.m_SpecialFontRenderMode = SpecialFontRenderMode;
 		State.m_SelectionPopupContext.m_FontFaceAvailabilityCheck = FontFaceAvailabilityCheck;
 		State.m_SelectionPopupContext.m_FontFamilySelection = FontFamilySelection;
+		State.m_SelectionPopupContext.m_Searchable = DropDownProps.m_Searchable;
+		State.m_SelectionPopupContext.m_FocusSearch = DropDownProps.m_Searchable;
 		State.m_SelectionPopupContext.m_Props.m_BorderColor = VisualStyle.m_PopupBorderColor;
 		State.m_SelectionPopupContext.m_Props.m_BackgroundColor = VisualStyle.m_PopupBackgroundColor;
 		State.m_SelectionPopupContext.m_ActiveEntryColor = DropDownProps.m_VisualStyle.m_ActiveEntryColor;
 		for(int i = 0; i < Num; ++i)
 			State.m_SelectionPopupContext.m_vEntries.emplace_back(pStrs[i]);
+		State.m_SelectionPopupContext.m_Search.Update(State.m_SelectionPopupContext.m_vEntries, State.m_SelectionPopupContext.m_SearchInput.GetString());
 		State.m_SelectionPopupContext.m_EntryHeight = pRect->h;
 		State.m_SelectionPopupContext.m_EntryPadding = pRect->h >= 20.0f ? 2.0f : 1.0f;
 		State.m_SelectionPopupContext.m_FontSize = ResolvedFontSize;

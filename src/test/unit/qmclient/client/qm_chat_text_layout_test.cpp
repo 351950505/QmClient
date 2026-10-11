@@ -256,3 +256,19 @@ TEST(QmChatTextLayout, MergedBackgroundIncludesFirstAuthorIndentAndBodyWidth)
 	Body.m_LongestLineWidth = 155.0f;
 	EXPECT_FLOAT_EQ(QmChatIndentedContentWidth(Prefix, Body), 200.0f);
 }
+
+TEST(QmChatTextLayout, IncomingTranslationIsPrimaryAndNetworkOriginalIsSecondary)
+{
+	const auto Blocks = QmChatTranslationTextBlocks("network original", "translation", false);
+	EXPECT_STREQ(Blocks.m_pPrimary, "translation");
+	EXPECT_STREQ(Blocks.m_pSecondary, "network original");
+	EXPECT_FALSE(Blocks.m_PrimaryIsNetworkText);
+}
+
+TEST(QmChatTextLayout, OutgoingEchoKeepsTranslationPrimaryAndLocalOriginalSecondary)
+{
+	const auto Blocks = QmChatTranslationTextBlocks("network translation", "local original", true);
+	EXPECT_STREQ(Blocks.m_pPrimary, "network translation");
+	EXPECT_STREQ(Blocks.m_pSecondary, "local original");
+	EXPECT_TRUE(Blocks.m_PrimaryIsNetworkText);
+}

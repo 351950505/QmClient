@@ -11699,6 +11699,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == 显示同步的赞助者发言样式
 
+Show system fonts
+== 显示系统字体
+
 Show system media info on HUD
 == 在 HUD 上显示系统媒体信息
 

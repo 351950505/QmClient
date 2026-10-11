@@ -11699,6 +11699,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == Pokazuj zsynchronizowane style czatu wspierających
 
+Show system fonts
+== Pokaż czcionki systemowe
+
 Show system media info on HUD
 == Pokaż informacje o multimediach systemowych na HUD
 

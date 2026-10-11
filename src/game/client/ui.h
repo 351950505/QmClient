@@ -1383,6 +1383,10 @@ public:
 		bool m_FontFaceAvailabilityCheck = false;
 		// 字体族列表以默认面预览；样式与商店 face 列表保持完整配置名语义。
 		bool m_FontFamilySelection = false;
+		bool m_Searchable = false;
+		bool m_FocusSearch = false;
+		CLineInputBuffered<256> m_SearchInput;
+		CQmDropdownSearch m_Search;
 
 		SSelectionPopupContext();
 		void Reset();
@@ -1452,6 +1456,7 @@ public:
 		const CUIRect *m_pAnchorViewport;
 		const CUIRect *m_pPopupViewport;
 		SQmDropdownVisualStyle m_VisualStyle;
+		bool m_Searchable = false;
 		const void *m_pConfigValue = nullptr;
 		const void *m_pSecondConfigValue = nullptr;
 	};

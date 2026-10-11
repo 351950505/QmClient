@@ -347,3 +347,36 @@ TEST_F(QmPopupBlurScope, BackgroundRenderBlocksControlsAndHotkeysWithoutClipping
 	EXPECT_TRUE(m_Ui.ConsumeHotkey(CUi::HOTKEY_ENTER));
 	EXPECT_FALSE(m_Ui.ConsumeHotkey(CUi::HOTKEY_ENTER));
 }
+
+TEST_F(QmUiBlurGraphics, PopupStackRefreshesPageSnapshotAndReusesItAcrossDropdowns)
+{
+	g_Config.m_QmUiPopupBlur = 1;
+	ASSERT_TRUE(m_Ui.PrepareGaussianBlur());
+	EXPECT_EQ(m_Graphics.m_Captures, 1);
+	SPopupMenuId First, Second;
+	SPopupMenuProperties Props;
+	Props.m_Animate = false;
+	Props.m_HasAnchorSurface = true;
+	Props.m_AnchorSurface = {20, 10, 160, 20};
+	m_Ui.DoPopupMenu(&First, 20, 30, 160, 100, nullptr, KeepCenteredPopupOpen, Props);
+	Props.m_AnchorSurface = {200, 10, 160, 20};
+	m_Ui.DoPopupMenu(&Second, 200, 30, 160, 100, nullptr, KeepCenteredPopupOpen, Props);
+	m_Ui.RenderPopupMenus();
+	EXPECT_EQ(m_Graphics.m_Captures, 2);
+	EXPECT_EQ(m_Graphics.m_Blurs, 2);
+	EXPECT_GE(m_Graphics.m_vDraws.size(), 2u);
+}
+
+TEST_F(QmUiBlurGraphics, DisabledPopupBlurDoesNotRefreshOrDrawCachedMenuBlur)
+{
+	g_Config.m_QmUiPopupBlur = 0;
+	ASSERT_TRUE(m_Ui.PrepareGaussianBlur());
+	SPopupMenuId Id;
+	SPopupMenuProperties Props;
+	Props.m_Animate = false;
+	m_Ui.DoPopupMenu(&Id, 20, 30, 160, 100, nullptr, KeepCenteredPopupOpen, Props);
+	m_Ui.RenderPopupMenus();
+	EXPECT_EQ(m_Graphics.m_Captures, 1);
+	EXPECT_EQ(m_Graphics.m_Blurs, 1);
+	EXPECT_TRUE(m_Graphics.m_vDraws.empty());
+}

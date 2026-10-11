@@ -7,6 +7,7 @@
 #include "qm_font_name_match.h"
 #include "qm_font_names.h"
 #include "qm_font_resource_policy.h"
+#include "qm_system_fonts.h"
 #include "text_gradient.h"
 #include "text_layout_string.h"
 #include "text_sweep.h"
@@ -1720,6 +1721,10 @@ class CTextRender : public IEngineTextRender
 	std::vector<std::string> m_vLoadedCustomFontPaths;
 	std::unordered_set<std::string> m_QmLoadedFontSources;
 	std::unordered_set<std::string> m_QmLoadedFontContents;
+	std::unordered_map<std::string, std::vector<FT_Face>> m_QmFontContentFaces;
+	std::unordered_set<FT_Face> m_QmSystemFontFaces;
+	bool m_QmSystemFontsScanned = false;
+	bool m_QmShowSystemFonts = false;
 	std::unordered_map<FT_Face, std::pair<const FT_Byte *, FT_Long>> m_QmFontFaceData;
 	// 随包图标资源与用户字体扫描隔离，face 与字节数据都保持整个文本渲染器生命周期。
 	FT_Face m_apQmBundledIconFaces[4]{};
@@ -2201,7 +2206,7 @@ public:
 			pScan->m_pThis->Storage()->ListDirectory(StorageType, aRelativePath, RecursiveFontFileCallback, &Child);
 			return 0;
 		}
-		if(str_endswith_nocase(pFilename, ".ttf") != nullptr || str_endswith_nocase(pFilename, ".otf") != nullptr || str_endswith_nocase(pFilename, ".ttc") != nullptr)
+		if(QmIsFontFile(pFilename))
 			pScan->m_pFiles->push_back({aRelativePath, StorageType});
 		return 0;
 	}
@@ -2215,6 +2220,8 @@ public:
 			// 不得进入字体族选择列表；用户真正安装后其文件会从字体目录
 			// 加载出独立 face，正常出现在列表中。
 			if(m_pGlyphMap->QmIsPreviewFace(CurrentFace))
+				continue;
+			if(!g_Config.m_QmShowSystemFonts && m_QmSystemFontFaces.count(CurrentFace))
 				continue;
 			// 字体族直接展示解码后的 family；Book 等样式由样式选择管理。
 			char aFamily[256];
@@ -2247,6 +2254,8 @@ public:
 		ReplaceHyphensWithSpaces(aTargetFamily);
 		for(const auto &CurrentFace : *m_pGlyphMap->GetFaces())
 		{
+			if(!g_Config.m_QmShowSystemFonts && m_QmSystemFontFaces.count(CurrentFace))
+				continue;
 			char aNormalizedFamily[FONT_NAME_SIZE];
 			str_copy(aNormalizedFamily, m_pGlyphMap->FamilyName(CurrentFace));
 			ReplaceHyphensWithSpaces(aNormalizedFamily);
@@ -2276,6 +2285,7 @@ public:
 	// 不读取用户目录中 fonts/Phosphor 下的历史副本。
 	void LoadCustomFonts()
 	{
+		m_QmShowSystemFonts = g_Config.m_QmShowSystemFonts != 0;
 		std::vector<SQmScannedFontFile> vFontFiles;
 		for(const char *pDirectory : {"fonts"})
 		{
@@ -2310,13 +2320,18 @@ public:
 				sha256_str(sha256(pFontData, FontDataSize), aContentHash, sizeof(aContentHash));
 				if(m_QmLoadedFontContents.find(aContentHash) != m_QmLoadedFontContents.end())
 				{
+					// 系统字体后来复制进用户目录后，应当成为始终可见的普通字体。
+					for(FT_Face Face : m_QmFontContentFaces[aContentHash])
+						m_QmSystemFontFaces.erase(Face);
 					m_QmLoadedFontSources.insert(SourceKey);
 					m_vLoadedCustomFontPaths.push_back(FilePath);
 					free(pFontData);
 					continue;
 				}
-				if(LoadFontCollection(FilePath.c_str(), static_cast<FT_Byte *>(pFontData), (FT_Long)FontDataSize))
+				std::vector<FT_Face> vFaces;
+				if(LoadFontCollection(FilePath.c_str(), static_cast<FT_Byte *>(pFontData), (FT_Long)FontDataSize, &vFaces))
 				{
+					m_QmFontContentFaces.emplace(aContentHash, std::move(vFaces));
 					m_vpFontData.push_back(pFontData);
 					m_vLoadedCustomFontPaths.push_back(FilePath);
 					m_QmLoadedFontSources.insert(SourceKey);
@@ -2330,6 +2345,40 @@ public:
 			else
 			{
 				log_error("textrender", "Failed to open/read font file '%s'", FilePath.c_str());
+			}
+		}
+		// 隐藏候选不撤销已保存的字体；启动时恢复缺失的系统字体配置。
+		const auto Missing = [this](const char *pName) { return pName[0] != '\0' && !m_pGlyphMap->QmHasFace(pName); };
+		if(!m_QmSystemFontsScanned && (m_QmShowSystemFonts || Missing(g_Config.m_QmCustomFont) || Missing(g_Config.m_QmCustomFontCjk) || Missing(g_Config.m_QmCustomFontIcons)))
+		{
+			m_QmSystemFontsScanned = true;
+			for(const auto &Path : QmSystemFontPaths())
+			{
+				const std::string SourceKey = "system:" + Path;
+				if(m_QmLoadedFontSources.count(SourceKey))
+					continue;
+				void *pData;
+				unsigned Size;
+				if(!Storage()->ReadFile(Path.c_str(), IStorage::TYPE_ABSOLUTE, &pData, &Size))
+					continue;
+				char aHash[SHA256_MAXSTRSIZE];
+				sha256_str(sha256(pData, Size), aHash, sizeof(aHash));
+				std::vector<FT_Face> vFaces;
+				if(m_QmLoadedFontContents.count(aHash))
+				{
+					m_QmLoadedFontSources.insert(SourceKey);
+					free(pData);
+				}
+				else if(LoadFontCollection(Path.c_str(), static_cast<FT_Byte *>(pData), Size, &vFaces, false))
+				{
+					m_QmLoadedFontSources.insert(SourceKey);
+					m_vpFontData.push_back(pData);
+					m_QmLoadedFontContents.insert(aHash);
+					m_QmSystemFontFaces.insert(vFaces.begin(), vFaces.end());
+					m_QmFontContentFaces.emplace(aHash, std::move(vFaces));
+				}
+				else
+					free(pData);
 			}
 		}
 		UpdateCustomFontList();
@@ -2384,6 +2433,8 @@ public:
 	// TClient
 	std::vector<std::string> *GetCustomFaces() override
 	{
+		if(m_QmShowSystemFonts != (g_Config.m_QmShowSystemFonts != 0))
+			LoadCustomFonts();
 		return &m_CustomFontFaces;
 	}
 
@@ -2429,6 +2480,7 @@ public:
 	// QmClient: 字体商店下载完成后重扫用户字体目录，并按当前配置重新解析各字体面。
 	void ReloadCustomFonts() override
 	{
+		m_QmSystemFontsScanned = false;
 		LoadCustomFonts();
 		ApplyConfiguredFonts();
 	}

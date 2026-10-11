@@ -11699,6 +11699,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == Eşitlenen destekçi sohbet stillerini göster
 
+Show system fonts
+== Sistem yazı tiplerini göster
+
 Show system media info on HUD
 == HUD üzerinde sistem medya bilgilerini göster
 

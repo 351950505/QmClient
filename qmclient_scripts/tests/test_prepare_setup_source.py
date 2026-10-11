@@ -32,21 +32,45 @@ class PrepareSetupSourceTest(unittest.TestCase):
 		(self.source / "qmclient-setup-runtime.txt").write_text("DDNet.exe\nDDNet-Server.exe\nqm-nmt-helper.exe\nqm-soda-helper.exe\nqm-music-helper.exe\n", encoding="utf-8")
 		(self.source / "qmclient-setup-generated.txt").write_text("", encoding="utf-8")
 		(self.data / "asset.txt").write_bytes(b"asset")
+		self.steam_appid = self.root / "steam_appid.txt"
+		self.steam_appid.write_bytes(b"412220\n")
 		self.output = self.source / "setup-source"
 
 	def test_copies_only_release_payload_and_replaces_previous_output(self) -> None:
 		(self.source / "testrunner.exe").write_bytes(b"test")
 		self.output.mkdir()
 		(self.output / "obsolete.txt").write_bytes(b"old")
-		MODULE.prepare(self.source, self.data, self.output)
+		MODULE.prepare(self.source, self.data, self.output, steam_appid_file=self.steam_appid)
 		files = {p.relative_to(self.output).as_posix() for p in self.output.rglob("*") if p.is_file()}
-		self.assertEqual(files, {"DDNet.exe", "DDNet-Server.exe", "runtime.dll", "data/asset.txt", "qm-nmt-helper.exe", "qm-soda-helper.exe", "qm-music-helper.exe"})
+		self.assertEqual(files, {"DDNet.exe", "DDNet-Server.exe", "runtime.dll", "data/asset.txt", "qm-nmt-helper.exe", "qm-soda-helper.exe", "qm-music-helper.exe", "steam_appid.txt"})
+		self.assertEqual((self.output / "steam_appid.txt").read_bytes(), b"412220\n")
 		self.assertEqual((self.output / "data/asset.txt").read_bytes(), b"asset")
 		for helper in ("qm-nmt-helper.exe", "qm-soda-helper.exe", "qm-music-helper.exe"):
 			self.assertEqual((self.output / helper).read_bytes(), helper.encode())
 		self.assertEqual((self.source / "testrunner.exe").read_bytes(), b"test")
 		MODULE.prepare(self.source, self.data, self.output)
 		self.assertEqual((self.output / "DDNet.exe").read_bytes(), b"client")
+
+	def test_steam_appid_file_is_optional_and_defaults_to_absent(self) -> None:
+		MODULE.prepare(self.source, self.data, self.output)
+		self.assertFalse((self.output / "steam_appid.txt").exists())
+
+	def test_missing_steam_appid_file_preserves_previous_payload(self) -> None:
+		self.output.mkdir()
+		(self.output / "previous.txt").write_bytes(b"old")
+		with self.assertRaisesRegex(ValueError, "missing steam_appid file"):
+			MODULE.prepare(self.source, self.data, self.output, steam_appid_file=self.root / "nope.txt")
+		self.assertEqual((self.output / "previous.txt").read_bytes(), b"old")
+
+	def test_invalid_steam_appid_content_preserves_previous_payload(self) -> None:
+		self.output.mkdir()
+		(self.output / "previous.txt").write_bytes(b"old")
+		for content in (b"", b"abc\n", b"412220 412220\n", b"412220\x00"):
+			with self.subTest(content=content):
+				self.steam_appid.write_bytes(content)
+				with self.assertRaisesRegex(ValueError, "steam_appid file"):
+					MODULE.prepare(self.source, self.data, self.output, steam_appid_file=self.steam_appid)
+				self.assertEqual((self.output / "previous.txt").read_bytes(), b"old")
 
 	def test_portable_or_test_build_preserves_existing_setup_payload(self) -> None:
 		self.output.mkdir()

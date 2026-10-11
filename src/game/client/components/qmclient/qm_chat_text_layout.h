@@ -5,6 +5,19 @@
 
 #include <algorithm>
 
+struct SQmChatTranslationTextBlocks
+{
+	const char *m_pPrimary;
+	const char *m_pSecondary;
+	bool m_PrimaryIsNetworkText;
+};
+
+// 收到的译文和发送回显统一以译文为正文，原文作为辅助文本。
+inline SQmChatTranslationTextBlocks QmChatTranslationTextBlocks(const char *pNetworkText, const char *pTranslationOrLocalOriginal, bool Outgoing)
+{
+	return Outgoing ? SQmChatTranslationTextBlocks{pNetworkText, pTranslationOrLocalOriginal, true} : SQmChatTranslationTextBlocks{pTranslationOrLocalOriginal, pNetworkText, false};
+}
+
 struct SQmChatTextBlockLayout
 {
 	float m_Height = 0.0f;

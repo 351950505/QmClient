@@ -1096,6 +1096,19 @@ float CMenus::LayoutTClientThemeCacheSection(CUIRect &CurrentColumn, bool Render
 	CurrentColumn.HSplitTop(MarginSmall, nullptr, &CurrentColumn);
 	CTClientSettingsRowAllocator Rows(CurrentColumn);
 
+#if defined(CONF_FAMILY_WINDOWS)
+	Button = Rows.Next();
+	if(Render)
+	{
+		const int Old = g_Config.m_QmShowSystemFonts;
+		DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_TCLIENT, m_TClientSettingsTab, &g_Config.m_QmShowSystemFonts, "tclient-show-system-fonts", Localize("Show system fonts"), &g_Config.m_QmShowSystemFonts, &Button, LineSize, 0.0f, FontSize);
+		if(Old != g_Config.m_QmShowSystemFonts)
+		{
+			TextRender()->GetCustomFaces();
+			InvalidateTClientSettingsRuntimeCacheSections(ESettingsCacheDirtyReason::FONT);
+		}
+	}
+#endif
 	Button = Rows.Next();
 	// 英文族可变字重判定：可变族不放字重下拉，改由下方专用滑杆行承载任意
 	// 字重值（轴真实范围）。判定在测量与渲染两趟一致，驱动卡片高度过渡动画。
@@ -1136,7 +1149,9 @@ float CMenus::LayoutTClientThemeCacheSection(CUIRect &CurrentColumn, bool Render
 			Button.VSplitRight(110.0f, &Button, &WeightButton);
 			Button.VSplitRight(MarginSmall, &Button, nullptr);
 		}
-		const int FontSelectedNew = DoSettingsDropDown(&Button, FontSelectedOld, s_FontDropDownNames.data(), s_FontDropDownNames.size(), s_FontDropDownState, {}, g_Config.m_QmCustomFont);
+		CUi::SDropDownProperties FontProperties;
+		FontProperties.m_Searchable = true;
+		const int FontSelectedNew = DoSettingsDropDown(&Button, FontSelectedOld, s_FontDropDownNames.data(), s_FontDropDownNames.size(), s_FontDropDownState, FontProperties, g_Config.m_QmCustomFont);
 		std::string LatinSelectedConfig;
 		if(FontSelectedOld != FontSelectedNew && s_FontSelection.IsFamilySelection(FontSelectedNew) && TextRender()->QmFontFamilyDefaultConfig(s_FontDropDownNames[FontSelectedNew], LatinSelectedConfig) && LatinSelectedConfig.size() < sizeof(g_Config.m_QmCustomFont))
 		{
@@ -1308,7 +1323,9 @@ float CMenus::LayoutTClientThemeCacheSection(CUIRect &CurrentColumn, bool Render
 			Button.VSplitRight(MarginSmall, &Button, nullptr);
 		}
 		const int CjkSelectedOld = s_CjkSelection.Selected();
-		const int CjkSelectedNew = DoSettingsDropDown(&Button, CjkSelectedOld, s_CjkDropDownNames.data(), s_CjkDropDownNames.size(), s_CjkDropDownState, {}, g_Config.m_QmCustomFontCjk);
+		CUi::SDropDownProperties CjkProperties;
+		CjkProperties.m_Searchable = true;
+		const int CjkSelectedNew = DoSettingsDropDown(&Button, CjkSelectedOld, s_CjkDropDownNames.data(), s_CjkDropDownNames.size(), s_CjkDropDownState, CjkProperties, g_Config.m_QmCustomFontCjk);
 		std::string CjkSelectedConfig;
 		const bool CjkSelectionAvailable = CjkSelectedNew == 0 || (CjkSelectedNew > 0 && (size_t)CjkSelectedNew <= s_CjkDropDownNamesOwned.size() && TextRender()->QmFontFamilyDefaultConfig(s_CjkDropDownNamesOwned[CjkSelectedNew - 1].c_str(), CjkSelectedConfig) && CjkSelectedConfig.size() < sizeof(g_Config.m_QmCustomFontCjk));
 		if(CjkSelectedNew != CjkSelectedOld && CjkSelectionAvailable)
@@ -1424,7 +1441,9 @@ float CMenus::LayoutTClientThemeCacheSection(CUIRect &CurrentColumn, bool Render
 		const auto &s_IconsDropDownNamesOwned = s_IconsSelection.Families();
 		const auto &s_IconsDropDownNames = s_IconsSelection.Names();
 		const int IconsSelectedOld = s_IconsSelection.Selected();
-		const int IconsSelectedNew = DoSettingsDropDown(&Button, IconsSelectedOld, s_IconsDropDownNames.data(), s_IconsDropDownNames.size(), s_IconsDropDownState, {}, g_Config.m_QmCustomFontIcons);
+		CUi::SDropDownProperties IconsProperties;
+		IconsProperties.m_Searchable = true;
+		const int IconsSelectedNew = DoSettingsDropDown(&Button, IconsSelectedOld, s_IconsDropDownNames.data(), s_IconsDropDownNames.size(), s_IconsDropDownState, IconsProperties, g_Config.m_QmCustomFontIcons);
 		std::string IconsSelectedConfig;
 		const bool IconsSelectionAvailable = IconsSelectedNew == 0 || (IconsSelectedNew > 0 && (size_t)IconsSelectedNew <= CustomFaces.size() && TextRender()->QmFontFamilyDefaultConfig(s_IconsDropDownNamesOwned[IconsSelectedNew - 1].c_str(), IconsSelectedConfig) && IconsSelectedConfig.size() < sizeof(g_Config.m_QmCustomFontIcons));
 		if(IconsSelectedNew != IconsSelectedOld && IconsSelectionAvailable)
@@ -1536,7 +1555,7 @@ SSettingsSection CMenus::BuildTClientThemeCacheSection()
 	SSettingsSection S;
 	S.m_pName = "Font";
 	ConfigureSettingsCardSection(S, Localizable("Font"), "tclient:font", [this](CUIRect &Col, bool Render) -> float { return LayoutTClientThemeCacheSection(Col, Render); }, Margin);
-	S.m_DependencyConfigInts = {&g_Config.m_QmCustomFontWeight};
+	S.m_DependencyConfigInts = {&g_Config.m_QmCustomFontWeight, &g_Config.m_QmShowSystemFonts};
 	return S;
 }
 SSettingsSection CMenus::BuildTClientCursorCacheSection()

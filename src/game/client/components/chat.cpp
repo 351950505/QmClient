@@ -2597,6 +2597,15 @@ bool CChat::OnPrepareLines(float y)
 			}
 		}
 
+		bool PrimaryIsNetworkText = true;
+		if(pTranslatedText)
+		{
+			const auto Blocks = QmChatTranslationTextBlocks(pText, pTranslatedText, !Line.m_LocalOriginal.empty());
+			pText = Blocks.m_pPrimary;
+			pTranslatedText = Blocks.m_pSecondary;
+			PrimaryIsNetworkText = Blocks.m_PrimaryIsNetworkText;
+		}
+
 		// get the y offset (calculate it if we haven't done that yet)
 		if(Line.m_aYOffset[OffsetType] < 0.0f)
 		{
@@ -2896,7 +2905,7 @@ bool CChat::OnPrepareLines(float y)
 		else if(pTranslatedText || pTranslatedError)
 		{
 			AppendCursor.m_CalculateVisualBoundingBox = true;
-			AppendMessage(AppendCursor, pText, true, true);
+			AppendMessage(AppendCursor, pText, true, PrimaryIsNetworkText);
 			const float OriginalWidth = AppendCursor.m_LongestLineWidth;
 			CTextCursor SecondaryCursor = QmChatSecondaryCursor(AppendCursor,
 				QmChatTranslationFontSize(FontSize, g_Config.m_QmChatTranslationSize), Line.m_aTextBlockLayout[OffsetType].m_SecondaryOffset);
@@ -2914,7 +2923,7 @@ bool CChat::OnPrepareLines(float y)
 				ColorSub.b *= 0.7f;
 			}
 			TextRender()->TextColor(ColorSub);
-			AppendMessage(SecondaryCursor, pTranslatedText ? pTranslatedText : pTranslatedError, pTranslatedError == nullptr, false);
+			AppendMessage(SecondaryCursor, pTranslatedText ? pTranslatedText : pTranslatedError, pTranslatedError == nullptr, !PrimaryIsNetworkText);
 			if(pTranslatedLanguage)
 			{
 				ColorRGBA ColorLang = ColorSub;

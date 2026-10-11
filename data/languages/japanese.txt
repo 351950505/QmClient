@@ -11699,6 +11699,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == 同期された支援者チャットのスタイルを表示
 
+Show system fonts
+== システムフォントを表示
+
 Show system media info on HUD
 == HUD にシステムメディア情報を表示
 

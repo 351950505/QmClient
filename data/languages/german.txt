@@ -11699,6 +11699,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == Synchronisierte Chatstile von Unterstützern anzeigen
 
+Show system fonts
+== Systemschriftarten anzeigen
+
 Show system media info on HUD
 == System-Medieninformationen auf dem HUD anzeigen
 
