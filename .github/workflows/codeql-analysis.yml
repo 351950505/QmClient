@@ -112,7 +112,8 @@ jobs:
       run: |
        mkdir release
        cd release
-       cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DANTIBOT=ON -DMYSQL=ON -DWEBSOCKETS=ON ..
+       # 分析保留发布配置的代码路径；此任务不产出发布包，无需再执行 LTO。
+       cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DIPO=OFF -DANTIBOT=ON -DMYSQL=ON -DWEBSOCKETS=ON ..
        cmake --build . --config RelWithDebInfo --target everything
 
     - name: Perform CodeQL Analysis

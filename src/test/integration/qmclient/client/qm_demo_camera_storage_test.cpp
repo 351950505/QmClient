@@ -29,9 +29,10 @@ TEST_F(CQmDemoCameraStorage, ReopeningTheSidecarRestoresTheSavedCameraAndEnableS
 	qm_demo_camera::SProject Reopened;
 	ASSERT_EQ(qm_demo_camera::Load(m_pStorage.get(), m_Path, Reopened), qm_demo_camera::ELoadResult::LOADED);
 	EXPECT_TRUE(Reopened.m_Enabled);
-	ASSERT_TRUE(Reopened.m_Track.Sample(100.0).has_value());
-	EXPECT_EQ(Reopened.m_Track.Sample(100.0)->m_Center, vec2(10.0f, 20.0f));
-	EXPECT_FLOAT_EQ(Reopened.m_Track.Sample(100.0)->m_Zoom, 1.5f);
+	const auto Sample = Reopened.m_Track.Sample(100.0);
+	ASSERT_TRUE(Sample.has_value());
+	EXPECT_EQ(Sample->m_Center, vec2(10.0f, 20.0f));
+	EXPECT_FLOAT_EQ(Sample->m_Zoom, 1.5f);
 	EXPECT_FALSE(m_pStorage->FileExists((m_Path + ".tmp").c_str(), IStorage::TYPE_SAVE));
 }
 
@@ -70,7 +71,11 @@ TEST_F(CQmDemoCameraStorage, ExportedCutReloadsWithTheSourceComposition)
 	ASSERT_TRUE(qm_demo_camera::Save(m_pStorage.get(), m_Path, {*Cut, true}));
 	qm_demo_camera::SProject Reopened;
 	ASSERT_EQ(qm_demo_camera::Load(m_pStorage.get(), m_Path, Reopened), qm_demo_camera::ELoadResult::LOADED);
-	EXPECT_NEAR(Reopened.m_Track.Sample(150.0)->m_Center.x, m_Project.m_Track.Sample(150.0)->m_Center.x, 0.0001f);
+	const auto ReopenedSample = Reopened.m_Track.Sample(150.0);
+	const auto OriginalSample = m_Project.m_Track.Sample(150.0);
+	ASSERT_TRUE(ReopenedSample.has_value());
+	ASSERT_TRUE(OriginalSample.has_value());
+	EXPECT_NEAR(ReopenedSample->m_Center.x, OriginalSample->m_Center.x, 0.0001f);
 }
 
 TEST_F(CQmDemoCameraStorage, SidecarIsResolvedBesideTheSelectedDemo)
@@ -84,6 +89,8 @@ TEST_F(CQmDemoCameraStorage, SidecarIsResolvedBesideTheSelectedDemo)
 	ASSERT_TRUE(qm_demo_camera::Save(m_pStorage.get(), Path, m_Project));
 	qm_demo_camera::SProject Restored;
 	ASSERT_EQ(qm_demo_camera::Load(m_pStorage.get(), m_Path, Restored), qm_demo_camera::ELoadResult::LOADED);
-	EXPECT_EQ(Restored.m_Track.Sample(100.0)->m_Center, vec2(10.0f, 20.0f));
+	const auto Sample = Restored.m_Track.Sample(100.0);
+	ASSERT_TRUE(Sample.has_value());
+	EXPECT_EQ(Sample->m_Center, vec2(10.0f, 20.0f));
 	EXPECT_TRUE(qm_demo_camera::ResolveSidecar(m_pStorage.get(), "missing.demo", IStorage::TYPE_SAVE).empty());
 }

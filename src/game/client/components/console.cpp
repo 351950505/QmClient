@@ -2956,7 +2956,8 @@ void CGameConsole::ConchainConsoleOutputLevel(IConsole::IResult *pResult, void *
 
 void CGameConsole::RequireUsername(bool UsernameReq)
 {
-	if((m_RemoteConsole.m_UsernameReq = UsernameReq))
+	m_RemoteConsole.m_UsernameReq = UsernameReq;
+	if(UsernameReq)
 	{
 		m_RemoteConsole.m_aUser[0] = '\0';
 		m_RemoteConsole.m_UserGot = false;

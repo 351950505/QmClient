@@ -17,8 +17,12 @@ TEST(QmDemoCameraFile, RoundTripPreservesEnabledStateAspectAndFractionalKeyframe
 	EXPECT_FLOAT_EQ(Restored.m_Track.Aspect(), 1.5f);
 	ASSERT_EQ(Restored.m_Track.Frames().size(), 2U);
 	EXPECT_DOUBLE_EQ(Restored.m_Track.Frames()[0].m_Tick, 101.125);
-	EXPECT_EQ(Restored.m_Track.Sample(151.0)->m_Center, Source.m_Track.Sample(151.0)->m_Center);
-	EXPECT_FLOAT_EQ(Restored.m_Track.Sample(151.0)->m_Zoom, Source.m_Track.Sample(151.0)->m_Zoom);
+	const auto RestoredSample = Restored.m_Track.Sample(151.0);
+	const auto SourceSample = Source.m_Track.Sample(151.0);
+	ASSERT_TRUE(RestoredSample.has_value());
+	ASSERT_TRUE(SourceSample.has_value());
+	EXPECT_EQ(RestoredSample->m_Center, SourceSample->m_Center);
+	EXPECT_FLOAT_EQ(RestoredSample->m_Zoom, SourceSample->m_Zoom);
 }
 
 TEST(QmDemoCameraFile, CroppedEasingSurvivesSavingAndReloading)
@@ -30,7 +34,11 @@ TEST(QmDemoCameraFile, CroppedEasingSurvivesSavingAndReloading)
 	ASSERT_TRUE(Cut.has_value());
 	SProject Restored;
 	ASSERT_TRUE(Decode(Encode({*Cut, true}), Restored));
-	EXPECT_NEAR(Restored.m_Track.Sample(140.0)->m_Center.x, Source.m_Track.Sample(140.0)->m_Center.x, 0.0001f);
+	const auto RestoredSample = Restored.m_Track.Sample(140.0);
+	const auto SourceSample = Source.m_Track.Sample(140.0);
+	ASSERT_TRUE(RestoredSample.has_value());
+	ASSERT_TRUE(SourceSample.has_value());
+	EXPECT_NEAR(RestoredSample->m_Center.x, SourceSample->m_Center.x, 0.0001f);
 }
 
 TEST(QmDemoCameraFile, InvalidOrUnsupportedFilesDoNotReplaceTheCurrentProject)
@@ -46,7 +54,9 @@ TEST(QmDemoCameraFile, InvalidOrUnsupportedFilesDoNotReplaceTheCurrentProject)
 		SCOPED_TRACE(pJson);
 		EXPECT_FALSE(Decode(pJson, Project));
 		ASSERT_EQ(Project.m_Track.Frames().size(), 1U);
-		EXPECT_EQ(Project.m_Track.Sample(10.0)->m_Center, vec2(5.0f, 6.0f));
+		const auto Sample = Project.m_Track.Sample(10.0);
+		ASSERT_TRUE(Sample.has_value());
+		EXPECT_EQ(Sample->m_Center, vec2(5.0f, 6.0f));
 	}
 	EXPECT_FALSE(Decode(std::string(512 * 1024 + 1, ' '), Project));
 }

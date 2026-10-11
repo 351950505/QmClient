@@ -4926,7 +4926,7 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 		return Handle;
 	};
 
-	auto FindCustomItemByPreviewHandle = [&](const SSettingsAssetPreviewHandle &Handle) -> SCustomItem * {
+	auto FindCustomItemByPreviewHandle = [](const SSettingsAssetPreviewHandle &Handle) -> SCustomItem * {
 		if(Handle.m_Tab < ASSETS_TAB_ENTITIES || Handle.m_Tab >= NUMBER_OF_ASSETS_TABS || Handle.m_Index >= GetCustomItemCount(Handle.m_Tab))
 			return nullptr;
 		SCustomItem *pItem = GetCustomItemMutable(Handle.m_Tab, Handle.m_Index);
@@ -5013,9 +5013,10 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 				});
 				if(It != vDecodeQueue.end())
 				{
-					const SSettingsAssetPreviewHandle Handle = *It;
+					// 删除队列项前转移句柄，不能保留随后失效的迭代器引用。
+					SSettingsAssetPreviewHandle Handle = std::move(*It);
 					vDecodeQueue.erase(It);
-					vDecodeQueue.push_front(Handle);
+					vDecodeQueue.push_front(std::move(Handle));
 				}
 			}
 			return false;
@@ -5797,7 +5798,6 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 			}
 			CPerfTimer UploadBatchTimer;
 			const bool PreviewWasResized = pItem->m_PreviewResized;
-			const SSettingsAssetPreviewHandle UploadHandle = Handle;
 			const SResourcePreviewKey PreviewKey = BuildAssetsResourcePreviewKey(pItem->m_aName, s_CurCustomTab, false, Graphics()->ScreenHiDPIScale(), TextureWidth);
 			gs_SettingsAssetsResourcePreviewCache.GetOrCreate(PreviewKey).m_UploadPending = true;
 			// 空白材质的缩略图应当是「什么都没有」，而不是将被屏蔽掉的默认贴图；
@@ -5809,7 +5809,8 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 			gs_SettingsAssetsResourcePreviewUploadScheduler.EnqueueUploadToTarget(
 				PreviewKey,
 				std::move(pItem->m_PreviewImage),
-				[&, UploadHandle](bool TextureValid, IGraphics::CTextureHandle Texture) {
+				// 上传可能延后到下一帧，查找器与句柄都由回调按值持有。
+				[this, FindCustomItemByPreviewHandle, UploadHandle = Handle](bool TextureValid, IGraphics::CTextureHandle Texture) {
 					SCustomItem *pUploadItem = FindCustomItemByPreviewHandle(UploadHandle);
 					if(pUploadItem == nullptr || pUploadItem->m_PreviewEpoch != UploadHandle.m_Epoch)
 					{

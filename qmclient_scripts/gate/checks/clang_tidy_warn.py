@@ -8,6 +8,7 @@ import shutil
 from pathlib import Path
 
 from lib import runner
+from lib.compilation_database import compilation_units
 from lib.report import ResultCollector
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -58,14 +59,19 @@ def run(results: ResultCollector, included: list[str], dry_run: bool = False) ->
 			"缺少 compile_commands.json，请先跑 strict-debug-check 或 default/full 构建层（探测目录：cmake-build-debug、cmake-build-release-pdb、cmake-build-release）",
 		)
 		return
-	source_files = _existing_source_files(included)
+	try:
+		compiled_units = compilation_units(cc)
+	except (OSError, ValueError) as error:
+		results.add("WARN", "全量 .clang-tidy 编译数据库", str(error))
+		return
+	source_files = [file for file in _existing_source_files(included) if (REPO_ROOT / file).resolve() in compiled_units]
 	source_file_set = set(source_files)
 	skipped = [file for file in included if file.replace("\\", "/") not in source_file_set]
 	if skipped:
 		results.add(
 			"INFO",
 			"全量 .clang-tidy 附加检查跳过非独立翻译单元",
-			"配置变量宏头和 header 文件不作为独立翻译单元分析，已跳过：\n" + "\n".join(skipped),
+			"只检查当前平台编译数据库中的独立翻译单元，已跳过：\n" + "\n".join(skipped),
 		)
 	for file in source_files:
 		code, out = runner.run(
