@@ -1931,6 +1931,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == このサーバーではチートが有効です
 
+Check again
+== 再確認
+
 check ddnet-saves.txt in config_directory.
 == config_directory の ddnet-saves.txt を確認してください。
 
@@ -1948,6 +1951,9 @@ Check output device, confirm headphones/speakers are still online
 
 Checking for existing player with your name
 == 同じ名前のプレイヤーがいるか確認中
+
+Checking for updates...
+== 更新を確認中…
 
 Checking Steam...
 == Steam を確認中…
@@ -2864,6 +2870,9 @@ Current rescue mode: %s
 Current status
 == 現在のステータス
 
+Current version: %s
+== 現在のバージョン：%s
+
 Current: Ranks
 == 現在：ランク
 
@@ -3413,6 +3422,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == 変更を破棄
 
+Discard update
+== 更新を破棄
+
 Disconnect
 == 切断
 
@@ -3575,8 +3587,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == このアセットをダウンロードしますか？
 
+Download update
+== 更新をダウンロード
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== ダウンロードの検証が完了しました。「終了してインストール」で現在のバージョンを置き換えます。設定は保持されます。「後で」を選ぶと、クライアント終了時にインストールします。
+
 Downloaded
 == ダウンロード済み
+
+Downloaded: %.1f MiB (total size unknown)
+== ダウンロード済み：%.1f MiB（総サイズ不明）
 
 Downloading map
 == マップをダウンロード中
@@ -4508,6 +4529,9 @@ Execute the specified file
 Existing Player
 == 既存のプレイヤー
 
+Exit and install
+== 終了してインストール
+
 Exit replay view
 == リプレイ視聴を終了
 
@@ -4693,6 +4717,9 @@ Favorites
 
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood: トークン + 12 ウィジェット
+
+Feature guide and announcements
+== 機能ガイドとお知らせ
 
 Feature Search
 == 機能検索
@@ -6485,6 +6512,12 @@ Latency compensation
 Latency Jitter
 == レイテンシジッター
 
+Later
+== 後で
+
+Latest release: %s
+== 最新リリース：%s
+
 Latin font
 == ラテン文字フォント
 
@@ -7715,9 +7748,6 @@ Netversion
 Network
 == ネットワーク
 
-Network error
-== ネットワークエラー
-
 Network timeout
 == ネットワークタイムアウト
 
@@ -7759,6 +7789,9 @@ New preset name
 
 New random timeout code
 == 新しいランダムタイムアウトコード
+
+New version available
+== 新しいバージョンが利用可能です
 
 News
 == ニュース
@@ -9632,6 +9665,9 @@ Relative Y position of the draggable back button
 Release notes
 == リリースノート
 
+Release page
+== リリースページ
+
 Reload
 == 再読み込み
 
@@ -10678,6 +10714,9 @@ Selected part: %d
 
 Selected timertype is not supported by your client
 == 選択したタイマータイプはお使いのクライアントでサポートされていません
+
+Selecting download source...
+== ダウンロード元を選択中…
 
 Selection
 == 選択
@@ -13181,9 +13220,6 @@ The server is running a non-standard tuning on a pure game type.
 The server rejected the map upload.
 == サーバーがマップのアップロードを拒否しました。
 
-The update is ready and will be installed when you exit.
-== アップデートの準備ができました。終了時にインストールされます。
-
 The watermarked screenshot was saved next to the original
 == ウォーターマーク付きのスクリーンショットを元画像の隣に保存しました
 
@@ -14096,11 +14132,11 @@ Update notice
 Update or add a specific war group
 == 特定の敵対グループを更新または追加
 
-Update package available
-== このバージョンの更新パッケージをダウンロードできます
-
 Update Rate
 == 更新レート
+
+Update ready to install
+== 更新をインストールできます
 
 Upload .map files. Server and admin passwords: s.
 == .map ファイルをアップロードします。サーバーと管理者のパスワードは s です。
@@ -14329,6 +14365,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == 速度
+
+Verifying downloaded update...
+== ダウンロードした更新を検証中…
 
 Version
 == バージョン

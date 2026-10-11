@@ -11,6 +11,14 @@
 
 namespace ui_widget
 {
+	// 更新页先保留标题，再按内容区预算压缩字号和间距，确保进度与操作不挤占说明。
+	inline float ResolveUpdatePanelContentScale(const CUIRect &Content, float RequestedScale)
+	{
+		const float HeightBudget = ui_token::font::BODY * (2.0f * ui_token::secondary_panel::UPDATE_ACTION_LINE_FACTOR + 9.0f) + 6.0f * ui_token::spacing::MD;
+		const float WidthBudget = ui_token::secondary_panel::UPDATE_WIDTH - 2.0f * ui_token::spacing::LG;
+		return std::min({std::clamp(RequestedScale, 0.5f, 2.0f), std::max(0.0f, Content.h) / HeightBudget, std::max(0.0f, Content.w) / WidthBudget});
+	}
+
 	struct SSecondaryPanelMetrics
 	{
 		float m_FontSize = ui_token::secondary_panel::BODY_SIZE;

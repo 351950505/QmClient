@@ -1520,13 +1520,11 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 		return;
 	}
 	CUIRect Inner = PanelHeader.ContentRect();
-	char aVersion[64];
-	str_format(aVersion, sizeof(aVersion), "%s %s", CLIENT_NAME, CLIENT_RELEASE_VERSION);
 
 	CUIRect SubTitleRow;
 	Inner.HSplitTop(TipSize * 1.6f, &SubTitleRow, &Inner);
 	TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.65f));
-	Ui()->DoLabel(&SubTitleRow, aVersion, TipSize, TEXTALIGN_ML);
+	Ui()->DoLabel(&SubTitleRow, Localize("Feature guide and announcements"), TipSize, TEXTALIGN_ML);
 	TextRender()->TextColor(PanelForeground);
 	Inner.HSplitTop(Gap, nullptr, &Inner);
 
@@ -1586,9 +1584,16 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 			TextRender()->TextColor(PanelForeground);
 		}
 	}
-	CloseButtonRect = ButtonRow;
-	CloseButtonRect.w = std::min(ButtonRow.w, 200.0f * UiScale);
-	CloseButtonRect.x = ButtonRow.x + (ButtonRow.w - CloseButtonRect.w) * 0.5f;
+	static ui_widget::SSettingsActionGroupState s_NewsActionWidths;
+	const char *apNewsActions[] = {Localize("Check for updates"), Localize("Close")};
+	const auto NewsActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_NewsActionWidths, ButtonRow, apNewsActions, 2, ResolveSettingsContentMetrics(ButtonRow.w));
+	CloseButtonRect = NewsActions.m_aButtons[1];
+	static CButtonContainer s_CheckUpdatesButton;
+	if(ui_widget::SecondaryButton(Ctx, &s_CheckUpdatesButton, Localize("Check for updates"), NewsActions.m_aButtons[0]))
+	{
+		ShowQmUpdatePopup();
+		return;
+	}
 	static CButtonContainer s_CloseButton;
 	if(ui_widget::PrimaryButton(Ctx, &s_CloseButton, Localize("Close"), CloseButtonRect))
 	{
@@ -1815,10 +1820,7 @@ bool CMenus::RenderQmFunctionCheckboxRow(CUIRect &Content, const float LineHeigh
 void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 {
 	auto &Update = GameClient()->m_TClient;
-	const int State = Update.IsUpdateChecking() ? 1 : Update.IsUpdateDownloading() ? 2 :
-						  Update.m_UpdateReady                 ? 3 :
-						  Update.m_UpdateCheckFailed           ? 4 :
-											 0;
+	const int State = static_cast<int>(Update.QmClientUpdateStatus());
 	if(State != m_QmUpdatePopupState)
 	{
 		m_QmUpdatePopupState = State;
@@ -1828,14 +1830,12 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	IUiContext Ctx = SettingsUiContext("qm_update_popup");
 	Ctx.m_pTheme = &PanelTheme;
 	CUiScopedSurfaceText PanelText(TextRender(), PanelTheme.m_Surface);
-	const float Scale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
+	const float RequestedScale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
 	const float ViewportWidth = std::max(0.0f, Ui()->Screen()->w - 16.0f);
-	const float Gap = std::min(ui_token::spacing::MD * Scale, ViewportWidth * 0.02f);
-	const float BodySize = ui_token::font::BODY * Scale;
 	const CUIRect Panel = Screen;
 	static ui_widget::SSecondaryPanelLabel s_Title;
 	static CButtonContainer s_HeaderClose;
-	ui_widget::CSecondaryPanel PanelHeader(Ctx, Panel, !Ui()->RenderOnly(), ui_widget::ResolveSecondaryPanelMetrics(ViewportWidth, ESettingsSecondaryPanelKind::UPDATE, Scale), {});
+	ui_widget::CSecondaryPanel PanelHeader(Ctx, Panel, !Ui()->RenderOnly(), ui_widget::ResolveSecondaryPanelMetrics(ViewportWidth, ESettingsSecondaryPanelKind::UPDATE, RequestedScale), {});
 	if(PanelHeader.Header(s_Title, s_HeaderClose, Localize("Update")))
 	{
 		Update.m_UpdatePopupRequested = false;
@@ -1843,9 +1843,16 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		return;
 	}
 	CUIRect Content = PanelHeader.ContentRect();
+	if(Content.w <= 0.0f || Content.h <= 0.0f)
+		return;
+	const float Scale = ui_widget::ResolveUpdatePanelContentScale(Content, RequestedScale);
+	const float Gap = std::min(ui_token::spacing::MD * Scale, ViewportWidth * 0.02f);
+	const float BodySize = ui_token::font::BODY * Scale;
 	CUIRect Row;
-	CUIRect Buttons;
+	CUIRect Buttons, SecondaryButtons;
 	Content.HSplitBottom(BodySize * ui_token::secondary_panel::UPDATE_ACTION_LINE_FACTOR, &Content, &Buttons);
+	Content.HSplitBottom(Gap, &Content, nullptr);
+	Content.HSplitBottom(Buttons.h, &Content, &SecondaryButtons);
 	Content.HSplitBottom(Gap, &Content, nullptr);
 	// 下载能力固定在操作区上方，说明可独立滚动，缺包提示不会被长说明挤掉。
 #if defined(CONF_QMCLIENT_PORTABLE)
@@ -1853,16 +1860,55 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 #else
 	constexpr bool QmUpdatePortableBuild = false;
 #endif
-	if(Update.m_FetchedQmClientUpdateInfo && Update.m_UpdateRelease.m_NewVersion)
+	if(Update.QmClientUpdateStatus() == EQmClientUpdateStatus::AVAILABLE && !Update.CanDownloadQmClientUpdate())
 	{
-		const bool PackageAvailable = Update.m_UpdateRelease.m_PackageAvailable || Update.m_UpdateUseSetup;
-		const char *pPackage = PackageAvailable      ? Localize("Update package available") :
-				       QmUpdatePortableBuild ? Localize("No downloadable portable package for this version") :
+		const char *pPackage = QmUpdatePortableBuild ? Localize("No downloadable portable package for this version") :
 							       Localize("No compatible Windows update package for this version");
 		CUIRect Availability;
 		Content.HSplitBottom(QmWrappedLineCount(TextRender(), BodySize, pPackage, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Content, &Availability);
 		Ui()->DoLabel(&Availability, pPackage, BodySize, TEXTALIGN_TL, {.m_MaxWidth = Availability.w});
 		Content.HSplitBottom(Gap, &Content, nullptr);
+	}
+	// 状态和进度固定在说明滚动区外，长发布说明不会遮住下载结果。
+	const char *pStatus = Update.QmClientUpdateStatusText();
+	Content.HSplitTop(QmWrappedLineCount(TextRender(), BodySize, pStatus, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Row, &Content);
+	Ui()->DoLabel(&Row, pStatus, BodySize, TEXTALIGN_TL, {.m_MaxWidth = Row.w});
+	char aVersion[128];
+	str_format(aVersion, sizeof(aVersion), Localize("Current version: %s"), CLIENT_RELEASE_VERSION);
+	Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
+	Ui()->DoLabel(&Row, aVersion, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Row.w});
+	if(Update.m_FetchedQmClientUpdateInfo)
+	{
+		str_format(aVersion, sizeof(aVersion), Localize("Latest release: %s"), Update.m_UpdateRelease.m_aVersion);
+		Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
+		Ui()->DoLabel(&Row, aVersion, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Row.w});
+	}
+	if(Update.IsUpdateDownloading() && Update.m_pUpdatePackageTask)
+	{
+		const auto &Task = Update.m_pUpdatePackageTask;
+		char aProgress[128];
+		const bool KnownSize = Task->Size() > 0;
+		const int Percent = std::clamp(Task->Progress(), 0, 100);
+		if(KnownSize)
+			str_format(aProgress, sizeof(aProgress), "%.1f / %.1f MiB (%d%%)", Task->Current() / 1048576.0, Task->Size() / 1048576.0, Percent);
+		else
+			str_format(aProgress, sizeof(aProgress), Localize("Downloaded: %.1f MiB (total size unknown)"), std::max(0.0, Task->Current()) / 1048576.0);
+		Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
+		Ui()->DoLabel(&Row, aProgress, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Row.w});
+		CUIRect Bar;
+		Content.HSplitTop(std::max(4.0f, Gap), &Bar, &Content);
+		DrawRoundedSurface(Ctx, Bar, PanelTheme.m_Border, ColorRGBA(), ui_token::radius::CARD);
+		if(KnownSize)
+			Bar.w *= Percent / 100.0f;
+		else
+		{
+			// 无 Content-Length 时显示活动条，不伪造百分比或已完成状态。
+			Bar.x += Bar.w * 0.7f * (0.5f + 0.5f * std::sin(Client()->LocalTime() * 3.0f));
+			Bar.w *= 0.3f;
+		}
+		if(Bar.w > 0.0f)
+			DrawRoundedSurface(Ctx, Bar, PanelTheme.m_Accent, ColorRGBA(), ui_token::radius::CARD);
+		Content.HSplitTop(Gap, nullptr, &Content);
 	}
 	static CScrollRegion s_ScrollRegion;
 	if(m_QmUpdateScrollReset)
@@ -1880,48 +1926,18 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		if(s_ScrollRegion.AddRect(Rect))
 			Ui()->DoLabel(&Rect, pText, FontSize, Alignment, {.m_MaxWidth = Rect.w});
 	};
-	const char *pStatus = Localize("Update");
-	if(Update.m_UpdateCheckFailed)
-		pStatus = Update.m_UpdateNetworkError ? Localize("Network error") : Localize("Update failed. Please try again");
-	else if(Update.m_UpdateReady)
-		pStatus = Localize("The update is ready and will be installed when you exit.");
-	else if(Update.IsUpdateChecking())
-		pStatus = Localize("(Fetching Update Info)");
-	else if(Update.IsUpdateDownloading())
-		pStatus = Localize("Downloading update...");
-	else if(Update.NeedQmClientUpdate())
-		pStatus = Localize("(Update required)");
-	else if(Update.m_FetchedQmClientUpdateInfo)
-		pStatus = Localize("You are already on the latest version");
-	Content.HSplitTop(QmWrappedLineCount(TextRender(), BodySize, pStatus, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Row, &Content);
-	Label(Row, pStatus, BodySize, TEXTALIGN_TL);
-	char aVersion[128];
-	const bool DifferentVersion = Update.m_FetchedQmClientUpdateInfo && str_comp(CLIENT_RELEASE_VERSION, Update.m_UpdateRelease.m_aVersion) != 0;
-	str_format(aVersion, sizeof(aVersion), "QmClient %s%s%s", CLIENT_RELEASE_VERSION,
-		DifferentVersion ? " → " : "", DifferentVersion ? Update.m_UpdateRelease.m_aVersion : "");
-	Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
-	Label(Row, aVersion, BodySize, TEXTALIGN_ML);
-	if(Update.IsUpdateDownloading() && Update.m_pUpdatePackageTask)
+	if(Update.m_UpdateReady)
 	{
-		const auto &Task = Update.m_pUpdatePackageTask;
-		char aProgress[128];
-		str_format(aProgress, sizeof(aProgress), "%.1f / %.1f MiB (%d%%)", Task->Current() / 1048576.0, Task->Size() / 1048576.0, Task->Progress());
-		Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
-		Label(Row, aProgress, BodySize, TEXTALIGN_ML);
-		CUIRect Bar;
-		Content.HSplitTop(std::max(2.0f, Gap * 0.5f), &Bar, &Content);
-		if(s_ScrollRegion.AddRect(Bar))
-		{
-			DrawRoundedSurface(Ctx, Bar, ui_token::color::BORDER_SUBTLE, ColorRGBA(), ui_token::radius::CARD);
-			Bar.w *= std::clamp(Task->Progress() / 100.0f, 0.0f, 1.0f);
-			DrawRoundedSurface(Ctx, Bar, ui_token::color::ACCENT_PRIMARY_DIM, ColorRGBA(), ui_token::radius::CARD);
-		}
+		const char *pReady = Localize("Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.");
+		Content.HSplitTop(QmWrappedLineCount(TextRender(), BodySize, pReady, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Row, &Content);
+		Label(Row, pReady, BodySize, TEXTALIGN_TL);
 	}
 	const auto *pSource = Update.IsUpdateChecking() ? Update.m_UpdateMetadataRequest.Source() : Update.m_UpdateDownloadAttempt.Current();
 	if(pSource && (Update.IsUpdateChecking() || Update.IsUpdateDownloading()))
 	{
-		Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
-		Label(Row, pSource->m_Prefix.empty() ? "GitHub" : pSource->m_Prefix.c_str(), BodySize, TEXTALIGN_ML);
+		const char *pSourceText = pSource->m_Prefix.empty() ? "GitHub" : pSource->m_Prefix.c_str();
+		Content.HSplitTop(QmWrappedLineCount(TextRender(), BodySize, pSourceText, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Row, &Content);
+		Label(Row, pSourceText, BodySize, TEXTALIGN_TL);
 	}
 	if(Update.m_UpdateCheckFailed && Update.m_aUpdateError[0])
 	{
@@ -1930,8 +1946,6 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	}
 	if(Update.m_FetchedQmClientUpdateInfo)
 	{
-		Content.HSplitTop(BodySize * 1.8f, &Row, &Content);
-		Label(Row, Localize("Release notes"), BodySize, TEXTALIGN_ML);
 		// 按元数据/字体/宽度版本缓存段落和测量；每帧只绘制滚动区域内的段落。
 		struct SNoteParagraph
 		{
@@ -1978,6 +1992,13 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		}
 		else
 		{
+			// 发布者已提供标题时直接使用，不再叠加同义的“发布说明”标题。
+			const auto FirstKind = s_vNotes.front().m_Kind;
+			if(FirstKind != qm_md::EBlockKind::HEADING1 && FirstKind != qm_md::EBlockKind::HEADING2 && FirstKind != qm_md::EBlockKind::HEADING3)
+			{
+				Content.HSplitTop(BodySize * 1.8f, &Row, &Content);
+				Label(Row, Localize("Release notes"), BodySize, TEXTALIGN_ML);
+			}
 			if(s_NotesWidth != Content.w || s_NotesSize != BodySize || s_FontRevision != TextRender()->GlyphAtlasRevision())
 			{
 				for(auto &Paragraph : s_vNotes)
@@ -2019,28 +2040,34 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	}
 	s_ScrollRegion.End();
 	// 按可用宽度均分按钮；长译文由共享按钮的文本适配处理。
-	CUIRect Action, Manual, Close;
-	static CButtonContainer s_Action, s_Manual, s_Close;
+	CUIRect Action, Recheck, Manual, Close;
+	static CButtonContainer s_Action, s_Recheck, s_Manual, s_Close;
 	const bool Busy = Update.IsUpdateChecking() || Update.IsUpdateDownloading();
 	// 缺包时仍可重新检查发布者后补的附件；下载能力由生产包选择器阻断。
 	const EQmClientUpdateAction UpdateAction = ResolveQmClientUpdateAction(Busy, Update.m_UpdateReady, Update.m_FetchedQmClientUpdateInfo, Update.m_UpdateCheckFailed, Update.CanDownloadQmClientUpdate());
 	const char *pAction = UpdateAction == EQmClientUpdateAction::CANCEL   ? Localize("Cancel") :
-			      UpdateAction == EQmClientUpdateAction::INSTALL  ? Localize("Quit") :
-			      UpdateAction == EQmClientUpdateAction::DOWNLOAD ? Localize("Download") :
+			      UpdateAction == EQmClientUpdateAction::INSTALL  ? Localize("Exit and install") :
+			      UpdateAction == EQmClientUpdateAction::DOWNLOAD ? Localize("Download update") :
 			      UpdateAction == EQmClientUpdateAction::RETRY    ? Localize("Retry") :
 										Localize("Check for updates");
-	static ui_widget::SSettingsActionGroupState s_UpdateActionWidths;
-	const char *apActions[] = {pAction, "GitHub", Localize("Close")};
-	const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_UpdateActionWidths, Buttons, apActions, 3, ResolveSettingsContentMetrics(Buttons.w));
+	const bool ShowRecheck = UpdateAction == EQmClientUpdateAction::DOWNLOAD;
+	const char *pRecheck = Update.m_UpdateReady ? Localize("Discard update") : ShowRecheck ? Localize("Check again") :
+												 Localize("New features");
+	const char *pClose = Update.m_UpdateReady ? Localize("Later") : Localize("Close");
+	static ui_widget::SSettingsActionGroupState s_UpdateActionWidths, s_UpdateSecondaryWidths;
+	const char *apActions[] = {pAction, pRecheck};
+	const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_UpdateActionWidths, Buttons, apActions, 2, ResolveSettingsContentMetrics(Buttons.w));
 	Action = ActionLayout.m_aButtons[0];
-	Manual = ActionLayout.m_aButtons[1];
-	Close = ActionLayout.m_aButtons[2];
-	if(ui_widget::PrimaryButton(Ctx, &s_Action, pAction, Action))
+	Recheck = ActionLayout.m_aButtons[1];
+	const char *apSecondary[] = {Localize("Release page"), pClose};
+	const auto SecondaryLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_UpdateSecondaryWidths, SecondaryButtons, apSecondary, 2, ResolveSettingsContentMetrics(Buttons.w));
+	Manual = SecondaryLayout.m_aButtons[0];
+	Close = SecondaryLayout.m_aButtons[1];
+	if(ui_widget::PrimaryButton(Ctx, &s_Action, pAction, Action, Update.m_UpdateInstallerStarted))
 	{
 		if(UpdateAction == EQmClientUpdateAction::CANCEL)
 		{
 			Update.CancelQmClientUpdate();
-			m_Popup = POPUP_NONE;
 		}
 		else if(UpdateAction == EQmClientUpdateAction::INSTALL)
 			Client()->Quit();
@@ -2049,9 +2076,18 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		else
 			Update.RequestQmClientUpdateCheck();
 	}
-	if(ui_widget::SecondaryButton(Ctx, &s_Manual, "GitHub", Manual))
+	if(ui_widget::SecondaryButton(Ctx, &s_Recheck, pRecheck, Recheck, Update.m_UpdateInstallerStarted))
+	{
+		if(Update.m_UpdateReady)
+			Update.CancelQmClientUpdate();
+		else if(ShowRecheck)
+			Update.RequestQmClientUpdateCheck();
+		else
+			ShowQmNewFeaturesPopup();
+	}
+	if(ui_widget::SecondaryButton(Ctx, &s_Manual, Localize("Release page"), Manual))
 		Client()->ViewLink(qm_update::MANUAL_DOWNLOAD_URL);
-	if(ui_widget::SecondaryButton(Ctx, &s_Close, Localize("Close"), Close))
+	if(ui_widget::SecondaryButton(Ctx, &s_Close, pClose, Close))
 	{
 		Update.m_UpdatePopupRequested = false;
 		m_Popup = POPUP_NONE;

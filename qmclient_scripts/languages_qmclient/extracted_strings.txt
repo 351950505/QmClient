@@ -642,12 +642,14 @@ Chat width
 Chat word filtering
 Cheats are disabled on this server
 Cheats are enabled on this server
+Check again
 check ddnet-saves.txt in config_directory.
 Check for updates
 Check if voice server address is reachable
 Check input device, system default mic, and mic permission first
 Check output device, confirm headphones/speakers are still online
 Checking for existing player with your name
+Checking for updates...
 Checking Steam...
 Chinese (Simplified)
 Chinese (Traditional)
@@ -953,6 +955,7 @@ Current file
 Current GPU
 Current rescue mode: %s
 Current status
+Current version: %s
 Current: Ranks
 Current: Score
 Current: Time
@@ -1136,6 +1139,7 @@ Disallow chat from blacklisted addresses
 Discard
 Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
+Discard update
 Disconnect
 Disconnect dummy
 Disconnect from the server
@@ -1190,7 +1194,10 @@ Download skins
 Download skins immediately from cl_skin_download_url
 Download the rank 1 demo for this map
 Download this asset?
+Download update
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
 Downloaded
+Downloaded: %.1f MiB (total size unknown)
 Downloading map
 Downloading rank 1 demo
 Downloading update...
@@ -1501,6 +1508,7 @@ Execute on connect
 Execute on join
 Execute the specified file
 Existing Player
+Exit and install
 Exit replay view
 Expand console
 Expanded dropdown background color
@@ -1563,6 +1571,7 @@ Favorite map
 Favorite maps
 Favorites
 feat-003 dogfood: tokens + 12 widgets
+Feature guide and announcements
 Feature Search
 Feet
 Fetch Info
@@ -2160,6 +2169,8 @@ Last viewed client release notes
 Latency
 Latency compensation
 Latency Jitter
+Later
+Latest release: %s
 Latin font
 Latin font weight
 Launch count threshold for the next sponsor reminder
@@ -2570,7 +2581,6 @@ Netlimit: exponential moving average alpha
 Netlimit: maximum traffic allowed per client (kb/s)
 Netversion
 Network
-Network error
 Network timeout
 Network timeout protection
 new
@@ -2585,6 +2595,7 @@ New name
 New name:
 New preset name
 New random timeout code
+New version available
 News
 Next
 Next page in console
@@ -3209,6 +3220,7 @@ Relative path
 Relative X position of the draggable back button
 Relative Y position of the draggable back button
 Release notes
+Release page
 Reload
 Reload map when empty (1 = once, 2 = each time)
 Reload the announcements
@@ -3558,6 +3570,7 @@ Selected candidate %d/%d under cursor.
 Selected item color
 Selected part: %d
 Selected timertype is not supported by your client
+Selecting download source...
 Selection
 Self
 Self and friends
@@ -4392,7 +4405,6 @@ The selected button is overlapping with other buttons.
 The selected part stays highlighted while you adjust its color.
 The server is running a non-standard tuning on a pure game type.
 The server rejected the map upload.
-The update is ready and will be installed when you exit.
 The watermarked screenshot was saved next to the original
 The width of texture %s is not divisible by %d, or the height is not divisible by %d, which might cause visual bugs.
 Theme
@@ -4697,8 +4709,8 @@ Update a rcon key with prehashed data
 Update failed. Please try again
 Update notice
 Update or add a specific war group
-Update package available
 Update Rate
+Update ready to install
 Upload .map files. Server and admin passwords: s.
 Upload a saved map to the public test server
 Upload map
@@ -4775,6 +4787,7 @@ Vanilla skins only
 Variable custom font weight for Chinese/CJK text
 Variable custom font weight for Latin text
 Velocity
+Verifying downloaded update...
 Version
 Version performing the analysis
 Vertical position

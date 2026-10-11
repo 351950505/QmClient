@@ -1931,6 +1931,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == Bu sunucuda hileler etkin
 
+Check again
+== Tekrar kontrol et
+
 check ddnet-saves.txt in config_directory.
 == config_directory içindeki ddnet-saves.txt dosyasını kontrol edin.
 
@@ -1948,6 +1951,9 @@ Check output device, confirm headphones/speakers are still online
 
 Checking for existing player with your name
 == Adınızla mevcut bir oyuncu kontrol ediliyor
+
+Checking for updates...
+== Güncellemeler kontrol ediliyor…
 
 Checking Steam...
 == Steam kontrol ediliyor…
@@ -2864,6 +2870,9 @@ Current rescue mode: %s
 Current status
 == Mevcut durum
 
+Current version: %s
+== Mevcut sürüm: %s
+
 Current: Ranks
 == Geçerli: Sıralamalar
 
@@ -3413,6 +3422,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == Değişiklikleri iptal et
 
+Discard update
+== Güncellemeyi sil
+
 Disconnect
 == Bağlantıyı kes
 
@@ -3575,8 +3587,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == Bu varlığı indir?
 
+Download update
+== Güncellemeyi indir
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== İndirme doğrulandı. «Çık ve kur» mevcut sürümü değiştirir; ayarlarınız korunur. «Daha sonra» seçeneği güncellemeyi istemciden çıktığınızda kurar.
+
 Downloaded
 == İndirildi
+
+Downloaded: %.1f MiB (total size unknown)
+== İndirilen: %.1f MiB (toplam boyut bilinmiyor)
 
 Downloading map
 == Harita indiriliyor
@@ -4508,6 +4529,9 @@ Execute the specified file
 Existing Player
 == Mevcut Oyuncu
 
+Exit and install
+== Çık ve kur
+
 Exit replay view
 == Demo görünümünden çık
 
@@ -4693,6 +4717,9 @@ Favorites
 
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood: tokenlar + 12 widget
+
+Feature guide and announcements
+== Özellik kılavuzu ve duyurular
 
 Feature Search
 == Özellik Arama
@@ -6485,6 +6512,12 @@ Latency compensation
 Latency Jitter
 == Gecikme dalgalanması
 
+Later
+== Daha sonra
+
+Latest release: %s
+== En son yayımlanan sürüm: %s
+
 Latin font
 == Latin yazı tipi
 
@@ -7715,9 +7748,6 @@ Netversion
 Network
 == Ağ
 
-Network error
-== Ağ hatası
-
 Network timeout
 == Ağ zaman aşımı
 
@@ -7759,6 +7789,9 @@ New preset name
 
 New random timeout code
 == Yeni rastgele zaman aşımı kodu
+
+New version available
+== Yeni sürüm mevcut
 
 News
 == Haberler
@@ -9632,6 +9665,9 @@ Relative Y position of the draggable back button
 Release notes
 == Sürüm notları
 
+Release page
+== Sürüm sayfası
+
 Reload
 == Yeniden yükle
 
@@ -10678,6 +10714,9 @@ Selected part: %d
 
 Selected timertype is not supported by your client
 == Seçilen zamanlayıcı türü istemciniz tarafından desteklenmiyor
+
+Selecting download source...
+== İndirme kaynağı seçiliyor…
 
 Selection
 == Seçim
@@ -13181,9 +13220,6 @@ The server is running a non-standard tuning on a pure game type.
 The server rejected the map upload.
 == Sunucu harita yüklemesini reddetti.
 
-The update is ready and will be installed when you exit.
-== Güncelleme hazır ve çıkışta kurulacak.
-
 The watermarked screenshot was saved next to the original
 == Filigranlı ekran görüntüsü orijinalin yanına kaydedildi
 
@@ -14096,11 +14132,11 @@ Update notice
 Update or add a specific war group
 == Belirli bir savaş grubunu güncelle veya ekle
 
-Update package available
-== Bu sürüm için güncelleme paketi mevcut
-
 Update Rate
 == Güncelleme Hızı
+
+Update ready to install
+== Güncelleme kuruluma hazır
 
 Upload .map files. Server and admin passwords: s.
 == .map dosyalarını yükleyin. Sunucu ve yönetici şifreleri: s.
@@ -14329,6 +14365,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == Hız
+
+Verifying downloaded update...
+== İndirilen güncelleme doğrulanıyor…
 
 Version
 == Sürüm

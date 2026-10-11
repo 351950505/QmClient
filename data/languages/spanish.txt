@@ -1931,6 +1931,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == Los trucos están activados en este servidor
 
+Check again
+== Comprobar de nuevo
+
 check ddnet-saves.txt in config_directory.
 == Consulta ddnet-saves.txt en config_directory.
 
@@ -1948,6 +1951,9 @@ Check output device, confirm headphones/speakers are still online
 
 Checking for existing player with your name
 == Comprobando si ya existe un jugador con tu nombre
+
+Checking for updates...
+== Buscando actualizaciones…
 
 Checking Steam...
 == Comprobando Steam…
@@ -2864,6 +2870,9 @@ Current rescue mode: %s
 Current status
 == Estado actual
 
+Current version: %s
+== Versión actual: %s
+
 Current: Ranks
 == Actual: Rankings
 
@@ -3413,6 +3422,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == Descartar cambios
 
+Discard update
+== Descartar actualización
+
 Disconnect
 == Desconectar
 
@@ -3575,8 +3587,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == ¿Descargar este recurso?
 
+Download update
+== Descargar actualización
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== Descarga verificada. «Salir e instalar» reemplaza esta versión y conserva tus ajustes. Si eliges «Más tarde», se instalará cuando cierres el cliente.
+
 Downloaded
 == Descargado
+
+Downloaded: %.1f MiB (total size unknown)
+== Descargado: %.1f MiB (tamaño total desconocido)
 
 Downloading map
 == Descargando mapa
@@ -4508,6 +4529,9 @@ Execute the specified file
 Existing Player
 == Jugador existente
 
+Exit and install
+== Salir e instalar
+
 Exit replay view
 == Salir de la vista de demo
 
@@ -4693,6 +4717,9 @@ Favorites
 
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood: tokens + 12 widgets de UI
+
+Feature guide and announcements
+== Guía de funciones y anuncios
 
 Feature Search
 == Búsqueda de funciones
@@ -6485,6 +6512,12 @@ Latency compensation
 Latency Jitter
 == Fluctuación de latencia
 
+Later
+== Más tarde
+
+Latest release: %s
+== Última versión publicada: %s
+
 Latin font
 == Fuente latina
 
@@ -7715,9 +7748,6 @@ Netversion
 Network
 == Red
 
-Network error
-== Error de red
-
 Network timeout
 == Tiempo de espera de red
 
@@ -7759,6 +7789,9 @@ New preset name
 
 New random timeout code
 == Nuevo código de tiempo de espera aleatorio
+
+New version available
+== Nueva versión disponible
 
 News
 == Noticias
@@ -9632,6 +9665,9 @@ Relative Y position of the draggable back button
 Release notes
 == Notas de la versión
 
+Release page
+== Página de la versión
+
 Reload
 == Recargar
 
@@ -10678,6 +10714,9 @@ Selected part: %d
 
 Selected timertype is not supported by your client
 == El tipo de temporizador seleccionado no es compatible con tu cliente
+
+Selecting download source...
+== Seleccionando origen de descarga…
 
 Selection
 == Selección
@@ -13181,9 +13220,6 @@ The server is running a non-standard tuning on a pure game type.
 The server rejected the map upload.
 == El servidor rechazó la subida del mapa.
 
-The update is ready and will be installed when you exit.
-== La actualización está lista y se instalará al salir.
-
 The watermarked screenshot was saved next to the original
 == La captura con marca de agua se guardó junto a la original
 
@@ -14096,11 +14132,11 @@ Update notice
 Update or add a specific war group
 == Actualizar o añadir un grupo de guerra específico
 
-Update package available
-== Hay un paquete de actualización para esta versión
-
 Update Rate
 == Tasa de actualización
+
+Update ready to install
+== Actualización lista para instalar
 
 Upload .map files. Server and admin passwords: s.
 == Sube archivos .map. Contraseñas del servidor y de administración: s.
@@ -14329,6 +14365,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == Velocidad
+
+Verifying downloaded update...
+== Verificando la actualización descargada…
 
 Version
 == Versión

@@ -52,6 +52,44 @@ enum class EQmClientUpdateAction
 	RETRY,
 };
 
+enum class EQmClientUpdateStatus
+{
+	IDLE,
+	CHECKING,
+	SELECTING_SOURCE,
+	DOWNLOADING,
+	VERIFYING,
+	READY,
+	INSTALLING,
+	FAILED,
+	AVAILABLE,
+	CURRENT,
+};
+
+inline bool ShouldStartQmClientUpdateCheckOnOpen(bool Attempted, bool Busy, bool Ready, bool Installing)
+{
+	return !Attempted && !Busy && !Ready && !Installing;
+}
+
+// 主菜单和详情共用状态优先级；传输完成不代表签名校验及安装准备完成。
+inline EQmClientUpdateStatus ResolveQmClientUpdateStatus(bool Checking, bool Downloading, bool HasPackage, bool PackageTransferred, bool Ready, bool Installing, bool Failed, bool Fetched, bool NewVersion)
+{
+	if(Installing)
+		return EQmClientUpdateStatus::INSTALLING;
+	if(Ready)
+		return EQmClientUpdateStatus::READY;
+	if(Checking)
+		return EQmClientUpdateStatus::CHECKING;
+	if(Downloading)
+		return !HasPackage ? EQmClientUpdateStatus::SELECTING_SOURCE : PackageTransferred ? EQmClientUpdateStatus::VERIFYING :
+												    EQmClientUpdateStatus::DOWNLOADING;
+	if(Failed)
+		return EQmClientUpdateStatus::FAILED;
+	if(Fetched)
+		return NewVersion ? EQmClientUpdateStatus::AVAILABLE : EQmClientUpdateStatus::CURRENT;
+	return EQmClientUpdateStatus::IDLE;
+}
+
 // 操作文案和点击路径共用状态，检查完成不会隐式开始下载。
 inline EQmClientUpdateAction ResolveQmClientUpdateAction(bool Busy, bool Ready, bool Fetched, bool Failed, bool Downloadable)
 {

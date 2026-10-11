@@ -501,6 +501,8 @@ public:
 	void RequestQmClientUpdateCheck(bool UpdateAfterCheck = false);
 	void RequestQmClientUpdateCheckAndUpdate();
 	bool CanDownloadQmClientUpdate() const;
+	EQmClientUpdateStatus QmClientUpdateStatus() const;
+	const char *QmClientUpdateStatusText() const;
 	void RequestQmClientUpdateDownload();
 	void CancelQmClientUpdate();
 	bool IsUpdateChecking() const { return m_pQmClientUpdateInfoTask != nullptr; }
@@ -519,6 +521,7 @@ public:
 	bool ChatDoSpecId(const char *pInput);
 	bool InfoTaskDone() const { return m_pQmClientUpdateInfoTask && m_pQmClientUpdateInfoTask->State() == EHttpState::DONE; }
 	bool m_FetchedQmClientUpdateInfo = false;
+	bool m_QmClientUpdateCheckAttempted = false;
 	bool m_QmClientAutoUpdateAfterCheck = false;
 	char m_aUpdatePackageTmp[IO_MAX_PATH_LENGTH] = "";
 	char m_aUpdatePackageSignatureTmp[IO_MAX_PATH_LENGTH] = "";

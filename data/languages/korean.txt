@@ -1931,6 +1931,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == 이 서버에서는 치트가 활성화되어 있습니다
 
+Check again
+== 다시 확인
+
 check ddnet-saves.txt in config_directory.
 == config_directory 의 ddnet-saves.txt 를 확인하세요.
 
@@ -1948,6 +1951,9 @@ Check output device, confirm headphones/speakers are still online
 
 Checking for existing player with your name
 == 사용자 이름과 일치하는 기존 플레이어 확인 중
+
+Checking for updates...
+== 업데이트 확인 중…
 
 Checking Steam...
 == Steam 확인 중…
@@ -2864,6 +2870,9 @@ Current rescue mode: %s
 Current status
 == 현재 상태
 
+Current version: %s
+== 현재 버전: %s
+
 Current: Ranks
 == 현재: 순위
 
@@ -3413,6 +3422,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == 변경 사항 취소
 
+Discard update
+== 업데이트 폐기
+
 Disconnect
 == 연결 끊기
 
@@ -3575,8 +3587,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == 이 에셋을 다운로드하시겠습니까?
 
+Download update
+== 업데이트 다운로드
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== 다운로드 검증이 완료되었습니다. '종료 후 설치'를 누르면 현재 버전을 교체하며 설정은 유지됩니다. '나중에'를 선택하면 클라이언트를 종료할 때 설치됩니다.
+
 Downloaded
 == 다운로드 완료
+
+Downloaded: %.1f MiB (total size unknown)
+== 다운로드됨: %.1f MiB (전체 크기 알 수 없음)
 
 Downloading map
 == 맵 다운로드 중
@@ -4508,6 +4529,9 @@ Execute the specified file
 Existing Player
 == 기존 플레이어
 
+Exit and install
+== 종료 후 설치
+
 Exit replay view
 == 리플레이 보기 종료
 
@@ -4693,6 +4717,9 @@ Favorites
 
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood: 토큰 + 위젯 12개
+
+Feature guide and announcements
+== 기능 안내 및 공지
 
 Feature Search
 == 기능 검색
@@ -6485,6 +6512,12 @@ Latency compensation
 Latency Jitter
 == 지연 시간 지터
 
+Later
+== 나중에
+
+Latest release: %s
+== 최신 릴리스: %s
+
 Latin font
 == 라틴 문자 글꼴
 
@@ -7715,9 +7748,6 @@ Netversion
 Network
 == 네트워크
 
-Network error
-== 네트워크 오류
-
 Network timeout
 == 네트워크 타임아웃
 
@@ -7759,6 +7789,9 @@ New preset name
 
 New random timeout code
 == 새 랜덤 타임아웃 코드
+
+New version available
+== 새 버전이 있습니다
 
 News
 == 뉴스
@@ -9632,6 +9665,9 @@ Relative Y position of the draggable back button
 Release notes
 == 업데이트 내용
 
+Release page
+== 릴리스 페이지
+
 Reload
 == 다시 불러오기
 
@@ -10678,6 +10714,9 @@ Selected part: %d
 
 Selected timertype is not supported by your client
 == 선택한 타이머 유형을 클라이언트에서 지원하지 않습니다
+
+Selecting download source...
+== 다운로드 소스 선택 중…
 
 Selection
 == 선택 항목
@@ -13181,9 +13220,6 @@ The server is running a non-standard tuning on a pure game type.
 The server rejected the map upload.
 == 서버가 맵 업로드를 거부했습니다.
 
-The update is ready and will be installed when you exit.
-== 업데이트가 준비되었습니다. 종료할 때 설치됩니다.
-
 The watermarked screenshot was saved next to the original
 == 워터마크가 적용된 스크린샷을 원본 옆에 저장했습니다
 
@@ -14096,11 +14132,11 @@ Update notice
 Update or add a specific war group
 == 특정 전쟁 그룹 업데이트 또는 추가
 
-Update package available
-== 이 버전의 업데이트 패키지를 다운로드할 수 있습니다
-
 Update Rate
 == 업데이트 속도
+
+Update ready to install
+== 업데이트 설치 준비 완료
 
 Upload .map files. Server and admin passwords: s.
 == .map 파일을 업로드합니다. 서버 및 관리자 비밀번호는 s입니다.
@@ -14329,6 +14365,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == 속도
+
+Verifying downloaded update...
+== 다운로드한 업데이트 검증 중…
 
 Version
 == 버전

@@ -782,21 +782,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 275
-    },
-    {
-      "key": "(Fetching Update Info)",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus_start.cpp",
-      "context": "",
-      "line": 523
-    },
-    {
-      "key": "(Fetching Update Info)",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "context": "",
-      "line": 1889
+      "line": 521
     },
     {
       "key": "(Follow Chinese font)",
@@ -831,7 +817,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 531
+      "line": 529
     },
     {
       "key": "(paused)",
@@ -845,14 +831,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 527
-    },
-    {
-      "key": "(Update required)",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "context": "",
-      "line": 1893
+      "line": 525
     },
     {
       "key": "- Save codes in order:",
@@ -7691,7 +7670,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 2027
+      "line": 2048
     },
     {
       "key": "Cancel",
@@ -8667,18 +8646,18 @@
       "line": 366
     },
     {
+      "key": "Check again",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 2054
+    },
+    {
       "key": "check ddnet-saves.txt in config_directory.",
       "category": "indirect",
       "source": "src/game/client/components/qmclient/hud_notifications/hud_notification_static_rules.h",
       "context": "",
       "line": 379
-    },
-    {
-      "key": "Check for updates",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus_start.cpp",
-      "context": "",
-      "line": 275
     },
     {
       "key": "Check for updates",
@@ -8692,14 +8671,42 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 434
+      "line": 433
     },
     {
       "key": "Check for updates",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 2031
+      "line": 1588
+    },
+    {
+      "key": "Check for updates",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 1592
+    },
+    {
+      "key": "Check for updates",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 2052
+    },
+    {
+      "key": "Check for updates",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
+      "context": "",
+      "line": 202
+    },
+    {
+      "key": "Check for updates",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
+      "context": "",
+      "line": 204
     },
     {
       "key": "Check if voice server address is reachable",
@@ -8749,6 +8756,13 @@
       "source": "src/game/client/components/menus.cpp",
       "context": "",
       "line": 4564
+    },
+    {
+      "key": "Checking for updates...",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
+      "context": "",
+      "line": 193
     },
     {
       "key": "Checking Steam...",
@@ -9798,21 +9812,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1593
+      "line": 1588
     },
     {
       "key": "Close",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 2033
+      "line": 1598
     },
     {
       "key": "Close",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 2054
+      "line": 2056
     },
     {
       "key": "Close map",
@@ -12832,6 +12846,13 @@
       "line": 395
     },
     {
+      "key": "Current version: %s",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 1877
+    },
+    {
       "key": "Current: Ranks",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/scoreboard.cpp",
@@ -15097,14 +15118,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 337
+      "line": 336
     },
     {
       "key": "Demos",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 467
+      "line": 465
     },
     {
       "key": "demos",
@@ -15546,6 +15567,13 @@
       "source": "src/game/editor/popups.cpp",
       "context": "Editor",
       "line": 2479
+    },
+    {
+      "key": "Discard update",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 2054
     },
     {
       "key": "Disconnect",
@@ -16108,13 +16136,6 @@
       "line": 922
     },
     {
-      "key": "Download",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "context": "",
-      "line": 2029
-    },
-    {
       "key": "Download community skins",
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogSearch.cpp",
@@ -16199,6 +16220,20 @@
       "line": 7441
     },
     {
+      "key": "Download update",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 2050
+    },
+    {
+      "key": "Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 1931
+    },
+    {
       "key": "Downloaded",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_settings_assets.cpp",
@@ -16227,6 +16262,13 @@
       "line": 7307
     },
     {
+      "key": "Downloaded: %.1f MiB (total size unknown)",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 1895
+    },
+    {
       "key": "Downloading map",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
@@ -16243,16 +16285,16 @@
     {
       "key": "Downloading update...",
       "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
       "context": "",
-      "line": 1891
+      "line": 195
     },
     {
       "key": "Downloading update...",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/update_client.cpp",
       "context": "",
-      "line": 880
+      "line": 906
     },
     {
       "key": "Downscaled (0.78)",
@@ -16273,7 +16315,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1579
+      "line": 1577
     },
     {
       "key": "Drag HUD modules with the left mouse button",
@@ -17771,14 +17813,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 330
+      "line": 329
     },
     {
       "key": "Editor",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 459
+      "line": 457
     },
     {
       "key": "Editor",
@@ -19801,7 +19843,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1738
+      "line": 1743
     },
     {
       "key": "Envelope",
@@ -20558,6 +20600,13 @@
       "source": "src/game/editor/popups.cpp",
       "context": "Editor",
       "line": 244
+    },
+    {
+      "key": "Exit and install",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 2049
     },
     {
       "key": "Exit replay view",
@@ -21748,6 +21797,13 @@
       "source": "src/game/client/QmUi/UiDogfood.cpp",
       "context": "",
       "line": 58
+    },
+    {
+      "key": "Feature guide and announcements",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 1527
     },
     {
       "key": "Feature Search",
@@ -27942,7 +27998,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/update_client.cpp",
       "context": "",
-      "line": 879
+      "line": 198
+    },
+    {
+      "key": "Installing update. Please wait...",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
+      "context": "",
+      "line": 905
     },
     {
       "key": "Instant compact hints",
@@ -29735,6 +29798,20 @@
       "source": "src/game/client/components/tclient/statusbar.h",
       "context": "",
       "line": 103
+    },
+    {
+      "key": "Later",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 2056
+    },
+    {
+      "key": "Latest release: %s",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 1882
     },
     {
       "key": "Latin font",
@@ -34756,13 +34833,6 @@
       "line": 7307
     },
     {
-      "key": "Network error",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "context": "",
-      "line": 1885
-    },
-    {
       "key": "Network timeout",
       "category": "indirect",
       "source": "src/engine/shared/config_variables.h",
@@ -34823,7 +34893,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 434
+      "line": 433
     },
     {
       "key": "New features",
@@ -34831,6 +34901,13 @@
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
       "line": 1517
+    },
+    {
+      "key": "New features",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 2055
     },
     {
       "key": "New features (unread)",
@@ -34844,7 +34921,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 434
+      "line": 433
     },
     {
       "key": "New folder",
@@ -34971,6 +35048,13 @@
       "source": "src/game/editor/editor_actions.cpp",
       "context": "Editor",
       "line": 2065
+    },
+    {
+      "key": "New version available",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
+      "context": "",
+      "line": 200
     },
     {
       "key": "News",
@@ -35460,7 +35544,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1861
+      "line": 1866
     },
     {
       "key": "No controller found. Plug in a controller.",
@@ -35530,7 +35614,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1860
+      "line": 1865
     },
     {
       "key": "No empty team left.",
@@ -35845,7 +35929,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1977
+      "line": 1991
     },
     {
       "key": "No results",
@@ -37812,14 +37896,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1548
+      "line": 1546
     },
     {
       "key": "Open folder",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1562
+      "line": 1560
     },
     {
       "key": "Open map editor",
@@ -37875,14 +37959,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1642
+      "line": 1647
     },
     {
       "key": "Open settings",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1774
+      "line": 1779
     },
     {
       "key": "Open spectator mode selector",
@@ -39828,14 +39912,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "Start menu",
-      "line": 343
+      "line": 342
     },
     {
       "key": "Play",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "Start menu",
-      "line": 474
+      "line": 472
     },
     {
       "key": "Play a flip animation while reloading weapons",
@@ -42068,14 +42152,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1548
+      "line": 1546
     },
     {
       "key": "Publish",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1560
+      "line": 1558
     },
     {
       "key": "Publish failed",
@@ -42089,7 +42173,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1575
+      "line": 1573
     },
     {
       "key": "Published",
@@ -42103,7 +42187,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1576
+      "line": 1574
     },
     {
       "key": "Publishing…",
@@ -42117,7 +42201,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1572
+      "line": 1570
     },
     {
       "key": "Pulse",
@@ -42768,14 +42852,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 416
-    },
-    {
-      "key": "Quit",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "context": "",
-      "line": 2028
+      "line": 415
     },
     {
       "key": "Quit the client",
@@ -44336,7 +44413,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1934
+      "line": 2000
+    },
+    {
+      "key": "Release page",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 2062
+    },
+    {
+      "key": "Release page",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "context": "",
+      "line": 2088
     },
     {
       "key": "Reload",
@@ -44392,14 +44483,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1548
+      "line": 1546
     },
     {
       "key": "Reload",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1558
+      "line": 1556
     },
     {
       "key": "Reload map when empty (1 = once, 2 = each time)",
@@ -46513,7 +46604,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 2030
+      "line": 2051
     },
     {
       "key": "Retry remote stats",
@@ -47087,14 +47178,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 317
+      "line": 316
     },
     {
       "key": "Run server",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 445
+      "line": 443
     },
     {
       "key": "Run the automapper.",
@@ -49043,6 +49134,13 @@
       "line": 183
     },
     {
+      "key": "Selecting download source...",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
+      "context": "",
+      "line": 194
+    },
+    {
       "key": "Selection",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
@@ -49950,14 +50048,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 430
+      "line": 429
     },
     {
       "key": "Settings",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1736
+      "line": 1741
     },
     {
       "key": "Settings",
@@ -57013,14 +57111,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 317
+      "line": 316
     },
     {
       "key": "Stop server",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 445
+      "line": 443
     },
     {
       "key": "Stop the current demo",
@@ -59912,13 +60010,6 @@
       "source": "src/game/editor/popups.cpp",
       "context": "Editor",
       "line": 1713
-    },
-    {
-      "key": "The update is ready and will be installed when you exit.",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "context": "",
-      "line": 1887
     },
     {
       "key": "The value of the selected envelope point.",
@@ -63744,13 +63835,6 @@
     },
     {
       "key": "Update",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "context": "",
-      "line": 1883
-    },
-    {
-      "key": "Update",
       "category": "register_help",
       "source": "src/game/client/components/qmclient/update_client.cpp",
       "context": "",
@@ -63775,21 +63859,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_start.cpp",
       "context": "",
-      "line": 518
-    },
-    {
-      "key": "Update failed. Please try again",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "context": "",
-      "line": 1885
+      "line": 516
     },
     {
       "key": "Update failed. Please try again",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/update_client.cpp",
       "context": "",
-      "line": 877
+      "line": 199
+    },
+    {
+      "key": "Update failed. Please try again",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
+      "context": "",
+      "line": 903
     },
     {
       "key": "Update notice",
@@ -63806,13 +63890,6 @@
       "line": 39
     },
     {
-      "key": "Update package available",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "context": "",
-      "line": 1859
-    },
-    {
       "key": "Update Rate",
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
@@ -63825,6 +63902,13 @@
       "source": "src/game/client/QmUi/cards/QmCardCatalogSearch.cpp",
       "context": "",
       "line": 447
+    },
+    {
+      "key": "Update ready to install",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
+      "context": "",
+      "line": 197
     },
     {
       "key": "Upload .map files. Server and admin passwords: s.",
@@ -63894,7 +63978,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "context": "",
-      "line": 1798
+      "line": 1803
     },
     {
       "key": "Usage: %s %s",
@@ -64686,6 +64770,13 @@
       "source": "src/game/client/components/tclient/statusbar.h",
       "context": "",
       "line": 91
+    },
+    {
+      "key": "Verifying downloaded update...",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
+      "context": "",
+      "line": 196
     },
     {
       "key": "Version",
@@ -67210,9 +67301,9 @@
     {
       "key": "You are already on the latest version",
       "category": "localize_or_localizable",
-      "source": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "source": "src/game/client/components/qmclient/update_client.cpp",
       "context": "",
-      "line": 1895
+      "line": 201
     },
     {
       "key": "You are force-paused for %s seconds.",

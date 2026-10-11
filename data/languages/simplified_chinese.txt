@@ -1931,6 +1931,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == 本服务器已开启作弊功能
 
+Check again
+== 重新检查
+
 check ddnet-saves.txt in config_directory.
 == 请查看 config_directory 下的 ddnet-saves.txt。
 
@@ -1948,6 +1951,9 @@ Check output device, confirm headphones/speakers are still online
 
 Checking for existing player with your name
 == 正在查找该昵称的 DDNet 记录
+
+Checking for updates...
+== 正在检查更新…
 
 Checking Steam...
 == 正在检测 Steam…
@@ -2864,6 +2870,9 @@ Current rescue mode: %s
 Current status
 == 当前状态
 
+Current version: %s
+== 当前版本：%s
+
 Current: Ranks
 == 当前：查分
 
@@ -3413,6 +3422,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == 放弃更改
 
+Discard update
+== 丢弃更新
+
 Disconnect
 == 断开连接
 
@@ -3575,8 +3587,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == 确定要下载此资源吗？
 
+Download update
+== 下载更新
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== 下载已校验。点击“退出并安装”可替换当前版本，设置会保留。点击“稍后”将在退出客户端时安装。
+
 Downloaded
 == 已下载
+
+Downloaded: %.1f MiB (total size unknown)
+== 已下载：%.1f MiB（总大小未知）
 
 Downloading map
 == 正在下载地图
@@ -4508,6 +4529,9 @@ Execute the specified file
 Existing Player
 == 玩家已存在
 
+Exit and install
+== 退出并安装
+
 Exit replay view
 == 退出回放查看
 
@@ -4693,6 +4717,9 @@ Favorites
 
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood：tokens + 12 widgets
+
+Feature guide and announcements
+== 功能指南与公告
 
 Feature Search
 == 功能搜索
@@ -6485,6 +6512,12 @@ Latency compensation
 Latency Jitter
 == 延迟抖动
 
+Later
+== 稍后
+
+Latest release: %s
+== 最新发布：%s
+
 Latin font
 == 拉丁文字字体
 
@@ -7715,9 +7748,6 @@ Netversion
 Network
 == 网络
 
-Network error
-== 网络错误
-
 Network timeout
 == 网络超时
 
@@ -7759,6 +7789,9 @@ New preset name
 
 New random timeout code
 == 随机生成新的超时代码
+
+New version available
+== 有新版本可用
 
 News
 == 新闻
@@ -9632,6 +9665,9 @@ Relative Y position of the draggable back button
 Release notes
 == 更新说明
 
+Release page
+== 版本发布页
+
 Reload
 == 重新加载
 
@@ -10678,6 +10714,9 @@ Selected part: %d
 
 Selected timertype is not supported by your client
 == 你当前客户端不支持所选计时器类型
+
+Selecting download source...
+== 正在选择下载源…
 
 Selection
 == 已选项
@@ -13181,9 +13220,6 @@ The server is running a non-standard tuning on a pure game type.
 The server rejected the map upload.
 == 服务器拒绝了地图上传。
 
-The update is ready and will be installed when you exit.
-== 更新已准备就绪，将在退出客户端时安装。
-
 The watermarked screenshot was saved next to the original
 == 带水印的截图已保存到原图旁边
 
@@ -14096,11 +14132,11 @@ Update notice
 Update or add a specific war group
 == 更新或添加指定敌对分组
 
-Update package available
-== 此版本有可下载的更新包
-
 Update Rate
 == 客户端刷新率
+
+Update ready to install
+== 更新已准备就绪，可以安装
 
 Upload .map files. Server and admin passwords: s.
 == 上传 .map 文件；服务器密码和管理密码均为 s。
@@ -14329,6 +14365,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == 速度
+
+Verifying downloaded update...
+== 正在校验已下载的更新…
 
 Version
 == 版本

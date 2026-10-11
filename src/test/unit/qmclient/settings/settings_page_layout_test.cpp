@@ -14,6 +14,26 @@
 
 #include <gtest/gtest.h>
 
+TEST(SettingsPageLayout, UpdateContentFitsShortViewportAtLargeScale)
+{
+	const CUIRect Content{20, 60, 420, 148};
+	const float Scale = ui_widget::ResolveUpdatePanelContentScale(Content, 2.0f);
+	EXPECT_GT(Scale, 0.0f);
+	EXPECT_LT(Scale, 1.0f);
+	// 两排操作、状态、版本和下载进度之外，仍可显示至少两行发布说明。
+	const float BodySize = ui_token::font::BODY * Scale;
+	const float Gap = ui_token::spacing::MD * Scale;
+	const float Actions = 2.0f * BodySize * ui_token::secondary_panel::UPDATE_ACTION_LINE_FACTOR + 2.0f * Gap;
+	const float StatusVersionsProgress = BodySize * (1.6f + 3.4f + 1.7f) + 3.0f * Gap;
+	EXPECT_GE(Content.h - Actions - StatusVersionsProgress, 2.0f * BodySize);
+}
+
+TEST(SettingsPageLayout, UpdateContentKeepsRequestedScaleWhenSpaceAllows)
+{
+	EXPECT_FLOAT_EQ(ui_widget::ResolveUpdatePanelContentScale({0, 0, 600, 350}, 1.0f), 1.0f);
+	EXPECT_FLOAT_EQ(ui_widget::ResolveUpdatePanelContentScale({0, 0, 600, 350}, 0.5f), 0.5f);
+}
+
 #include <array>
 #include <limits>
 #include <string>

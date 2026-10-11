@@ -1,8 +1,8 @@
 {
   "summary": {
-    "must_i18n": 9775,
-    "business_data": 13846,
-    "test_only": 5457,
+    "must_i18n": 9788,
+    "business_data": 13842,
+    "test_only": 5460,
     "needs_review": 579,
     "violation": 0
   },
@@ -49352,20 +49352,6 @@
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 275,
-      "text": "(Fetching Update Info)",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/menus_start.cpp",
-      "line": 275,
-      "text": "Check for updates",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/menus_start.cpp",
       "line": 290,
       "text": "Quit",
       "category": "must_i18n",
@@ -49401,133 +49387,133 @@
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 317,
+      "line": 316,
       "text": "Run server",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 317,
+      "line": 316,
       "text": "Stop server",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 330,
+      "line": 329,
       "text": "Editor",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 337,
+      "line": 336,
       "text": "Demos",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 343,
+      "line": 342,
       "text": "Play",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 416,
+      "line": 415,
       "text": "Quit",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 430,
+      "line": 429,
       "text": "Settings",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 434,
+      "line": 433,
       "text": "Check for updates",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 434,
+      "line": 433,
       "text": "New features",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 434,
+      "line": 433,
       "text": "New features (unread)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 445,
+      "line": 443,
       "text": "Run server",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 445,
+      "line": 443,
       "text": "Stop server",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 459,
+      "line": 457,
       "text": "Editor",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 467,
+      "line": 465,
       "text": "Demos",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 474,
+      "line": 472,
       "text": "Play",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 518,
+      "line": 516,
       "text": "Update failed. Please try again",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 523,
+      "line": 521,
       "text": "(Fetching Update Info)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 527,
+      "line": 525,
       "text": "(Update required)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 531,
+      "line": 529,
       "text": "(On Latest)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -53797,21 +53783,35 @@
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1548,
+      "line": 1527,
+      "text": "Feature guide and announcements",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 1546,
       "text": "Open folder",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1548,
+      "line": 1546,
       "text": "Publish",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1548,
+      "line": 1546,
+      "text": "Reload",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 1556,
       "text": "Reload",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -53819,90 +53819,104 @@
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "line": 1558,
-      "text": "Reload",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1560,
       "text": "Publish",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1562,
+      "line": 1560,
       "text": "Open folder",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1572,
+      "line": 1570,
       "text": "Publishing…",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1575,
+      "line": 1573,
       "text": "Publish failed",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1576,
+      "line": 1574,
       "text": "Published",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1579,
+      "line": 1577,
       "text": "Draft file is empty",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1593,
+      "line": 1588,
+      "text": "Check for updates",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 1588,
       "text": "Close",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1642,
+      "line": 1592,
+      "text": "Check for updates",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 1598,
+      "text": "Close",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 1647,
       "text": "Open settings",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1736,
+      "line": 1741,
       "text": "Settings",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1738,
+      "line": 1743,
       "text": "Entry: %s",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1774,
+      "line": 1779,
       "text": "Open settings",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1798,
+      "line": 1803,
       "text": "Usage: %s",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -53916,141 +53930,141 @@
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1859,
-      "text": "Update package available",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1860,
+      "line": 1865,
       "text": "No downloadable portable package for this version",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1861,
+      "line": 1866,
       "text": "No compatible Windows update package for this version",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1883,
-      "text": "Update",
+      "line": 1877,
+      "text": "Current version: %s",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1885,
-      "text": "Network error",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1885,
-      "text": "Update failed. Please try again",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1887,
-      "text": "The update is ready and will be installed when you exit.",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1889,
-      "text": "(Fetching Update Info)",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1891,
-      "text": "Downloading update...",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1893,
-      "text": "(Update required)",
+      "line": 1882,
+      "text": "Latest release: %s",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "line": 1895,
-      "text": "You are already on the latest version",
+      "text": "Downloaded: %.1f MiB (total size unknown)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1934,
-      "text": "Release notes",
+      "line": 1931,
+      "text": "Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1977,
+      "line": 1991,
       "text": "No release notes provided",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 2027,
+      "line": 2000,
+      "text": "Release notes",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 2048,
       "text": "Cancel",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 2028,
-      "text": "Quit",
+      "line": 2049,
+      "text": "Exit and install",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 2029,
-      "text": "Download",
+      "line": 2050,
+      "text": "Download update",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 2030,
+      "line": 2051,
       "text": "Retry",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 2031,
+      "line": 2052,
       "text": "Check for updates",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 2033,
-      "text": "Close",
+      "line": 2054,
+      "text": "Check again",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
       "line": 2054,
+      "text": "Discard update",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 2055,
+      "text": "New features",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 2056,
       "text": "Close",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 2056,
+      "text": "Later",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 2062,
+      "text": "Release page",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
+      "line": 2088,
+      "text": "Release page",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
@@ -55547,21 +55561,98 @@
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 877,
-      "text": "Update failed. Please try again",
+      "line": 193,
+      "text": "Checking for updates...",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 879,
+      "line": 194,
+      "text": "Selecting download source...",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 195,
+      "text": "Downloading update...",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 196,
+      "text": "Verifying downloaded update...",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 197,
+      "text": "Update ready to install",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 198,
       "text": "Installing update. Please wait...",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 880,
+      "line": 199,
+      "text": "Update failed. Please try again",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 200,
+      "text": "New version available",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 201,
+      "text": "You are already on the latest version",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 202,
+      "text": "Check for updates",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 204,
+      "text": "Check for updates",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 903,
+      "text": "Update failed. Please try again",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 905,
+      "text": "Installing update. Please wait...",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/update_client.cpp",
+      "line": 906,
       "text": "Downloading update...",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -124387,84 +124478,84 @@
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 343,
+      "line": 342,
       "text": "Start menu",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 430,
+      "line": 429,
       "text": "settings",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 445,
+      "line": 443,
       "text": "local_server",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 459,
+      "line": 457,
       "text": "editor",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 467,
+      "line": 465,
       "text": "demos",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 474,
+      "line": 472,
       "text": "play_game",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 474,
+      "line": 472,
       "text": "Start menu",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 480,
+      "line": 478,
       "text": "images=%d",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 481,
+      "line": 479,
       "text": "start_menu_main_buttons",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 499,
+      "line": 497,
       "text": " %s",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 544,
+      "line": 542,
       "text": "start_menu_version_console",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/menus_start.cpp",
-      "line": 552,
+      "line": 550,
       "text": "start_menu_total",
       "category": "business_data",
       "reason": "command, config, or machine token"
@@ -133578,87 +133669,59 @@
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1524,
-      "text": "%s %s",
-      "category": "business_data",
-      "reason": "display formatting template"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1565,
+      "line": 1563,
       "text": "qmclient",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1694,
+      "line": 1699,
       "text": "%d.",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1736,
+      "line": 1741,
       "text": "%s → QmClient → %s → %s",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1825,
+      "line": 1827,
       "text": "popup_state=%d",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1825,
+      "line": 1827,
       "text": "qm-update",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1828,
+      "line": 1830,
       "text": "qm_update_popup",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1900,
-      "text": "QmClient %s%s%s",
-      "category": "business_data",
-      "reason": "display formatting template"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1901,
-      "text": "",
-      "category": "business_data",
-      "reason": "empty or whitespace literal"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1908,
+      "line": 1893,
       "text": "%.1f / %.1f MiB (%d%%)",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 1958,
+      "line": 1972,
       "text": ".",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
-    },
-    {
-      "file": "src/game/client/components/qmclient/menus_qmclient.cpp",
-      "line": 2033,
-      "text": "GitHub",
-      "category": "business_data",
-      "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/qmclient/modes.cpp",
@@ -141950,364 +142013,364 @@
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 206,
+      "line": 231,
       "text": "QmClient-Setup.ini",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 219,
+      "line": 244,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 235,
+      "line": 260,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 280,
+      "line": 305,
       "text": "QmClient-Setup.ini",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 283,
+      "line": 308,
       "text": "qmclient/update-%d-%llu",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 284,
+      "line": 309,
       "text": "qmclient",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 292,
+      "line": 317,
       "text": "%s/%s.%d.tmp",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 309,
+      "line": 334,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 321,
+      "line": 346,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 391,
+      "line": 416,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 391,
+      "line": 416,
       "text": " (direct fallback)",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 391,
+      "line": 416,
       "text": "Checking approved metadata source: %s%s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 391,
+      "line": 416,
       "text": "qm-update",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 398,
+      "line": 423,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 425,
+      "line": 451,
       "text": "0",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 449,
+      "line": 475,
       "text": "qm-update",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 449,
+      "line": 475,
       "text": "Update cancelled",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 467,
+      "line": 493,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 542,
+      "line": 568,
       "text": "Package remained below 100 KiB/s for 5 seconds; switching approved source",
       "category": "business_data",
       "reason": "MIME type or protocol metadata"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 542,
+      "line": 568,
       "text": "qm-update",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 564,
+      "line": 590,
       "text": "qm-update",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 564,
+      "line": 590,
       "text": "release metadata rejected: %s",
       "category": "business_data",
       "reason": "console command format template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 569,
+      "line": 595,
       "text": "QmClient-Setup.ini",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 571,
+      "line": 597,
       "text": "0",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 576,
+      "line": 602,
       "text": "qm-update",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 576,
+      "line": 602,
       "text": "release_info version=%s newer=%d package_available=%d",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 610,
+      "line": 636,
       "text": "Official proxy route failed; trying one direct route",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 610,
+      "line": 636,
       "text": "qm-update",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 618,
+      "line": 644,
       "text": "qm-update",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 618,
+      "line": 644,
       "text": "Trying next approved update source after: %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 628,
+      "line": 654,
       "text": "qm-update",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 628,
+      "line": 654,
       "text": "update download or validation failed: %s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 676,
+      "line": 702,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 711,
+      "line": 737,
       "text": "qmclient",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 716,
+      "line": 742,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 717,
+      "line": 743,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 723,
+      "line": 749,
       "text": "%s/QmClient-Setup-%d.exe",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 732,
+      "line": 758,
       "text": "%s/qmclient",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 739,
+      "line": 765,
       "text": "%s/QmClient-Updater-%d.exe",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 742,
+      "line": 768,
       "text": "QmClient-Updater.exe",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 760,
+      "line": 786,
       "text": "%s/qmclient",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 766,
+      "line": 792,
       "text": "%s/qmclient/QmClient-Updater-%d.exe",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 795,
+      "line": 821,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 796,
+      "line": 822,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 797,
+      "line": 823,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 798,
+      "line": 824,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 799,
+      "line": 825,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 815,
+      "line": 841,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 819,
+      "line": 845,
       "text": "--package",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 823,
+      "line": 849,
       "text": "--manifest",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 827,
+      "line": 853,
       "text": "--install",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 832,
+      "line": 858,
       "text": "--setup",
       "category": "business_data",
       "reason": "numeric display format template"
@@ -151281,27 +151344,6 @@
     },
     {
       "file": "src/game/client/components/tclient/tclient.h",
-      "line": 523,
-      "text": "",
-      "category": "business_data",
-      "reason": "empty or whitespace literal"
-    },
-    {
-      "file": "src/game/client/components/tclient/tclient.h",
-      "line": 524,
-      "text": "",
-      "category": "business_data",
-      "reason": "empty or whitespace literal"
-    },
-    {
-      "file": "src/game/client/components/tclient/tclient.h",
-      "line": 525,
-      "text": "",
-      "category": "business_data",
-      "reason": "empty or whitespace literal"
-    },
-    {
-      "file": "src/game/client/components/tclient/tclient.h",
       "line": 526,
       "text": "",
       "category": "business_data",
@@ -151323,14 +151365,35 @@
     },
     {
       "file": "src/game/client/components/tclient/tclient.h",
-      "line": 558,
+      "line": 529,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/tclient/tclient.h",
-      "line": 559,
+      "line": 530,
+      "text": "",
+      "category": "business_data",
+      "reason": "empty or whitespace literal"
+    },
+    {
+      "file": "src/game/client/components/tclient/tclient.h",
+      "line": 531,
+      "text": "",
+      "category": "business_data",
+      "reason": "empty or whitespace literal"
+    },
+    {
+      "file": "src/game/client/components/tclient/tclient.h",
+      "line": 561,
+      "text": "",
+      "category": "business_data",
+      "reason": "empty or whitespace literal"
+    },
+    {
+      "file": "src/game/client/components/tclient/tclient.h",
+      "line": 562,
       "text": "0",
       "category": "business_data",
       "reason": "numeric display format template"
@@ -184014,6 +184077,27 @@
       "reason": "test fixture or assertion text"
     },
     {
+      "file": "src/test/integration/qmclient/client/qm_serverlist_recovery_test.cpp",
+      "line": 303,
+      "text": "QMSL1 ",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/client/qm_serverlist_recovery_test.cpp",
+      "line": 312,
+      "text": "\\n<html>not JSON</html>",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/client/qm_serverlist_recovery_test.cpp",
+      "line": 312,
+      "text": "QMSL1 ",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
       "file": "src/test/integration/qmclient/client/qm_sponsors_draft_test.cpp",
       "line": 38,
       "text": "- Alice\\n",
@@ -198225,98 +198309,98 @@
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 213,
+      "line": 246,
       "text": " + std::string(64, 'a') + R",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 339,
+      "line": 372,
       "text": " + std::string(64, 'a') + R",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 354,
+      "line": 387,
       "text": "Invalid GitHub release metadata",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 364,
+      "line": 397,
       "text": "GitHub release version is not newer",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 377,
+      "line": 410,
       "text": "GitHub release version is not newer",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 391,
+      "line": 424,
       "text": "GitHub release version is not newer",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 404,
+      "line": 437,
       "text": "GitHub release is missing a required update asset",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 418,
+      "line": 451,
       "text": "GitHub release version is not newer",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 432,
+      "line": 465,
       "text": "GitHub release version is not newer",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 442,
+      "line": 475,
       "text": "## Changes\\nFixed update checks",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 470,
+      "line": 503,
       "text": "Packages will follow",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 502,
+      "line": 535,
       "text": "<html>gateway error</html>",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 550,
+      "line": 583,
       "text": ",\"body\":\"Release notes\"",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qmclient_update_manifest_test.cpp",
-      "line": 550,
+      "line": 583,
       "text": "Release notes",
       "category": "test_only",
       "reason": "test fixture or assertion text"
@@ -200570,7 +200654,7 @@
     },
     {
       "file": "src/test/unit/qmclient/settings/settings_page_layout_test.cpp",
-      "line": 37,
+      "line": 57,
       "text": " scale=",
       "category": "test_only",
       "reason": "test fixture or assertion text"
@@ -207453,119 +207537,119 @@
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 265,
+      "line": 290,
       "text": "Update sources are temporarily unavailable",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 287,
+      "line": 312,
       "text": "Failed to create the update working directory",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 412,
+      "line": 438,
       "text": "Automatic updates require Windows x64",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 440,
+      "line": 466,
       "text": "Update sources are temporarily unavailable",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 627,
+      "line": 653,
       "text": "Update failed",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 643,
+      "line": 669,
       "text": "All approved update sources failed to download",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 643,
+      "line": 669,
       "text": "Failed to assemble the downloaded update package",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 657,
+      "line": 683,
       "text": "Failed to read the downloaded update manifest",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 664,
+      "line": 690,
       "text": "Failed to read the downloaded manifest signature",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 671,
+      "line": 697,
       "text": "Failed to read the downloaded package signature",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 692,
+      "line": 718,
       "text": "Update manifest does not match the selected release",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 703,
+      "line": 729,
       "text": "Downloaded update package size or SHA-256 is invalid",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 713,
+      "line": 739,
       "text": "Failed to create the update working directory",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 726,
+      "line": 752,
       "text": "Failed to prepare the Setup executable",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 735,
+      "line": 761,
       "text": "Failed to create the Setup session directory",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 747,
+      "line": 773,
       "text": "Failed to prepare the Setup session helper",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
     },
     {
       "file": "src/game/client/components/qmclient/update_client.cpp",
-      "line": 763,
+      "line": 789,
       "text": "Failed to create the update working directory",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"

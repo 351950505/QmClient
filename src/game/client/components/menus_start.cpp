@@ -271,8 +271,8 @@ void CMenusStart::RenderStartMenuImpl(CUIRect MainView, bool UseV2Layout)
 		CUIRect NewFeaturesButton;
 		ComputeMainButtons(Menu, UseV2Layout, aMenuButtons, NewFeaturesButton);
 		const auto &Update = GameClient()->m_TClient;
-		const bool UpdateDisabled = Update.IsUpdateChecking() || Update.IsUpdateDownloading() || Update.m_UpdateReady || Update.m_UpdateInstallerStarted;
-		const char *pUpdateLabel = Update.IsUpdateChecking() ? Localize("(Fetching Update Info)") : Localize("Check for updates");
+		// 更新入口始终允许查看；重开详情保留下载和已准备的安装包。
+		const char *pUpdateLabel = Update.QmClientUpdateStatusText();
 
 		if(UseV2Layout)
 		{
@@ -304,10 +304,9 @@ void CMenusStart::RenderStartMenuImpl(CUIRect MainView, bool UseV2Layout)
 				NewPage = CMenus::PAGE_SETTINGS;
 
 			static CButtonContainer s_QmUpdateButton, s_QmNewFeaturesButton;
-			const int QmAction = ui_widget::SplitActionButton(Ctx, &s_QmUpdateButton, pUpdateLabel, &s_QmNewFeaturesButton, GameClient()->m_QmClient.HasUnreadQmNews() ? Localize("New features (unread)") : Localize("New features"), NewFeaturesButton, UpdateDisabled, false, EUiButtonGeometry::CONTROL, Localize("Check for updates"), Localize("New features"));
+			const int QmAction = ui_widget::SplitActionButton(Ctx, &s_QmUpdateButton, pUpdateLabel, &s_QmNewFeaturesButton, GameClient()->m_QmClient.HasUnreadQmNews() ? Localize("New features (unread)") : Localize("New features"), NewFeaturesButton, false, false, EUiButtonGeometry::CONTROL, Localize("Check for updates"), Localize("New features"));
 			if(QmAction == 0)
 			{
-				GameClient()->m_TClient.RequestQmClientUpdateCheck();
 				GameClient()->m_Menus.ShowQmUpdatePopup();
 			}
 			else if(QmAction == 1)
@@ -431,10 +430,9 @@ void CMenusStart::RenderStartMenuImpl(CUIRect MainView, bool UseV2Layout)
 				NewPage = CMenus::PAGE_SETTINGS;
 
 			static CButtonContainer s_QmUpdateButton, s_QmNewFeaturesButton;
-			const int QmAction = ui_widget::SplitActionButton(ui_widget::ControlContext(Ui()), &s_QmUpdateButton, pUpdateLabel, &s_QmNewFeaturesButton, GameClient()->m_QmClient.HasUnreadQmNews() ? Localize("New features (unread)") : Localize("New features"), NewFeaturesButton, UpdateDisabled, false, EUiButtonGeometry::START_MENU, Localize("Check for updates"), Localize("New features"));
+			const int QmAction = ui_widget::SplitActionButton(ui_widget::ControlContext(Ui()), &s_QmUpdateButton, pUpdateLabel, &s_QmNewFeaturesButton, GameClient()->m_QmClient.HasUnreadQmNews() ? Localize("New features (unread)") : Localize("New features"), NewFeaturesButton, false, false, EUiButtonGeometry::START_MENU, Localize("Check for updates"), Localize("New features"));
 			if(QmAction == 0)
 			{
-				GameClient()->m_TClient.RequestQmClientUpdateCheck();
 				GameClient()->m_Menus.ShowQmUpdatePopup();
 			}
 			else if(QmAction == 1)

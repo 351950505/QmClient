@@ -179,6 +179,31 @@ bool CTClient::CanDownloadQmClientUpdate() const
 	return m_FetchedQmClientUpdateInfo && m_UpdateRelease.m_NewVersion && (m_UpdateRelease.m_PackageAvailable || m_UpdateUseSetup);
 }
 
+EQmClientUpdateStatus CTClient::QmClientUpdateStatus() const
+{
+	return ResolveQmClientUpdateStatus(IsUpdateChecking(), IsUpdateDownloading(), m_pUpdatePackageTask != nullptr,
+		m_pUpdatePackageTask && m_pUpdatePackageTask->State() == EHttpState::DONE,
+		m_UpdateReady, m_UpdateInstallerStarted, m_UpdateCheckFailed, m_FetchedQmClientUpdateInfo, m_UpdateRelease.m_NewVersion);
+}
+
+const char *CTClient::QmClientUpdateStatusText() const
+{
+	switch(QmClientUpdateStatus())
+	{
+	case EQmClientUpdateStatus::CHECKING: return Localize("Checking for updates...");
+	case EQmClientUpdateStatus::SELECTING_SOURCE: return Localize("Selecting download source...");
+	case EQmClientUpdateStatus::DOWNLOADING: return Localize("Downloading update...");
+	case EQmClientUpdateStatus::VERIFYING: return Localize("Verifying downloaded update...");
+	case EQmClientUpdateStatus::READY: return Localize("Update ready to install");
+	case EQmClientUpdateStatus::INSTALLING: return Localize("Installing update. Please wait...");
+	case EQmClientUpdateStatus::FAILED: return Localize("Update failed. Please try again");
+	case EQmClientUpdateStatus::AVAILABLE: return Localize("New version available");
+	case EQmClientUpdateStatus::CURRENT: return Localize("You are already on the latest version");
+	case EQmClientUpdateStatus::IDLE: return Localize("Check for updates");
+	}
+	return Localize("Check for updates");
+}
+
 void CTClient::RequestQmClientUpdateDownload()
 {
 	if(IsUpdateChecking() || IsUpdateDownloading() || m_UpdateReady || m_UpdateInstallerStarted || !CanDownloadQmClientUpdate())
@@ -405,6 +430,7 @@ std::shared_ptr<IHttpRequest> CTClient::CreateUpdateInfoRequest(const std::strin
 
 void CTClient::FetchQmClientUpdateInfo()
 {
+	m_QmClientUpdateCheckAttempted = true;
 #if !defined(CONF_FAMILY_WINDOWS) || !defined(CONF_ARCH_AMD64)
 	m_UpdateCheckFailed = true;
 	m_UpdatePopupRequested = true;

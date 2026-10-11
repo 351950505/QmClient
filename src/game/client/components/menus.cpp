@@ -8449,8 +8449,8 @@ void CMenus::ShowQmUpdatePopup()
 	m_QmUpdateScrollReset = true;
 	m_QmUpdatePopupState = -1;
 	auto &Update = GameClient()->m_TClient;
-	if(!Update.m_FetchedQmClientUpdateInfo && !Update.m_UpdateCheckFailed && !Update.m_UpdateReady && !Update.IsUpdateChecking() && !Update.IsUpdateDownloading())
-		Update.RequestQmClientUpdateCheckAndUpdate();
+	if(ShouldStartQmClientUpdateCheckOnOpen(Update.m_QmClientUpdateCheckAttempted, Update.IsUpdateChecking() || Update.IsUpdateDownloading(), Update.m_UpdateReady, Update.m_UpdateInstallerStarted))
+		Update.RequestQmClientUpdateCheck();
 	m_Popup = POPUP_QM_UPDATE;
 }
 
