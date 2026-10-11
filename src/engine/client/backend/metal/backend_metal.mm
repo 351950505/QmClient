@@ -14,7 +14,7 @@
 #endif
 #include <engine/storage.h>
 
-#include <SDL_metal.h>
+#include <SDL3/SDL_metal.h>
 
 #define pi qmclient_carbon_pi
 #import <Metal/Metal.h>
@@ -2117,13 +2117,11 @@ class CCommandProcessorFragment_Metal final : public CCommandProcessorFragment_G
 		return "Metal";
 	}
 
-	void UpdateDrawableSize()
+	void UpdateDrawableSize(int Width, int Height)
 	{
 		if(m_pWindow == nullptr || m_pLayer == nullptr)
 			return;
-		int Width = 0;
-		int Height = 0;
-		SDL_Metal_GetDrawableSize(m_pWindow, &Width, &Height);
+
 		CAMetalLayer *pLayer = (__bridge CAMetalLayer *)m_pLayer;
 		pLayer.drawableSize = CGSizeMake(std::max(Width, 0), std::max(Height, 0));
 		m_DrawableWidth = static_cast<uint32_t>(std::max(Width, 0));
@@ -2168,7 +2166,9 @@ class CCommandProcessorFragment_Metal final : public CCommandProcessorFragment_G
 		DisplaySync = pLayer.displaySyncEnabled ? 1 : 0;
 #endif
 		dbg_msg("gfx/metal", "layer configured: vsync=%d display_sync=%d allows_next_drawable_timeout=%d max_drawables=%lu framebuffer_only=%d presents_with_transaction=%d refresh_hz=%d", m_VSync ? 1 : 0, DisplaySync, pLayer.allowsNextDrawableTimeout ? 1 : 0, static_cast<unsigned long>(pLayer.maximumDrawableCount), pLayer.framebufferOnly ? 1 : 0, pLayer.presentsWithTransaction ? 1 : 0, m_PresentRefreshRateHz);
-		UpdateDrawableSize();
+		int Width = 0, Height = 0;
+		SDL_GetWindowSizeInPixels(m_pWindow, &Width, &Height);
+		UpdateDrawableSize(Width, Height);
 	}
 
 	bool VideoCaptureActive() const
@@ -4414,8 +4414,11 @@ public:
 				return RUN_COMMAND_COMMAND_HANDLED;
 			}
 			case CCommandBuffer::CMD_UPDATE_VIEWPORT:
-				UpdateDrawableSize();
+			{
+				const auto *pCommand = static_cast<const CCommandBuffer::SCommand_Update_Viewport *>(pBaseCommand);
+				UpdateDrawableSize(pCommand->m_DrawableWidth, pCommand->m_DrawableHeight);
 				return RUN_COMMAND_COMMAND_HANDLED;
+			}
 			case CCommandBuffer::CMD_CREATE_BUFFER_OBJECT:
 			{
 				const auto *pCommand = static_cast<const CCommandBuffer::SCommand_CreateBufferObject *>(pBaseCommand);

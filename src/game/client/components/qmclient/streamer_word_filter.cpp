@@ -3,8 +3,10 @@
 #include <base/mem.h>
 #include <base/str.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace
@@ -12,21 +14,121 @@ namespace
 	// 基础词表按完整人名、事件与明确代称维护；不把普通地名、单字或数字当作规则。
 	// 来源与维护边界见 docs/规格/2026-10-11-主播模式内置词过滤.md。
 	constexpr const char *s_apWords[] = {
-		"习近平", "毛泽东", "邓小平", "江泽民", "胡锦涛", "李克强", "李强", "温家宝", "朱镕基",
-		"赵紫阳", "胡耀邦", "华国锋", "刘少奇", "周恩来", "彭德怀", "林彪", "薄熙来", "周永康",
-		"王岐山", "王沪宁", "栗战书", "汪洋", "韩正", "蔡奇", "丁薛祥", "李希", "彭丽媛", "习明泽",
-		"刘晓波", "刘晓霞", "魏京生", "王丹", "吾尔开希", "柴玲", "陈光诚", "高智晟", "郭文贵",
-		"蔡英文", "赖清德", "陈水扁", "李登辉", "李洪志", "达赖喇嘛", "彭立发",
-		"六四", "六四事件", "六四学运", "六四屠杀", "八九六四", "八九学运", "天安门事件", "天安门屠杀",
-		"天安门母亲", "坦克人", "五月三十五日", "白纸运动", "白纸革命", "四通桥", "丰县铁链女",
-		"乌鲁木齐大火", "新疆集中营", "再教育营", "雨伞运动", "反送中", "占领中环", "香港独立",
-		"台湾独立", "西藏独立", "港独", "台独", "藏独", "疆独", "东突厥斯坦", "东伊运",
-		"法轮功", "法轮大法", "大纪元", "明慧网", "九评共产党", "活摘器官", "三退", "退党",
-		"中国共产党", "中共", "文化大革命", "大跃进", "零八宪章", "709大抓捕",
-		"习禁评", "习近评", "习尽平", "刁近平", "习辶斤平", "习大大", "习包子", "包子帝",
-		"庆丰帝", "总加速师", "小熊维尼", "维尼熊",
-		"xijinping", "xjp", "maozedong", "dengxiaoping", "jiangzemin", "hujintao", "likeqiang",
-		"liuxiaobo", "lihongzhi", "falungong", "falundafa", "tiananmenmassacre", "tankman", "freehongkong", "freetibet",
+		"习近平",
+		"毛泽东",
+		"邓小平",
+		"江泽民",
+		"胡锦涛",
+		"李克强",
+		"李强",
+		"温家宝",
+		"朱镕基",
+		"赵紫阳",
+		"胡耀邦",
+		"华国锋",
+		"刘少奇",
+		"周恩来",
+		"彭德怀",
+		"林彪",
+		"薄熙来",
+		"周永康",
+		"王岐山",
+		"王沪宁",
+		"栗战书",
+		"汪洋",
+		"韩正",
+		"蔡奇",
+		"丁薛祥",
+		"李希",
+		"彭丽媛",
+		"习明泽",
+		"刘晓波",
+		"刘晓霞",
+		"魏京生",
+		"王丹",
+		"吾尔开希",
+		"柴玲",
+		"陈光诚",
+		"高智晟",
+		"郭文贵",
+		"蔡英文",
+		"赖清德",
+		"陈水扁",
+		"李登辉",
+		"李洪志",
+		"达赖喇嘛",
+		"彭立发",
+		"六四",
+		"六四事件",
+		"六四学运",
+		"六四屠杀",
+		"八九六四",
+		"八九学运",
+		"天安门事件",
+		"天安门屠杀",
+		"天安门母亲",
+		"坦克人",
+		"五月三十五日",
+		"白纸运动",
+		"白纸革命",
+		"四通桥",
+		"丰县铁链女",
+		"乌鲁木齐大火",
+		"新疆集中营",
+		"再教育营",
+		"雨伞运动",
+		"反送中",
+		"占领中环",
+		"香港独立",
+		"台湾独立",
+		"西藏独立",
+		"港独",
+		"台独",
+		"藏独",
+		"疆独",
+		"东突厥斯坦",
+		"东伊运",
+		"法轮功",
+		"法轮大法",
+		"大纪元",
+		"明慧网",
+		"九评共产党",
+		"活摘器官",
+		"三退",
+		"退党",
+		"中国共产党",
+		"中共",
+		"文化大革命",
+		"大跃进",
+		"零八宪章",
+		"709大抓捕",
+		"习禁评",
+		"习近评",
+		"习尽平",
+		"刁近平",
+		"习辶斤平",
+		"习大大",
+		"习包子",
+		"包子帝",
+		"庆丰帝",
+		"总加速师",
+		"小熊维尼",
+		"维尼熊",
+		"xijinping",
+		"xjp",
+		"maozedong",
+		"dengxiaoping",
+		"jiangzemin",
+		"hujintao",
+		"likeqiang",
+		"liuxiaobo",
+		"lihongzhi",
+		"falungong",
+		"falundafa",
+		"tiananmenmassacre",
+		"tankman",
+		"freehongkong",
+		"freetibet",
 	};
 
 	int Normalize(int Code)
@@ -99,19 +201,48 @@ namespace
 		case U'總': return U'总';
 		case U'師': return U'师';
 		case U'維': return U'维';
-		case U'à': case U'á': case U'â': case U'ä': case U'ā': case U'ǎ': return 'a';
-		case U'è': case U'é': case U'ê': case U'ë': case U'ē': case U'ě': return 'e';
-		case U'ì': case U'í': case U'î': case U'ï': case U'ī': case U'ǐ': return 'i';
-		case U'ò': case U'ó': case U'ô': case U'ö': case U'ō': case U'ǒ': return 'o';
-		case U'ù': case U'ú': case U'û': case U'ü': case U'ū': case U'ǔ': return 'u';
+		case U'à':
+		case U'á':
+		case U'â':
+		case U'ä':
+		case U'ā':
+		case U'ǎ': return 'a';
+		case U'è':
+		case U'é':
+		case U'ê':
+		case U'ë':
+		case U'ē':
+		case U'ě': return 'e';
+		case U'ì':
+		case U'í':
+		case U'î':
+		case U'ï':
+		case U'ī':
+		case U'ǐ': return 'i';
+		case U'ò':
+		case U'ó':
+		case U'ô':
+		case U'ö':
+		case U'ō':
+		case U'ǒ': return 'o';
+		case U'ù':
+		case U'ú':
+		case U'û':
+		case U'ü':
+		case U'ū':
+		case U'ǔ': return 'u';
 		case U'а': return 'a';
 		case U'е': return 'e';
-		case U'і': case U'ι': return 'i';
+		case U'і':
+		case U'ι': return 'i';
 		case U'ј': return 'j';
-		case U'о': case U'ο': return 'o';
-		case U'р': case U'ρ': return 'p';
+		case U'о':
+		case U'ο': return 'o';
+		case U'р':
+		case U'ρ': return 'p';
 		case U'с': return 'c';
-		case U'х': case U'χ': return 'x';
+		case U'х':
+		case U'χ': return 'x';
 		case U'у': return 'y';
 		case U'ѕ': return 's';
 		default: return Code;
@@ -182,24 +313,32 @@ namespace
 		CWordTrie()
 		{
 			for(const char *pWord : s_apWords)
+				Add(pWord);
+		}
+
+		void Add(const char *pWord)
+		{
+			size_t Node = 0;
+			bool Latin = true;
+			for(const char *pCursor = pWord; *pCursor;)
 			{
-				size_t Node = 0;
-				bool Latin = true;
-				for(const char *pCursor = pWord; *pCursor;)
+				const int Code = Normalize(str_utf8_decode(&pCursor));
+				if(IsSeparator(Code))
+					continue;
+				Latin &= IsWordCharacter(Code);
+				const auto It = m_vNodes[Node].m_Children.find(Code);
+				if(It != m_vNodes[Node].m_Children.end())
+					Node = It->second;
+				else
 				{
-					const int Code = Normalize(str_utf8_decode(&pCursor));
-					Latin &= IsWordCharacter(Code);
-					const auto It = m_vNodes[Node].m_Children.find(Code);
-					if(It != m_vNodes[Node].m_Children.end())
-						Node = It->second;
-					else
-					{
-						const size_t Next = m_vNodes.size();
-						m_vNodes[Node].m_Children.emplace(Code, Next);
-						m_vNodes.emplace_back();
-						Node = Next;
-					}
+					const size_t Next = m_vNodes.size();
+					m_vNodes[Node].m_Children.emplace(Code, Next);
+					m_vNodes.emplace_back();
+					Node = Next;
 				}
+			}
+			if(Node != 0)
+			{
 				m_vNodes[Node].m_Terminal = true;
 				m_vNodes[Node].m_RequiresWordBoundary = Latin;
 			}
@@ -245,6 +384,37 @@ namespace
 			return pEnd;
 		}
 	};
+
+	struct SSharedFilter
+	{
+		CWordTrie m_Trie;
+		std::vector<std::string> m_vAdditionalWords;
+		uint64_t m_Revision = 1;
+	};
+
+	SSharedFilter &SharedFilter()
+	{
+		static SSharedFilter s_Filter;
+		return s_Filter;
+	}
+}
+
+void QmStreamerWordFilter::SetAdditionalWords(const std::vector<std::string> &vWords)
+{
+	auto &Filter = SharedFilter();
+	if(Filter.m_vAdditionalWords == vWords)
+		return;
+	CWordTrie Trie;
+	for(const std::string &Word : vWords)
+		Trie.Add(Word.c_str());
+	Filter.m_Trie = std::move(Trie);
+	Filter.m_vAdditionalWords = vWords;
+	++Filter.m_Revision;
+}
+
+uint64_t QmStreamerWordFilter::Revision()
+{
+	return SharedFilter().m_Revision;
 }
 
 bool QmStreamerWordFilter::Filter(char *pText, bool Enabled)
@@ -252,18 +422,19 @@ bool QmStreamerWordFilter::Filter(char *pText, bool Enabled)
 	if(!Enabled || pText == nullptr || pText[0] == '\0')
 		return false;
 
-	// 初始化后词表只读；每次过滤直接在调用方缓冲区压缩，不分配临时字符数组。
-	static const CWordTrie s_Trie;
+	// 过滤只读取已发布的词表；直接在调用方缓冲区压缩。
+	const CWordTrie &Trie = SharedFilter().m_Trie;
 	bool Changed = false;
 	const char *pRead = pText;
 	char *pWrite = pText;
 	while(*pRead)
 	{
-		if(const char *pEnd = s_Trie.MatchEnd(pText, pRead))
+		if(const char *pEnd = Trie.MatchEnd(pText, pRead))
 		{
-			// 最短规则为三个 ASCII 字节或两个汉字，固定三个星号不会增长输入。
-			mem_copy(pWrite, "***", 3);
-			pWrite += 3;
+			// 外部词表可有短 ASCII 词；替换长度不能超过命中片段。
+			const size_t ReplacementLength = std::min(size_t{3}, static_cast<size_t>(pEnd - pRead));
+			mem_copy(pWrite, "***", ReplacementLength);
+			pWrite += ReplacementLength;
 			pRead = pEnd;
 			Changed = true;
 		}

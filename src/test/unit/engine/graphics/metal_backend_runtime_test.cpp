@@ -4,8 +4,8 @@
 #include <engine/graphics.h>
 #include <engine/storage.h>
 
-#include <SDL.h>
-#include <SDL_metal.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_metal.h>
 #include <gtest/gtest.h>
 #include <test/test.h>
 
@@ -50,13 +50,13 @@ namespace
 
 		bool Init()
 		{
-			if(SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
+			if(!SDL_InitSubSystem(SDL_INIT_VIDEO))
 			{
 				m_Error = SDL_GetError();
 				return false;
 			}
 
-			m_pWindow = SDL_CreateWindow("QmClient Metal runtime test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 32, 32, SDL_WINDOW_HIDDEN | SDL_WINDOW_METAL);
+			m_pWindow = SDL_CreateWindow("QmClient Metal runtime test", 32, 32, SDL_WINDOW_HIDDEN | SDL_WINDOW_METAL);
 			if(m_pWindow == nullptr)
 			{
 				m_Error = SDL_GetError();
@@ -148,13 +148,16 @@ namespace
 		{
 			if(m_pWindow == nullptr || m_pBackend == nullptr)
 				return false;
-			SDL_SetWindowSize(m_pWindow, Width, Height);
+			if(!SDL_SetWindowSize(m_pWindow, Width, Height) || !SDL_SyncWindow(m_pWindow))
+				return false;
 			SDL_PumpEvents();
 			CCommandBuffer::SCommand_Update_Viewport UpdateViewport;
 			UpdateViewport.m_X = 0;
 			UpdateViewport.m_Y = 0;
 			UpdateViewport.m_Width = Width;
 			UpdateViewport.m_Height = Height;
+			if(!SDL_GetWindowSizeInPixels(m_pWindow, &UpdateViewport.m_DrawableWidth, &UpdateViewport.m_DrawableHeight))
+				return false;
 			UpdateViewport.m_ByResize = true;
 			return m_pBackend->RunCommand(&UpdateViewport) == RUN_COMMAND_COMMAND_HANDLED;
 		}
@@ -163,8 +166,7 @@ namespace
 		{
 			if(m_pWindow == nullptr)
 				return false;
-			SDL_Metal_GetDrawableSize(m_pWindow, &Width, &Height);
-			return Width > 0 && Height > 0;
+			return SDL_GetWindowSizeInPixels(m_pWindow, &Width, &Height) && Width > 0 && Height > 0;
 		}
 
 		bool ReadPresentedImageData(uint32_t &Width, uint32_t &Height, CImageInfo::EImageFormat &Format, std::vector<uint8_t> &vData) const

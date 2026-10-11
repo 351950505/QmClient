@@ -753,9 +753,9 @@ void CMenus::RenderServerbrowserServerList(CUIRect View, bool &WasListboxItemAct
 						RefreshBrowserTab(true);
 						Connect("localhost");
 					}
-					else if(GameClient()->m_LocalServer.RunServer({}))
+					else
 					{
-						Connect("localhost");
+						GameClient()->m_LocalServer.RunServer({}, true);
 					}
 				}
 			}
@@ -1461,118 +1461,23 @@ void CMenus::PopupConfirmSwitchServer()
 void CMenus::RenderServerbrowserFilters(CUIRect View)
 {
 	const float RowHeight = 18.0f;
-	const float FontSize = (RowHeight - 4.0f) * CUi::ms_FontmodHeight; // based on DoButton_CheckBox
-
 	View.Margin(5.0f, &View);
 
 	CUIRect Button, ResetButton;
 	View.HSplitBottom(RowHeight, &View, &ResetButton);
 	View.HSplitBottom(3.0f, &View, nullptr);
 
-	View.HSplitTop(RowHeight, &Button, &View);
-	if(DoButton_CheckBox(&g_Config.m_BrFilterEmpty, Localize("Has people playing"), g_Config.m_BrFilterEmpty, &Button))
-		g_Config.m_BrFilterEmpty ^= 1;
-
-	View.HSplitTop(RowHeight, &Button, &View);
-	if(DoButton_CheckBox(&g_Config.m_BrFilterSpectators, Localize("Count players only"), g_Config.m_BrFilterSpectators, &Button))
-		g_Config.m_BrFilterSpectators ^= 1;
-
-	View.HSplitTop(RowHeight, &Button, &View);
-	if(DoButton_CheckBox(&g_Config.m_BrFilterFull, Localize("Server not full"), g_Config.m_BrFilterFull, &Button))
-		g_Config.m_BrFilterFull ^= 1;
-
-	View.HSplitTop(RowHeight, &Button, &View);
-	if(DoButton_CheckBox(&g_Config.m_BrFilterFriends, Localize("Show friends only"), g_Config.m_BrFilterFriends, &Button))
-		g_Config.m_BrFilterFriends ^= 1;
-
-	View.HSplitTop(RowHeight, &Button, &View);
-	if(DoButton_CheckBox(&g_Config.m_BrFilterPw, Localize("No password"), g_Config.m_BrFilterPw, &Button))
-		g_Config.m_BrFilterPw ^= 1;
-
-	View.HSplitTop(RowHeight, &Button, &View);
-	if(DoButton_CheckBox(&g_Config.m_BrFilterLogin, Localize("No login required"), g_Config.m_BrFilterLogin, &Button))
-		g_Config.m_BrFilterLogin ^= 1;
-
-	View.HSplitTop(RowHeight, &Button, &View);
-	if(DoButton_CheckBox(&g_Config.m_BrFilterGametypeStrict, Localize("Strict gametype filter"), g_Config.m_BrFilterGametypeStrict, &Button))
-		g_Config.m_BrFilterGametypeStrict ^= 1;
-
-	View.HSplitTop(3.0f, nullptr, &View);
-	View.HSplitTop(RowHeight, &Button, &View);
-	Ui()->DoLabel(&Button, Localize("Game types:"), FontSize, TEXTALIGN_ML);
-	Button.VSplitRight(60.0f, nullptr, &Button);
-	static CLineInput s_GametypeInput(g_Config.m_BrFilterGametype, sizeof(g_Config.m_BrFilterGametype));
-	const IUiContext ServerBrowserGameTypeCtx = SettingsUiContext("server_browser_filter_game_type");
-	ui_widget::SInputFieldOptions GameTypeOptions;
-	GameTypeOptions.m_FontSize = FontSize;
-	if(ui_widget::InputField(ServerBrowserGameTypeCtx, &s_GametypeInput, Button, GameTypeOptions).m_Changed)
-		Client()->ServerBrowserUpdate();
-
-	// server address
-	View.HSplitTop(6.0f, nullptr, &View);
-	View.HSplitTop(RowHeight, &Button, &View);
-	View.HSplitTop(6.0f, nullptr, &View);
-	Ui()->DoLabel(&Button, Localize("Server address:"), FontSize, TEXTALIGN_ML);
-	Button.VSplitRight(60.0f, nullptr, &Button);
-	static CLineInput s_FilterServerAddressInput(g_Config.m_BrFilterServerAddress, sizeof(g_Config.m_BrFilterServerAddress));
-	const IUiContext ServerBrowserFilterAddressCtx = SettingsUiContext("server_browser_filter_address");
-	ui_widget::SInputFieldOptions FilterAddressOptions;
-	FilterAddressOptions.m_FontSize = FontSize;
-	if(ui_widget::InputField(ServerBrowserFilterAddressCtx, &s_FilterServerAddressInput, Button, FilterAddressOptions).m_Changed)
-		Client()->ServerBrowserUpdate();
-
-	// player country
-	{
-		CUIRect Flag;
-		View.HSplitTop(RowHeight, &Button, &View);
-		Button.VSplitRight(60.0f, &Button, &Flag);
-		if(DoButton_CheckBox(&g_Config.m_BrFilterCountry, Localize("Player country:"), g_Config.m_BrFilterCountry, &Button))
-			g_Config.m_BrFilterCountry ^= 1;
-
-		const float OldWidth = Flag.w;
-		Flag.w = Flag.h * 2.0f;
-		Flag.x += (OldWidth - Flag.w) / 2.0f;
-		GameClient()->m_CountryFlags.Render(g_Config.m_BrFilterCountryIndex, ColorRGBA(1.0f, 1.0f, 1.0f, Ui()->HotItem() == &g_Config.m_BrFilterCountryIndex ? 1.0f : (g_Config.m_BrFilterCountry ? 0.9f : 0.5f)), Flag.x, Flag.y, Flag.w, Flag.h);
-
-		if(Ui()->DoButtonLogic(&g_Config.m_BrFilterCountryIndex, 0, &Flag, BUTTONFLAG_LEFT))
-		{
-			static SPopupMenuId s_PopupCountryId;
-			static SPopupCountrySelectionContext s_PopupCountryContext;
-			s_PopupCountryContext.m_pMenus = this;
-			s_PopupCountryContext.m_Selection = g_Config.m_BrFilterCountryIndex;
-			s_PopupCountryContext.m_New = true;
-			const SPopupMenuProperties PopupProps = ui_widget::SecondaryPanelProperties();
-			const CUIRect PanelRect = ResolveSettingsSecondaryPanelRect(*Ui()->Screen());
-			Ui()->DoPopupMenu(&s_PopupCountryId, Flag.x, Flag.y + Flag.h, PanelRect.w, PanelRect.h, &s_PopupCountryContext, PopupCountrySelection, PopupProps);
-		}
-	}
-
-	View.HSplitTop(RowHeight, &Button, &View);
-	if(DoButton_CheckBox(&g_Config.m_BrFilterConnectingPlayers, Localize("Filter connecting players"), g_Config.m_BrFilterConnectingPlayers, &Button))
-		g_Config.m_BrFilterConnectingPlayers ^= 1;
-
-	// map finish filters
-	if(ServerBrowser()->CommunityCache().AnyRanksAvailable())
-	{
-		View.HSplitTop(RowHeight, &Button, &View);
-		if(DoButton_CheckBox(&g_Config.m_BrIndicateFinished, Localize("Indicate map finish"), g_Config.m_BrIndicateFinished, &Button))
-		{
-			g_Config.m_BrIndicateFinished ^= 1;
-			if(g_Config.m_BrIndicateFinished)
-				ServerBrowser()->Refresh(ServerBrowser()->GetCurrentType());
-		}
-
-		if(g_Config.m_BrIndicateFinished)
-		{
-			View.HSplitTop(RowHeight, &Button, &View);
-			if(DoButton_CheckBox(&g_Config.m_BrFilterUnfinishedMap, Localize("Unfinished map"), g_Config.m_BrFilterUnfinishedMap, &Button))
-				g_Config.m_BrFilterUnfinishedMap ^= 1;
-		}
-		else
-		{
-			g_Config.m_BrFilterUnfinishedMap = 0;
-		}
-	}
+	// 长译文或较矮窗口通过整体滚动保留全部筛选项，重置按钮固定在底部。
+	static CScrollRegion s_FilterScrollRegion;
+	SQmScrollRequest ScrollRequest;
+	ScrollRequest.m_Profile = EQmScrollProfile::SETTINGS_GRID;
+	ScrollRequest.m_RowExtent = RowHeight;
+	CScrollRegionParams ScrollParams = QmScrollRegionParamsFromPolicy(QmResolveScrollPolicy(ScrollRequest));
+	vec2 ScrollOffset(0.0f, 0.0f);
+	s_FilterScrollRegion.Begin(&View, &ScrollOffset, &ScrollParams);
+	View.y += ScrollOffset.y;
+	const float ContentTop = View.y;
+	RenderServerbrowserFilterForm(View);
 
 	// countries and types filters
 	if(ServerBrowser()->CommunityCache().CountriesTypesFilterAvailable())
@@ -1583,7 +1488,7 @@ void CMenus::RenderServerbrowserFilters(CUIRect View)
 		CUIRect TabContents, CountriesTab, TypesTab;
 		View.HSplitTop(6.0f, nullptr, &View);
 		View.HSplitTop(19.0f, &Button, &View);
-		View.HSplitTop(minimum(4.0f * 22.0f, View.h), &TabContents, &View);
+		View.HSplitTop(4.0f * 22.0f, &TabContents, &View);
 		Button.VSplitMid(&CountriesTab, &TypesTab);
 		TabContents.Draw(ColorActive, IGraphics::CORNER_B, 4.0f);
 
@@ -1640,6 +1545,9 @@ void CMenus::RenderServerbrowserFilters(CUIRect View)
 			Ui()->ClipDisable();
 		}
 	}
+
+	s_FilterScrollRegion.AddRect({View.x, ContentTop, View.w, std::max(0.0f, View.y - ContentTop)});
+	s_FilterScrollRegion.End();
 
 	static CButtonContainer s_ResetButton;
 	if(DoButton_Menu(&s_ResetButton, Localize("Reset filter"), 0, &ResetButton))

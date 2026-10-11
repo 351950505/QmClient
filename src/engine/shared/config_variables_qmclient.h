@@ -504,6 +504,7 @@ MACRO_CONFIG_INT(QmVoiceHearOnSpecPos, qm_voice_hear_on_spec_pos, 0, 0, 1, CFGFL
 MACRO_CONFIG_INT(QmVoiceHearPeoplesInSpectate, qm_voice_hear_peoples_in_spectate, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Receive voice from spectators/inactive players")
 
 // Streamer Mode / 主播模式
+MACRO_CONFIG_STR(QmStreamerWordsFile, qm_streamer_words_file, 1024, "", CFGFLAG_CLIENT | CFGFLAG_SAVE, "Streamer word list file")
 MACRO_CONFIG_INT(QmStreamerFilterWords, qm_streamer_filter_words, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Filter sensitive words")
 MACRO_CONFIG_INT(QmStreamerHideNames, qm_streamer_hide_names, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Hide non-friend names/clans and show client ID")
 MACRO_CONFIG_INT(QmStreamerHideSkins, qm_streamer_hide_skins, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Non-friends use default skin")
@@ -527,7 +528,9 @@ MACRO_CONFIG_INT(QmBlockWordsMultiReplace, qm_block_words_multi_replace, 0, 0, 1
 MACRO_CONFIG_INT(QmBlockWordsAction, qm_block_words_action, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Word filter action: 0=replace matching words, 1=hide entire message")
 MACRO_CONFIG_INT(QmBlockWordsMode, qm_block_words_mode, 2, 0, 2, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Replace mode 0=Regex 1=Full 2=Both")
 MACRO_CONFIG_STR(QmBlockWordsReplacementChar, qm_block_words_replacement_char, 8, "*", CFGFLAG_CLIENT | CFGFLAG_SAVE, "Censor replacement character")
-MACRO_CONFIG_STR(QmBlockWordsList, qm_block_words_list, 1024, "", CFGFLAG_CLIENT | CFGFLAG_SAVE, "Censor word list (comma-separated)")
+// 大词表由聊天组件分段写入同一 cfg，不能按一个超长命令保存。
+MACRO_CONFIG_STR(QmBlockWordsList, qm_block_words_list, 65536, "", CFGFLAG_CLIENT, "Censor word list (comma-separated)")
+MACRO_CONFIG_STR(QmBlockWordsFile, qm_block_words_file, 1024, "", CFGFLAG_CLIENT | CFGFLAG_SAVE, "Chat word list file")
 MACRO_CONFIG_STR(QmSidebarCardOrder, qm_sidebar_card_order, 2048, "", CFGFLAG_CLIENT | CFGFLAG_SAVE, "QmClient sidebar module order")
 MACRO_CONFIG_STR(QmSidebarCardCollapsed, qm_sidebar_card_collapsed, 512, "", CFGFLAG_CLIENT | CFGFLAG_SAVE, "QmClient sidebar module collapse state")
 

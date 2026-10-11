@@ -56,6 +56,38 @@ class ConfigVariableUsageTest(unittest.TestCase):
             )
         self.assertEqual(unused, {"QmUnusedSetting"})
 
+    def test_scan_preserves_member_and_console_usage_contexts(self):
+        expressions = (
+            "Config.m_QmDefaultsProfileVersion = 1;",
+            "pConfig->m_QmDefaultsProfileVersion >= 1",
+            "Config()->m_QmDefaultsProfileVersion",
+            "&CConfig::m_QmDefaultsProfileVersion",
+            'Console()->Register("qm_defaults_profile_version", "", 0, nullptr, nullptr, "");',
+            'Console()->Chain("qm_defaults_profile_version", nullptr, nullptr);',
+            'Console()->ExecuteLine("qm_defaults_profile_version");',
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "usage.cpp"
+            for expression in expressions:
+                with self.subTest(expression=expression):
+                    source.write_text(expression, encoding="utf-8")
+                    self.assertEqual(check_config_variables.find_config_variables(
+                        {"QmDefaultsProfileVersion": "qm_defaults_profile_version"},
+                        source_root=directory,
+                    ), set())
+
+    def test_scan_does_not_accept_bare_members_or_unrelated_strings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "unused.cpp"
+            source.write_text(
+                'm_QmDefaultsProfileVersion; "qm_defaults_profile_version"; Config.m_QmDefaultsProfileVersionBackup;',
+                encoding="utf-8",
+            )
+            self.assertEqual(check_config_variables.find_config_variables(
+                {"QmDefaultsProfileVersion": "qm_defaults_profile_version"},
+                source_root=directory,
+            ), {"QmDefaultsProfileVersion"})
+
 
 if __name__ == "__main__":
     unittest.main()

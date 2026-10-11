@@ -24,7 +24,7 @@ public:
 		int m_Flags;
 		int m_Key;
 		uint32_t m_InputCount;
-		char m_aText[32]; // SDL_TEXTINPUTEVENT_TEXT_SIZE
+		char m_aText[32]; // 长文本由平台层按完整 UTF-8 字符拆成多个事件。
 	};
 
 	enum
@@ -137,8 +137,8 @@ public:
 	{
 		friend class CInput;
 
-		int64_t m_DeviceId;
-		int64_t m_FingerId;
+		uint64_t m_DeviceId;
+		uint64_t m_FingerId;
 
 	public:
 		bool operator==(const CTouchFinger &Other) const { return m_DeviceId == Other.m_DeviceId && m_FingerId == Other.m_FingerId; }

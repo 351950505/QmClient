@@ -8,6 +8,7 @@
 
 #include <game/client/component.h>
 #include <game/client/components/player_points.h>
+#include <game/client/components/qmclient/statusbar_items.h>
 
 #include <algorithm>
 #include <map>
@@ -41,25 +42,6 @@ namespace tclient_statusbar
 		return false;
 	}
 }
-
-enum
-{
-	STATUSBAR_MAX_SIZE = 128,
-	STATUSBAR_TYPE_LETTERS = 4
-};
-
-class CStatusItem
-{
-public:
-	std::function<void()> m_RenderItem;
-	std::function<float()> m_GetWidth;
-	char m_aName[32];
-	char m_aDisplayName[32];
-	char m_aDesc[128];
-	char m_aLetters[STATUSBAR_TYPE_LETTERS] = {};
-	bool m_ShowLabel = true;
-	CStatusItem(std::function<void()> Render, std::function<float()> Width, const char *pLetters, const char *pName, const char *pDisplayName, const char *pDesc, bool ShowLabel = true);
-};
 
 class CStatusBar : public CComponent
 {
@@ -118,7 +100,7 @@ public:
 	CStatusItem m_Space = CStatusItem([this] { SpaceRender(); }, [this] { return SpaceWidth(); },
 		" _", "Space", " ", "Gap between statusbar items", false);
 
-	std::vector<CStatusItem> m_vStatusItemTypes = {m_Angle, m_Ping, m_Prediction, m_Position, m_LocalTime, m_RaceTime, m_FPS, m_Velocity, m_Zoom, m_Score, m_Downstream, m_Rtt, m_Upstream, m_Jitter, m_SnapshotGap, m_PacketLoss, m_DownRate, m_UpRate, m_ConnectionGrade, m_Cpu, m_Memory, m_Space};
+	std::vector<CStatusItem *> m_vpStatusItemTypes = {&m_Angle, &m_Ping, &m_Prediction, &m_Position, &m_LocalTime, &m_RaceTime, &m_FPS, &m_Velocity, &m_Zoom, &m_Score, &m_Downstream, &m_Rtt, &m_Upstream, &m_Jitter, &m_SnapshotGap, &m_PacketLoss, &m_DownRate, &m_UpRate, &m_ConnectionGrade, &m_Cpu, &m_Memory, &m_Space};
 	std::vector<CStatusItem *> m_StatusBarItems = {&m_LocalTime, &m_FPS, &m_Space, &m_Angle, &m_Space, &m_Ping};
 
 	void UpdateStatusBarSize();

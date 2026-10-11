@@ -52,6 +52,9 @@
 %d teams
 == %d개 팀
 
+%d words loaded
+== 단어 %d개 불러옴
+
 %d. %s | main: %s | dummy: %s
 == %d. %s | 본체: %s | 더미: %s
 
@@ -299,6 +302,9 @@ A demo with this name already exists
 A folder with this name already exists
 == 이 이름의 폴더가 이미 존재합니다.
 
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
+== 수동으로 지정한 원본 파일이 선택한 후보보다 우선 적용됩니다. 현재 사운드 변형만 교체됩니다.
+
 a player
 == 한 명의 플레이어
 
@@ -491,6 +497,9 @@ Add Group
 Add Item
 == 아이템 추가
 
+Add keyframe
+== 키프레임 추가
+
 Add latency for antiping (0 to disable)
 == 안티핑 지연 추가 (0은 비활성화)
 
@@ -623,6 +632,9 @@ Aim
 Aim bind
 == 조준 바인드
 
+Air jump
+== 공중 점프
+
 Alive notification color
 == 생존 알림 색상
 
@@ -652,6 +664,9 @@ All maps
 
 All players
 == 모든 플레이어
+
+All sounds
+== 모든 사운드
 
 All stars
 == 모든 별점
@@ -820,6 +835,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == 도움말 말풍선 모양
+
+Append saved word list chunk
+== 저장된 단어 목록 조각 추가
 
 Append to log file instead of overwriting
 == 덮어쓰기 대신 로그 파일에 추가
@@ -1000,9 +1018,6 @@ Audio packets
 
 Audio packs
 == 오디오 팩
-
-Audio slots
-== 오디오 슬롯
 
 AUS
 == 호주
@@ -1715,6 +1730,9 @@ Camera follow cursor factor
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == 카메라 이동 전환량, 0=즉시, 100=느리고 부드럽게
 
+Camera path
+== 카메라 경로
+
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == 빠른 커서 이동 중 카메라 감속. 높은 값은 카메라 이동 지연을 유발할 수 있음
 
@@ -1763,8 +1781,20 @@ Candidate files
 Cannot join the target player's team
 == 대상 플레이어의 팀에 참가할 수 없습니다
 
+Cannot open word list file. Previous words remain active.
+== 단어 목록 파일을 열 수 없습니다. 이전 단어 목록을 유지합니다.
+
+Cannot read complete word list file. Previous words remain active.
+== 단어 목록 파일을 완전히 읽을 수 없습니다. 이전 단어 목록을 유지합니다.
+
 Cannot swap: the other player is not in your team
 == 스왑할 수 없음: 상대방이 당신의 팀에 없습니다
+
+Capture the flag
+== 깃발 뺏기 (CTF)
+
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
+== 깃발 뺏기 이벤트 알림음으로, 일반 DDNet 레이스가 아닌 CTF 서버에서 사용됩니다.
 
 Card height animation
 == 설정 카드 높이 애니메이션
@@ -1892,6 +1922,9 @@ Chat gradient vertical position percentage
 Chat log retention days
 == 채팅 로그 보관 일수
 
+Chat mention / vote alert
+== 채팅 멘션 / 투표 알림
+
 Chat message
 == 채팅 메시지
 
@@ -1918,6 +1951,9 @@ Chat width
 
 Chat word filtering
 == 채팅 단어 필터링
+
+Chat word list file
+== 채팅 차단 단어 파일
 
 Cheats are disabled on this server
 == 이 서버에서는 치트가 비활성화되어 있습니다
@@ -2275,6 +2311,9 @@ Commands
 
 Commands run in the console
 == 콘솔에서 실행되는 명령어
+
+Common filters
+== 자주 쓰는 필터
 
 Common key bindings
 == 일반적인 키 바인딩
@@ -3272,6 +3311,9 @@ Delete this preset
 Demo
 == 데모
 
+Demo cut saved, but its camera path could not be saved
+== 잘라낸 데모는 저장되었지만 카메라 경로를 저장할 수 없습니다
+
 Demo directory
 == 데모 저장 폴더
 
@@ -3863,6 +3905,9 @@ Edit
 Edit audio pack
 == 오디오 팩 편집
 
+Edit camera
+== 카메라 편집
+
 Edit color
 == 색상 편집
 
@@ -3982,6 +4027,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == 카메라 드리프트 효과 활성화, 이동 속도에 따라 카메라가 약간 끌리도록 함
+
+Enable camera path
+== 카메라 경로 활성화
 
 Enable chat mention sound
 == 채팅 멘션 소리 활성화
@@ -4529,9 +4577,6 @@ Export name contains invalid characters.
 Export selected
 == 선택 항목 내보내기
 
-Export selected file
-== 선택한 파일 내보내기
-
 Export to clipboard
 == 클립보드로 내보내기
 
@@ -4607,6 +4652,9 @@ Failed to fetch the replay list
 Failed to load
 == 로드 실패
 
+Failed to load camera path
+== 카메라 경로를 불러올 수 없습니다
+
 Failed to load main asset: %s
 == 기본 에셋 로드 실패: %s
 
@@ -4624,6 +4672,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == 동영상 녹화에 실패했습니다. 자세한 내용은 로컬 콘솔을 확인하세요.
+
+Failed to save camera path
+== 카메라 경로를 저장할 수 없습니다
 
 Failed to save demo
 == 데모 저장에 실패했습니다
@@ -4802,6 +4853,21 @@ First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 == 많은 인원의 서버에서는 행 높이를 고정하고 마우스 휠로 스크롤하여 표시합니다
 
+Flag captured
+== 깃발 점령 완료
+
+Flag dropped
+== 깃발 떨어뜨림
+
+Flag grab: enemy side
+== 깃발 탈취: 적군 진영
+
+Flag grab: player side
+== 깃발 탈취: 아군 진영
+
+Flag returned
+== 깃발 복귀
+
 Flip:
 == 뒤집기:
 
@@ -4931,6 +4997,9 @@ Freeze border color
 Freeze Collision Border Color
 == 얼음 충돌 테두리 색상
 
+Freeze heart / health pickup
+== 프리즈 하트 / 체력 회복 아이템
+
 Freeze laser collision volume
 == 프리즈 레이저 충돌 범위
 
@@ -5017,6 +5086,9 @@ Friends
 
 Friends only
 == 친구만
+
+Frozen fire attempt
+== 빙결 중 발사 시도
 
 Frozen prediction margin
 == 동결 중 예측 여유
@@ -5261,6 +5333,9 @@ Go forward one tick
 Go forward the specified duration
 == 지정된 시간만큼 앞으로 가기
 
+Go to keyframe
+== 키프레임으로 이동
+
 Gores
 == 고어스
 
@@ -5357,6 +5432,18 @@ Greeting text
 Grenade
 == 유탄
 
+Grenade explosion
+== 유탄 폭발
+
+Grenade launch
+== 유탄 발사
+
+Grenade pickup
+== 유탄발사기 획득
+
+Ground jump
+== 지상 점프
+
 Group name
 == 그룹 이름
 
@@ -5366,8 +5453,14 @@ GUI cursor assets
 Guide line color
 == 가이드 라인 색상
 
+Gun fire
+== 권총 발사
+
 Hammer
 == 망치
+
+Hammer hit
+== 해머 타격
 
 Hammer interaction
 == 망치 상호작용
@@ -5377,6 +5470,9 @@ Hammer Mode
 
 Hammer skin steal
 == 망치 스킨 도용
+
+Hammer swing
+== 해머 휘두르기
 
 Hammer: %s
 == 망치: %s
@@ -5612,6 +5708,9 @@ Highlighted message
 Highlighted message color
 == 강조된 메시지 색상
 
+Hit feedback
+== 타격 피드백
+
 Hitbox Mode Freeze Border Color
 == 히트박스 모드 Freeze 경계 색상
 
@@ -5633,6 +5732,9 @@ Hitbox Mode Weapon Interaction Color
 HJ assist
 == HJ 고수 보조
 
+Hold
+== 유지
+
 Hold gun higher like TW 0.6.1 and earlier
 == TW 0.6.1 및 이전 버전처럼 총을 더 높게 들기
 
@@ -5641,6 +5743,12 @@ Hold left click for free camera
 
 Hook
 == 갈고리
+
+Hook attaches to ground
+== 갈고리가 지형에 걸림
+
+Hook attaches to player
+== 갈고리가 플레이어에게 걸림
 
 Hook collision line
 == 갈고리 충돌선
@@ -5660,11 +5768,17 @@ Hook Collisions
 Hook collisions
 == 갈고리 충돌
 
+Hook hits unhookable surface
+== 갈고리가 걸 수 없는 표면에 부딪힘
+
 Hook interaction
 == 후크 상호작용
 
 Hook line tip
 == 갈고리선 끝
+
+Hook loop
+== 갈고리 반복음
 
 Hook Strength
 == 갈고리 강도
@@ -5857,6 +5971,12 @@ Import from clipboard
 
 Improved anti ping
 == 개선된 안티 핑
+
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+== DDNet에서는 프리즈 하트에 닿아 플레이어가 얼었을 때 재생됩니다. 다른 모드에서는 체력 회복 아이템 획득 시 사용될 수 있습니다.
+
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
+== DDNet에서는 무기가 제거될 때 재생됩니다. 다른 모드에서는 방어구 획득 시 사용될 수 있습니다.
 
 In memory of me
 == 나를 기억하며
@@ -6113,6 +6233,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == 설정 경로가 올바르지 않거나 중복됩니다.
 
+Invalid quoted word. Use one word per line.
+== 따옴표로 감싼 단어 형식이 잘못되었습니다. 줄마다 단어 하나를 쓰세요.
+
 Invalid save number. Use a number from the save list.
 == 유효하지 않은 저장 번호입니다. 목록의 번호를 사용하세요.
 
@@ -6157,6 +6280,9 @@ Item
 
 Item type
 == 아이템 유형
+
+Its use depends on the server or game mode.
+== 구체적인 용도는 서버나 게임 모드에 따라 다릅니다.
 
 j = Latency jitter
 == j = 지연 지터
@@ -6305,6 +6431,9 @@ Keyboard focus ring color
 Keyboard size
 == 키보드 크기
 
+Keyframe %d/%d: %s
+== 키프레임 %d/%d: %s
+
 Keyword reply
 == 키워드 응답
 
@@ -6380,6 +6509,9 @@ Label type
 LAN
 == LAN
 
+Landing
+== 착지
+
 Language
 == 언어
 
@@ -6401,6 +6533,9 @@ Large text for friend join (use %s for friend name)
 Laser
 == 레이저
 
+Laser / shotgun bounce
+== 레이저 / 샷건 반사
+
 Laser / shotgun interaction
 == 레이저 / 샷건 상호작용
 
@@ -6409,6 +6544,9 @@ Laser colors
 
 Laser effect enhancement
 == 레이저 효과 향상
+
+Laser fire
+== 레이저 발사
 
 Laser glow intensity (0-100)
 == 레이저 광선 강도 (0-100)
@@ -6950,6 +7088,9 @@ Map play history
 Map Preview TODO
 == 맵 미리보기 할 일
 
+Map progress
+== 맵 진행도
+
 Map progress bar
 == 맵 진행률 표시줄
 
@@ -7202,6 +7343,9 @@ Menu main panel background color
 Menu main panel opacity
 == 메뉴 메인 패널 불투명도
 
+Menu music
+== 메뉴 음악
+
 Menu opacity (0-100)
 == 메뉴 불투명도 (Menu opacity 0-100)
 
@@ -7400,6 +7544,9 @@ Move player to spectators
 Move right
 == 오른쪽으로 이동
 
+Move the free camera, then add a keyframe at the current demo time.
+== 자유 카메라를 이동한 후 현재 데모 시간에 키프레임을 추가하세요.
+
 Move to category
 == 카테고리로 이동
 
@@ -7420,6 +7567,9 @@ Multi-View
 
 Multiple exact Axiom players found
 == 정확히 일치하는 Axiom 플레이어가 여러 명 있습니다
+
+Music
+== 음악
 
 Music player volume
 == 음악 플레이어 음량
@@ -7754,8 +7904,20 @@ Next weapon
 Nickname
 == 닉네임
 
+Ninja attack
+== 닌자 검 대시 공격
+
+Ninja hit
+== 닌자 검 타격
+
+Ninja pickup
+== 닌자 검 획득
+
 No
 == 아니요
+
+No ammunition
+== 탄약 없음
 
 No animation
 == 애니메이션 없음
@@ -7775,17 +7937,20 @@ No assets found.
 No audio issues detected
 == 오디오 문제 없음
 
-No audio slots found.
-== 오디오 슬롯을 찾을 수 없습니다.
-
 No buttons match your filter criteria
 == 필터 조건에 맞는 버튼이 없습니다
 
 No callable peer found
 == 통화 가능한 상대 없음
 
+No camera keyframes
+== 카메라 키프레임 없음
+
 No candidate file selected.
 == 선택된 후보 파일이 없습니다.
+
+No candidate files match this search.
+== 검색과 일치하는 후보 파일이 없습니다.
 
 No changes since last save
 == 마지막 저장 이후 변경 사항 없음
@@ -7840,9 +8005,6 @@ No functions bound
 
 No input device available
 == 사용 가능한 입력 장치 없음
-
-No items to write
-== 쓸 항목 없음
 
 No local saves file found (ddnet-saves.txt)
 == 로컬 저장 파일(ddnet-saves.txt)을 찾을 수 없음
@@ -7957,6 +8119,9 @@ No servers match your filter criteria
 
 No skins match your filter criteria
 == 필터 조건에 맞는 스킨이 없습니다
+
+No sounds match this search.
+== 검색과 일치하는 사운드가 없습니다.
 
 No space for button
 == 버튼 공간 부족
@@ -8306,11 +8471,17 @@ Original message language
 Other
 == 기타
 
+Other game modes
+== 기타 게임 모드
+
 Other modes
 == 기타 모드
 
 Other players' hook line width
 == 다른 플레이어의 갈고리 선 너비
+
+Other sounds
+== 기타 사운드
 
 Others
 == 다른 사람
@@ -8558,6 +8729,9 @@ Pick the source that matches your music app and keep it playing; the lyrics foll
 Pickup range
 == 획득 범위
 
+Pickups
+== 아이템 획득
+
 Pie menu
 == 파이 메뉴
 
@@ -8636,6 +8810,78 @@ Play/pause the current demo
 Playback volume
 == 재생 볼륨
 
+Played for chat highlights and vote alerts when their notification sound is enabled.
+== 알림음이 켜져 있을 때 채팅 강조 표시 및 투표 알림 시 재생됩니다.
+
+Played for incoming player chat messages when their notification sound is enabled.
+== 알림음이 켜져 있을 때 플레이어 채팅 메시지 수신 시 재생됩니다.
+
+Played for incoming server chat messages when their notification sound is enabled.
+== 알림음이 켜져 있을 때 서버 채팅 메시지 수신 시 재생됩니다.
+
+Played when a grenade explodes.
+== 유탄이 폭발할 때 재생됩니다.
+
+Played when a laser or DDNet shotgun beam bounces.
+== 레이저나 DDNet 샷건 빔이 튕길 때 재생됩니다.
+
+Played when a ninja dash hits another player.
+== 닌자 검 대시가 다른 플레이어를 타격할 때 재생됩니다.
+
+Played when a player dies, including suicide.
+== 자살을 포함해 플레이어가 사망할 때 재생됩니다.
+
+Played when a player spawns or respawns.
+== 플레이어가 생성되거나 부활할 때 재생됩니다.
+
+Played when firing this weapon.
+== 이 무기를 발사할 때 재생됩니다.
+
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+== 지상에서 점프할 때 재생됩니다. 왼발과 오른발 파일이 모두 이 사운드 그룹에 속합니다.
+
+Played when moving fast on the ground and pressing the opposite direction.
+== 지상에서 빠르게 이동하다가 반대 방향 키를 눌러 미끄러질 때 재생됩니다.
+
+Played when picking up a grenade weapon.
+== 유탄발사기 무기를 획득할 때 재생됩니다.
+
+Played when picking up a shotgun or laser weapon.
+== 샷건이나 레이저 무기를 획득할 때 재생됩니다.
+
+Played when pressing fire while frozen.
+== 얼어붙은 상태에서 발사 키를 누를 때 재생됩니다.
+
+Played when starting a ninja dash attack.
+== 닌자 검 대시 공격을 시작할 때 재생됩니다.
+
+Played when swinging the hammer, even without hitting a player.
+== 플레이어를 맞추지 못하더라도 해머를 휘두를 때 재생됩니다.
+
+Played when switching the active weapon.
+== 현재 무기를 변경할 때 재생됩니다.
+
+Played when the hammer hits another player.
+== 해머로 다른 플레이어를 타격했을 때 재생됩니다.
+
+Played when the hook attaches to a hookable surface.
+== 갈고리가 걸 수 있는 지형 표면에 꽂힐 때 재생됩니다.
+
+Played when the hook attaches to another player.
+== 갈고리가 다른 플레이어에게 걸릴 때 재생됩니다.
+
+Played when the hook hits an unhookable surface.
+== 갈고리가 걸 수 없는 표면에 부딪힐 때 재생됩니다.
+
+Played when using the second jump in the air.
+== 공중에서 이단 점프를 사용할 때 재생됩니다.
+
+Played when weapon teleportation moves the player in DDNet.
+== DDNet에서 무기 텔레포트 효과로 플레이어가 이동할 때 재생됩니다.
+
+Played while offline when menu music is enabled.
+== 메뉴 음악이 켜져 있을 때 오프라인 상태에서 재생됩니다.
+
 Player
 == 플레이어
 
@@ -8645,8 +8891,14 @@ Player already invited
 Player body color
 == 플레이어 몸 색상
 
+Player chat message
+== 플레이어 채팅 메시지
+
 Player clan
 == 플레이어 클랜
+
+Player count
+== 인원 집계
 
 Player country (ISO 3166-1 numeric code)
 == 플레이어 국가 (ISO 3166-1 숫자 코드)
@@ -8656,6 +8908,9 @@ Player country filter in server browser (ISO 3166-1 numeric)
 
 Player country:
 == 플레이어 국가:
+
+Player death
+== 플레이어 사망
 
 Player decoration color
 == 플레이어 장식 색상
@@ -8743,6 +8998,12 @@ Player skin marking
 
 Player skin used for volleyball appearance
 == 배구 외형에 사용되는 플레이어 스킨
+
+Player spawn
+== 플레이어 리스폰
+
+Player state
+== 플레이어 상태
 
 Player stats
 == 플레이어 통계
@@ -9022,6 +9283,9 @@ Preview laser bodies, outlines, and impacts
 
 Preview loading…
 == 미리보기 불러오는 중…
+
+Preview path
+== 경로 미리 보기
 
 Preview player and dummy appearance
 == Preview player and dummy appearance
@@ -9587,6 +9851,9 @@ Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
 == 공개 목록을 위해 마스터 서버에 서버 등록, 쉼표로 구분된 프로토콜 허용 (예: 'ipv4,ipv6')
 
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
+== 등록된 사운드이지만, 이 DDNet 서버에서는 직접적인 트리거가 발견되지 않았습니다. 다른 서버에서 사용할 수 있습니다.
+
 Regular
 == 보통
 
@@ -9595,9 +9862,6 @@ Regular background color
 
 Regular expression
 == 정규 표현식
-
-Relative path
-== 상대 경로
 
 Relative X position of the draggable back button
 == 드래그 가능한 뒤로 가기 버튼의 상대적 X 위치
@@ -9631,6 +9895,9 @@ Reload the map while preserving the state of tees and teams
 
 Reload the maplist
 == 맵 목록 다시 로드
+
+Reload word list files
+== 단어 목록 파일 다시 불러오기
 
 Reloaded images.
 == 이미지를 다시 불러왔습니다.
@@ -9889,6 +10156,9 @@ Replace non-friend names with ID
 
 Replace non-friend skins with default
 == 친구가 아닌 스킨을 기본 스킨으로 교체
+
+Replace selected variant
+== 선택한 사운드 변형 교체
 
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 == 설정, 키 바인드와 목록의 cfg 파일을 교체한 뒤 다시 시작할까요? 현재 설정을 먼저 백업합니다.
@@ -10652,9 +10922,6 @@ Selected %d
 Selected button not visible
 == 선택한 버튼이 보이지 않음
 
-Selected candidate
-== 선택된 후보
-
 Selected candidate %d/%d under cursor.
 == 커서 아래에 선택된 후보 %d/%d.
 
@@ -10802,6 +11069,9 @@ Server list is more than five minutes old
 Server list refresh failed; showing the previous list
 == 서버 목록을 새로 고치지 못해 이전 목록을 표시합니다
 
+Server message
+== 서버 메시지
+
 Server name
 == 서버 이름
 
@@ -10831,6 +11101,9 @@ Server URL
 
 Server-assigned style
 == 서버 지정 스타일
+
+Server-dependent
+== 서버에 따라 다름
 
 Set all to Rifle
 == 모두 라이플로 설정
@@ -10943,11 +11216,20 @@ Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
 == 반짝임 속도
 
+Short pain voice
+== 짧은 피격 신음
+
 Short server names
 == 짧은 서버 이름
 
 Shotgun
 == 샷건
+
+Shotgun / laser pickup
+== 샷건 / 레이저 획득
+
+Shotgun fire
+== 샷건 발사
 
 Shotgun Laser Inner Color
 == 샷건 레이저 내부 색상
@@ -11594,6 +11876,9 @@ Show own nametag (for demo recording)
 Show own player's hook collision line
 == 자신의 갈고리 충돌선 표시
 
+Show path
+== 경로 표시
+
 Show pause/play indicator when changing
 == 변경 시 일시정지/재생 표시기 표시
 
@@ -11999,6 +12284,9 @@ Size of key press icons
 Size of strength/weakness icon and number
 == 강함/약함 아이콘 및 숫자 크기
 
+Skidding
+== 미끄러짐 (스키딩)
+
 Skin
 == 스킨
 
@@ -12137,6 +12425,9 @@ Smaller tees
 Smart
 == 스마트
 
+Smooth
+== 부드럽게
+
 Smooth and accurate blur with the highest GPU cost.
 == 부드럽고 정확한 블러이지만 GPU 부하가 가장 높습니다.
 
@@ -12268,6 +12559,9 @@ Sound buffer size (large may cause delay)
 
 Sound error
 == 오디오 오류
+
+Sound variants
+== 사운드 변형
 
 Sound volume
 == 사운드 볼륨
@@ -12521,6 +12815,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 Stop practice
 == 연습 중지
 
+Stop preview
+== 미리 보기 중지
+
 Stop preview (P)
 == 미리 보기 중지 (P)
 
@@ -12547,6 +12844,9 @@ Stop the current demo
 
 Streamer mode
 == 스트리머 모드
+
+Streamer word list file
+== 스트리머 모드 단어 목록 파일
 
 Strength icons assets
 == 강도 아이콘 에셋
@@ -12910,6 +13210,9 @@ Tee collision (Tee to Tee)
 
 Tee color
 == 티 색상
+
+Tee cry
+== Tee 울음소리
 
 Tee death probe
 == Tee 데스 탐지
@@ -13871,6 +14174,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == 스크린샷 파일을 열 수 없습니다
 
+Unable to record camera keyframe
+== 카메라 키프레임을 기록할 수 없습니다
+
 Unable to rename the demo
 == 데모 이름을 바꿀 수 없습니다
 
@@ -14044,6 +14350,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == 업데이트 실패. 다시 시도해 주세요
+
+Update keyframe
+== 키프레임 갱신
 
 Update notice
 == 공지 업데이트
@@ -14257,6 +14566,9 @@ Used by active shared text and numeric input fields
 
 Uses the active action with the current aiming position.
 == 현재 조준 위치로 활성 작업을 사용합니다.
+
+UTF-8 text, one word per line (max 2 MiB).
+== UTF-8 텍스트, 줄마다 단어 하나(최대 2 MiB).
 
 v = Velocity
 == v = 속도
@@ -14615,6 +14927,12 @@ Weapon range color
 Weapon reload animation probability
 == 무기 재장전 애니메이션 확률
 
+Weapon removal / armor pickup
+== 무기 제거 / 방어구 획득
+
+Weapon switch
+== 무기 교체
+
 Weapon switch animation
 == 무기 전환 애니메이션
 
@@ -14644,6 +14962,9 @@ Weapon switch easing
 
 Weapon switch rotation
 == 무기 전환 회전
+
+Weapon teleport
+== 무기 텔레포트
 
 Weapon Trajectory
 == 무기 궤적
@@ -14824,6 +15145,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == 단어 필터 동작: 0=일치하는 단어 교체, 1=메시지 전체 숨기기
+
+Word list entries cannot contain control characters.
+== 단어에 제어 문자를 사용할 수 없습니다.
+
+Word list exceeds 100000 unique entries.
+== 고유 단어 수가 100000개를 초과합니다.
+
+Word list file
+== 단어 목록 파일
+
+Word list file exceeds 2 MiB.
+== 단어 목록 파일이 2 MiB를 초과합니다.
+
+Word list must be UTF-8 text without NUL characters.
+== 단어 목록은 NUL 문자 없는 UTF-8 텍스트여야 합니다.
 
 Write local console contents to a text file
 == 로컬 콘솔 내용을 텍스트 파일로 저장

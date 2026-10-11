@@ -107,7 +107,11 @@ def prepare_process_build(build_dir: Path, targets: tuple[str, ...] = ("game-cli
 		if "game-server" in targets:
 			configure.append("-DSERVER=ON")
 		print(f"[process-test] {requested} -> {selected}", flush=True)
-		run(["cmd", "/c", str(source / "qmclient_scripts" / "cmake-windows.cmd"), *configure], source)
+		# 相同开关复用配置；下方仍增量构建，源码或 CMake 变化由构建系统更新。
+		existing = read_cmake_cache(selected) if (selected / "CMakeCache.txt").is_file() else {}
+		desired = dict(argument[2:].split("=", 1) for argument in configure if argument.startswith("-D"))
+		if any(existing.get(key, "").casefold() != value.casefold() for key, value in desired.items()):
+			run(["cmd", "/c", str(source / "qmclient_scripts" / "cmake-windows.cmd"), *configure], source)
 	if not selected.resolve().is_relative_to(source):
 		raise ProcessBuildError(f"process-test build is outside this workspace: {selected}")
 	if selected == requested and "game-server" in targets and not _enabled(cache, "SERVER"):

@@ -172,7 +172,7 @@ TEST(QmCardRegistry, P6QmClientContributorsCards)
 	EXPECT_EQ(pFriendLinks->m_DefaultColumn, qm_card_registry::ECardColumn::Left);
 	EXPECT_EQ(pCommunity->m_DefaultOrder, 1);
 	EXPECT_EQ(pTitle->m_DefaultOrder, 0);
-	EXPECT_EQ(pSponsors->m_DefaultOrder, 1);
+	EXPECT_EQ(pSponsors->m_DefaultOrder, 0);
 	EXPECT_EQ(pDdnet->m_DefaultOrder, 0);
 	EXPECT_EQ(pTcDevelopers->m_DefaultOrder, 1);
 	EXPECT_EQ(pTcFiles->m_DefaultOrder, 2);

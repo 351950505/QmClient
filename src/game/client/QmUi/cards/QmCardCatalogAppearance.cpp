@@ -170,6 +170,18 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 			g_Config.m_QmNameplateTextEffects,
 			g_Config.m_QmNameplateTextBorderRange,
 			g_Config.m_QmNameplateTextGlowRange,
+			g_Config.m_QmShowNameplateTitle,
+			g_Config.m_QmNameplateTitleAboveName,
+			g_Config.m_QmShowMainTitle,
+			g_Config.m_QmShowDummyTitle,
+			g_Config.m_QmTitleStyleEnabled,
+			g_Config.m_QmTitleMotionMode,
+			g_Config.m_QmTitleBobAmplitude,
+			g_Config.m_QmTitleBobWavelength,
+			g_Config.m_QmTitleEffect,
+			g_Config.m_QmTitleBloom,
+			GameClient()->m_QmClient.TitleRevision(),
+			GameClient()->m_QmClient.TitleAuthenticated(),
 		};
 		uint64_t Revision = 1469598103934665603ull;
 		for(const int Input : aInputs)
@@ -181,6 +193,12 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 		Revision = (Revision ^ str_quickhash(Client()->DummyName())) * 1099511628211ull;
 		Revision = (Revision ^ str_quickhash(g_Config.m_PlayerClan)) * 1099511628211ull;
 		Revision = (Revision ^ str_quickhash(g_Config.m_ClDummyClan)) * 1099511628211ull;
+		Revision = (Revision ^ str_quickhash(g_Config.m_QmTitleStyle)) * 1099511628211ull;
+		for(const int ClientId : GameClient()->m_aLocalIds)
+		{
+			Revision = (Revision ^ str_quickhash(GameClient()->m_QmClient.PlayerTitle(ClientId))) * 1099511628211ull;
+			Revision = (Revision ^ str_quickhash(GameClient()->m_QmClient.PlayerTitleStyle(ClientId))) * 1099511628211ull;
+		}
 		return Revision;
 	};
 	const uint64_t NamePlatePreviewMeasureRevision = AppearanceTab == APPEARANCE_TAB_NAME_PLATE ? ResolveNamePlatePreviewMeasureRevision() : 0;

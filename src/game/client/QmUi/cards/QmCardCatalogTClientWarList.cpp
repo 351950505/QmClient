@@ -54,7 +54,7 @@
 #include <game/client/ui_scrollregion.h>
 #include <game/localization.h>
 
-#include <SDL_audio.h>
+#include <SDL3/SDL_audio.h>
 
 #include <algorithm>
 #include <array>
@@ -107,6 +107,14 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 	CWarEntry *&pSelectedEntry = ReadOnly ? pPreviewSelectedEntry : s_pSelectedEntry;
 	CWarType *&pSelectedType = ReadOnly ? pPreviewSelectedType : s_pSelectedType;
 
+	static uint64_t s_SelectionRevision = std::numeric_limits<uint64_t>::max();
+	if(s_SelectionRevision != GameClient()->m_WarList.Revision())
+	{
+		pSelectedEntry = nullptr;
+		if(!ReadOnly)
+			s_SelectionRevision = GameClient()->m_WarList.Revision();
+	}
+
 	auto WarTypeExists = [&](const CWarType *pType) {
 		return std::find(GameClient()->m_WarList.m_WarTypes.begin(), GameClient()->m_WarList.m_WarTypes.end(), pType) != GameClient()->m_WarList.m_WarTypes.end();
 	};
@@ -152,10 +160,10 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 		static std::vector<CWarEntry *> s_vFilteredEntries;
 		static char s_aCachedEntriesFilter[128] = "";
 		static bool s_CachedReversed = false;
-		static int s_CachedWarEntriesRevision = -1;
+		static uint64_t s_CachedWarEntriesRevision = std::numeric_limits<uint64_t>::max();
 		if(str_comp(s_aCachedEntriesFilter, s_EntriesFilterInput.GetString()) != 0 ||
 			s_CachedReversed != s_Reversed ||
-			s_CachedWarEntriesRevision != s_TClientWarListFilterRevision)
+			s_CachedWarEntriesRevision != GameClient()->m_WarList.Revision())
 		{
 			s_vFilteredEntries.clear();
 			for(CWarEntry &Entry : GameClient()->m_WarList.m_vWarEntries)
@@ -171,7 +179,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 				std::reverse(s_vFilteredEntries.begin(), s_vFilteredEntries.end());
 			str_copy(s_aCachedEntriesFilter, s_EntriesFilterInput.GetString(), sizeof(s_aCachedEntriesFilter));
 			s_CachedReversed = s_Reversed;
-			s_CachedWarEntriesRevision = s_TClientWarListFilterRevision;
+			s_CachedWarEntriesRevision = GameClient()->m_WarList.Revision();
 		}
 
 		int SelectedOldEntry = -1;
@@ -253,7 +261,6 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 		{
 			GameClient()->m_WarList.RemoveWarEntry(pEntryToRemove);
 			pSelectedEntry = nullptr;
-			++s_TClientWarListFilterRevision;
 		}
 		else if(!ReadOnly && NewSelectedEntry >= 0 && NewSelectedEntry < (int)s_vFilteredEntries.size() &&
 			(SelectedOldEntry != NewSelectedEntry || (Ui()->HotItem() == &s_vItemIds[NewSelectedEntry] && Ui()->MouseButtonClicked(0))))
@@ -339,11 +346,8 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 		{
 			if(pSelectedEntry && pSelectedType && (str_comp(s_aEntryName, "") != 0 || str_comp(s_aEntryClan, "") != 0))
 			{
-				str_copy(pSelectedEntry->m_aName, s_aEntryName);
-				str_copy(pSelectedEntry->m_aClan, s_aEntryClan);
-				str_copy(pSelectedEntry->m_aReason, s_aEntryReason);
-				pSelectedEntry->m_pWarType = pSelectedType;
-				++s_TClientWarListFilterRevision;
+				const int Index = pSelectedEntry - GameClient()->m_WarList.m_vWarEntries.data();
+				GameClient()->m_WarList.UpdateWarEntry(Index, s_aEntryName, s_aEntryClan, s_aEntryReason, pSelectedType);
 			}
 		}
 		if(!ReadOnly && DoButtonLineSize_Menu(&s_AddButton, Localize("Add Entry"), 0, &ButtonR, LineSize))
@@ -352,7 +356,6 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 			{
 				GameClient()->m_WarList.AddWarEntry(s_aEntryName, s_aEntryClan, s_aEntryReason, pSelectedType->m_aWarName);
 				pSelectedEntry = nullptr;
-				++s_TClientWarListFilterRevision;
 			}
 		}
 
@@ -496,16 +499,15 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 		{
 			if(pSelectedType && str_comp(s_aTypeName, "") != 0)
 			{
-				str_copy(pSelectedType->m_aWarName, s_aTypeName);
-				pSelectedType->m_Color = s_GroupColor;
-				++s_TClientWarListFilterRevision;
+				const auto &vpTypes = GameClient()->m_WarList.m_WarTypes;
+				const int Index = std::find(vpTypes.begin(), vpTypes.end(), pSelectedType) - vpTypes.begin();
+				GameClient()->m_WarList.UpsertWarType(Index, s_aTypeName, s_GroupColor);
 			}
 		}
 		bool AddDisabled = str_comp(GameClient()->m_WarList.FindWarType(s_aTypeName)->m_aWarName, "none") != 0 || str_comp(s_aTypeName, "none") == 0;
 		if(!ReadOnly && DoButtonLineSize_Menu(&s_AddGroupButton, Localize("Add Group"), 0, &ButtonR, LineSize, AddDisabled))
 		{
 			GameClient()->m_WarList.AddWarType(s_aTypeName, s_GroupColor);
-			++s_TClientWarListFilterRevision;
 		}
 
 		char aExtra[96];
@@ -702,7 +704,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 	};
 
 	const auto RenderWarListCard = [&](CUIRect &ContentRect) { RenderWarListLayout(ContentRect, true); };
-	const uint64_t CardRevision = ((uint64_t)GameClient()->m_WarList.m_vWarEntries.size() << 32) ^ (uint64_t)GameClient()->m_WarList.m_WarTypes.size();
+	const uint64_t CardRevision = GameClient()->m_WarList.Revision();
 	if(Pass == qm_card_catalog::ETClientCardPass::REVISION)
 		return {0.0f, CardRevision};
 	if(str_comp(pStableId, "deck:tclient-warlist") == 0)

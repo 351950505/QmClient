@@ -207,6 +207,45 @@ inline SSettingsConfigRowMetrics ResolveSettingsConfigRowMetrics(const bool Comp
 	return Metrics;
 }
 
+struct SSettingsConfigEntryLayout
+{
+	CUIRect m_Name;
+	CUIRect m_Description;
+	CUIRect m_Editor;
+	CUIRect m_Reset;
+	float m_Height = 0.0f;
+	bool m_Stacked = false;
+};
+
+// 配置列表共用名称／说明、编辑、重置三列；不足一行时把编辑区移到说明下方。
+inline SSettingsConfigEntryLayout ResolveSettingsConfigEntryLayout(const CUIRect &Area, const SSettingsContentMetrics &Metrics, bool Compact, float ResetWidth, float DescriptionHeight)
+{
+	SSettingsConfigEntryLayout Layout;
+	const float Width = std::max(0.0f, Area.w);
+	const float Padding = std::min(Metrics.m_LineSpacing, Width * 0.5f);
+	const float InnerWidth = Width - Padding * 2.0f;
+	const float Gap = std::min(Metrics.m_LineSpacing, InnerWidth * 0.25f);
+	const float LineHeight = Metrics.m_LineHeight;
+	const float ControlHeight = std::max(Metrics.m_InputHeight, Metrics.m_ButtonHeight);
+	const float PreferredResetWidth = std::max(0.0f, ResetWidth);
+	const float MinimumEditorWidth = 100.0f * Metrics.m_UiScale;
+	const float MinimumNameWidth = 160.0f * Metrics.m_UiScale;
+	Layout.m_Stacked = InnerWidth < MinimumNameWidth + MinimumEditorWidth + PreferredResetWidth + Gap * 2.0f;
+	const float ControlWidth = Layout.m_Stacked ? InnerWidth : std::min(InnerWidth * 0.45f, 320.0f * Metrics.m_UiScale);
+	const float NameWidth = Layout.m_Stacked ? InnerWidth : InnerWidth - ControlWidth - Gap;
+	const float HelpHeight = Compact ? 0.0f : std::max(0.0f, DescriptionHeight);
+	const float NameHeight = LineHeight + (Compact ? 0.0f : Gap + HelpHeight);
+	Layout.m_Height = Padding * 2.0f + (Layout.m_Stacked ? NameHeight + Gap + ControlHeight : std::max(NameHeight, ControlHeight));
+	Layout.m_Name = {Area.x + Padding, Area.y + Padding, NameWidth, LineHeight};
+	Layout.m_Description = {Layout.m_Name.x, Layout.m_Name.y + LineHeight + Gap, NameWidth, HelpHeight};
+	const float ControlX = Layout.m_Stacked ? Layout.m_Name.x : Area.x + Width - Padding - ControlWidth;
+	const float ControlY = Layout.m_Stacked ? Area.y + Padding + NameHeight + Gap : Area.y + (Layout.m_Height - ControlHeight) * 0.5f;
+	const float ActualResetWidth = std::min(PreferredResetWidth, std::max(0.0f, (ControlWidth - Gap) * 0.4f));
+	Layout.m_Editor = {ControlX, ControlY, std::max(0.0f, ControlWidth - Gap - ActualResetWidth), ControlHeight};
+	Layout.m_Reset = {Area.x + Width - Padding - ActualResetWidth, ControlY, ActualResetWidth, ControlHeight};
+	return Layout;
+}
+
 inline float ResolveSettingsGridHeight(const int ItemCount, const int ItemsPerRow, const float RowHeight, const float RowSpacing)
 {
 	if(ItemCount <= 0 || ItemsPerRow <= 0)

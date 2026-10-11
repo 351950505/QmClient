@@ -37,6 +37,7 @@
 #include <game/client/components/menus_ingame_touch_controls.h>
 #include <game/client/components/menus_settings_controls.h>
 #include <game/client/components/menus_start.h>
+#include <game/client/components/qmclient/audio_pack_catalog.h>
 #include <game/client/components/qmclient/browser_friend_list.h>
 #include <game/client/components/qmclient/demo_cut.h>
 #include <game/client/components/qmclient/local_save_display.h>
@@ -234,6 +235,7 @@ private:
 	bool DoLine_AlphaColorPicker(CButtonContainer *pResetId, const SSettingsContentMetrics &Metrics, CUIRect *pMainRect, const char *pText, unsigned int *pColorValue, int *pOpacity, unsigned int DefaultColor, int DefaultOpacity);
 	ColorHSLA DoLine_ColorPicker(CButtonContainer *pResetId, float LineSize, float LabelSize, float BottomMargin, CUIRect *pMainRect, const char *pText, unsigned int *pColorValue, ColorRGBA DefaultColor, bool CheckBoxSpacing = true, int *pCheckBoxValue = nullptr, bool Alpha = false);
 	ColorHSLA DoButton_ColorPicker(const CUIRect *pRect, unsigned int *pHslaColor, bool Alpha);
+	ColorHSLA DoButton_ColorPickerLogic(const CUIRect *pRect, unsigned int *pHslaColor, bool Alpha);
 	bool DoColorGradientPalette(CUIRect *pView, unsigned *pBaseColor, char *pGradient, int GradientSize, CButtonContainer *pAddButton, CButtonContainer *pRemoveButton, unsigned *pColorValues, const SSettingsContentMetrics &Metrics, bool CheckBoxSpacing = false, bool BaseHasAlpha = false);
 	bool DoMessageGradientLine(CChat &Chat, CUIRect *pView, int Tab, const char *pLabelTextId, const char *pLabel, unsigned *pBaseColor, char *pGradient, int GradientSize, ColorRGBA DefaultColor, CButtonContainer *pResetButton, CButtonContainer *pAddButton, CButtonContainer *pRemoveButton, unsigned *pColorValues, EQmChatGradientRole Role, bool CheckBoxSpacing = true, int *pCheckBoxValue = nullptr, float LineHeight = ui_token::settings::ROW_HEIGHT, float LineSpacing = ui_token::settings::ROW_GAP, float BodySize = ui_token::font::BODY, float ButtonHeight = -1.0f);
 	bool DoColorGradientGeometry(CUIRect &Content, const SQmGradientGeometryBinding &Binding, SQmGradientGeometryState &State, const SSettingsContentMetrics &Metrics, float LabelWidth);
@@ -497,15 +499,7 @@ public:
 		char m_aSourceAsset[64] = {0};
 	};
 
-	struct SAudioPackSlot
-	{
-		const char *m_pDisplayName = nullptr;
-		const char *m_pSetName = nullptr;
-		const char *m_pRelativePath = nullptr;
-		int m_SetId = -1;
-		int m_VariantIndex = 0;
-		int m_VariantCount = 0;
-	};
+	using SAudioPackSlot = qm_audio_pack::SSlot;
 
 	struct SAudioPackCandidateEntry
 	{
@@ -1460,6 +1454,7 @@ private:
 		bool m_Open = false;
 		bool m_Initialized = false;
 		int m_SelectedSlotIndex = 0;
+		int m_Category = 0;
 		int m_SelectedCandidateIndex = -1;
 		CLineInputBuffered<64> m_FilterInput;
 		CLineInputBuffered<64> m_CandidateFilterInput;
@@ -1517,6 +1512,7 @@ private:
 
 	SAudioPackEditorState m_AudioPackEditorState;
 	SAssetsEditorState m_AssetsEditorState;
+	void RefreshAudioPackList();
 	void AudioPackEditorOpen(const char *pPackName);
 	void AudioPackEditorClose();
 	void AudioPackEditorSetStatus(const char *pMessage, bool IsError);
@@ -1838,6 +1834,7 @@ protected:
 	bool m_DemoExportDisplayExpanded = false;
 	bool m_DemoDisplayExpanded = false;
 	CButtonContainer m_DemoDisplayButton;
+	CButtonContainer m_DemoCameraButton;
 	CButtonContainer m_DemoExportDisplayButton;
 	COnlineReplayShortcutClaims m_OnlineReplayShortcutClaims;
 	CLineInputBuffered<IO_MAX_PATH_LENGTH> m_DemoSearchInput;
@@ -1861,7 +1858,6 @@ protected:
 	int m_DemoSelectionAnchorIndex = -1;
 	std::shared_ptr<CQmScreenshotWatermarkJob> m_pScreenshotWatermarkJob;
 	std::string m_ScreenshotWatermarkFolder;
-	bool m_DemoScreenshotPreviewOpen = false;
 	bool m_DemoScreenshotPreviewLoadFailed = false;
 	char m_aDemoScreenshotPreviewFolder[IO_MAX_PATH_LENGTH] = "";
 	SDemoSelectionEntry m_DemoScreenshotPreviewSelection{};
@@ -1911,10 +1907,9 @@ protected:
 	void PrepareDemoDeleteTargetsFromSelection();
 	void ResetDemoScreenshotPreview();
 	bool IsDemoScreenshotPreviewItem(const CDemoItem &Item) const;
-	void ToggleDemoScreenshotPreview(const CDemoItem &Item);
+	void OpenDemoScreenshotViewer(const CDemoItem &Item);
 	void SyncDemoScreenshotPreview();
 	bool LoadDemoScreenshotPreviewTexture(const CDemoItem &Item);
-	void RenderDemoScreenshotPreview(CUIRect PreviewRect, const CDemoItem &Item);
 	void RenderDemoScreenshotDetails(CUIRect Contents, const CDemoItem &Item, float FontSize);
 	void RenderDemoScreenshotWatermarkPreview(CUIRect PreviewRect, const CDemoItem &Item);
 	bool DoDemoScreenshotWatermarkButton(const CUIRect &Rect);
@@ -2133,6 +2128,7 @@ protected:
 	void RenderDemoPlayerSliceSavePopup(CUIRect MainView);
 	// 回放/导出共用的显示选项面板与其折叠开关。
 	void RenderDemoDisplaySettings(CUIRect View, bool Enabled = true);
+	void RenderDemoCameraPanel(CUIRect View, bool Enabled);
 	void RenderDemoDisplayToggle(const CUIRect &Rect, bool &Expanded, CButtonContainer &Button, bool Enabled = true);
 	bool m_DemoBrowserListInitialized = false;
 	void RenderDemoBrowser(CUIRect MainView);
@@ -2340,6 +2336,7 @@ protected:
 	void Connect(const char *pAddress, EConnectIntent Intent = EConnectIntent::Manual);
 	void PopupConfirmSwitchServer();
 	void RenderServerbrowserFilters(CUIRect View);
+	void RenderServerbrowserFilterForm(CUIRect &View);
 	void ResetServerbrowserFilters();
 	void RenderServerbrowserDDNetFilter(CUIRect View,
 		IFilterList &Filter,
@@ -2677,6 +2674,7 @@ public:
 	void DemolistPopulate();
 	void RefreshFilteredDemos();
 	void DemoSeekTick(IDemoPlayer::ETickOffset TickOffset);
+	bool DemoSeekToTick(int Tick);
 	bool m_Dummy;
 
 	const char *GetCurrentDemoFolder() const { return m_aCurrentDemoFolder; }
@@ -3271,6 +3269,7 @@ private:
 	bool RenderQmVisualCheckbox(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue);
 	void RenderQmVisualLabel(const char *pTextId, CUIRect *pRect, const char *pText, float FontSize, int TextAlign = TEXTALIGN_ML, const SLabelProperties &LabelProps = {});
 	void RenderQmVisualStreamerContent(CUIRect &Content, float LineHeight, float LineSpacing);
+	void RenderQmWordFilterFileContent(CUIRect &Content, bool Streamer, float LineHeight, float LineSpacing, float BodySize);
 	void RenderQmVisualTranslateUiContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing);
 	void RenderQmVisualEntityOverlayContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmVisualCollisionHitboxContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);

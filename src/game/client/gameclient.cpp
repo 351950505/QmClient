@@ -672,6 +672,7 @@ void CGameClient::OnConsoleInit()
 	AddComponent(&m_CustomCommunities, "custom_communities");
 	AddComponent(&m_PlayerPoints, "player_points");
 	AddComponent(&m_Emoticon.m_RenderProjectiles, "emoticon_projectiles");
+	AddComponent(&m_DemoCamera, "demo_camera");
 	AddComponent(&m_Hud, "hud");
 	AddComponent(&m_Spectator, "spectator");
 	AddComponent(&m_Emoticon, "emoticon");
@@ -1188,6 +1189,7 @@ void CGameClient::PrewarmSettingsRuntimeCachesDuringLoading(const char *pLoading
 
 void CGameClient::OnUpdate()
 {
+	m_LocalServer.Update();
 	// 返回客户端后先交接输入，再向组件分发这一帧的事件。
 	m_QmImeManager.SetClientOwnership(true);
 	// 字体配置变化通过统一窗口失效路径清理缓存。

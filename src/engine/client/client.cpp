@@ -68,6 +68,7 @@
 
 #include <game/client/components/qmclient/media_paths.h>
 #include <game/client/components/qmclient/perf_logging.h>
+#include <game/client/components/qmclient/screenshot_viewer.h>
 #include <game/client/frame_scheduler.h>
 #include <game/localization.h>
 #include <game/version.h>
@@ -82,7 +83,9 @@
 #include <ios/ios_main.h>
 #endif
 
-#include "SDL.h"
+#define SDL_MAIN_HANDLED
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 
 namespace
 {
@@ -4427,7 +4430,7 @@ void CClient::Run()
 			{
 				if(!GameClient()->PrepareForShutdown(true))
 				{
-					SetState(IClient::STATE_QUITTING); // SDL_QUIT
+					SetState(IClient::STATE_QUITTING); // SDL_EVENT_QUIT
 					break;
 				}
 			}
@@ -6433,6 +6436,10 @@ int main(int argc, const char **argv)
 #endif
 	CCmdlineFix CmdlineFix(&argc, &argv);
 
+	// 独立看图进程在游戏、配置和网络初始化之前分流。
+	if(argc >= 2 && str_comp(argv[1], "--qm-screenshot-viewer") == 0)
+		return argc == 5 ? RunQmScreenshotViewer(argv[2], argv[3], argv[4]) : 2;
+
 	// QmClient: 测试专用注入开关，供 qmclient_scripts/integration 的进程级回归测试
 	// 在真实客户端里触发主线程断言。正常运行不会传入该参数。
 	for(int i = 1; i < argc; ++i)
@@ -7045,11 +7052,6 @@ int main(int argc, const char **argv)
 	SDL_SetHint("SDL_TOUCH_MOUSE_EVENTS", "0");
 	SDL_SetHint("SDL_MOUSE_TOUCH_EVENTS", "0");
 
-	// Support longer IME composition strings (enables SDL_TEXTEDITING_EXT).
-#if SDL_VERSION_ATLEAST(2, 0, 22)
-	SDL_SetHint(SDL_HINT_IME_SUPPORT_EXTENDED_TEXT, "1");
-#endif
-
 #if defined(CONF_PLATFORM_MACOS)
 	// Hints will not be set if there is an existing override hint or environment variable that takes precedence.
 	// So this respects cli environment overrides.
@@ -7057,25 +7059,18 @@ int main(int argc, const char **argv)
 #endif
 
 #if defined(CONF_FAMILY_WINDOWS)
-	SDL_SetHint("SDL_IME_SHOW_UI", g_Config.m_InpImeNativeUi ? "1" : "0");
-	SDL_SetHint("SDL_QM_IME_SKIP_UILESS_UIELEMENT_PROCESSING", g_Config.m_InpImeNativeUi ? "0" : "1");
-#else
-	SDL_SetHint("SDL_IME_SHOW_UI", "1");
+	SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, g_Config.m_InpImeNativeUi ? "none" : "composition,candidates");
 #endif
-
 #if defined(CONF_PLATFORM_ANDROID)
-	// Trap the Android back button so it can be handled in our code reliably
-	// instead of letting the system handle it.
-	SDL_SetHint("SDL_ANDROID_TRAP_BACK_BUTTON", "1");
-	// Force landscape screen orientation.
-	SDL_SetHint("SDL_IOS_ORIENTATIONS", "LandscapeLeft LandscapeRight");
+	SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
 #endif
-#if defined(CONF_PLATFORM_IOS)
-	SDL_SetHint("SDL_IOS_ORIENTATIONS", "LandscapeLeft LandscapeRight");
+#if defined(CONF_PLATFORM_ANDROID) || defined(CONF_PLATFORM_IOS)
+	SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 #endif
 
 	// init SDL
-	if(SDL_Init(0) < 0)
+	SDL_SetMainReady();
+	if(!SDL_Init(0))
 	{
 		char aError[256];
 		str_format(aError, sizeof(aError), "Unable to initialize SDL base: %s", SDL_GetError());
@@ -7412,7 +7407,7 @@ int CClient::UdpConnectivity(int NetType)
 static bool ViewLinkImpl(const char *pLink)
 {
 #if defined(CONF_PLATFORM_ANDROID) || defined(CONF_PLATFORM_IOS)
-	if(SDL_OpenURL(pLink) == 0)
+	if(SDL_OpenURL(pLink))
 	{
 		return true;
 	}

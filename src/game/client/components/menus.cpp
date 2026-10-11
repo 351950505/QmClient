@@ -760,6 +760,7 @@ qm_card_order::CModel &CMenus::SettingsCardOrderModelForRenderPass()
 	{
 		m_SettingsCardRenderOnlyOrderModel.LoadMerged(g_Config.m_QmGlobalCardOrder, qm_card_registry::BuildDefaultEntries());
 		qm_card_registry::RepairLegacyCreditsTabs(m_SettingsCardRenderOnlyOrderModel);
+		qm_card_registry::RepairLegacyNameplateTitleLayout(m_SettingsCardRenderOnlyOrderModel);
 		qm_card_registry::RepairLegacyTeeLayout(m_SettingsCardRenderOnlyOrderModel);
 		m_SettingsCardRenderOnlyOrderSource = g_Config.m_QmGlobalCardOrder;
 		m_SettingsCardRenderOnlyOrderInitialized = true;
@@ -820,8 +821,9 @@ void CMenus::LoadSettingsCardOrderModel()
 	// 归属修复不依赖布局版本，也不能被较早的可选布局迁移阻断。
 	// 写回失败时仍保留可显示的内存布局，下次加载会再次尝试修复。
 	const bool CreditsLayoutChanged = qm_card_registry::RepairLegacyCreditsTabs(m_SettingsCardOrderModel);
+	const bool NameplateTitleLayoutChanged = qm_card_registry::RepairLegacyNameplateTitleLayout(m_SettingsCardOrderModel);
 	const bool TeeLayoutChanged = qm_card_registry::RepairLegacyTeeLayout(m_SettingsCardOrderModel);
-	if((CreditsLayoutChanged || TeeLayoutChanged) && !PersistCurrentLayout())
+	if((CreditsLayoutChanged || NameplateTitleLayoutChanged || TeeLayoutChanged) && !PersistCurrentLayout())
 	{
 		m_SettingsCardOrderLoaded = true;
 		return;
@@ -1978,6 +1980,8 @@ void CMenus::DoLaserPreview(const CUIRect *pRect, const ColorHSLA LaserOutlineCo
 	// TicksBody = 4.0 for less laser width for weapon alignment
 	if(LaserType == LASERTYPE_RIFLE || LaserType == LASERTYPE_SHOTGUN)
 	{
+		// 先画激光，再画武器，让枪身遮住重叠的光束。
+		GameClient()->m_Items.RenderLaser(From, Pos, OuterColor, InnerColor, 4.0f, TicksHead, LaserType, g_Config.m_QmLaserGlowIntensity);
 		switch(LaserType)
 		{
 		case LASERTYPE_RIFLE:
@@ -1997,7 +2001,6 @@ void CMenus::DoLaserPreview(const CUIRect *pRect, const ColorHSLA LaserOutlineCo
 			Graphics()->QuadsEnd();
 			break;
 		}
-		GameClient()->m_Items.RenderLaser(From, Pos, OuterColor, InnerColor, 4.0f, TicksHead, LaserType, g_Config.m_QmLaserGlowIntensity);
 	}
 	else
 	{
@@ -2238,6 +2241,12 @@ ColorHSLA CMenus::DoButton_ColorPicker(const CUIRect *pRect, unsigned int *pHsla
 
 	DrawRoundedSurface(Ui(), *pRect, color_cast<ColorRGBA>(HslaColor), Outline, 4.0f, 3.0f);
 
+	return DoButton_ColorPickerLogic(pRect, pHslaColor, Alpha);
+}
+
+ColorHSLA CMenus::DoButton_ColorPickerLogic(const CUIRect *pRect, unsigned int *pHslaColor, bool Alpha)
+{
+	ColorHSLA HslaColor = ColorHSLA(*pHslaColor, Alpha);
 	if(Ui()->DoButtonLogic(pHslaColor, 0, pRect, BUTTONFLAG_LEFT))
 	{
 		m_ColorPickerPopupContext.m_pHslaColor = pHslaColor;
@@ -5228,7 +5237,9 @@ void CMenus::RenderPopupFullscreen(CUIRect Screen)
 		}
 		else if(m_JoinTutorial.m_LocalServerState == CJoinTutorial::ELocalServerState::WAITING_START)
 		{
-			if(LastStateChangeSeconds >= 5.0f)
+			if(GameClient()->m_LocalServer.IsServerStarting())
+				m_JoinTutorial.m_StateChange = time_get_nanoseconds();
+			if(LastStateChangeSeconds >= 5.0f && !GameClient()->m_LocalServer.IsServerStarting())
 			{
 				ShowFinalErrorMessage();
 			}
@@ -5256,6 +5267,8 @@ void CMenus::RenderPopupFullscreen(CUIRect Screen)
 			Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE) ||
 			Ui()->ConsumeHotkey(CUi::HOTKEY_ENTER))
 		{
+			if(GameClient()->m_LocalServer.IsServerStarting())
+				GameClient()->m_LocalServer.KillServer();
 			m_Popup = POPUP_NONE;
 		}
 	}
@@ -5569,6 +5582,11 @@ void CMenus::RenderPopupLoading(CUIRect Screen)
 #if defined(CONF_VIDEORECORDER)
 void CMenus::PopupConfirmDemoReplaceVideo()
 {
+	if(Client()->State() == IClient::STATE_DEMOPLAYBACK && GameClient()->m_DemoCamera.Dirty() && !GameClient()->m_DemoCamera.Save())
+	{
+		PopupMessage(Localize("Error"), Localize("Failed to save camera path"), Localize("Ok"));
+		return;
+	}
 	char aBuf[IO_MAX_PATH_LENGTH];
 	char aDemoFilename[IO_MAX_PATH_LENGTH];
 	const char *pDemoFolder = m_HasPendingDemoRenderSource ? m_aPendingDemoRenderFolder : m_aCurrentDemoFolder;
@@ -5583,6 +5601,7 @@ void CMenus::PopupConfirmDemoReplaceVideo()
 	const std::string VideoPath = qmclient::media_paths::Resolve(Storage(), g_Config, (std::string("videos/") + aVideoName + ".mp4").c_str());
 	const std::string WholePath = qmclient::media_paths::CompletePath(Storage(), VideoPath);
 	str_copy(m_aDemoRenderedVideoPath, WholePath.c_str());
+	GameClient()->m_DemoCamera.PrepareSource(aBuf, DemoStorageType);
 	const char *pError = Client()->DemoPlayer_Render(aBuf, DemoStorageType, aVideoName, m_Speed, m_StartPaused);
 	m_HasPendingDemoRenderSource = false;
 	m_vDemoCutSegments.clear();

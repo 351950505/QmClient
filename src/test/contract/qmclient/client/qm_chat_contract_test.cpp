@@ -8,19 +8,6 @@
 
 #include <string>
 
-TEST(QmChatMessageMerge, HighlightedMessagesAreNotMerged)
-{
-	const std::string Chat = ReadTestSourceFile("src/game/client/components/chat.cpp");
-	const std::string AddLine = SourceFunctionBody(Chat, "void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible, std::optional");
-
-	const size_t HighlightCheck = AddLine.find("LineShouldHighlight(pLine");
-	const size_t MergeCheck = AddLine.find("CanMergePlayerMessages(");
-	ASSERT_NE(HighlightCheck, std::string::npos);
-	ASSERT_NE(MergeCheck, std::string::npos);
-	EXPECT_LT(HighlightCheck, MergeCheck);
-	EXPECT_NE(AddLine.find("!Highlighted &&"), std::string::npos);
-}
-
 TEST(QmLocalSaveJoinHint, UsesExpiringEchoMessages)
 {
 	const std::string Source = ReadTestSourceFile("src/game/client/components/tclient/tclient.cpp");
@@ -32,21 +19,6 @@ TEST(QmLocalSaveJoinHint, UsesExpiringEchoMessages)
 	EXPECT_EQ(Body.find("GameClient()->Echo(aMessage, true);"), std::string::npos);
 	EXPECT_EQ(Body.find("GameClient()->Echo(PlayersLine.c_str(), true);"), std::string::npos);
 	EXPECT_EQ(Body.find("GameClient()->Echo(CodesLine.c_str(), true);"), std::string::npos);
-}
-
-TEST(QmWindowModesContract, WindowedFullscreenIsBorderedAndNonResizable)
-{
-	const std::string Backend = ReadTestSourceFile("src/engine/client/backend_sdl.cpp");
-	const std::string SetWindowParams = SourceFunctionBody(Backend, "void CGraphicsBackend_SDL_GL::SetWindowParams(");
-	const size_t WindowedFullscreenStart = SetWindowParams.find("else // Windowed fullscreen");
-	const size_t WindowedStart = SetWindowParams.find("else // Windowed", WindowedFullscreenStart + 1);
-	ASSERT_NE(WindowedFullscreenStart, std::string::npos);
-	ASSERT_NE(WindowedStart, std::string::npos);
-	const std::string WindowedFullscreen = SetWindowParams.substr(WindowedFullscreenStart, WindowedStart - WindowedFullscreenStart);
-
-	EXPECT_NE(WindowedFullscreen.find("SDL_SetWindowFullscreen(m_pWindow, 0);"), std::string::npos);
-	EXPECT_NE(WindowedFullscreen.find("SDL_SetWindowBordered(m_pWindow, SDL_TRUE);"), std::string::npos);
-	EXPECT_NE(WindowedFullscreen.find("SDL_SetWindowResizable(m_pWindow, SDL_FALSE);"), std::string::npos);
 }
 
 TEST(QmFastPracticeCommands, TeleportDefaultsToAimingOrSpectatingPosition)

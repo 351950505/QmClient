@@ -52,6 +52,9 @@
 %d teams
 == %d équipes
 
+%d words loaded
+== %d mots chargés
+
 %d. %s | main: %s | dummy: %s
 == %d. %s | principal : %s | dummy : %s
 
@@ -299,6 +302,9 @@ A demo with this name already exists
 A folder with this name already exists
 == Un dossier avec ce nom existe déjà
 
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
+== Un fichier source manuel est prioritaire sur le candidat sélectionné. Seule cette variante est remplacée.
+
 a player
 == un joueur
 
@@ -491,6 +497,9 @@ Add Group
 Add Item
 == Ajouter un élément
 
+Add keyframe
+== Ajouter une image clé
+
 Add latency for antiping (0 to disable)
 == Ajouter une latence pour l'antiping (0 pour désactiver)
 
@@ -623,6 +632,9 @@ Aim
 Aim bind
 == Touche de visée
 
+Air jump
+== Saut aérien
+
 Alive notification color
 == Couleur de notification de survie
 
@@ -652,6 +664,9 @@ All maps
 
 All players
 == Tous les joueurs
+
+All sounds
+== Tous les sons
 
 All stars
 == Toutes les étoiles
@@ -820,6 +835,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == Apparence des bulles d’aide
+
+Append saved word list chunk
+== Ajouter un fragment enregistré de la liste
 
 Append to log file instead of overwriting
 == Ajouter au fichier journal au lieu de l'écraser
@@ -1000,9 +1018,6 @@ Audio packets
 
 Audio packs
 == Packs audio
-
-Audio slots
-== Emplacements audio
 
 AUS
 == AUS
@@ -1715,6 +1730,9 @@ Camera follow cursor factor
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == Quantité de transition du mouvement de la caméra, 0=instantané, 100=lent et fluide
 
+Camera path
+== Trajectoire de caméra
+
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == Ralentissement de la caméra lors d'un mouvement rapide du curseur. Des valeurs élevées peuvent entraîner un mouvement retardé de la caméra
 
@@ -1763,8 +1781,20 @@ Candidate files
 Cannot join the target player's team
 == Impossible de rejoindre l'équipe de ce joueur
 
+Cannot open word list file. Previous words remain active.
+== Impossible d’ouvrir le fichier. Les mots précédents restent actifs.
+
+Cannot read complete word list file. Previous words remain active.
+== Impossible de lire tout le fichier. Les mots précédents restent actifs.
+
 Cannot swap: the other player is not in your team
 == Impossible d'échanger : l'autre joueur n'est pas dans votre équipe
+
+Capture the flag
+== Capture du drapeau (CTF)
+
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
+== Signal d'événement de capture du drapeau, utilisé par les serveurs CTF plutôt qu'en course DDNet classique.
 
 Card height animation
 == Animation de hauteur de la carte de paramètres
@@ -1892,6 +1922,9 @@ Chat gradient vertical position percentage
 Chat log retention days
 == Jours de conservation du journal du chat
 
+Chat mention / vote alert
+== Mention dans le chat / alerte de vote
+
 Chat message
 == Message de chat
 
@@ -1918,6 +1951,9 @@ Chat width
 
 Chat word filtering
 == Filtrage des mots du chat
+
+Chat word list file
+== Fichier de mots du chat
 
 Cheats are disabled on this server
 == Les triches sont désactivées sur ce serveur
@@ -2275,6 +2311,9 @@ Commands
 
 Commands run in the console
 == Commandes exécutées dans la console
+
+Common filters
+== Filtres courants
 
 Common key bindings
 == Raccourcis clavier courants
@@ -3272,6 +3311,9 @@ Delete this preset
 Demo
 == Démo
 
+Demo cut saved, but its camera path could not be saved
+== L’extrait de démo est enregistré, mais pas sa trajectoire de caméra
+
 Demo directory
 == Dossier des démos
 
@@ -3863,6 +3905,9 @@ Edit
 Edit audio pack
 == Modifier le pack audio
 
+Edit camera
+== Modifier la caméra
+
 Edit color
 == Modifier les couleurs
 
@@ -3982,6 +4027,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == Activer l'effet de dérive de la caméra, créant un léger traînage en fonction de la vitesse de déplacement
+
+Enable camera path
+== Activer la trajectoire
 
 Enable chat mention sound
 == Activer le son de mention dans le chat
@@ -4529,9 +4577,6 @@ Export name contains invalid characters.
 Export selected
 == Exporter la sélection
 
-Export selected file
-== Exporter le fichier sélectionné
-
 Export to clipboard
 == Exporter dans le presse-papiers
 
@@ -4607,6 +4652,9 @@ Failed to fetch the replay list
 Failed to load
 == Échec du chargement
 
+Failed to load camera path
+== Impossible de charger la trajectoire
+
 Failed to load main asset: %s
 == Échec du chargement de l'actif principal : %s
 
@@ -4624,6 +4672,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == L'enregistrement vidéo a échoué. Consultez la console locale pour plus de détails.
+
+Failed to save camera path
+== Impossible d’enregistrer la trajectoire
 
 Failed to save demo
 == Échec de l’enregistrement de la démo
@@ -4802,6 +4853,21 @@ First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 == Sur les serveurs remplis, les lignes du tableau ont une hauteur fixe ; faites défiler avec la molette
 
+Flag captured
+== Drapeau capturé
+
+Flag dropped
+== Drapeau lâché
+
+Flag grab: enemy side
+== Prise de drapeau : côté ennemi
+
+Flag grab: player side
+== Prise de drapeau : côté joueur
+
+Flag returned
+== Drapeau rapporté
+
 Flip:
 == Retourner :
 
@@ -4931,6 +4997,9 @@ Freeze border color
 Freeze Collision Border Color
 == Couleur de la bordure de collision du gel
 
+Freeze heart / health pickup
+== Cœur gelé / ramassage de vie
+
 Freeze laser collision volume
 == Volume de collision du laser Freeze
 
@@ -5017,6 +5086,9 @@ Friends
 
 Friends only
 == Amis uniquement
+
+Frozen fire attempt
+== Tentative de tir en étant gelé
 
 Frozen prediction margin
 == Marge de prédiction en cas de gel
@@ -5261,6 +5333,9 @@ Go forward one tick
 Go forward the specified duration
 == Avancer de la durée spécifiée
 
+Go to keyframe
+== Aller à l’image clé
+
 Gores
 == Gores
 
@@ -5357,6 +5432,18 @@ Greeting text
 Grenade
 == Lance-grenade
 
+Grenade explosion
+== Explosion de grenade
+
+Grenade launch
+== Tir de lance-grenades
+
+Grenade pickup
+== Ramassage du lance-grenades
+
+Ground jump
+== Saut depuis le sol
+
 Group name
 == Nom du groupe
 
@@ -5366,8 +5453,14 @@ GUI cursor assets
 Guide line color
 == Couleur de la ligne de guidage
 
+Gun fire
+== Tir de pistolet
+
 Hammer
 == Marteau
+
+Hammer hit
+== Impact de marteau
 
 Hammer interaction
 == Interaction du marteau
@@ -5377,6 +5470,9 @@ Hammer Mode
 
 Hammer skin steal
 == Vol de skin au marteau
+
+Hammer swing
+== Coup de marteau dans le vide
 
 Hammer: %s
 == Marteau : %s
@@ -5612,6 +5708,9 @@ Highlighted message
 Highlighted message color
 == Couleur du message en surbrillance
 
+Hit feedback
+== Retour de touche
+
 Hitbox Mode Freeze Border Color
 == Couleur des limites Freeze en mode Hitbox
 
@@ -5633,6 +5732,9 @@ Hitbox Mode Weapon Interaction Color
 HJ assist
 == Aide HJ
 
+Hold
+== Maintenir
+
 Hold gun higher like TW 0.6.1 and earlier
 == Tenir l'arme plus haut comme TW 0.6.1 et versions antérieures
 
@@ -5641,6 +5743,12 @@ Hold left click for free camera
 
 Hook
 == Crochet
+
+Hook attaches to ground
+== Le grappin s'accroche au sol
+
+Hook attaches to player
+== Le grappin s'accroche à un joueur
 
 Hook collision line
 == Ligne de collision de crochet
@@ -5660,11 +5768,17 @@ Hook Collisions
 Hook collisions
 == Collisions de crochet
 
+Hook hits unhookable surface
+== Le grappin touche une surface non accrochable
+
 Hook interaction
 == Interaction du crochet
 
 Hook line tip
 == Pointe de la ligne de crochet
+
+Hook loop
+== Boucle du grappin
 
 Hook Strength
 == Force du crochet
@@ -5857,6 +5971,12 @@ Import from clipboard
 
 Improved anti ping
 == Anti-ping amélioré
+
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+== Dans DDNet, joué lorsqu'un cœur gelé fige le joueur. D'autres modes peuvent l'utiliser pour le ramassage de vie.
+
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
+== Dans DDNet, joué lorsque les armes sont retirées. D'autres modes peuvent l'utiliser pour le ramassage de bouclier.
 
 In memory of me
 == En mémoire de moi
@@ -6113,6 +6233,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == Chemin de configuration invalide ou dupliqué.
 
+Invalid quoted word. Use one word per line.
+== Mot entre guillemets invalide. Utilisez un mot par ligne.
+
 Invalid save number. Use a number from the save list.
 == Numéro de sauvegarde invalide. Utilisez un numéro de la liste.
 
@@ -6157,6 +6280,9 @@ Item
 
 Item type
 == Type d'objet
+
+Its use depends on the server or game mode.
+== Son utilisation dépend du serveur ou du mode de jeu.
 
 j = Latency jitter
 == j = Gigue de latence
@@ -6305,6 +6431,9 @@ Keyboard focus ring color
 Keyboard size
 == Taille du clavier
 
+Keyframe %d/%d: %s
+== Image clé %d/%d : %s
+
 Keyword reply
 == Réponse par mot-clé
 
@@ -6380,6 +6509,9 @@ Label type
 LAN
 == LAN
 
+Landing
+== Atterrissage
+
 Language
 == Langue
 
@@ -6401,6 +6533,9 @@ Large text for friend join (use %s for friend name)
 Laser
 == Laser
 
+Laser / shotgun bounce
+== Rebond de laser / fusil à pompe
+
 Laser / shotgun interaction
 == Interaction du laser / fusil à pompe
 
@@ -6409,6 +6544,9 @@ Laser colors
 
 Laser effect enhancement
 == Amélioration de l'effet laser
+
+Laser fire
+== Tir de laser
 
 Laser glow intensity (0-100)
 == Intensité de la lueur du laser (0-100)
@@ -6950,6 +7088,9 @@ Map play history
 Map Preview TODO
 == Aperçu de la carte à faire
 
+Map progress
+== Progression des cartes
+
 Map progress bar
 == Barre de progression de la carte
 
@@ -7202,6 +7343,9 @@ Menu main panel background color
 Menu main panel opacity
 == Opacité du panneau principal du menu
 
+Menu music
+== Musique du menu
+
 Menu opacity (0-100)
 == Opacité du menu (Menu opacity 0-100)
 
@@ -7400,6 +7544,9 @@ Move player to spectators
 Move right
 == Déplacer à droite
 
+Move the free camera, then add a keyframe at the current demo time.
+== Déplacez la caméra libre, puis ajoutez une image clé à l’instant actuel de la démo.
+
 Move to category
 == Déplacer vers la catégorie
 
@@ -7420,6 +7567,9 @@ Multi-View
 
 Multiple exact Axiom players found
 == Plusieurs joueurs Axiom correspondent exactement
+
+Music
+== Musique
 
 Music player volume
 == Volume du lecteur de musique
@@ -7754,8 +7904,20 @@ Next weapon
 Nickname
 == Pseudo
 
+Ninja attack
+== Attaque au katana ninja
+
+Ninja hit
+== Impact de katana ninja
+
+Ninja pickup
+== Ramassage du katana ninja
+
 No
 == Non
+
+No ammunition
+== Plus de munitions
 
 No animation
 == Aucune animation
@@ -7775,17 +7937,20 @@ No assets found.
 No audio issues detected
 == Aucun problème audio détecté
 
-No audio slots found.
-== Aucun emplacement audio trouvé.
-
 No buttons match your filter criteria
 == Aucun bouton ne correspond à vos critères de filtre
 
 No callable peer found
 == Aucun pair appelable trouvé
 
+No camera keyframes
+== Aucune image clé de caméra
+
 No candidate file selected.
 == Aucun fichier candidat sélectionné.
+
+No candidate files match this search.
+== Aucun fichier candidat ne correspond à cette recherche.
 
 No changes since last save
 == Aucune modification depuis la dernière sauvegarde
@@ -7840,9 +8005,6 @@ No functions bound
 
 No input device available
 == Aucun périphérique d'entrée disponible
-
-No items to write
-== Aucun élément à écrire
 
 No local saves file found (ddnet-saves.txt)
 == Aucun fichier de sauvegarde locale trouvé (ddnet-saves.txt)
@@ -7957,6 +8119,9 @@ No servers match your filter criteria
 
 No skins match your filter criteria
 == Aucun skin ne correspond à vos critères de filtre
+
+No sounds match this search.
+== Aucun son ne correspond à cette recherche.
 
 No space for button
 == Pas d'espace pour le bouton
@@ -8306,11 +8471,17 @@ Original message language
 Other
 == Autre
 
+Other game modes
+== Autres modes de jeu
+
 Other modes
 == Autres modes
 
 Other players' hook line width
 == Largeur de la ligne de crochet des autres joueurs
+
+Other sounds
+== Autres sons
 
 Others
 == Autres
@@ -8558,6 +8729,9 @@ Pick the source that matches your music app and keep it playing; the lyrics foll
 Pickup range
 == Portée de ramassage
 
+Pickups
+== Objets ramassés
+
 Pie menu
 == Menu circulaire
 
@@ -8636,6 +8810,78 @@ Play/pause the current demo
 Playback volume
 == Volume de lecture
 
+Played for chat highlights and vote alerts when their notification sound is enabled.
+== Joué lors des mentions dans le chat et des alertes de vote lorsque leur son de notification est activé.
+
+Played for incoming player chat messages when their notification sound is enabled.
+== Joué à la réception de messages de joueurs dans le chat lorsque leur son de notification est activé.
+
+Played for incoming server chat messages when their notification sound is enabled.
+== Joué à la réception de messages du serveur dans le chat lorsque leur son de notification est activé.
+
+Played when a grenade explodes.
+== Joué lorsqu'une grenade explose.
+
+Played when a laser or DDNet shotgun beam bounces.
+== Joué lorsqu'un rayon laser ou de fusil à pompe DDNet rebondit.
+
+Played when a ninja dash hits another player.
+== Joué lorsqu'une charge au katana ninja touche un autre joueur.
+
+Played when a player dies, including suicide.
+== Joué lorsqu'un joueur meurt, suicide inclus.
+
+Played when a player spawns or respawns.
+== Joué lorsqu'un joueur apparaît ou réapparaît.
+
+Played when firing this weapon.
+== Joué lors du tir avec cette arme.
+
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+== Joué lors d'un saut depuis le sol. Les fichiers du pied gauche et du pied droit appartiennent à ce même groupe sonore.
+
+Played when moving fast on the ground and pressing the opposite direction.
+== Joué lors d'un déplacement rapide au sol en appuyant dans la direction opposée.
+
+Played when picking up a grenade weapon.
+== Joué lors du ramassage d'un lance-grenades.
+
+Played when picking up a shotgun or laser weapon.
+== Joué lors du ramassage d'un fusil à pompe ou d'un laser.
+
+Played when pressing fire while frozen.
+== Joué en appuyant sur tir tout en étant gelé.
+
+Played when starting a ninja dash attack.
+== Joué au lancement d'une attaque chargée au katana ninja.
+
+Played when swinging the hammer, even without hitting a player.
+== Joué lors d'un coup de marteau, même sans toucher de joueur.
+
+Played when switching the active weapon.
+== Joué lors du changement d'arme active.
+
+Played when the hammer hits another player.
+== Joué lorsque le marteau touche un autre joueur.
+
+Played when the hook attaches to a hookable surface.
+== Joué lorsque le grappin s'accroche à une surface accrochable.
+
+Played when the hook attaches to another player.
+== Joué lorsque le grappin s'accroche à un autre joueur.
+
+Played when the hook hits an unhookable surface.
+== Joué lorsque le grappin frappe une surface non accrochable.
+
+Played when using the second jump in the air.
+== Joué lors de l'utilisation du double saut dans les airs.
+
+Played when weapon teleportation moves the player in DDNet.
+== Joué lorsque la téléportation d'arme déplace le joueur dans DDNet.
+
+Played while offline when menu music is enabled.
+== Joué hors ligne lorsque la musique du menu est activée.
+
 Player
 == Joueur
 
@@ -8645,8 +8891,14 @@ Player already invited
 Player body color
 == Couleur du corps du joueur
 
+Player chat message
+== Message de chat d'un joueur
+
 Player clan
 == Clan du joueur
+
+Player count
+== Comptage des joueurs
 
 Player country (ISO 3166-1 numeric code)
 == Pays du joueur (code numérique ISO 3166-1)
@@ -8656,6 +8908,9 @@ Player country filter in server browser (ISO 3166-1 numeric)
 
 Player country:
 == Pays du joueur :
+
+Player death
+== Mort du joueur
 
 Player decoration color
 == Couleur de la décoration du joueur
@@ -8743,6 +8998,12 @@ Player skin marking
 
 Player skin used for volleyball appearance
 == Skin de joueur utilisé pour l'apparence du volleyball
+
+Player spawn
+== Apparition du joueur
+
+Player state
+== État du joueur
 
 Player stats
 == Statistiques du joueur
@@ -9022,6 +9283,9 @@ Preview laser bodies, outlines, and impacts
 
 Preview loading…
 == Chargement de l'aperçu…
+
+Preview path
+== Prévisualiser la trajectoire
 
 Preview player and dummy appearance
 == Preview player and dummy appearance
@@ -9587,6 +9851,9 @@ Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
 == Enregistrer le serveur auprès du serveur maître pour la liste publique, accepte les protocoles séparés par des virgules, ex. 'ipv4,ipv6'
 
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
+== Son enregistré ; aucun déclencheur direct n'a été trouvé dans ce serveur DDNet. D'autres serveurs peuvent l'utiliser.
+
 Regular
 == Normal
 
@@ -9595,9 +9862,6 @@ Regular background color
 
 Regular expression
 == Expression régulière
-
-Relative path
-== Chemin relatif
 
 Relative X position of the draggable back button
 == Position X relative du bouton de retour déplaçable
@@ -9631,6 +9895,9 @@ Reload the map while preserving the state of tees and teams
 
 Reload the maplist
 == Recharger la liste des cartes
+
+Reload word list files
+== Recharger les fichiers de mots
 
 Reloaded images.
 == Images rechargées.
@@ -9889,6 +10156,9 @@ Replace non-friend names with ID
 
 Replace non-friend skins with default
 == Remplacer les skins non-amis par le skin par défaut
+
+Replace selected variant
+== Remplacer la variante sélectionnée
 
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 == Remplacer les paramètres, touches assignées et fichiers cfg indiqués, puis redémarrer ? La configuration actuelle sera d’abord sauvegardée.
@@ -10652,9 +10922,6 @@ Selected %d
 Selected button not visible
 == Bouton sélectionné non visible
 
-Selected candidate
-== Candidat sélectionné
-
 Selected candidate %d/%d under cursor.
 == Candidat sélectionné %d/%d sous le curseur.
 
@@ -10802,6 +11069,9 @@ Server list is more than five minutes old
 Server list refresh failed; showing the previous list
 == Échec de l’actualisation des serveurs ; la liste précédente est affichée
 
+Server message
+== Message du serveur
+
 Server name
 == Nom du serveur
 
@@ -10831,6 +11101,9 @@ Server URL
 
 Server-assigned style
 == Style attribué par le serveur
+
+Server-dependent
+== Dépend du serveur
 
 Set all to Rifle
 == Tout mettre au fusil
@@ -10943,11 +11216,20 @@ Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
 == Vitesse du scintillement
 
+Short pain voice
+== Cri de douleur court
+
 Short server names
 == Noms de serveur courts
 
 Shotgun
 == Fusil à pompe
+
+Shotgun / laser pickup
+== Ramassage du fusil à pompe / laser
+
+Shotgun fire
+== Tir de fusil à pompe
 
 Shotgun Laser Inner Color
 == Couleur intérieure du laser du fusil à pompe
@@ -11594,6 +11876,9 @@ Show own nametag (for demo recording)
 Show own player's hook collision line
 == Afficher la ligne de collision de crochet de son propre joueur
 
+Show path
+== Afficher la trajectoire
+
 Show pause/play indicator when changing
 == Afficher l'indicateur pause/lecture lors du changement
 
@@ -11999,6 +12284,9 @@ Size of key press icons
 Size of strength/weakness icon and number
 == Taille de l'icône et du nombre de force/faiblesse
 
+Skidding
+== Dérapage
+
 Skin
 == Skin
 
@@ -12137,6 +12425,9 @@ Smaller tees
 Smart
 == Intelligent
 
+Smooth
+== Doux
+
 Smooth and accurate blur with the highest GPU cost.
 == Flou fluide et précis, avec le coût GPU le plus élevé.
 
@@ -12268,6 +12559,9 @@ Sound buffer size (large may cause delay)
 
 Sound error
 == Erreur sonore
+
+Sound variants
+== Variantes du son
 
 Sound volume
 == Volume sonore
@@ -12521,6 +12815,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 Stop practice
 == Arrêter la pratique
 
+Stop preview
+== Arrêter l’aperçu
+
 Stop preview (P)
 == Arrêter l’aperçu (P)
 
@@ -12547,6 +12844,9 @@ Stop the current demo
 
 Streamer mode
 == Mode streamer
+
+Streamer word list file
+== Fichier de mots du mode streamer
 
 Strength icons assets
 == Ressources d'icônes de force
@@ -12910,6 +13210,9 @@ Tee collision (Tee to Tee)
 
 Tee color
 == Couleur du tee
+
+Tee cry
+== Pleurs de Tee
 
 Tee death probe
 == Détection de mort du Tee
@@ -13871,6 +14174,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == Impossible d'ouvrir le fichier de capture d'écran
 
+Unable to record camera keyframe
+== Impossible d’enregistrer l’image clé de caméra
+
 Unable to rename the demo
 == Impossible de renommer la démo
 
@@ -14044,6 +14350,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == Échec de la mise à jour. Veuillez réessayer
+
+Update keyframe
+== Mettre à jour l’image clé
 
 Update notice
 == Mettre à jour l'avis
@@ -14257,6 +14566,9 @@ Used by active shared text and numeric input fields
 
 Uses the active action with the current aiming position.
 == Utilise l’action active avec la position de visée actuelle.
+
+UTF-8 text, one word per line (max 2 MiB).
+== Texte UTF-8, un mot par ligne (max. 2 MiB).
 
 v = Velocity
 == v = Vélocité
@@ -14615,6 +14927,12 @@ Weapon range color
 Weapon reload animation probability
 == Probabilité de l'animation de rechargement de l'arme
 
+Weapon removal / armor pickup
+== Retrait d'arme / ramassage de bouclier
+
+Weapon switch
+== Changement d'arme
+
 Weapon switch animation
 == Animation de changement d'arme
 
@@ -14644,6 +14962,9 @@ Weapon switch easing
 
 Weapon switch rotation
 == Rotation du changement d'arme
+
+Weapon teleport
+== Téléportation d'arme
 
 Weapon Trajectory
 == Trajectoire des armes
@@ -14824,6 +15145,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == Action du filtre de mots : 0=remplacer les mots correspondants, 1=masquer tout le message
+
+Word list entries cannot contain control characters.
+== Les mots ne peuvent pas contenir de caractères de contrôle.
+
+Word list exceeds 100000 unique entries.
+== La liste dépasse 100000 mots uniques.
+
+Word list file
+== Fichier de mots
+
+Word list file exceeds 2 MiB.
+== Le fichier de mots dépasse 2 MiB.
+
+Word list must be UTF-8 text without NUL characters.
+== La liste doit être un texte UTF-8 sans caractères NUL.
 
 Write local console contents to a text file
 == Écrire le contenu de la console locale dans un fichier texte

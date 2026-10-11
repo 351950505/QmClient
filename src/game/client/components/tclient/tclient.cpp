@@ -28,6 +28,7 @@
 #include <game/client/animstate.h>
 #include <game/client/components/chat.h>
 #include <game/client/components/hud_editor.h>
+#include <game/client/components/qmclient/auto_vote.h>
 #include <game/client/components/qmclient/data_version.h>
 #include <game/client/components/qmclient/keyword_reply_rules.h>
 #include <game/client/components/qmclient/modes.h>
@@ -1363,33 +1364,17 @@ void CTClient::OnMessage(int MsgType, void *pRawMsg)
 
 				if(RaceTime / 60 >= g_Config.m_QmAutoVoteWhenFarTime)
 				{
-					CGameClient::CClientData *pVoteCaller = nullptr;
-					int CallerId = -1;
-					for(int i = 0; i < MAX_CLIENTS; i++)
+					// 0.6 投票描述不含可靠发起人；0.7 使用翻译消息携带的 ID。
+					const int CallerId = Client()->IsSixup() && m_VoteCallerId >= 0 && m_VoteCallerId < MAX_CLIENTS && GameClient()->m_aClients[m_VoteCallerId].m_Active ? m_VoteCallerId : -1;
+					const int LocalTeam = LocalId >= 0 ? GameClient()->m_Teams.Team(LocalId) : 0;
+					const int CallerTeam = CallerId >= 0 ? GameClient()->m_Teams.Team(CallerId) : 0;
+					const bool Friend = CallerId >= 0 && GameClient()->m_aClients[CallerId].m_Friend;
+					const int Choice = QmAutoVoteChoice(AutoMapVote, CallerId, LocalId, Friend, LocalTeam, CallerTeam);
+					if(Choice != 0)
 					{
-						if(!GameClient()->m_aStats[i].IsActive())
-							continue;
-
-						char aBuf[MAX_NAME_LENGTH + 4];
-						str_format(aBuf, sizeof(aBuf), "\'%s\'", GameClient()->m_aClients[i].m_aName);
-						if(str_find_nocase(aBuf, pMsg->m_pDescription) == 0)
-						{
-							pVoteCaller = &GameClient()->m_aClients[i];
-							CallerId = i;
-						}
-					}
-					if(pVoteCaller)
-					{
-						bool Friend = pVoteCaller->m_Friend;
-						bool SameTeam = GameClient()->m_Teams.Team(GameClient()->m_Snap.m_LocalClientId) == pVoteCaller->m_Team && pVoteCaller->m_Team != 0;
-						bool MySelf = CallerId == GameClient()->m_Snap.m_LocalClientId;
-
-						if(!Friend && !SameTeam && !MySelf)
-						{
-							GameClient()->m_Voting.Vote(AutoMapVote == 2 ? 1 : -1);
-							if(str_comp(g_Config.m_QmAutoVoteWhenFarMessage, "") != 0)
-								SendNonDuplicateMessage(0, g_Config.m_QmAutoVoteWhenFarMessage);
-						}
+						GameClient()->m_Voting.Vote(Choice);
+						if(g_Config.m_QmAutoVoteWhenFarMessage[0] != '\0')
+							SendNonDuplicateMessage(0, g_Config.m_QmAutoVoteWhenFarMessage);
 					}
 				}
 			}
@@ -2920,6 +2905,8 @@ void CTClient::SetForcedAspect()
 			GameScreenAspectOverride = AspectRatio / 100.0f;
 	}
 
+	if(const float ReplayAspect = GameClient()->m_DemoCamera.AspectOverride(); ReplayAspect > 0.0f)
+		GameScreenAspectOverride = ReplayAspect;
 	Graphics()->SetGameScreenAspectOverride(GameScreenAspectOverride);
 	Graphics()->SetForcedAspect(Force);
 }

@@ -2,6 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "input.h"
 
+#include "input_sdl3.h"
 #include "keynames.h"
 
 #include <base/perf_timer.h>
@@ -18,29 +19,15 @@
 
 #include <game/client/components/qmclient/perf_logging.h>
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include <algorithm>
 #include <cstddef>
-
-// support older SDL version (pre 2.0.6)
-#ifndef SDL_JOYSTICK_AXIS_MIN
-#define SDL_JOYSTICK_AXIS_MIN (-32768)
-#endif
-#ifndef SDL_JOYSTICK_AXIS_MAX
-#define SDL_JOYSTICK_AXIS_MAX 32767
-#endif
 
 #if defined(CONF_FAMILY_WINDOWS)
 #include <windows.h>
 // windows.h must be included before imm.h, but clang-format requires includes to be sorted alphabetically, hence this comment.
 #include <imm.h>
-#endif
-
-// for platform specific features that aren't available or are broken in SDL
-#include <SDL_syswm.h>
-#ifdef KeyPress
-#undef KeyPress // Undo pollution from X11/Xlib.h included by SDL_syswm.h on Linux
 #endif
 
 namespace
@@ -77,12 +64,7 @@ void CInput::AddKeyEvent(int Key, int Flags)
 
 void CInput::AddTextEvent(const char *pText)
 {
-	CEvent Event;
-	Event.m_Key = KEY_UNKNOWN;
-	Event.m_Flags = FLAG_TEXT;
-	str_copy(Event.m_aText, pText);
-	Event.m_InputCount = m_InputCounter;
-	m_vInputEvents.emplace_back(Event);
+	AppendSdlTextEvents(m_vInputEvents, pText, m_InputCounter);
 }
 
 CInput::CInput()
@@ -114,43 +96,48 @@ CInput::CInput()
 
 void CInput::Init()
 {
-	SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "0");
-	SDL_SetHint(SDL_HINT_IME_SHOW_UI, QmImeShouldUseSystemCandidateUi() ? "1" : "0");
-#ifdef SDL_HINT_IME_SUPPORT_EXTENDED_TEXT
-	SDL_SetHint(SDL_HINT_IME_SUPPORT_EXTENDED_TEXT, "1");
-#endif
-	StopTextInput();
-
 	m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
 	m_pConfigManager = Kernel()->RequestInterface<IConfigManager>();
 	m_pClient = Kernel()->RequestInterface<IClient>();
+#if defined(CONF_FAMILY_WINDOWS)
+	m_WindowsMessageEvent = SDL_RegisterEvents(1);
+#endif
 
-	MouseModeRelative();
+	SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, QmImeShouldUseSystemCandidateUi() ? "none" : "composition,candidates");
+	StopTextInput();
+	if(Window() != nullptr)
+		MouseModeRelative();
 
 	InitJoysticks();
 }
 
+SDL_Window *CInput::Window() const
+{
+	// IME 管理器在 OnConsoleInit 阶段会关闭输入，早于输入模块取得图形接口。
+	return Graphics() == nullptr ? nullptr : SDL_GetWindowFromID(Graphics()->GetWindowId());
+}
+
 void CInput::Shutdown()
 {
+	StopTextInput();
 	CloseJoysticks();
 }
 
 void CInput::InitJoysticks()
 {
-	if(!SDL_WasInit(SDL_INIT_JOYSTICK))
+	if(!SDL_InitSubSystem(SDL_INIT_JOYSTICK))
 	{
-		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0)
-		{
-			dbg_msg("joystick", "Unable to init SDL joystick system: %s", SDL_GetError());
-			return;
-		}
+		dbg_msg("joystick", "Unable to init SDL joystick system: %s", SDL_GetError());
+		return;
 	}
-
-	const int NumJoysticks = SDL_NumJoysticks();
+	m_JoystickInitialized = true;
+	int NumJoysticks = 0;
+	SDL_JoystickID *pIds = SDL_GetJoysticks(&NumJoysticks);
 	dbg_msg("joystick", "%d joystick(s) found", NumJoysticks);
-	for(int i = 0; i < NumJoysticks; i++)
-		OpenJoystick(i);
+	for(int i = 0; pIds != nullptr && i < NumJoysticks; ++i)
+		OpenJoystick(pIds[i]);
+	SDL_free(pIds);
 	UpdateActiveJoystick();
 
 	Console()->Chain("inp_controller_guid", ConchainJoystickGuidChanged, this);
@@ -158,7 +145,7 @@ void CInput::InitJoysticks()
 
 bool CInput::OpenJoystick(int JoystickIndex)
 {
-	SDL_Joystick *pJoystick = SDL_JoystickOpen(JoystickIndex);
+	SDL_Joystick *pJoystick = SDL_OpenJoystick(JoystickIndex);
 	if(!pJoystick)
 	{
 		dbg_msg("joystick", "Could not open joystick %d: '%s'", JoystickIndex, SDL_GetError());
@@ -166,7 +153,8 @@ bool CInput::OpenJoystick(int JoystickIndex)
 	}
 	if(std::find_if(m_vJoysticks.begin(), m_vJoysticks.end(), [pJoystick](const CJoystick &Joystick) -> bool { return Joystick.m_pDelegate == pJoystick; }) != m_vJoysticks.end())
 	{
-		// Joystick has already been added
+		// 重复打开也取得一个引用，需要立即归还。
+		SDL_CloseJoystick(pJoystick);
 		return false;
 	}
 	m_vJoysticks.emplace_back(this, m_vJoysticks.size(), pJoystick);
@@ -213,22 +201,24 @@ CInput::CJoystick::CJoystick(CInput *pInput, int Index, SDL_Joystick *pDelegate)
 	m_pInput = pInput;
 	m_Index = Index;
 	m_pDelegate = pDelegate;
-	m_NumAxes = SDL_JoystickNumAxes(pDelegate);
-	m_NumButtons = SDL_JoystickNumButtons(pDelegate);
-	m_NumBalls = SDL_JoystickNumBalls(pDelegate);
-	m_NumHats = SDL_JoystickNumHats(pDelegate);
-	str_copy(m_aName, SDL_JoystickName(pDelegate));
-	SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(pDelegate), m_aGUID, sizeof(m_aGUID));
-	m_InstanceId = SDL_JoystickInstanceID(pDelegate);
+	m_NumAxes = SDL_GetNumJoystickAxes(pDelegate);
+	m_NumButtons = SDL_GetNumJoystickButtons(pDelegate);
+	m_NumBalls = SDL_GetNumJoystickBalls(pDelegate);
+	m_NumHats = SDL_GetNumJoystickHats(pDelegate);
+	str_copy(m_aName, SDL_GetJoystickName(pDelegate));
+	SDL_GUIDToString(SDL_GetJoystickGUID(pDelegate), m_aGUID, sizeof(m_aGUID));
+	m_InstanceId = SDL_GetJoystickID(pDelegate);
 }
 
 void CInput::CloseJoysticks()
 {
-	if(SDL_WasInit(SDL_INIT_JOYSTICK))
-		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
-
-	m_vJoysticks.clear();
 	m_pActiveJoystick = nullptr;
+	for(auto &Joystick : m_vJoysticks)
+		SDL_CloseJoystick(Joystick.m_pDelegate);
+	m_vJoysticks.clear();
+	if(m_JoystickInitialized)
+		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+	m_JoystickInitialized = false;
 }
 
 void CInput::SetActiveJoystick(size_t Index)
@@ -239,7 +229,7 @@ void CInput::SetActiveJoystick(size_t Index)
 
 float CInput::CJoystick::GetAxisValue(int Axis)
 {
-	return (SDL_JoystickGetAxis(m_pDelegate, Axis) - SDL_JOYSTICK_AXIS_MIN) / (float)(SDL_JOYSTICK_AXIS_MAX - SDL_JOYSTICK_AXIS_MIN) * 2.0f - 1.0f;
+	return (SDL_GetJoystickAxis(m_pDelegate, Axis) - SDL_JOYSTICK_AXIS_MIN) / (float)(SDL_JOYSTICK_AXIS_MAX - SDL_JOYSTICK_AXIS_MIN) * 2.0f - 1.0f;
 }
 
 void CInput::CJoystick::GetJoystickHatKeys(int Hat, int HatValue, int (&aHatKeys)[2])
@@ -261,7 +251,7 @@ void CInput::CJoystick::GetJoystickHatKeys(int Hat, int HatValue, int (&aHatKeys
 
 void CInput::CJoystick::GetHatValue(int Hat, int (&aHatKeys)[2])
 {
-	GetJoystickHatKeys(Hat, SDL_JoystickGetHat(m_pDelegate, Hat), aHatKeys);
+	GetJoystickHatKeys(Hat, SDL_GetJoystickHat(m_pDelegate, Hat), aHatKeys);
 }
 
 bool CInput::CJoystick::Relative(float *pX, float *pY)
@@ -303,7 +293,7 @@ bool CInput::MouseRelative(float *pX, float *pY)
 	if(!m_MouseFocus || !m_InputGrabbed)
 		return false;
 
-	ivec2 Relative;
+	vec2 Relative;
 	SDL_GetRelativeMouseState(&Relative.x, &Relative.y);
 
 	*pX = Relative.x;
@@ -314,14 +304,16 @@ bool CInput::MouseRelative(float *pX, float *pY)
 void CInput::MouseModeAbsolute()
 {
 	m_InputGrabbed = false;
-	SDL_SetRelativeMouseMode(SDL_FALSE);
+	if(Window() != nullptr)
+		SDL_SetWindowRelativeMouseMode(Window(), false);
 	Graphics()->SetWindowGrab(false);
 }
 
 void CInput::MouseModeRelative()
 {
 	m_InputGrabbed = true;
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+	if(Window() != nullptr)
+		SDL_SetWindowRelativeMouseMode(Window(), true);
 	Graphics()->SetWindowGrab(true);
 	// Clear pending relative mouse motion
 	SDL_GetRelativeMouseState(nullptr, nullptr);
@@ -329,7 +321,7 @@ void CInput::MouseModeRelative()
 
 vec2 CInput::NativeMousePos() const
 {
-	ivec2 Position;
+	vec2 Position;
 	SDL_GetMouseState(&Position.x, &Position.y);
 	return vec2(Position.x, Position.y);
 }
@@ -337,7 +329,7 @@ vec2 CInput::NativeMousePos() const
 bool CInput::NativeMousePressed(int Index) const
 {
 	int i = SDL_GetMouseState(nullptr, nullptr);
-	return (i & SDL_BUTTON(Index)) != 0;
+	return (i & SDL_BUTTON_MASK(Index)) != 0;
 }
 
 bool CInput::GamepadButtonIsPressed(int Button) const
@@ -368,7 +360,7 @@ bool CInput::GlobalMousePressed(int Index) const
 {
 #if SDL_VERSION_ATLEAST(2, 0, 4)
 	const Uint32 Buttons = SDL_GetGlobalMouseState(nullptr, nullptr);
-	return Index > 0 && (Buttons & SDL_BUTTON(Index)) != 0;
+	return Index > 0 && (Buttons & SDL_BUTTON_MASK(Index)) != 0;
 #else
 	return NativeMousePressed(Index);
 #endif
@@ -423,29 +415,37 @@ void CInput::ClearImeState()
 
 void CInput::StartTextInput()
 {
-	// enable system messages for IME
-	SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
-	SDL_StartTextInput();
+#if defined(CONF_FAMILY_WINDOWS)
+	SDL_SetWindowsMessageHook(WindowsMessageHook, this);
+#endif
+	if(Window() != nullptr)
+		SDL_StartTextInput(Window());
 	m_ImeSuppressStaleCandidateReload = false;
 }
 
 void CInput::StopTextInput()
 {
-	SDL_StopTextInput();
-	// disable system messages for performance
-	SDL_EventState(SDL_SYSWMEVENT, SDL_DISABLE);
+#if defined(CONF_FAMILY_WINDOWS)
+	SDL_SetWindowsMessageHook(nullptr, nullptr);
+	// 清掉旧标记，避免重新启用后由旧事件提前消费新的 IME 通知。
+	if(m_WindowsMessageEvent != 0)
+		SDL_FlushEvent(m_WindowsMessageEvent);
+	m_QueuedWindowsMessages.clear();
+#endif
+	if(Window() != nullptr)
+		SDL_StopTextInput(Window());
 	ClearImeState();
 }
 
 void CInput::EnsureScreenKeyboardShown()
 {
-	if(!SDL_HasScreenKeyboardSupport() ||
+	if(Window() == nullptr || !SDL_HasScreenKeyboardSupport() ||
 		Graphics()->IsScreenKeyboardShown())
 	{
 		return;
 	}
-	SDL_StopTextInput();
-	SDL_StartTextInput();
+	SDL_StopTextInput(Window());
+	SDL_StartTextInput(Window());
 }
 
 void CInput::ConsumeEvents(std::function<void(const CEvent &Event)> Consumer) const
@@ -562,11 +562,11 @@ void CInput::HandleJoystickButtonEvent(const SDL_JoyButtonEvent &Event)
 
 	const int Key = Event.button + KEY_JOYSTICK_BUTTON_0;
 
-	if(Event.type == SDL_JOYBUTTONDOWN)
+	if(Event.type == SDL_EVENT_JOYSTICK_BUTTON_DOWN)
 	{
 		AddKeyEvent(Key, IInput::FLAG_PRESS);
 	}
-	else if(Event.type == SDL_JOYBUTTONUP)
+	else if(Event.type == SDL_EVENT_JOYSTICK_BUTTON_UP)
 	{
 		AddKeyEvent(Key, IInput::FLAG_RELEASE);
 	}
@@ -616,6 +616,7 @@ void CInput::HandleJoystickRemovedEvent(const SDL_JoyDeviceEvent &Event)
 	if(RemovedJoystick != m_vJoysticks.end())
 	{
 		dbg_msg("joystick", "Closed joystick %d '%s'", (*RemovedJoystick).GetIndex(), (*RemovedJoystick).GetName());
+		SDL_CloseJoystick(RemovedJoystick->m_pDelegate);
 		auto NextJoystick = m_vJoysticks.erase(RemovedJoystick);
 		// Adjust indices of following joysticks
 		while(NextJoystick != m_vJoysticks.end())
@@ -630,8 +631,8 @@ void CInput::HandleJoystickRemovedEvent(const SDL_JoyDeviceEvent &Event)
 void CInput::HandleTouchDownEvent(const SDL_TouchFingerEvent &Event)
 {
 	CTouchFingerState TouchFingerState;
-	TouchFingerState.m_Finger.m_DeviceId = Event.touchId;
-	TouchFingerState.m_Finger.m_FingerId = Event.fingerId;
+	TouchFingerState.m_Finger.m_DeviceId = Event.touchID;
+	TouchFingerState.m_Finger.m_FingerId = Event.fingerID;
 	TouchFingerState.m_Position = TouchPositionToViewport(vec2(Event.x, Event.y));
 	TouchFingerState.m_Delta = TouchDeltaToViewport(vec2(Event.dx, Event.dy));
 	TouchFingerState.m_PressTime = time_get_nanoseconds();
@@ -651,7 +652,7 @@ vec2 CInput::TouchDeltaToViewport(vec2 Delta) const
 void CInput::HandleTouchUpEvent(const SDL_TouchFingerEvent &Event)
 {
 	auto FoundState = std::find_if(m_vTouchFingerStates.begin(), m_vTouchFingerStates.end(), [Event](const CTouchFingerState &State) {
-		return State.m_Finger.m_DeviceId == Event.touchId && State.m_Finger.m_FingerId == Event.fingerId;
+		return State.m_Finger.m_DeviceId == Event.touchID && State.m_Finger.m_FingerId == Event.fingerID;
 	});
 	if(FoundState != m_vTouchFingerStates.end())
 	{
@@ -662,7 +663,7 @@ void CInput::HandleTouchUpEvent(const SDL_TouchFingerEvent &Event)
 void CInput::HandleTouchMotionEvent(const SDL_TouchFingerEvent &Event)
 {
 	auto FoundState = std::find_if(m_vTouchFingerStates.begin(), m_vTouchFingerStates.end(), [Event](const CTouchFingerState &State) {
-		return State.m_Finger.m_DeviceId == Event.touchId && State.m_Finger.m_FingerId == Event.fingerId;
+		return State.m_Finger.m_DeviceId == Event.touchID && State.m_Finger.m_FingerId == Event.fingerID;
 	});
 	if(FoundState != m_vTouchFingerStates.end())
 	{
@@ -708,7 +709,8 @@ void CInput::SetCompositionWindowPosition(float X, float Y, float H)
 	Rect.y = Y / m_pGraphics->ScreenHiDPIScale();
 	Rect.h = H / m_pGraphics->ScreenHiDPIScale();
 	Rect.w = 0;
-	SDL_SetTextInputRect(&Rect);
+	if(Window() != nullptr)
+		SDL_SetTextInputArea(Window(), &Rect, 0);
 }
 
 static int TranslateKeyEventKey(const SDL_KeyboardEvent &KeyEvent)
@@ -727,12 +729,12 @@ static int TranslateKeyEventKey(const SDL_KeyboardEvent &KeyEvent)
 	// CAPS   =  8192
 	// MODE   = 16384
 	// Sum if you want to ignore multiple modifiers.
-	if(KeyEvent.keysym.mod & g_Config.m_InpIgnoredModifiers)
+	if(KeyEvent.mod & g_Config.m_InpIgnoredModifiers)
 	{
 		return KEY_UNKNOWN;
 	}
 
-	int Key = g_Config.m_InpTranslatedKeys ? SDL_GetScancodeFromKey(KeyEvent.keysym.sym) : KeyEvent.keysym.scancode;
+	int Key = SdlScancodeToKey(g_Config.m_InpTranslatedKeys ? SDL_GetScancodeFromKey(KeyEvent.key, nullptr) : KeyEvent.scancode);
 
 #if defined(CONF_PLATFORM_ANDROID)
 	// Translate the Android back-button to the escape-key so it can be used to open/close the menu, close popups etc.
@@ -774,19 +776,19 @@ static int TranslateMouseButtonEventKey(const SDL_MouseButtonEvent &MouseButtonE
 
 static int TranslateMouseWheelEventKey(const SDL_MouseWheelEvent &MouseWheelEvent)
 {
-	if(MouseWheelEvent.y > 0)
+	if(MouseWheelEvent.integer_y > 0)
 	{
 		return KEY_MOUSE_WHEEL_UP;
 	}
-	else if(MouseWheelEvent.y < 0)
+	else if(MouseWheelEvent.integer_y < 0)
 	{
 		return KEY_MOUSE_WHEEL_DOWN;
 	}
-	else if(MouseWheelEvent.x > 0)
+	else if(MouseWheelEvent.integer_x > 0)
 	{
 		return KEY_MOUSE_WHEEL_RIGHT;
 	}
-	else if(MouseWheelEvent.x < 0)
+	else if(MouseWheelEvent.integer_x < 0)
 	{
 		return KEY_MOUSE_WHEEL_LEFT;
 	}
@@ -831,6 +833,9 @@ int CInput::Update()
 		if(Key != KEY_UNKNOWN && !IgnoreKeys && (!(Flags & IInput::FLAG_PRESS) || !HasComposition()))
 		{
 			AddKeyEvent(Key, Flags);
+			// SDL3 合并了两个静音扫描码，继续接受旧配置中的两种键名。
+			if(Key == KEY_MUTE)
+				AddKeyEvent(KEY_AUDIOMUTE, Flags);
 		}
 	};
 
@@ -851,63 +856,58 @@ int CInput::Update()
 			if(QmPerfShouldLogDuration(PollEventDurationMs))
 			{
 				char aPollExtra[192];
-#if defined(CONF_FAMILY_WINDOWS)
-				if(PollResult != 0 && Event.type == SDL_SYSWMEVENT && Event.syswm.msg != nullptr && Event.syswm.msg->subsystem == SDL_SYSWM_WINDOWS)
-				{
-					str_format(aPollExtra, sizeof(aPollExtra), "result=%d event_type=%u message=%u wparam=%llu lparam=%lld", PollResult, (unsigned)Event.type, (unsigned)Event.syswm.msg->msg.win.msg, (unsigned long long)Event.syswm.msg->msg.win.wParam, (long long)Event.syswm.msg->msg.win.lParam);
-				}
-				else
-#endif
-				{
-					str_format(aPollExtra, sizeof(aPollExtra), "result=%d event_type=%d", PollResult, PollResult != 0 ? (int)Event.type : -1);
-				}
+				str_format(aPollExtra, sizeof(aPollExtra), "result=%d event_type=%d", PollResult, PollResult != 0 ? (int)Event.type : -1);
 				LogPerfStage(m_pClient, "sdl_poll_event_call", PollEventDurationMs, false, aPollExtra);
 			}
 		}
 		if(PollResult == 0)
 			break;
 
+#if defined(CONF_FAMILY_WINDOWS)
+		// 钩子把 Win32 通知排入 SDL 队列，保持它与组合、提交事件的原有顺序。
+		if(m_WindowsMessageEvent != 0 && Event.type == m_WindowsMessageEvent && Event.user.data1 == this)
+		{
+			if(!m_QueuedWindowsMessages.empty())
+			{
+				const auto Message = m_QueuedWindowsMessages.front();
+				m_QueuedWindowsMessages.pop_front();
+				MSG NativeMessage{};
+				NativeMessage.hwnd = static_cast<HWND>(Message.m_pWindow);
+				NativeMessage.message = Message.m_Message;
+				NativeMessage.wParam = Message.m_WParam;
+				NativeMessage.lParam = Message.m_LParam;
+				CPerfTimer Timer;
+				ProcessSystemMessage(&NativeMessage);
+				LogPerfStage(m_pClient, "process_system_message", Timer.ElapsedMs());
+			}
+			continue;
+		}
+#endif
+		if(Event.type >= SDL_EVENT_WINDOW_FIRST && Event.type <= SDL_EVENT_WINDOW_LAST && Event.window.windowID != Graphics()->GetWindowId())
+			continue;
 		++EventCount;
 		switch(Event.type)
 		{
-		case SDL_SYSWMEVENT:
-		{
-			const int64_t SystemMessageStartNs = TrackPerf ? time_get_nanoseconds().count() : 0;
-			ProcessSystemMessage(Event.syswm.msg);
-			if(TrackPerf)
-			{
-				const double SystemMessageDurationMs = (time_get_nanoseconds().count() - SystemMessageStartNs) / 1000000.0;
-				if(QmPerfShouldLogDuration(SystemMessageDurationMs))
-				{
-					char aSystemMessageExtra[192];
-#if defined(CONF_FAMILY_WINDOWS)
-					if(Event.syswm.msg != nullptr && Event.syswm.msg->subsystem == SDL_SYSWM_WINDOWS)
-					{
-						str_format(aSystemMessageExtra, sizeof(aSystemMessageExtra), "subsystem=%d message=%u wparam=%llu lparam=%lld", (int)Event.syswm.msg->subsystem, (unsigned)Event.syswm.msg->msg.win.msg, (unsigned long long)Event.syswm.msg->msg.win.wParam, (long long)Event.syswm.msg->msg.win.lParam);
-					}
-					else
-#endif
-					{
-						str_format(aSystemMessageExtra, sizeof(aSystemMessageExtra), "subsystem=%d", Event.syswm.msg != nullptr ? (int)Event.syswm.msg->subsystem : -1);
-					}
-					LogPerfStage(m_pClient, "process_system_message", SystemMessageDurationMs, false, aSystemMessageExtra);
-				}
-			}
-			break;
-		}
-
-		case SDL_TEXTEDITING:
+		case SDL_EVENT_TEXT_EDITING:
 			HandleTextEditingEvent(Event.edit.text, Event.edit.start, Event.edit.length);
 			break;
 
-#if SDL_VERSION_ATLEAST(2, 0, 22)
-		case SDL_TEXTEDITING_EXT:
-			HandleTextEditingEvent(Event.editExt.text, Event.editExt.start, Event.editExt.length);
-			SDL_free(Event.editExt.text);
-			break;
+		case SDL_EVENT_TEXT_EDITING_CANDIDATES:
+#if !defined(CONF_FAMILY_WINDOWS)
+			// Windows 使用 IMM 保留分页信息，并避免 SDL 的编号前缀重复显示。
+			if(!m_ImeSuppressStaleCandidateReload)
+			{
+				ClearImeCandidates();
+				for(int i = 0; i < Event.edit_candidates.num_candidates; ++i)
+					m_vCandidates.emplace_back(Event.edit_candidates.candidates[i]);
+				m_CandidateTotalCount = m_CandidatePageSize = m_vCandidates.size();
+				const int Selected = Event.edit_candidates.selected_candidate;
+				m_CandidateSelectedIndex = Selected >= 0 && Selected < (int)m_vCandidates.size() ? Selected : -1;
+			}
 #endif
+			break;
 
-		case SDL_TEXTINPUT:
+		case SDL_EVENT_TEXT_INPUT:
 			ClearImeState();
 			// 提交后忽略未伴随 OPENCANDIDATE 的过期候选刷新，避免选词回闪
 			m_ImeSuppressStaleCandidateReload = true;
@@ -915,142 +915,139 @@ int CInput::Update()
 			break;
 
 		// handle keys
-		case SDL_KEYDOWN:
+		case SDL_EVENT_KEY_DOWN:
 			AddKeyEventChecked(TranslateKeyEventKey(Event.key), IInput::FLAG_PRESS | (Event.key.repeat != 0 ? FLAG_REPEAT : 0));
 			break;
 
-		case SDL_KEYUP:
+		case SDL_EVENT_KEY_UP:
 			if(g_Config.m_QmGraphicsTrace > 0 && !Graphics()->WindowActive())
 			{
 				// 截图工具抢焦点时记录 SDL 松键事件，区分修饰键冲突与失焦重置。
-				dbg_msg("input/focus", "event=unfocused_key_release key=%d scancode=%d", TranslateKeyEventKey(Event.key), Event.key.keysym.scancode);
+				dbg_msg("input/focus", "event=unfocused_key_release key=%d scancode=%d", TranslateKeyEventKey(Event.key), Event.key.scancode);
 			}
 			AddKeyEventChecked(TranslateKeyEventKey(Event.key), IInput::FLAG_RELEASE);
 			break;
 
 		// handle the joystick events
-		case SDL_JOYAXISMOTION:
+		case SDL_EVENT_JOYSTICK_AXIS_MOTION:
 			HandleJoystickAxisMotionEvent(Event.jaxis);
 			break;
 
-		case SDL_JOYBUTTONUP:
-		case SDL_JOYBUTTONDOWN:
+		case SDL_EVENT_JOYSTICK_BUTTON_UP:
+		case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
 			HandleJoystickButtonEvent(Event.jbutton);
 			break;
 
-		case SDL_JOYHATMOTION:
+		case SDL_EVENT_JOYSTICK_HAT_MOTION:
 			HandleJoystickHatMotionEvent(Event.jhat);
 			break;
 
-		case SDL_JOYDEVICEADDED:
+		case SDL_EVENT_JOYSTICK_ADDED:
 			HandleJoystickAddedEvent(Event.jdevice);
 			break;
 
-		case SDL_JOYDEVICEREMOVED:
+		case SDL_EVENT_JOYSTICK_REMOVED:
 			HandleJoystickRemovedEvent(Event.jdevice);
 			break;
 
 		// handle mouse buttons
-		case SDL_MOUSEBUTTONDOWN:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
 			AddKeyEventChecked(TranslateMouseButtonEventKey(Event.button), IInput::FLAG_PRESS);
 			break;
 
-		case SDL_MOUSEBUTTONUP:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
 			AddKeyEventChecked(TranslateMouseButtonEventKey(Event.button), IInput::FLAG_RELEASE);
 			break;
 
-		case SDL_MOUSEWHEEL:
+		case SDL_EVENT_MOUSE_WHEEL:
 			AddKeyEventChecked(TranslateMouseWheelEventKey(Event.wheel), IInput::FLAG_PRESS | IInput::FLAG_RELEASE);
 			break;
 
-		case SDL_FINGERDOWN:
+		case SDL_EVENT_FINGER_DOWN:
 			HandleTouchDownEvent(Event.tfinger);
 			break;
 
-		case SDL_FINGERUP:
+		case SDL_EVENT_FINGER_CANCELED:
+		case SDL_EVENT_FINGER_UP:
 			HandleTouchUpEvent(Event.tfinger);
 			break;
 
-		case SDL_FINGERMOTION:
+		case SDL_EVENT_FINGER_MOTION:
 			HandleTouchMotionEvent(Event.tfinger);
 			break;
 
-		case SDL_WINDOWEVENT:
-			// Ignore keys following a focus gain as they may be part of global
-			// shortcuts
-			switch(Event.window.event)
+		case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+			Graphics()->SwitchWindowScreen(Graphics()->GetWindowScreen(), false);
+			break;
+		case SDL_EVENT_WINDOW_MOVED:
+			Graphics()->Move(Event.window.data1, Event.window.data2);
+			break;
+		// listen to size changes, this includes our manual changes and the ones by the window manager
+		case SDL_EVENT_WINDOW_RESIZED:
+		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+		{
+			int Width = 0, Height = 0;
+			if(Window() != nullptr && SDL_GetWindowSize(Window(), &Width, &Height))
+				Graphics()->GotResized(Width, Height, -1);
+			break;
+		}
+		case SDL_EVENT_WINDOW_FOCUS_GAINED:
+			if(m_InputGrabbed)
 			{
-#if SDL_VERSION_ATLEAST(2, 0, 18)
-			case SDL_WINDOWEVENT_DISPLAY_CHANGED:
-			{
-				const int DisplayIndex = Event.window.data1;
-				if(DisplayIndex >= 0 && DisplayIndex < Graphics()->GetNumScreens())
-					Graphics()->SwitchWindowScreen(DisplayIndex, false);
-				else
-					log_warn("gfx", "Ignoring invalid display index from SDL_WINDOWEVENT_DISPLAY_CHANGED: %d", DisplayIndex);
-				break;
-			}
-#endif
-			case SDL_WINDOWEVENT_MOVED:
-				Graphics()->Move(Event.window.data1, Event.window.data2);
-				break;
-			// listen to size changes, this includes our manual changes and the ones by the window manager
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				Graphics()->GotResized(Event.window.data1, Event.window.data2, -1);
-				break;
-			case SDL_WINDOWEVENT_FOCUS_GAINED:
-				if(m_InputGrabbed)
-				{
 #if defined(CONF_PLATFORM_MACOS) // Todo: remove this when fixed in SDL: https://github.com/libsdl-org/SDL/issues/13920
-					MouseModeAbsolute();
-#endif
-					MouseModeRelative();
-					// Clear pending relative mouse motion
-					SDL_GetRelativeMouseState(nullptr, nullptr);
-				}
-				m_MouseFocus = true;
-				IgnoreKeys = true;
-				break;
-			case SDL_WINDOWEVENT_FOCUS_LOST:
-				if(g_Config.m_QmGraphicsTrace > 0)
-					dbg_msg("input/focus", "event=focus_lost tab=%d left_shift=%d right_shift=%d left_ctrl=%d right_ctrl=%d queued_events=%zu", m_aCurrentKeyStates[KEY_TAB], m_aCurrentKeyStates[KEY_LSHIFT], m_aCurrentKeyStates[KEY_RSHIFT], m_aCurrentKeyStates[KEY_LCTRL], m_aCurrentKeyStates[KEY_RCTRL], m_vInputEvents.size());
-				std::fill(std::begin(m_aCurrentKeyStates), std::end(m_aCurrentKeyStates), false);
-				m_MouseFocus = false;
-				IgnoreKeys = true;
-				if(m_InputGrabbed)
-				{
-					MouseModeAbsolute();
-					// Remember that we had relative mouse
-					m_InputGrabbed = true;
-				}
-				break;
-			case SDL_WINDOWEVENT_MINIMIZED:
-#if defined(CONF_PLATFORM_ANDROID) || defined(CONF_PLATFORM_IOS)
-				m_pConfigManager->Save();
-#endif
-				Graphics()->WindowDestroyNtf(Event.window.windowID);
-				break;
-
-			case SDL_WINDOWEVENT_MAXIMIZED:
-#if defined(CONF_PLATFORM_MACOS) // Todo: remove this when fixed in SDL
 				MouseModeAbsolute();
-				MouseModeRelative();
 #endif
-				[[fallthrough]];
-			case SDL_WINDOWEVENT_RESTORED:
-				Graphics()->WindowCreateNtf(Event.window.windowID);
-				break;
+				MouseModeRelative();
+				// Clear pending relative mouse motion
+				SDL_GetRelativeMouseState(nullptr, nullptr);
 			}
+			m_MouseFocus = true;
+			IgnoreKeys = true;
+			break;
+		case SDL_EVENT_WINDOW_FOCUS_LOST:
+			if(g_Config.m_QmGraphicsTrace > 0)
+				dbg_msg("input/focus", "event=focus_lost tab=%d left_shift=%d right_shift=%d left_ctrl=%d right_ctrl=%d queued_events=%zu", m_aCurrentKeyStates[KEY_TAB], m_aCurrentKeyStates[KEY_LSHIFT], m_aCurrentKeyStates[KEY_RSHIFT], m_aCurrentKeyStates[KEY_LCTRL], m_aCurrentKeyStates[KEY_RCTRL], m_vInputEvents.size());
+			std::fill(std::begin(m_aCurrentKeyStates), std::end(m_aCurrentKeyStates), false);
+			m_MouseFocus = false;
+			IgnoreKeys = true;
+			if(m_InputGrabbed)
+			{
+				MouseModeAbsolute();
+				// Remember that we had relative mouse
+				m_InputGrabbed = true;
+			}
+			break;
+		case SDL_EVENT_WINDOW_MINIMIZED:
+#if defined(CONF_PLATFORM_ANDROID) || defined(CONF_PLATFORM_IOS)
+			m_pConfigManager->Save();
+#endif
+			Graphics()->WindowDestroyNtf(Event.window.windowID);
+			break;
+
+		case SDL_EVENT_WINDOW_MAXIMIZED:
+#if defined(CONF_PLATFORM_MACOS) // Todo: remove this when fixed in SDL
+			MouseModeAbsolute();
+			MouseModeRelative();
+#endif
+			[[fallthrough]];
+		case SDL_EVENT_WINDOW_RESTORED:
+			Graphics()->WindowCreateNtf(Event.window.windowID);
+			break;
+
+		case SDL_EVENT_DISPLAY_ADDED:
+		case SDL_EVENT_DISPLAY_REMOVED:
+			Graphics()->Move(0, 0);
 			break;
 
 #if defined(CONF_PLATFORM_IOS)
-		case SDL_APP_WILLENTERBACKGROUND:
+		case SDL_EVENT_WILL_ENTER_BACKGROUND:
 			m_pConfigManager->Save();
 			break;
 #endif
 
 		// other messages
-		case SDL_QUIT:
+		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+		case SDL_EVENT_QUIT:
 		{
 			char aExtra[128];
 			str_format(aExtra, sizeof(aExtra), "events=%d quit=1", EventCount);
@@ -1058,9 +1055,8 @@ int CInput::Update()
 			return 1;
 		}
 
-		case SDL_DROPFILE:
-			str_copy(m_aDropFile, Event.drop.file);
-			SDL_free(Event.drop.file);
+		case SDL_EVENT_DROP_FILE:
+			str_copy(m_aDropFile, Event.drop.data);
 			break;
 		}
 	}
@@ -1076,13 +1072,19 @@ int CInput::Update()
 void CInput::UpdateGlobalInputState()
 {
 	int NumKeys = 0;
-	const Uint8 *pKeyboardState = SDL_GetKeyboardState(&NumKeys);
-	for(int Key = KEY_FIRST; Key < KEY_LAST; ++Key)
-		m_aGlobalKeyStates[Key] = pKeyboardState != nullptr && Key >= 0 && Key < NumKeys && pKeyboardState[Key] != 0;
+	const bool *pKeyboardState = SDL_GetKeyboardState(&NumKeys);
+	std::fill(std::begin(m_aGlobalKeyStates), std::end(m_aGlobalKeyStates), false);
+	for(int Scan = 0; pKeyboardState != nullptr && Scan < NumKeys; ++Scan)
+	{
+		const int Key = SdlScancodeToKey(static_cast<SDL_Scancode>(Scan));
+		if(Key != KEY_UNKNOWN && Key < KEY_LAST)
+			m_aGlobalKeyStates[Key] = m_aGlobalKeyStates[Key] || pKeyboardState[Scan];
+	}
+	m_aGlobalKeyStates[KEY_AUDIOMUTE] = m_aGlobalKeyStates[KEY_MUTE];
 
 #if SDL_VERSION_ATLEAST(2, 0, 4)
-	int X = 0;
-	int Y = 0;
+	float X = 0;
+	float Y = 0;
 	SDL_GetGlobalMouseState(&X, &Y);
 	const vec2 NewPosition((float)X, (float)Y);
 	m_GlobalMouseDelta = m_HasGlobalMousePos ? NewPosition - m_GlobalMousePos : vec2(0.0f, 0.0f);
@@ -1093,13 +1095,30 @@ void CInput::UpdateGlobalInputState()
 #endif
 }
 
-void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
+#if defined(CONF_FAMILY_WINDOWS)
+bool SDLCALL CInput::WindowsMessageHook(void *pUser, MSG *pMsg)
+{
+	auto *pInput = static_cast<CInput *>(pUser);
+	if(pMsg == nullptr || (pMsg->message != WM_IME_NOTIFY && pMsg->message != WM_IME_ENDCOMPOSITION) || pInput->m_WindowsMessageEvent == 0)
+		return true;
+	SDL_Window *pWindow = pInput->Window();
+	if(pWindow == nullptr || pMsg->hwnd != SDL_GetPointerProperty(SDL_GetWindowProperties(pWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr))
+		return true;
+	pInput->m_QueuedWindowsMessages.push_back({pMsg->hwnd, pMsg->message, pMsg->wParam, pMsg->lParam});
+	SDL_Event Event{};
+	Event.type = pInput->m_WindowsMessageEvent;
+	Event.user.data1 = pInput;
+	if(!SDL_PushEvent(&Event))
+		pInput->m_QueuedWindowsMessages.pop_back();
+	return true;
+}
+
+void CInput::ProcessSystemMessage(MSG *pMsg)
 {
 	if(pMsg == nullptr)
 		return;
 
-#if defined(CONF_FAMILY_WINDOWS)
-	if(pMsg->subsystem == SDL_SYSWM_WINDOWS && pMsg->msg.win.msg == WM_IME_ENDCOMPOSITION)
+	if(pMsg->message == WM_IME_ENDCOMPOSITION)
 	{
 		// 删除或取消组合输入时也要清理旧候选，不能只依赖文本提交或关闭候选通知。
 		ClearImeState();
@@ -1107,15 +1126,15 @@ void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
 		return;
 	}
 
-	// Todo SDL: remove this after SDL2 supports IME candidates
-	if(pMsg->subsystem == SDL_SYSWM_WINDOWS && pMsg->msg.win.msg == WM_IME_NOTIFY)
+	// IMM 提供总数和当前页偏移，保留现有候选分页行为。
+	if(pMsg->message == WM_IME_NOTIFY)
 	{
-		switch(pMsg->msg.win.wParam)
+		switch(pMsg->wParam)
 		{
 		case IMN_OPENCANDIDATE:
 		case IMN_CHANGECANDIDATE:
 		{
-			HWND WindowHandle = pMsg->msg.win.hwnd;
+			HWND WindowHandle = pMsg->hwnd;
 			const bool TrackPerf = QmPerfEnabled();
 			const int64_t GetContextStartNs = TrackPerf ? time_get_nanoseconds().count() : 0;
 			HIMC ImeContext = ImmGetContext(WindowHandle);
@@ -1125,14 +1144,14 @@ void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
 				if(QmPerfShouldLogDuration(GetContextDurationMs))
 				{
 					char aExtra[192];
-					str_format(aExtra, sizeof(aExtra), "wparam=%llu lparam=%lld has_context=%d", (unsigned long long)pMsg->msg.win.wParam, (long long)pMsg->msg.win.lParam, ImeContext != nullptr ? 1 : 0);
+					str_format(aExtra, sizeof(aExtra), "wparam=%llu lparam=%lld has_context=%d", (unsigned long long)pMsg->wParam, (long long)pMsg->lParam, ImeContext != nullptr ? 1 : 0);
 					LogPerfStage(m_pClient, "ime_get_context", GetContextDurationMs, false, aExtra);
 				}
 			}
 			if(ImeContext == nullptr)
 				break;
 
-			const DWORD CandidateListFlags = (DWORD)pMsg->msg.win.lParam;
+			const DWORD CandidateListFlags = (DWORD)pMsg->lParam;
 			LPCANDIDATELIST pCandidateList = nullptr;
 			DWORD Size = 0;
 			const auto LoadCandidateList = [&](DWORD CandidateListIndex) {
@@ -1144,7 +1163,7 @@ void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
 					if(QmPerfShouldLogDuration(SizeQueryDurationMs))
 					{
 						char aExtra[256];
-						str_format(aExtra, sizeof(aExtra), "wparam=%llu lparam=%lld candidate_flags=%u candidate_index=%u returned_size=%u", (unsigned long long)pMsg->msg.win.wParam, (long long)pMsg->msg.win.lParam, (unsigned)CandidateListFlags, (unsigned)CandidateListIndex, (unsigned)CandidateListSize);
+						str_format(aExtra, sizeof(aExtra), "wparam=%llu lparam=%lld candidate_flags=%u candidate_index=%u returned_size=%u", (unsigned long long)pMsg->wParam, (long long)pMsg->lParam, (unsigned)CandidateListFlags, (unsigned)CandidateListIndex, (unsigned)CandidateListSize);
 						LogPerfStage(m_pClient, "ime_candidate_size_query", SizeQueryDurationMs, false, aExtra);
 					}
 				}
@@ -1164,11 +1183,11 @@ void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
 					if(QmPerfShouldLogDuration(DataQueryDurationMs))
 					{
 						char aExtra[256];
-						str_format(aExtra, sizeof(aExtra), "wparam=%llu lparam=%lld candidate_flags=%u candidate_index=%u requested_size=%u returned_size=%u", (unsigned long long)pMsg->msg.win.wParam, (long long)pMsg->msg.win.lParam, (unsigned)CandidateListFlags, (unsigned)CandidateListIndex, (unsigned)RequestedSize, (unsigned)CandidateListSize);
+						str_format(aExtra, sizeof(aExtra), "wparam=%llu lparam=%lld candidate_flags=%u candidate_index=%u requested_size=%u returned_size=%u", (unsigned long long)pMsg->wParam, (long long)pMsg->lParam, (unsigned)CandidateListFlags, (unsigned)CandidateListIndex, (unsigned)RequestedSize, (unsigned)CandidateListSize);
 						LogPerfStage(m_pClient, "ime_candidate_data_query", DataQueryDurationMs, false, aExtra);
 					}
 				}
-				if(CandidateListSize == 0)
+				if(CandidateListSize == 0 || CandidateListSize > RequestedSize)
 				{
 					free(pLoadedCandidateList);
 					return false;
@@ -1225,7 +1244,7 @@ void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
 				LoadSucceeded = true;
 			}
 
-			const bool IsOpenNotify = pMsg->msg.win.wParam == IMN_OPENCANDIDATE;
+			const bool IsOpenNotify = pMsg->wParam == IMN_OPENCANDIDATE;
 			const bool SuppressStaleReload = QmImeShouldSuppressStaleCandidateReload(m_ImeSuppressStaleCandidateReload, IsOpenNotify);
 			if(IsOpenNotify)
 				m_ImeSuppressStaleCandidateReload = false;
@@ -1255,7 +1274,7 @@ void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
 				if(QmPerfShouldLogDuration(ReleaseContextDurationMs))
 				{
 					char aExtra[192];
-					str_format(aExtra, sizeof(aExtra), "wparam=%llu lparam=%lld result=%d", (unsigned long long)pMsg->msg.win.wParam, (long long)pMsg->msg.win.lParam, ReleaseContextResult != FALSE ? 1 : 0);
+					str_format(aExtra, sizeof(aExtra), "wparam=%llu lparam=%lld result=%d", (unsigned long long)pMsg->wParam, (long long)pMsg->lParam, ReleaseContextResult != FALSE ? 1 : 0);
 					LogPerfStage(m_pClient, "ime_release_context", ReleaseContextDurationMs, false, aExtra);
 				}
 			}
@@ -1266,8 +1285,8 @@ void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
 			break;
 		}
 	}
-#endif
 }
+#endif
 
 #if defined(CONF_PLATFORM_EMSCRIPTEN)
 extern "C" {

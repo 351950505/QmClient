@@ -68,7 +68,12 @@ def find_config_variables(config_variables, source_root="src"):
                 filepath = os.path.join(root, file)
                 with open(filepath, "r", encoding="utf-8") as f:
                     content = f.read()
+                    # 先筛出可能命中的成员和命令，再保留原正则核对上下文。
+                    # 避免对每个未使用配置项重复扫描所有大文件。
+                    members = set(re.findall(r"\bm_(\w+)", content))
                     for variable_code in variables_not_found.copy():
+                        if variable_code not in members and f'"{config_variables[variable_code]}' not in content:
+                            continue
                         if regex_cache[variable_code].search(content):
                             variables_not_found.remove(variable_code)
     return variables_not_found

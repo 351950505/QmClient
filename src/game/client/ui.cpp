@@ -255,6 +255,10 @@ void CUi::AddUIElement(CUIElement *pElement)
 
 void CUi::RemoveUIElement(CUIElement *pElement)
 {
+	// 元素销毁或缓存淘汰前归还资源，避免留下无人持有的文本容器。
+	// OnShutdown 已统一清理资源并解绑设备，之后只需注销元素。
+	if(m_pGraphics != nullptr && m_pTextRender != nullptr)
+		ResetUIElement(*pElement);
 	m_vpUIElements.erase(std::remove(m_vpUIElements.begin(), m_vpUIElements.end(), pElement), m_vpUIElements.end());
 	pElement->m_pUI = nullptr;
 }

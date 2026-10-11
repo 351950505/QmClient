@@ -208,7 +208,8 @@ bool CMenus::DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Conte
 	for(const auto &Entry : Entries)
 	{
 		auto &Size = m_vSettingsToggleGroupSizes[Index++];
-		Size = ResolveSettingsToggleButtonSize(TextRender()->TextWidth(Metrics.m_BodySize, Entry.m_pLabel), Metrics.m_BodySize, Metrics.m_LineHeight, PaddingX, PaddingY);
+		const float IndicatorWidth = Entry.m_ShowCheckmark ? Metrics.m_BodySize + Gap : 0.0f;
+		Size = ResolveSettingsToggleButtonSize(TextRender()->TextWidth(Metrics.m_BodySize, Entry.m_pLabel), Metrics.m_BodySize, Metrics.m_LineHeight, PaddingX, PaddingY, IndicatorWidth);
 	}
 	auto &Grid = m_SettingsToggleGroupGrid;
 	ResolveSettingsToggleGrid(Content.w, m_vSettingsToggleGroupSizes, Gap, Grid);
@@ -216,7 +217,8 @@ bool CMenus::DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Conte
 	for(const auto &Entry : Entries)
 	{
 		const CUIRect Button{0, 0, Grid.m_aColumnWidths[Index % Grid.m_Columns], Metrics.m_LineHeight};
-		const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY);
+		const float IndicatorWidth = Entry.m_ShowCheckmark ? Metrics.m_BodySize + Gap : 0.0f;
+		const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY, IndicatorWidth);
 		const float LabelHeight = TextRender()->TextBoundingBox(Metrics.m_BodySize, Entry.m_pLabel, -1, std::max(1.0f, Label.w)).m_H;
 		m_vSettingsToggleGroupSizes[Index++].m_Height = ResolveSettingsToggleButtonSize(0, LabelHeight, Metrics.m_LineHeight, PaddingX, PaddingY).m_Height;
 	}
@@ -243,7 +245,8 @@ bool CMenus::DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect
 		return false;
 	const float PaddingX = std::max(Metrics.m_LineSpacing, Metrics.m_BodySize * 0.5f);
 	const float PaddingY = Metrics.m_LineSpacing * 0.5f;
-	const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY);
+	const float IndicatorWidth = Entry.m_ShowCheckmark ? Metrics.m_BodySize + Metrics.m_LineSpacing : 0.0f;
+	const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY, IndicatorWidth);
 	const IUiContext Context = SettingsUiContext("settings-toggle-button", Metrics.m_UiScale);
 	const bool CanProcessInput = ProcessInput && !m_MenuTextPlanCollecting && !Ui()->RenderOnly();
 	const void *pId = Entry.m_pId != nullptr ? Entry.m_pId : Entry.m_pValue;
@@ -269,6 +272,17 @@ bool CMenus::DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect
 	if(!m_MenuTextPlanCollecting)
 		Fill = ui_widget::DrawButtonSurface(Context, CanProcessInput ? pId : nullptr, Button, Options);
 	const CUiScopedSurfaceText SurfaceText(TextRender(), Fill);
+	if(Entry.m_ShowCheckmark && Options.m_Selected && !m_MenuTextPlanCollecting)
+	{
+		CUIRect Indicator = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY);
+		Indicator.w = std::min(Metrics.m_BodySize, Indicator.w);
+		const EFontPreset PreviousFont = TextRender()->GetFontPreset();
+		TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+		char aCheck[8] = {};
+		str_utf8_encode(aCheck, CQmIconRegistry::Codepoint(EQmIcon::CHECK));
+		Ui()->DoLabel(&Indicator, aCheck, Metrics.m_BodySize, TEXTALIGN_MC);
+		TextRender()->SetFontPreset(PreviousFont);
+	}
 	SLabelProperties Props;
 	Props.m_MaxWidth = Label.w;
 	Props.m_EnableWidthCheck = false;
@@ -280,6 +294,8 @@ bool CMenus::DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect
 	{
 		if(pOverrideTooltip != nullptr)
 			Context.m_pTooltips->DoToolTip(pId, &Button, pOverrideTooltip);
+		else if(Entry.m_pTooltip != nullptr)
+			Context.m_pTooltips->DoToolTip(pId, &Button, Entry.m_pTooltip);
 		else
 			Context.m_pTooltips->DoSettingsToolTipForConfig(pId, &Button, Entry.m_pValue, &Label);
 	}

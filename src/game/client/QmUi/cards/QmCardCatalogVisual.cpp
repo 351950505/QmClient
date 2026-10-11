@@ -30,7 +30,7 @@ namespace qm_card_catalog
 				return Rows(g_Config.m_QmCinematicCamera ? 2.0f : 1.0f);
 			case EQmModuleId::WeaponAnimation:
 				return ResolveQmVisualWeaponAnimationHeight(Metrics, g_Config.m_QmWeaponSwitchAnim != 0, g_Config.m_QmWeaponReloadAnim != 0);
-			case EQmModuleId::Streamer: return Rows(4.0f);
+			case EQmModuleId::Streamer: return Rows(9.0f);
 			case EQmModuleId::FocusMode: return Rows(1.0f);
 			case EQmModuleId::EntityOverlay: return Rows(9.0f);
 			case EQmModuleId::CollisionHitbox:

@@ -69,30 +69,43 @@ void ResolveSettingsToggleGridLayout(float Width, const TItems &aItems, float Ga
 	if(ItemCount == 0)
 		return;
 
-	// 每列只预留本列最长项的宽度，不能用全组最长项把所有列一起撑宽。
-	for(int Columns = ItemCount; Columns >= 1; --Columns)
-	{
+	const auto MeasureColumns = [&](int Columns) {
+		// 每列只预留本列最长项的宽度，换列后必须重新核对实际分配。
 		std::fill(Grid.m_aColumnWidths.begin(), Grid.m_aColumnWidths.end(), 0.0f);
 		for(int Index = 0; Index < ItemCount; ++Index)
 			Grid.m_aColumnWidths[Index % Columns] = std::max(Grid.m_aColumnWidths[Index % Columns], aItems[Index].m_Width);
 		float RequiredWidth = (Columns - 1) * Grid.m_Gap;
 		for(int Column = 0; Column < Columns; ++Column)
 			RequiredWidth += Grid.m_aColumnWidths[Column];
+		return RequiredWidth;
+	};
+
+	int BalancedColumns = 0;
+	int MinimumRows = 0;
+	for(int Columns = ItemCount; Columns >= 1; --Columns)
+	{
+		const int Rows = (ItemCount + Columns - 1) / Columns;
+		if(BalancedColumns != 0 && Rows > MinimumRows)
+			break;
+		const float RequiredWidth = MeasureColumns(Columns);
 		if(RequiredWidth > Width && Columns > 1)
 			continue;
 
-		Grid.m_Columns = Columns;
-		Grid.m_Rows = (ItemCount + Columns - 1) / Columns;
-		const float ExtraWidth = std::max(0.0f, Width - RequiredWidth) / Columns;
-		float UsedWidth = 0.0f;
-		for(int Column = 0; Column < Columns; ++Column)
-		{
-			Grid.m_aColumnWidths[Column] = Column + 1 == Columns ? std::max(0.0f, Width - UsedWidth) : Grid.m_aColumnWidths[Column] + ExtraWidth;
-			UsedWidth += Grid.m_aColumnWidths[Column] + Grid.m_Gap;
-		}
-		Grid.SetItemHeights(aItems);
-		return;
+		// 不增加行数时优先减少列数，让 4+1、3+1 分别排成 3+2、2+2。
+		BalancedColumns = Columns;
+		MinimumRows = Rows;
 	}
+	Grid.m_Columns = BalancedColumns;
+	Grid.m_Rows = MinimumRows;
+	const float RequiredWidth = MeasureColumns(Grid.m_Columns);
+	const float ExtraWidth = std::max(0.0f, Width - RequiredWidth) / Grid.m_Columns;
+	float UsedWidth = 0.0f;
+	for(int Column = 0; Column < Grid.m_Columns; ++Column)
+	{
+		Grid.m_aColumnWidths[Column] = Column + 1 == Grid.m_Columns ? std::max(0.0f, Width - UsedWidth) : Grid.m_aColumnWidths[Column] + ExtraWidth;
+		UsedWidth += Grid.m_aColumnWidths[Column] + Grid.m_Gap;
+	}
+	Grid.SetItemHeights(aItems);
 }
 
 template<size_t ItemCount>
@@ -126,6 +139,8 @@ struct SSettingsToggleEntry
 	const char *m_pLabel;
 	const void *m_pId = nullptr;
 	int m_Mask = 0;
+	const char *m_pTooltip = nullptr;
+	bool m_ShowCheckmark = false;
 };
 
 inline bool SettingsToggleEntryValue(const SSettingsToggleEntry &Entry)
@@ -144,21 +159,22 @@ inline bool ApplySettingsToggleEntry(const SSettingsToggleEntry &Entry, bool Cli
 	return true;
 }
 
-inline SSettingsToggleSize ResolveSettingsToggleButtonSize(float LabelWidth, float LabelHeight, float MinimumHeight, float HorizontalPadding, float VerticalPadding)
+inline SSettingsToggleSize ResolveSettingsToggleButtonSize(float LabelWidth, float LabelHeight, float MinimumHeight, float HorizontalPadding, float VerticalPadding, float IndicatorWidth = 0.0f)
 {
 	return {
-		std::max(0.0f, LabelWidth) + std::max(0.0f, HorizontalPadding) * 2.0f,
+		std::max(0.0f, LabelWidth) + std::max(0.0f, HorizontalPadding) * 2.0f + std::max(0.0f, IndicatorWidth),
 		std::max(std::max(0.0f, MinimumHeight), std::max(0.0f, LabelHeight) + std::max(0.0f, VerticalPadding) * 2.0f)};
 }
 
 // 文本按钮的内边距同时用于译文测量和绘制，窄按钮不能产生负的正文区域。
-inline CUIRect ResolveSettingsToggleButtonLabel(const CUIRect &Button, float HorizontalPadding, float VerticalPadding)
+inline CUIRect ResolveSettingsToggleButtonLabel(const CUIRect &Button, float HorizontalPadding, float VerticalPadding, float IndicatorWidth = 0.0f)
 {
 	const float Width = std::max(0.0f, Button.w);
 	const float Height = std::max(0.0f, Button.h);
 	const float PaddingX = std::clamp(HorizontalPadding, 0.0f, Width * 0.5f);
 	const float PaddingY = std::clamp(VerticalPadding, 0.0f, Height * 0.5f);
-	return {Button.x + PaddingX, Button.y + PaddingY, Width - PaddingX * 2.0f, Height - PaddingY * 2.0f};
+	const float Indicator = std::clamp(IndicatorWidth, 0.0f, Width - PaddingX * 2.0f);
+	return {Button.x + PaddingX + Indicator, Button.y + PaddingY, Width - PaddingX * 2.0f - Indicator, Height - PaddingY * 2.0f};
 }
 
 #endif

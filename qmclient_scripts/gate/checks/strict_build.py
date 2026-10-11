@@ -11,6 +11,7 @@ import shutil
 from pathlib import Path
 
 from lib import runner, scope
+from lib.compilation_database import compilation_units
 from lib.report import ResultCollector
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -502,6 +503,12 @@ def run(
         return
     results.add("PASS", "compile_commands 检查", "compile_commands.json 已就绪")
 
+    try:
+        compiled_units = compilation_units(compile_commands)
+    except (OSError, ValueError) as error:
+        results.add("FAIL", "compile_commands 检查", str(error))
+        return
+
     tidy_files = []
     for f in included:
         if not f:
@@ -514,7 +521,10 @@ def run(
         elif os.path.isabs(norm) and Path(norm).exists():
             tidy_files.append(norm)
 
-    tidy_files = sorted(set(tidy_files))
+    platform_excluded = sorted({file for file in tidy_files if Path(file).resolve() not in compiled_units})
+    if platform_excluded:
+        results.add_skip("clang-tidy 非本平台翻译单元", "当前编译数据库不包含以下文件，由对应平台 CI 验证：\n" + "\n".join(platform_excluded))
+    tidy_files = sorted({file for file in tidy_files if Path(file).resolve() in compiled_units})
     if not tidy_files:
         results.add(
             "WARN", "clang-tidy", "当前没有可检查的 C/C++ 文件，tidy 阶段已跳过"

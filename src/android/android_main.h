@@ -50,8 +50,7 @@ void RestartAndroidApp();
  *
  * @ingroup Android
  *
- * This will request the notification-permission as it is required for
- * foreground services to show a notification.
+ * 调用方先异步取得通知权限，再在主线程启动服务。
  *
  * @param ppArguments Array of arguments to pass to the server on launch.
  * @param NumArguments The number of arguments.
@@ -85,8 +84,19 @@ bool IsAndroidServerRunning();
  *
  * This will show a permission dialog to the user if the permission is not already granted.
  *
- * @return `true` if the permission was granted, `false` otherwise.
+ * 申请结果通过 AndroidAudioRecordPermission 读取，不阻塞主线程。
  */
-bool RequestAndroidAudioRecordPermission();
+enum class EAndroidPermissionState
+{
+	UNKNOWN,
+	PENDING,
+	GRANTED,
+	DENIED,
+};
+
+void RequestAndroidAudioRecordPermission();
+EAndroidPermissionState AndroidAudioRecordPermission();
+void RequestAndroidNotificationPermission();
+EAndroidPermissionState AndroidNotificationPermission();
 
 #endif // ANDROID_ANDROID_MAIN_H

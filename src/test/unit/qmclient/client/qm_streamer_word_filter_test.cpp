@@ -148,3 +148,62 @@ TEST(QmStreamerWordFilter, HandlesEmptyAndInvalidUtf8WithoutJoiningAcrossIt)
 	EXPECT_FALSE(QmStreamerWordFilter::Filter(Text, true));
 	EXPECT_EQ(Text, Original);
 }
+
+namespace
+{
+
+	class QmStreamerExternalWords : public testing::Test
+	{
+		void SetUp() override { QmStreamerWordFilter::SetAdditionalWords({}); }
+		void TearDown() override { QmStreamerWordFilter::SetAdditionalWords({}); }
+	};
+
+}
+
+TEST_F(QmStreamerExternalWords, AddsWordsWithoutRemovingBuiltInRules)
+{
+	QmStreamerWordFilter::SetAdditionalWords({"测试词"});
+	std::string Text = "测试词、习近平";
+	EXPECT_TRUE(QmStreamerWordFilter::Filter(Text, true));
+	EXPECT_EQ(Text, "***、***");
+}
+
+TEST_F(QmStreamerExternalWords, NormalizesDisguisedExternalWords)
+{
+	QmStreamerWordFilter::SetAdditionalWords({"測試詞"});
+	std::string Text = "測.試\u200b詞";
+	EXPECT_TRUE(QmStreamerWordFilter::Filter(Text, true));
+	EXPECT_EQ(Text, "***");
+}
+
+TEST_F(QmStreamerExternalWords, ShortAsciiWordsDoNotGrowNameBuffers)
+{
+	QmStreamerWordFilter::SetAdditionalWords({"q", "xy"});
+	char aText[] = "q xy";
+	EXPECT_TRUE(QmStreamerWordFilter::Filter(aText, true));
+	EXPECT_STREQ(aText, "* **");
+}
+
+TEST_F(QmStreamerExternalWords, ReplacingAndClearingTheFileRulesAdvancesRevision)
+{
+	QmStreamerWordFilter::SetAdditionalWords({"测试词"});
+	const uint64_t FirstRevision = QmStreamerWordFilter::Revision();
+	QmStreamerWordFilter::SetAdditionalWords({"测试词"});
+	EXPECT_EQ(QmStreamerWordFilter::Revision(), FirstRevision);
+	QmStreamerWordFilter::SetAdditionalWords({"其他词"});
+	EXPECT_GT(QmStreamerWordFilter::Revision(), FirstRevision);
+	std::string Text = "测试词、其他词";
+	EXPECT_TRUE(QmStreamerWordFilter::Filter(Text, true));
+	EXPECT_EQ(Text, "测试词、***");
+	QmStreamerWordFilter::SetAdditionalWords({});
+	Text = "其他词";
+	EXPECT_FALSE(QmStreamerWordFilter::Filter(Text, true));
+}
+
+TEST_F(QmStreamerExternalWords, DisablingAlsoPreservesExternalWords)
+{
+	QmStreamerWordFilter::SetAdditionalWords({"测试词"});
+	std::string Text = "测试词";
+	EXPECT_FALSE(QmStreamerWordFilter::Filter(Text, false));
+	EXPECT_EQ(Text, "测试词");
+}

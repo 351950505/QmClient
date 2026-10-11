@@ -54,7 +54,7 @@
 #include <game/client/ui_scrollregion.h>
 #include <game/localization.h>
 
-#include <SDL_audio.h>
+#include <SDL3/SDL_audio.h>
 
 #include <algorithm>
 #include <array>
@@ -573,8 +573,14 @@ namespace fontstore
 					}
 					pStorage->RemoveFile(aCachePath, IStorage::TYPE_SAVE);
 				}
-				s_ActivePreview = Job;
-				s_ActivePreview->m_pRequest = StartRequest(pHttp, pStorage, "qmclient/fontcache", Entry.m_File, EntryDownloadUrls(Entry), 0);
+				Job.m_pRequest = StartRequest(pHttp, pStorage, "qmclient/fontcache", Entry.m_File, EntryDownloadUrls(Entry), 0);
+				if(!Job.m_pRequest)
+				{
+					Family.m_PreviewFailed = true;
+					++s_StateVersion;
+					continue;
+				}
+				s_ActivePreview = std::move(Job);
 				break;
 			}
 		}

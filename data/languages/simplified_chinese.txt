@@ -52,6 +52,9 @@
 %d teams
 == %d 个队伍
 
+%d words loaded
+== 已加载 %d 个词条
+
 %d. %s | main: %s | dummy: %s
 == %d. %s | 本体：%s | 分身：%s
 
@@ -299,6 +302,9 @@ A demo with this name already exists
 A folder with this name already exists
 == 已有同名文件夹
 
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
+== 手动指定的源文件优先于选中的候选文件。仅替换当前音效变体。
+
 a player
 == 一名玩家
 
@@ -491,6 +497,9 @@ Add Group
 Add Item
 == 添加项
 
+Add keyframe
+== 添加关键帧
+
 Add latency for antiping (0 to disable)
 == 为抗延迟添加延迟（0 为禁用）
 
@@ -623,6 +632,9 @@ Aim
 Aim bind
 == 操作轴绑定
 
+Air jump
+== 空中跳跃
+
 Alive notification color
 == 存活提醒颜色
 
@@ -652,6 +664,9 @@ All maps
 
 All players
 == 所有人
+
+All sounds
+== 全部音效
 
 All stars
 == 全部星级
@@ -820,6 +835,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == 提示气泡外观
+
+Append saved word list chunk
+== 追加已保存的词表分段
 
 Append to log file instead of overwriting
 == 追加到日志文件而不是每次覆盖
@@ -1000,9 +1018,6 @@ Audio packets
 
 Audio packs
 == 音频包
-
-Audio slots
-== 音频槽位
 
 AUS
 == 澳洲
@@ -1715,6 +1730,9 @@ Camera follow cursor factor
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == 相机移动的过渡量，0=即时，100=缓慢且平滑
 
+Camera path
+== 相机路径
+
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == 光标快速移动期间相机减速的量。高值可能会导致相机移动延迟
 
@@ -1763,8 +1781,20 @@ Candidate files
 Cannot join the target player's team
 == 无法加入目标玩家的队伍
 
+Cannot open word list file. Previous words remain active.
+== 无法打开词表文件，继续使用上次成功加载的词条。
+
+Cannot read complete word list file. Previous words remain active.
+== 无法完整读取词表文件，继续使用上次成功加载的词条。
+
 Cannot swap: the other player is not in your team
 == 无法交换：对方不在你的队伍中
+
+Capture the flag
+== 夺旗模式 (CTF)
+
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
+== 夺旗模式事件提示音，由 CTF 服务端使用，非常规 DDNet 竞速音效。
 
 Card height animation
 == 设置卡片高度过渡动画
@@ -1892,6 +1922,9 @@ Chat gradient vertical position percentage
 Chat log retention days
 == 聊天记录保留天数
 
+Chat mention / vote alert
+== 聊天提及/投票提醒
+
 Chat message
 == 聊天消息
 
@@ -1918,6 +1951,9 @@ Chat width
 
 Chat word filtering
 == 聊天屏蔽词过滤
+
+Chat word list file
+== 聊天屏蔽词文件
 
 Cheats are disabled on this server
 == 本服务器已关闭作弊功能
@@ -2275,6 +2311,9 @@ Commands
 
 Commands run in the console
 == 在控制台中执行的命令
+
+Common filters
+== 常用筛选
 
 Common key bindings
 == 常见的按键绑定
@@ -2784,7 +2823,7 @@ Could not stage configuration restore.
 == 无法准备配置恢复文件。
 
 Count players only
-== 屏蔽旁观位
+== 不计旁观者
 
 Countries
 == 国家
@@ -3271,6 +3310,9 @@ Delete this preset
 
 Demo
 == 回放
+
+Demo cut saved, but its camera path could not be saved
+== 裁剪回放已保存，但相机路径保存失败
 
 Demo directory
 == 回放保存目录
@@ -3863,6 +3905,9 @@ Edit
 Edit audio pack
 == 编辑音频包
 
+Edit camera
+== 编辑镜头
+
 Edit color
 == 编辑配色
 
@@ -3982,6 +4027,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == 启用相机漂移效果，让镜头根据移动速度产生轻微拖拽
+
+Enable camera path
+== 启用相机路径
 
 Enable chat mention sound
 == 启用聊天被提及消息提示音
@@ -4529,9 +4577,6 @@ Export name contains invalid characters.
 Export selected
 == 导出选中项
 
-Export selected file
-== 导出已选文件
-
 Export to clipboard
 == 导出到剪贴板
 
@@ -4607,6 +4652,9 @@ Failed to fetch the replay list
 Failed to load
 == 加载失败
 
+Failed to load camera path
+== 无法加载相机路径
+
 Failed to load main asset: %s
 == 加载主材质失败：%s
 
@@ -4624,6 +4672,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == 视频录制失败，详情请查看本地控制台。
+
+Failed to save camera path
+== 无法保存相机路径
 
 Failed to save demo
 == 回放保存失败
@@ -4725,7 +4776,7 @@ Filter chat messages by regular expression
 == 按正则表达式过滤聊天消息
 
 Filter connecting players
-== 筛选正在连接的玩家
+== 不计连接中
 
 Filter empty servers in browser
 == 过滤服务器浏览器中的空服务器
@@ -4801,6 +4852,21 @@ First page in console
 
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 == 满人服务器改用固定行高计分板，滚轮翻看其余玩家
+
+Flag captured
+== 成功夺旗
+
+Flag dropped
+== 旗帜掉落
+
+Flag grab: enemy side
+== 敌方夺旗提示
+
+Flag grab: player side
+== 我方夺旗提示
+
+Flag returned
+== 旗帜归还
 
 Flip:
 == 翻转：
@@ -4931,6 +4997,9 @@ Freeze border color
 Freeze Collision Border Color
 == 冻结碰撞边框颜色
 
+Freeze heart / health pickup
+== 冻结爱心/拾取生命值
+
 Freeze laser collision volume
 == 冻结激光碰撞体积
 
@@ -5017,6 +5086,9 @@ Friends
 
 Friends only
 == 仅限好友
+
+Frozen fire attempt
+== 冻结时尝试开火
 
 Frozen prediction margin
 == 冻结时预测量
@@ -5261,6 +5333,9 @@ Go forward one tick
 Go forward the specified duration
 == 快进指定时长
 
+Go to keyframe
+== 定位关键帧
+
 Gores
 == Gores 模式
 
@@ -5357,6 +5432,18 @@ Greeting text
 Grenade
 == 榴弹枪
 
+Grenade explosion
+== 榴弹爆炸
+
+Grenade launch
+== 榴弹发射
+
+Grenade pickup
+== 拾取榴弹枪
+
+Ground jump
+== 地面起跳
+
 Group name
 == 分组名称
 
@@ -5366,8 +5453,14 @@ GUI cursor assets
 Guide line color
 == 辅助线颜色
 
+Gun fire
+== 手枪射击
+
 Hammer
 == 锤子
+
+Hammer hit
+== 锤子命中
 
 Hammer interaction
 == 锤子交互
@@ -5377,6 +5470,9 @@ Hammer Mode
 
 Hammer skin steal
 == 锤中偷皮
+
+Hammer swing
+== 挥动锤子
 
 Hammer: %s
 == 锤：%s
@@ -5612,6 +5708,9 @@ Highlighted message
 Highlighted message color
 == 提及消息颜色
 
+Hit feedback
+== 命中反馈
+
 Hitbox Mode Freeze Border Color
 == 碰撞箱模式冻结边框颜色
 
@@ -5633,6 +5732,9 @@ Hitbox Mode Weapon Interaction Color
 HJ assist
 == HJ 大佬辅助
 
+Hold
+== 保持
+
 Hold gun higher like TW 0.6.1 and earlier
 == 像 TW 0.6.1 及更早版本一样，tee 将枪握得更高一点
 
@@ -5641,6 +5743,12 @@ Hold left click for free camera
 
 Hook
 == 钩索
+
+Hook attaches to ground
+== 钩中地形
+
+Hook attaches to player
+== 钩中玩家
 
 Hook collision line
 == 钩子辅助线
@@ -5660,11 +5768,17 @@ Hook Collisions
 Hook collisions
 == 钩子辅助线
 
+Hook hits unhookable surface
+== 钩到不可钩表面
+
 Hook interaction
 == 钩索交互
 
 Hook line tip
 == 辅助线提示
+
+Hook loop
+== 钩子循环音
 
 Hook Strength
 == 钩索强度
@@ -5858,6 +5972,12 @@ Import from clipboard
 Improved anti ping
 == 改进版延迟补偿
 
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+== 在 DDNet 中，玩家触碰冻结爱心被冻结时播放。其他模式可能用于拾取生命值。
+
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
+== 在 DDNet 中，移除玩家武器时播放。其他模式可能用于拾取护甲。
+
 In memory of me
 == 谨以此端，回忆我
 
@@ -5904,7 +6024,7 @@ Incoming language
 == 接收语言
 
 Indicate map finish
-== 标记已完成的地图
+== 标记已完成
 
 Indicator alive color
 == 指示器存活颜色
@@ -6113,6 +6233,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == 配置路径无效或重复。
 
+Invalid quoted word. Use one word per line.
+== 带引号的词条格式错误，请每行填写一个词。
+
 Invalid save number. Use a number from the save list.
 == 存档序号无效，请使用列表中的序号。
 
@@ -6157,6 +6280,9 @@ Item
 
 Item type
 == 物品类型
+
+Its use depends on the server or game mode.
+== 具体用途取决于服务端或游戏模式。
 
 j = Latency jitter
 == j = 延迟抖动
@@ -6305,6 +6431,9 @@ Keyboard focus ring color
 Keyboard size
 == 键盘大小
 
+Keyframe %d/%d: %s
+== 关键帧 %d/%d：%s
+
 Keyword reply
 == 关键词回复
 
@@ -6380,6 +6509,9 @@ Label type
 LAN
 == 局域网
 
+Landing
+== 落地
+
 Language
 == 语言
 
@@ -6401,6 +6533,9 @@ Large text for friend join (use %s for friend name)
 Laser
 == 激光
 
+Laser / shotgun bounce
+== 激光/霰弹光束反弹
+
 Laser / shotgun interaction
 == 激光/霰弹枪交互
 
@@ -6409,6 +6544,9 @@ Laser colors
 
 Laser effect enhancement
 == 激光效果增强
+
+Laser fire
+== 激光发射
 
 Laser glow intensity (0-100)
 == 激光辉光强度（0-100）
@@ -6950,6 +7088,9 @@ Map play history
 Map Preview TODO
 == 地图预览待做
 
+Map progress
+== 地图进度
+
 Map progress bar
 == 地图进度条
 
@@ -7202,6 +7343,9 @@ Menu main panel background color
 Menu main panel opacity
 == 菜单主面板透明度
 
+Menu music
+== 主菜单音乐
+
 Menu opacity (0-100)
 == 菜单不透明度（0-100）
 
@@ -7400,6 +7544,9 @@ Move player to spectators
 Move right
 == 向右移动
 
+Move the free camera, then add a keyframe at the current demo time.
+== 移动自由相机，在当前回放时间添加关键帧。
+
 Move to category
 == 移动到分类
 
@@ -7420,6 +7567,9 @@ Multi-View
 
 Multiple exact Axiom players found
 == 找到多个完全匹配的 Axiom 玩家
+
+Music
+== 音乐
 
 Music player volume
 == 音乐播放器音量
@@ -7754,8 +7904,20 @@ Next weapon
 Nickname
 == 昵称
 
+Ninja attack
+== 忍者刀冲刺
+
+Ninja hit
+== 忍者刀命中
+
+Ninja pickup
+== 拾取忍者刀
+
 No
 == 否
+
+No ammunition
+== 弹药耗尽
 
 No animation
 == 无动画
@@ -7775,17 +7937,20 @@ No assets found.
 No audio issues detected
 == 未发现音频异常
 
-No audio slots found.
-== 未找到音频槽位。
-
 No buttons match your filter criteria
 == 没有按键符合你的筛选条件
 
 No callable peer found
 == 当前未发现可通话对端
 
+No camera keyframes
+== 尚无相机关键帧
+
 No candidate file selected.
 == 未选择候选文件。
+
+No candidate files match this search.
+== 没有匹配当前搜索的候选文件。
 
 No changes since last save
 == 自上次保存后没有更改
@@ -7840,9 +8005,6 @@ No functions bound
 
 No input device available
 == 系统没有可用输入设备
-
-No items to write
-== 没有可写入的项目
 
 No local saves file found (ddnet-saves.txt)
 == 未找到本地存档文件（ddnet-saves.txt）
@@ -7957,6 +8119,9 @@ No servers match your filter criteria
 
 No skins match your filter criteria
 == 没有皮肤满足设置的筛选条件
+
+No sounds match this search.
+== 没有匹配当前搜索的音效。
 
 No space for button
 == 空间不足
@@ -8306,11 +8471,17 @@ Original message language
 Other
 == 其他
 
+Other game modes
+== 其他游戏模式
+
 Other modes
 == 其他模式
 
 Other players' hook line width
 == 其他玩家的钩索辅助线宽度
+
+Other sounds
+== 其他音效
 
 Others
 == 他人
@@ -8558,6 +8729,9 @@ Pick the source that matches your music app and keep it playing; the lyrics foll
 Pickup range
 == 拾取物范围
 
+Pickups
+== 拾取物
+
 Pie menu
 == 饼菜单
 
@@ -8636,6 +8810,78 @@ Play/pause the current demo
 Playback volume
 == 播放音量
 
+Played for chat highlights and vote alerts when their notification sound is enabled.
+== 开启提示音后，在收到聊天高亮提及或投票提醒时播放。
+
+Played for incoming player chat messages when their notification sound is enabled.
+== 开启提示音后，在收到其他玩家的聊天消息时播放。
+
+Played for incoming server chat messages when their notification sound is enabled.
+== 开启提示音后，在收到服务端系统消息时播放。
+
+Played when a grenade explodes.
+== 榴弹爆炸时播放。
+
+Played when a laser or DDNet shotgun beam bounces.
+== 激光或 DDNet 霰弹光束发生反弹时播放。
+
+Played when a ninja dash hits another player.
+== 忍者刀冲刺命中其他玩家时播放。
+
+Played when a player dies, including suicide.
+== 玩家死亡时播放，包括自杀。
+
+Played when a player spawns or respawns.
+== 玩家出生或重生时播放。
+
+Played when firing this weapon.
+== 使用该武器开火时播放。
+
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+== 从地面起跳时播放。左右脚音频文件同属该音效组。
+
+Played when moving fast on the ground and pressing the opposite direction.
+== 在地面高速移动并按下反方向键急停滑行时播放。
+
+Played when picking up a grenade weapon.
+== 拾取榴弹枪时播放。
+
+Played when picking up a shotgun or laser weapon.
+== 拾取霰弹枪或激光枪时播放。
+
+Played when pressing fire while frozen.
+== 玩家处于冻结状态并按下开火键时播放。
+
+Played when starting a ninja dash attack.
+== 发动忍者刀冲刺攻击时播放。
+
+Played when swinging the hammer, even without hitting a player.
+== 挥动锤子时播放（即使未命中玩家也会触发）。
+
+Played when switching the active weapon.
+== 切换当前手持武器时播放。
+
+Played when the hammer hits another player.
+== 锤子命中其他玩家时播放。
+
+Played when the hook attaches to a hookable surface.
+== 钩子抓住可钩表面时播放。
+
+Played when the hook attaches to another player.
+== 钩子抓住其他玩家时播放。
+
+Played when the hook hits an unhookable surface.
+== 钩子碰到不可钩表面时播放。
+
+Played when using the second jump in the air.
+== 在空中使用二段跳时播放。
+
+Played when weapon teleportation moves the player in DDNet.
+== 在 DDNet 中武器传送效果移动玩家时播放。
+
+Played while offline when menu music is enabled.
+== 开启主菜单音乐后，在离线主菜单界面播放。
+
 Player
 == 玩家
 
@@ -8645,8 +8891,14 @@ Player already invited
 Player body color
 == 玩家身体颜色
 
+Player chat message
+== 玩家聊天消息
+
 Player clan
 == 玩家战队
+
+Player count
+== 人数统计
 
 Player country (ISO 3166-1 numeric code)
 == 玩家国家（ISO 3166-1 数字码）
@@ -8655,7 +8907,10 @@ Player country filter in server browser (ISO 3166-1 numeric)
 == 在服务器浏览器中过滤的玩家国家/地区（ISO 3166-1 数字）
 
 Player country:
-== 玩家国家/地区：
+== 玩家国家
+
+Player death
+== 玩家死亡
 
 Player decoration color
 == 玩家装饰颜色
@@ -8743,6 +8998,12 @@ Player skin marking
 
 Player skin used for volleyball appearance
 == 排球外观使用的玩家皮肤
+
+Player spawn
+== 玩家出生
+
+Player state
+== 玩家状态
 
 Player stats
 == 玩家统计
@@ -9022,6 +9283,9 @@ Preview laser bodies, outlines, and impacts
 
 Preview loading…
 == 预览加载中…
+
+Preview path
+== 预览路径
 
 Preview player and dummy appearance
 == 预览玩家和分身外观
@@ -9587,6 +9851,9 @@ Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
 == 向主服务器注册服务器以进行公开列表，还可以接受要注册的以逗号分隔的协议列表，例如“ipv4，ipv6”
 
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
+== 已注册音效；在当前 DDNet 服务端中未发现直接触发点，其他服务端可能会使用。
+
 Regular
 == 常规
 
@@ -9595,9 +9862,6 @@ Regular background color
 
 Regular expression
 == 正则表达式
-
-Relative path
-== 相对路径
 
 Relative X position of the draggable back button
 == 可拖动虚拟返回按钮的相对 X 位置
@@ -9631,6 +9895,9 @@ Reload the map while preserving the state of tees and teams
 
 Reload the maplist
 == 重新加载地图列表
+
+Reload word list files
+== 重新加载词表文件
 
 Reloaded images.
 == 已重新加载图像。
@@ -9889,6 +10156,9 @@ Replace non-friend names with ID
 
 Replace non-friend skins with default
 == 用默认皮肤替换非好友皮肤
+
+Replace selected variant
+== 替换所选变体
 
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 == 替换设置、按键绑定和所列 cfg 文件并重启？将先备份当前配置。
@@ -10652,9 +10922,6 @@ Selected %d
 Selected button not visible
 == 选中的按键不可见
 
-Selected candidate
-== 已选候选文件
-
 Selected candidate %d/%d under cursor.
 == 已选中光标下的候选项 %d/%d。
 
@@ -10802,11 +11069,14 @@ Server list is more than five minutes old
 Server list refresh failed; showing the previous list
 == 服务器列表刷新失败，正在显示上次列表
 
+Server message
+== 服务端消息
+
 Server name
 == 服务器名称
 
 Server not full
-== 服务器未满
+== 未满员
 
 Server password
 == 服务器密码
@@ -10831,6 +11101,9 @@ Server URL
 
 Server-assigned style
 == 服务器分配风格
+
+Server-dependent
+== 取决于服务端
 
 Set all to Rifle
 == 统一为激光枪颜色
@@ -10943,11 +11216,20 @@ Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
 == 流光速度
 
+Short pain voice
+== 短促受伤叫声
+
 Short server names
 == 短服务器名称
 
 Shotgun
 == 霰弹枪
+
+Shotgun / laser pickup
+== 拾取霰弹枪/激光枪
+
+Shotgun fire
+== 霰弹枪射击
 
 Shotgun Laser Inner Color
 == 霰弹枪弹道实心颜色
@@ -11241,7 +11523,7 @@ Show friend tag (♥) on nametag
 == 在铭牌上显示好友标记（♥）
 
 Show friends only
-== 只显示好友
+== 仅好友
 
 Show frozen Tee HUD
 == 显示冻结 Tee HUD
@@ -11593,6 +11875,9 @@ Show own nametag (for demo recording)
 
 Show own player's hook collision line
 == 显示自己的钩子辅助线
+
+Show path
+== 显示路径
 
 Show pause/play indicator when changing
 == 在更改时显示暂停/播放指示器
@@ -11999,6 +12284,9 @@ Size of key press icons
 Size of strength/weakness icon and number
 == 强/弱状态图标和数字的大小
 
+Skidding
+== 急停滑行
+
 Skin
 == 皮肤
 
@@ -12137,6 +12425,9 @@ Smaller tees
 Smart
 == 智能
 
+Smooth
+== 平滑
+
 Smooth and accurate blur with the highest GPU cost.
 == 平滑且准确的模糊效果，但 GPU 开销最高。
 
@@ -12268,6 +12559,9 @@ Sound buffer size (large may cause delay)
 
 Sound error
 == 音频错误
+
+Sound variants
+== 音效变体
 
 Sound volume
 == 音量
@@ -12521,6 +12815,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 Stop practice
 == 停止练习
 
+Stop preview
+== 停止预览
+
 Stop preview (P)
 == 停止预览 (P)
 
@@ -12548,6 +12845,9 @@ Stop the current demo
 Streamer mode
 == 主播模式
 
+Streamer word list file
+== 主播模式词表文件
+
 Strength icons assets
 == 强弱图标资源
 
@@ -12561,7 +12861,7 @@ Strict game type filter
 == 严格游戏模式筛选
 
 Strict gametype filter
-== 严格游戏模式筛选
+== 严格匹配
 
 Strict mode
 == 严格模式
@@ -12910,6 +13210,9 @@ Tee collision (Tee to Tee)
 
 Tee color
 == Tee 颜色
+
+Tee cry
+== Tee 哭声
 
 Tee death probe
 == Tee 死亡探针
@@ -13871,6 +14174,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == 无法打开截图文件
 
+Unable to record camera keyframe
+== 无法记录相机关键帧
+
 Unable to rename the demo
 == 无法重命名这个回放
 
@@ -13923,7 +14229,7 @@ Unfinished
 == 未完成
 
 Unfinished map
-== 未完成的地图
+== 仅未完成
 
 Unfinished map count: %d
 == 未完成图数量：%d
@@ -14044,6 +14350,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == 更新失败，请重试
+
+Update keyframe
+== 更新关键帧
 
 Update notice
 == 更新提示
@@ -14257,6 +14566,9 @@ Used by active shared text and numeric input fields
 
 Uses the active action with the current aiming position.
 == 对瞄准位置执行当前动作。
+
+UTF-8 text, one word per line (max 2 MiB).
+== UTF-8 文本，每行一个词（最大 2 MiB）。
 
 v = Velocity
 == v = 速度
@@ -14615,6 +14927,12 @@ Weapon range color
 Weapon reload animation probability
 == 武器装填动画概率
 
+Weapon removal / armor pickup
+== 移除武器/拾取护甲
+
+Weapon switch
+== 切换武器
+
 Weapon switch animation
 == 武器切换动画
 
@@ -14644,6 +14962,9 @@ Weapon switch easing
 
 Weapon switch rotation
 == 武器切换旋转
+
+Weapon teleport
+== 武器传送
 
 Weapon Trajectory
 == 武器辅助线
@@ -14824,6 +15145,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == 屏蔽词操作：0=替换匹配词，1=隐藏整条消息
+
+Word list entries cannot contain control characters.
+== 词条不能包含控制字符。
+
+Word list exceeds 100000 unique entries.
+== 词表超过 100000 个不重复词条。
+
+Word list file
+== 词表文件
+
+Word list file exceeds 2 MiB.
+== 词表文件超过 2 MiB。
+
+Word list must be UTF-8 text without NUL characters.
+== 词表必须是 UTF-8 文本，且不含 NUL 字符。
 
 Write local console contents to a text file
 == 将本地控制台内容写入文本文件

@@ -89,7 +89,8 @@ void CMenus::RenderQmFunctionBlockWordsContent(CUIRect &Content, float UiScale, 
 		Content.HSplitTop(LineSpacing, nullptr, &Content);
 	}
 
-	static CLineInputBuffered<1024> s_BlockWordsInput;
+	RenderQmWordFilterFileContent(Content, false, LineHeight, LineSpacing, BodySize);
+	static CLineInputBuffered<QmWordFilterList::INLINE_CAPACITY> s_BlockWordsInput;
 	static bool s_BlockWordsInited = false;
 	if(!s_BlockWordsInited)
 	{
@@ -122,9 +123,6 @@ void CMenus::RenderQmFunctionBlockWordsContent(CUIRect &Content, float UiScale, 
 void CMenus::RenderQmFunctionHJAssistContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
 	CUIRect Row, LabelColumn, ControlColumn;
-	const auto RenderCheckbox = [this, &Content, LineHeight, LineSpacing, PrewarmOnly](const char *pText, int *pValue) {
-		RenderQmFunctionCheckboxRow(Content, LineHeight, LineSpacing, pValue, pText, Localize(pText), pValue, PrewarmOnly);
-	};
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
 		{
 			{&g_Config.m_QmAutoUnspecOnUnfreeze, Localizable("Auto unspec on unfreeze"), Localize("Auto unspec on unfreeze")},
@@ -143,7 +141,9 @@ void CMenus::RenderQmFunctionHJAssistContent(CUIRect &Content, float LineHeight,
 		RenderQmSettingsSliderWithValueInput(&s_QmAutoTeamLockDelayInputId, ControlColumn, &g_Config.m_QmAutoTeamLockDelay, 0, 30, "s", PrewarmOnly);
 		Content.HSplitTop(LineSpacing, nullptr, &Content);
 	}
-	RenderCheckbox(Localizable("Fade spectators in water"), &g_Config.m_QmPausedSpectatorFade);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{{&g_Config.m_QmPausedSpectatorFade, "Fade spectators in water", Localize("Fade spectators in water")}},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	if(g_Config.m_QmPausedSpectatorFade)
 	{
 		Content.HSplitTop(LineHeight, &Row, &Content);
@@ -195,8 +195,7 @@ namespace qm_card_catalog
 			case EQmModuleId::KeyBinds: return Rows(8.0f);
 			case EQmModuleId::Emoticons: return Rows(3.0f);
 			case EQmModuleId::Ime: return QmImeAppearanceCardHeight(LineHeight, Metrics.m_ButtonHeight, LineSpacing);
-			case EQmModuleId::BetterScoreboard: return Rows(5.0f);
-			case EQmModuleId::BlockWords: return Row() * (g_Config.m_QmBlockWordsAction == 0 ? 7.0f : 4.0f) + CalcQiaFenInputHeight(QmCardRenderHook::TextRenderer(pMenus), g_Config.m_QmBlockWordsList, std::max(1.0f, ContentWidth - LabelWidth), BodySize, std::clamp(2.0f * UiScale, 1.0f, 2.0f), LineHeight);
+			case EQmModuleId::BlockWords: return Row() * (g_Config.m_QmBlockWordsAction == 0 ? 12.0f : 9.0f) + CalcQiaFenInputHeight(QmCardRenderHook::TextRenderer(pMenus), g_Config.m_QmBlockWordsList, std::max(1.0f, ContentWidth - LabelWidth), BodySize, std::clamp(2.0f * UiScale, 1.0f, 2.0f), LineHeight);
 			case EQmModuleId::Translate:
 			{
 				// 行数口径与 RenderQmFunctionTranslateContent 的渲染分支一一对应，逐块注释；
@@ -316,7 +315,6 @@ namespace qm_card_catalog
 		case EQmModuleId::MiniFeatures:
 		{
 			const auto RenderMiniFeatures = [pMenus, LineHeight, BodySize, LineSpacing, LabelWidth](CUIRect &Content, const bool PrewarmOnly) {
-				QmCardRenderHook::RenderQmFunctionCheckboxRow(pMenus, Content, LineHeight, LineSpacing, &g_Config.m_QmChatCommandCompletion, "Show command completion in chat", Localize("Show command completion in chat"), &g_Config.m_QmChatCommandCompletion, PrewarmOnly);
 				QmCardRenderHook::RenderQmFunctionMiniFeaturesContent(pMenus, Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
 			};
 			MakeModuleCard(
@@ -331,8 +329,21 @@ namespace qm_card_catalog
 			return true;
 		}
 		case EQmModuleId::BetterScoreboard:
-			Add(Id, "qm:better_scoreboard", "Better scoreboard", "Scoreboard", [pMenus, LineHeight, BodySize, LineSpacing, LabelWidth, ReadOnly](CUIRect &Content) { qm_card_catalog::QmCardRenderHook::RenderQmFunctionBetterScoreboardContent(pMenus, Content, LineHeight, BodySize, LineSpacing, LabelWidth, ReadOnly); });
+		{
+			const auto RenderScoreboard = [pMenus, LineHeight, BodySize, LineSpacing, LabelWidth](CUIRect &Content, bool PrewarmOnly) {
+				QmCardRenderHook::RenderQmFunctionBetterScoreboardContent(pMenus, Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+			};
+			MakeModuleCard(
+				Ctx, Id, "qm:better_scoreboard", "Better scoreboard", "Scoreboard",
+				[RenderScoreboard, ReadOnly](CUIRect &Content) { RenderScoreboard(Content, ReadOnly); },
+				[RenderScoreboard](float ContentWidth) {
+					CUIRect Probe{0.0f, 0.0f, ContentWidth, 9999.0f};
+					RenderScoreboard(Probe, true);
+					return 9999.0f - Probe.h;
+				},
+				MeasureFunctionCardRevision(Ctx, Id), {}, Out);
 			return true;
+		}
 		case EQmModuleId::JumpHint:
 		{
 			const auto RenderJumpHint = [pMenus, LineHeight, BodySize, LineSpacing, LabelWidth](CUIRect &Content, const bool PrewarmOnly) { qm_card_catalog::QmCardRenderHook::RenderQmFunctionJumpHintContent(pMenus, Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly); };

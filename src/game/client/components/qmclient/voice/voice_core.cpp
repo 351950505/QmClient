@@ -10,6 +10,7 @@
 #include <base/vmath.h>
 
 #include <engine/client.h>
+#include <engine/client/audio_sdl3.h>
 #include <engine/graphics.h>
 #include <engine/shared/config.h>
 #include <engine/shared/console.h>
@@ -23,7 +24,7 @@
 #include <android/android_main.h>
 #endif
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <opus/opus.h>
 
 #include <algorithm>
@@ -170,21 +171,15 @@ bool CRClientVoice::SeedPeerNextSeq(SVoicePeer &Peer)
 	return true;
 }
 
-void CRClientVoice::SDLAudioCallback(void *pUserData, Uint8 *pStream, int Len)
+void SDLCALL CRClientVoice::SDLAudioCallback(void *pUserData, SDL_AudioStream *pStream, int AdditionalBytes, int TotalBytes)
 {
 	auto *pThis = static_cast<CRClientVoice *>(pUserData);
-	if(!pThis || Len <= 0)
+	if(pThis == nullptr || AdditionalBytes <= 0)
 		return;
-
-	const int OutputChannels = std::max(1, pThis->m_OutputChannels.load());
-	const int Samples = Len / (int)(sizeof(int16_t) * OutputChannels);
-	if(Samples <= 0)
-	{
-		mem_zero(pStream, Len);
-		return;
-	}
-
-	pThis->MixAudio(reinterpret_cast<int16_t *>(pStream), Samples, OutputChannels);
+	const int Channels = pThis->m_OutputChannels.load();
+	std::array<int16_t, VOICE_FRAME_SAMPLES * 2> aBuffer;
+	FillSdlAudioStream(pStream, AdditionalBytes, Channels, aBuffer.data(), VOICE_FRAME_SAMPLES,
+		[pThis, Channels](int16_t *pBuffer, int Frames) { pThis->MixAudio(pBuffer, Frames, Channels); });
 }
 
 void CRClientVoice::Init(CGameClient *pGameClient, IClient *pClient, IConsole *pConsole)
@@ -340,6 +335,61 @@ bool CRClientVoice::SendVoicePacket(const uint8_t *pData, size_t Size) NO_THREAD
 	return m_pVoiceTransport && m_pVoiceTransport->SendPacket(pData, Size);
 }
 
+bool CRClientVoice::EnsureAudioSubsystem()
+{
+	if(m_AudioSubsystemInitializedByVoice)
+		return true;
+	if(SDL_WasInit(SDL_INIT_AUDIO) == 0)
+		SDL_SetHint(SDL_HINT_AUDIO_DRIVER, g_Config.m_QmVoiceAudioBackend[0] != '\0' ? g_Config.m_QmVoiceAudioBackend : nullptr);
+	if(!SDL_InitSubSystem(SDL_INIT_AUDIO))
+	{
+		char aError[256];
+		str_format(aError, sizeof(aError), "Failed to initialize voice audio: %s", SDL_GetError());
+		LogDiagnosticErrorOnce(m_aAudioErrorLog, sizeof(m_aAudioErrorLog), aError);
+		return false;
+	}
+	if(!SDL_AddEventWatch(AudioDeviceEvent, this))
+	{
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+		return false;
+	}
+	m_AudioSubsystemInitializedByVoice = true;
+	m_ShutdownDone = false;
+	log_info("voice", "audio initialized using backend '%s'", SDL_GetCurrentAudioDriver());
+	return true;
+}
+
+bool SDLCALL CRClientVoice::AudioDeviceEvent(void *pUser, SDL_Event *pEvent)
+{
+	auto *pThis = static_cast<CRClientVoice *>(pUser);
+	if(pEvent->type == SDL_EVENT_AUDIO_DEVICE_REMOVED)
+	{
+		if(pEvent->adevice.which == pThis->m_CaptureLogicalDevice.load())
+			pThis->m_CaptureRemoved.store(true);
+		if(pEvent->adevice.which == pThis->m_OutputLogicalDevice.load())
+			pThis->m_OutputRemoved.store(true);
+	}
+	if(pEvent->type == SDL_EVENT_AUDIO_DEVICE_REMOVED || pEvent->type == SDL_EVENT_AUDIO_DEVICE_ADDED)
+		pThis->m_AudioRefreshRequested.store(true);
+	return true;
+}
+
+void CRClientVoice::CloseCaptureStream()
+{
+	m_CaptureLogicalDevice.store(0);
+	SDL_DestroyAudioStream(m_pCaptureStream);
+	m_pCaptureStream = nullptr;
+	m_CaptureReady.store(false);
+}
+
+void CRClientVoice::CloseOutputStream()
+{
+	m_OutputLogicalDevice.store(0);
+	SDL_DestroyAudioStream(m_pOutputStream);
+	m_pOutputStream = nullptr;
+	m_OutputReady.store(false);
+}
+
 bool CRClientVoice::EnsureAudio()
 {
 	VoiceUtils::SVoiceAudioDeviceConfig RequestedAudioConfig;
@@ -347,35 +397,28 @@ bool CRClientVoice::EnsureAudio()
 
 	SDL_AudioSpec WantCapture = {};
 	WantCapture.freq = VOICE_SAMPLE_RATE;
-	WantCapture.format = AUDIO_S16;
+	WantCapture.format = SDL_AUDIO_S16LE;
 	WantCapture.channels = VOICE_CHANNELS;
-	WantCapture.samples = VOICE_FRAME_SAMPLES;
-	WantCapture.callback = nullptr;
 
 	const bool WantStereo = RequestedAudioConfig.m_OutputStereo;
 	const int DesiredOutputChannels = VoiceUtils::VoiceDesiredOutputChannels(RequestedAudioConfig);
 
 	SDL_AudioSpec WantOutput = {};
 	WantOutput.freq = VOICE_SAMPLE_RATE;
-	WantOutput.format = AUDIO_S16;
+	WantOutput.format = SDL_AUDIO_S16LE;
 	WantOutput.channels = DesiredOutputChannels;
-	WantOutput.samples = VOICE_FRAME_SAMPLES;
-	WantOutput.callback = SDLAudioCallback;
-	WantOutput.userdata = this;
 
 	const bool BackendChanged = str_comp(m_aAudioBackend, RequestedAudioConfig.m_aBackend) != 0;
 	if(BackendChanged)
 	{
-		if(m_CaptureDevice)
+		if(m_pCaptureStream)
 		{
-			SDL_CloseAudioDevice(m_CaptureDevice);
-			m_CaptureDevice = 0;
+			CloseCaptureStream();
 			m_CaptureReady.store(false);
 		}
-		if(m_OutputDevice)
+		if(m_pOutputStream)
 		{
-			SDL_CloseAudioDevice(m_OutputDevice);
-			m_OutputDevice = 0;
+			CloseOutputStream();
 			m_OutputReady.store(false);
 		}
 		m_CaptureSpec = {};
@@ -400,41 +443,14 @@ bool CRClientVoice::EnsureAudio()
 	}
 
 	const char *pRequestedBackend = RequestedAudioConfig.m_aBackend[0] ? RequestedAudioConfig.m_aBackend : nullptr;
-	if((SDL_WasInit(SDL_INIT_AUDIO) & SDL_INIT_AUDIO) == 0)
-	{
-		if(SDL_AudioInit(pRequestedBackend) < 0)
-		{
-			if(pRequestedBackend)
-			{
-				char aError[256];
-				str_format(aError, sizeof(aError), "Failed to init audio backend '%s': %s", pRequestedBackend, SDL_GetError());
-				LogDiagnosticErrorOnce(m_aAudioErrorLog, sizeof(m_aAudioErrorLog), aError);
-			}
-			else
-			{
-				char aError[256];
-				str_format(aError, sizeof(aError), "Failed to init audio: %s", SDL_GetError());
-				LogDiagnosticErrorOnce(m_aAudioErrorLog, sizeof(m_aAudioErrorLog), aError);
-			}
-			return false;
-		}
-		m_AudioSubsystemInitializedByVoice = true;
-		const char *pDriver = SDL_GetCurrentAudioDriver();
-		if(pDriver && pDriver[0] != '\0')
-		{
-			if(str_comp_nocase(m_aAudioInitLoggedBackend, pDriver) != 0)
-			{
-				log_info("voice", "audio initialized using backend '%s'", pDriver);
-				str_copy(m_aAudioInitLoggedBackend, pDriver, sizeof(m_aAudioInitLoggedBackend));
-			}
-		}
-		else if(m_aAudioInitLoggedBackend[0] == '\0')
-		{
-			log_info("voice", "audio initialized");
-			str_copy(m_aAudioInitLoggedBackend, "<unknown>", sizeof(m_aAudioInitLoggedBackend));
-		}
-	}
-	else if(pRequestedBackend && pRequestedBackend[0] != '\0')
+	if(!m_AudioSubsystemInitializedByVoice)
+		return false;
+	if(m_CaptureRemoved.exchange(false))
+		CloseCaptureStream();
+	if(m_OutputRemoved.exchange(false))
+		CloseOutputStream();
+
+	if(pRequestedBackend && pRequestedBackend[0] != '\0')
 	{
 		const char *pDriver = SDL_GetCurrentAudioDriver();
 		if(pDriver && str_comp_nocase(pDriver, pRequestedBackend) != 0)
@@ -455,16 +471,15 @@ bool CRClientVoice::EnsureAudio()
 		}
 	}
 
-	const bool HadCapture = m_CaptureDevice != 0;
-	const bool HadOutput = m_OutputDevice != 0;
+	const bool HadCapture = m_pCaptureStream != 0;
+	const bool HadOutput = m_pOutputStream != 0;
 	const bool HadEncoder = m_pEncoder != nullptr;
 
 	if(str_comp(m_aInputDeviceName, RequestedAudioConfig.m_aInputDevice) != 0)
 	{
-		if(m_CaptureDevice)
+		if(m_pCaptureStream)
 		{
-			SDL_CloseAudioDevice(m_CaptureDevice);
-			m_CaptureDevice = 0;
+			CloseCaptureStream();
 			m_CaptureReady.store(false);
 		}
 		str_copy(m_aInputDeviceName, RequestedAudioConfig.m_aInputDevice, sizeof(m_aInputDeviceName));
@@ -479,10 +494,9 @@ bool CRClientVoice::EnsureAudio()
 
 	if(str_comp(m_aOutputDeviceName, RequestedAudioConfig.m_aOutputDevice) != 0)
 	{
-		if(m_OutputDevice)
+		if(m_pOutputStream)
 		{
-			SDL_CloseAudioDevice(m_OutputDevice);
-			m_OutputDevice = 0;
+			CloseOutputStream();
 			m_OutputReady.store(false);
 		}
 		str_copy(m_aOutputDeviceName, RequestedAudioConfig.m_aOutputDevice, sizeof(m_aOutputDeviceName));
@@ -497,10 +511,9 @@ bool CRClientVoice::EnsureAudio()
 
 	if(m_OutputStereo != WantStereo)
 	{
-		if(m_OutputDevice)
+		if(m_pOutputStream)
 		{
-			SDL_CloseAudioDevice(m_OutputDevice);
-			m_OutputDevice = 0;
+			CloseOutputStream();
 			m_OutputReady.store(false);
 		}
 		m_OutputStereo = WantStereo;
@@ -513,13 +526,23 @@ bool CRClientVoice::EnsureAudio()
 		m_LastAudioRetryAttempt = 0;
 	}
 
-	if(HadCapture && HadOutput && HadEncoder && m_CaptureDevice && m_OutputDevice && m_pEncoder)
+	if(HadCapture && HadOutput && HadEncoder && m_pCaptureStream && m_pOutputStream && m_pEncoder)
 	{
 		return true;
 	}
 
-	const char *pInputName = FindDeviceName(true, RequestedAudioConfig.m_aInputDevice);
-	const char *pOutputName = FindDeviceName(false, RequestedAudioConfig.m_aOutputDevice);
+	const auto vInputs = SdlAudioDevices(true);
+	const auto vOutputs = SdlAudioDevices(false);
+	const auto ResolveDevice = [](const auto &vDevices, const char *pName) -> const SSdlAudioDevice * {
+		if(pName[0] == '\0')
+			return nullptr;
+		const auto It = std::find_if(vDevices.begin(), vDevices.end(), [pName](const auto &Device) { return str_comp_nocase(Device.m_Name.c_str(), pName) == 0; });
+		return It == vDevices.end() ? nullptr : &*It;
+	};
+	const auto *pInput = ResolveDevice(vInputs, RequestedAudioConfig.m_aInputDevice);
+	const auto *pOutput = ResolveDevice(vOutputs, RequestedAudioConfig.m_aOutputDevice);
+	const char *pInputName = pInput != nullptr ? pInput->m_Name.c_str() : nullptr;
+	const char *pOutputName = pOutput != nullptr ? pOutput->m_Name.c_str() : nullptr;
 
 	if(!m_pEncoder)
 	{
@@ -552,10 +575,10 @@ bool CRClientVoice::EnsureAudio()
 	if(!m_pPeers)
 		m_pPeers = std::make_unique<std::array<SVoicePeer, MAX_CLIENTS>>();
 
-	if(!m_OutputDevice)
+	if(!m_pOutputStream)
 	{
 		const bool OutputMissing = RequestedAudioConfig.m_aOutputDevice[0] != '\0' && pOutputName == nullptr;
-		const bool NoOutputDevices = SDL_GetNumAudioDevices(0) <= 0;
+		const bool NoOutputDevices = vOutputs.empty();
 
 		if(OutputMissing)
 		{
@@ -579,8 +602,16 @@ bool CRClientVoice::EnsureAudio()
 		{
 			if(!m_OutputUnavailable.load())
 				log_info("voice", "attempting to open output device '%s'", pOutputName ? pOutputName : "<default>");
-			m_OutputDevice = SDL_OpenAudioDevice(pOutputName, 0, &WantOutput, &m_OutputSpec, 0);
-			if(!m_OutputDevice)
+			m_OutputSpec = WantOutput;
+			m_OutputChannels.store(DesiredOutputChannels);
+			m_pOutputStream = SDL_OpenAudioDeviceStream(pOutput != nullptr ? pOutput->m_Id : SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &WantOutput, SDLAudioCallback, this);
+			if(m_pOutputStream != nullptr)
+			{
+				m_OutputLogicalDevice.store(SDL_GetAudioStreamDevice(m_pOutputStream));
+				if(!SDL_ResumeAudioStreamDevice(m_pOutputStream))
+					CloseOutputStream();
+			}
+			if(!m_pOutputStream)
 			{
 				if(!m_OutputUnavailable.load())
 				{
@@ -606,7 +637,6 @@ bool CRClientVoice::EnsureAudio()
 						m_aResolvedOutputDeviceName[0] = '\0';
 				}
 				m_OutputChannels.store(Channels);
-				SDL_PauseAudioDevice(m_OutputDevice, 0);
 				ClearPeerFrames();
 				m_OutputReady.store(true);
 				m_OutputUnavailable = false;
@@ -619,10 +649,10 @@ bool CRClientVoice::EnsureAudio()
 		m_OutputUnavailable = false;
 	}
 
-	if(!m_CaptureDevice)
+	if(!m_pCaptureStream)
 	{
 #if defined(CONF_PLATFORM_ANDROID)
-		if(m_AndroidRecordPermissionKnown && !m_AndroidRecordPermissionGranted)
+		if(!m_AndroidRecordPermissionGranted.load())
 		{
 			m_CaptureReady.store(false);
 			m_CaptureUnavailable = true;
@@ -631,7 +661,7 @@ bool CRClientVoice::EnsureAudio()
 #endif
 		{
 			const bool InputMissing = RequestedAudioConfig.m_aInputDevice[0] != '\0' && pInputName == nullptr;
-			const bool NoCaptureDevices = SDL_GetNumAudioDevices(1) <= 0;
+			const bool NoCaptureDevices = vInputs.empty();
 
 			if(InputMissing)
 			{
@@ -655,8 +685,15 @@ bool CRClientVoice::EnsureAudio()
 			{
 				if(!m_CaptureUnavailable.load())
 					log_info("voice", "attempting to open capture device '%s'", pInputName ? pInputName : "<default>");
-				m_CaptureDevice = SDL_OpenAudioDevice(pInputName, 1, &WantCapture, &m_CaptureSpec, 0);
-				if(!m_CaptureDevice)
+				m_CaptureSpec = WantCapture;
+				m_pCaptureStream = SDL_OpenAudioDeviceStream(pInput != nullptr ? pInput->m_Id : SDL_AUDIO_DEVICE_DEFAULT_RECORDING, &WantCapture, nullptr, nullptr);
+				if(m_pCaptureStream != nullptr)
+				{
+					m_CaptureLogicalDevice.store(SDL_GetAudioStreamDevice(m_pCaptureStream));
+					if(!SDL_ResumeAudioStreamDevice(m_pCaptureStream))
+						CloseCaptureStream();
+				}
+				if(!m_pCaptureStream)
 				{
 					if(!m_CaptureUnavailable.load())
 					{
@@ -680,7 +717,6 @@ bool CRClientVoice::EnsureAudio()
 						else
 							m_aResolvedInputDeviceName[0] = '\0';
 					}
-					SDL_PauseAudioDevice(m_CaptureDevice, 0);
 					m_CaptureReady.store(true);
 					m_CaptureUnavailable = false;
 				}
@@ -814,8 +850,8 @@ void CRClientVoice::ClearPeerFrames()
 {
 	if(!m_pPeers)
 		return;
-	if(m_OutputDevice)
-		SDL_LockAudioDevice(m_OutputDevice);
+	if(m_pOutputStream)
+		SDL_LockAudioStream(m_pOutputStream);
 	for(auto &Peer : *m_pPeers)
 	{
 		for(auto &Pkt : Peer.m_aPackets)
@@ -849,14 +885,14 @@ void CRClientVoice::ClearPeerFrames()
 		Peer.m_FrameCount = 0;
 		Peer.m_FrameReadPos = 0;
 	}
-	if(m_OutputDevice)
-		SDL_UnlockAudioDevice(m_OutputDevice);
+	if(m_pOutputStream)
+		SDL_UnlockAudioStream(m_pOutputStream);
 }
 
 void CRClientVoice::ResetPeer(SVoicePeer &Peer)
 {
-	if(m_OutputDevice)
-		SDL_LockAudioDevice(m_OutputDevice);
+	if(m_pOutputStream)
+		SDL_LockAudioStream(m_pOutputStream);
 	Peer.m_FrameHead = 0;
 	Peer.m_FrameTail = 0;
 	Peer.m_FrameCount = 0;
@@ -887,47 +923,20 @@ void CRClientVoice::ResetPeer(SVoicePeer &Peer)
 	Peer.m_DecoderFailed = false;
 	if(Peer.m_pDecoder)
 		opus_decoder_ctl(Peer.m_pDecoder, OPUS_RESET_STATE);
-	if(m_OutputDevice)
-		SDL_UnlockAudioDevice(m_OutputDevice);
-}
-
-const char *CRClientVoice::FindDeviceName(bool Capture, const char *pDesired) const
-{
-	if(!pDesired || pDesired[0] == '\0')
-		return nullptr;
-
-	const int Num = SDL_GetNumAudioDevices(Capture ? 1 : 0);
-	for(int i = 0; i < Num; i++)
-	{
-		const char *pName = SDL_GetAudioDeviceName(i, Capture ? 1 : 0);
-		if(pName && str_comp_nocase(pName, pDesired) == 0)
-			return pName;
-	}
-	return nullptr;
+	if(m_pOutputStream)
+		SDL_UnlockAudioStream(m_pOutputStream);
 }
 
 void CRClientVoice::ListDevices()
 {
-	if(!m_pConsole)
+	if(m_pConsole == nullptr || !EnsureAudioSubsystem())
 		return;
-
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "voice", "Input devices:");
-	const int NumInputs = SDL_GetNumAudioDevices(1);
-	for(int i = 0; i < NumInputs; i++)
-	{
-		const char *pName = SDL_GetAudioDeviceName(i, 1);
-		if(pName)
-			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "voice", pName);
-	}
-
+	for(const auto &Device : SdlAudioDevices(true))
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "voice", Device.m_Name.c_str());
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "voice", "Output devices:");
-	const int NumOutputs = SDL_GetNumAudioDevices(0);
-	for(int i = 0; i < NumOutputs; i++)
-	{
-		const char *pName = SDL_GetAudioDeviceName(i, 0);
-		if(pName)
-			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "voice", pName);
-	}
+	for(const auto &Device : SdlAudioDevices(false))
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "voice", Device.m_Name.c_str());
 }
 
 void CRClientVoice::ExportOverlayState(CVoiceOverlayState &Overlay) const NO_THREAD_SAFETY_ANALYSIS
@@ -1079,16 +1088,14 @@ void CRClientVoice::Shutdown()
 
 	StopWorker();
 
-	if(m_CaptureDevice)
+	if(m_pCaptureStream)
 	{
-		SDL_CloseAudioDevice(m_CaptureDevice);
-		m_CaptureDevice = 0;
+		CloseCaptureStream();
 	}
 	m_CaptureReady.store(false);
-	if(m_OutputDevice)
+	if(m_pOutputStream)
 	{
-		SDL_CloseAudioDevice(m_OutputDevice);
-		m_OutputDevice = 0;
+		CloseOutputStream();
 	}
 	m_OutputReady.store(false);
 	m_OutputChannels.store(0);
@@ -1100,6 +1107,7 @@ void CRClientVoice::Shutdown()
 	m_CaptureUnavailable = false;
 	m_OutputUnavailable = false;
 #if defined(CONF_PLATFORM_ANDROID)
+	m_AndroidRecordPermissionRequested = false;
 	m_AndroidRecordPermissionKnown = false;
 	m_AndroidRecordPermissionGranted = false;
 #endif
@@ -1152,7 +1160,12 @@ void CRClientVoice::Shutdown()
 	ClearDiagnosticLogMessage(m_aEncoderErrorLog);
 	ClearDiagnosticLogMessage(m_aServerAddrErrorLog);
 	ClearDiagnosticLogMessage(m_aDecoderErrorLog);
-	m_AudioSubsystemInitializedByVoice = false;
+	if(m_AudioSubsystemInitializedByVoice)
+	{
+		SDL_RemoveEventWatch(AudioDeviceEvent, this);
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+		m_AudioSubsystemInitializedByVoice = false;
+	}
 	m_MicLevel.store(0.0f);
 	m_LastConfigSnapshotUpdate = 0;
 	m_LastClientSnapshotUpdate = 0;
@@ -1247,8 +1260,8 @@ void CRClientVoice::ResetTransmitState(bool ClearQueuedCapture) NO_THREAD_SAFETY
 	m_VadReleaseDeadline = 0;
 	m_PttReleaseDeadline.store(0);
 	m_TxWasActive = false;
-	if(ClearQueuedCapture && m_CaptureDevice)
-		SDL_ClearQueuedAudio(m_CaptureDevice);
+	if(ClearQueuedCapture && m_pCaptureStream)
+		SDL_ClearAudioStream(m_pCaptureStream);
 }
 
 bool CRClientVoice::HasConnectionRuntimeState() const
@@ -1305,7 +1318,7 @@ void CRClientVoice::ProcessCapture() NO_THREAD_SAFETY_ANALYSIS
 {
 	SRClientVoiceConfigSnapshot Config;
 	GetConfigSnapshot(Config);
-	const bool HaveCaptureDevice = m_CaptureDevice != 0;
+	const bool HaveCaptureDevice = m_pCaptureStream != 0;
 	const int TestMode = std::clamp(Config.m_QmVoiceTestMode, 0, 2);
 	const bool TestLocal = TestMode == 1;
 	const bool NeedNetwork = !TestLocal;
@@ -1441,18 +1454,22 @@ void CRClientVoice::ProcessCapture() NO_THREAD_SAFETY_ANALYSIS
 		{
 			bool UpdatedMicLevel = false;
 			int FramesProcessed = 0;
-			while(SDL_GetQueuedAudioSize(m_CaptureDevice) >= VOICE_FRAME_BYTES && FramesProcessed < VOICE_MAX_CAPTURE_FRAMES_PER_UPDATE)
+			while(SDL_GetAudioStreamAvailable(m_pCaptureStream) >= VOICE_FRAME_BYTES && FramesProcessed < VOICE_MAX_CAPTURE_FRAMES_PER_UPDATE)
 			{
 				int16_t aPcm[VOICE_FRAME_SAMPLES];
-				SDL_DequeueAudio(m_CaptureDevice, aPcm, VOICE_FRAME_BYTES);
+				if(SDL_GetAudioStreamData(m_pCaptureStream, aPcm, VOICE_FRAME_BYTES) != VOICE_FRAME_BYTES)
+				{
+					SDL_ClearAudioStream(m_pCaptureStream);
+					break;
+				}
 				FramesProcessed++;
 				VoiceUtils::ProcessVoiceCaptureFrame(Config, aPcm, VOICE_FRAME_SAMPLES, m_AgcGain, m_NsNoiseFloor, m_NsGain, m_HpfPrevIn, m_HpfPrevOut, m_CompEnv);
 				const float Peak = VoiceUtils::VoiceFramePeak(aPcm, VOICE_FRAME_SAMPLES);
 				UpdateMicLevel(Peak);
 				UpdatedMicLevel = true;
 			}
-			if(SDL_GetQueuedAudioSize(m_CaptureDevice) >= VOICE_FRAME_BYTES)
-				SDL_ClearQueuedAudio(m_CaptureDevice);
+			if(SDL_GetAudioStreamAvailable(m_pCaptureStream) >= VOICE_FRAME_BYTES)
+				SDL_ClearAudioStream(m_pCaptureStream);
 			if(!UpdatedMicLevel)
 				UpdateMicLevel(-1.0f);
 		}
@@ -1463,7 +1480,7 @@ void CRClientVoice::ProcessCapture() NO_THREAD_SAFETY_ANALYSIS
 		if(ReleaseDeadline != 0 && Now >= ReleaseDeadline)
 			m_PttReleaseDeadline.store(0);
 		m_TxWasActive = false;
-		SDL_ClearQueuedAudio(m_CaptureDevice);
+		SDL_ClearAudioStream(m_pCaptureStream);
 		return;
 	}
 
@@ -1485,10 +1502,14 @@ void CRClientVoice::ProcessCapture() NO_THREAD_SAFETY_ANALYSIS
 
 	bool UpdatedMicLevel = false;
 	int FramesProcessed = 0;
-	while(SDL_GetQueuedAudioSize(m_CaptureDevice) >= VOICE_FRAME_BYTES && FramesProcessed < VOICE_MAX_CAPTURE_FRAMES_PER_UPDATE)
+	while(SDL_GetAudioStreamAvailable(m_pCaptureStream) >= VOICE_FRAME_BYTES && FramesProcessed < VOICE_MAX_CAPTURE_FRAMES_PER_UPDATE)
 	{
 		int16_t aPcm[VOICE_FRAME_SAMPLES];
-		SDL_DequeueAudio(m_CaptureDevice, aPcm, VOICE_FRAME_BYTES);
+		if(SDL_GetAudioStreamData(m_pCaptureStream, aPcm, VOICE_FRAME_BYTES) != VOICE_FRAME_BYTES)
+		{
+			SDL_ClearAudioStream(m_pCaptureStream);
+			break;
+		}
 		FramesProcessed++;
 		VoiceUtils::ProcessVoiceCaptureFrame(Config, aPcm, VOICE_FRAME_SAMPLES, m_AgcGain, m_NsNoiseFloor, m_NsGain, m_HpfPrevIn, m_HpfPrevOut, m_CompEnv);
 
@@ -1539,11 +1560,11 @@ void CRClientVoice::ProcessCapture() NO_THREAD_SAFETY_ANALYSIS
 
 		if(TestLocal)
 		{
-			if(m_OutputDevice && TestGain > 0.0f)
+			if(m_pOutputStream && TestGain > 0.0f)
 			{
-				SDL_LockAudioDevice(m_OutputDevice);
+				SDL_LockAudioStream(m_pOutputStream);
 				PushPeerFrame(LocalClientId, aPcm, VOICE_FRAME_SAMPLES, TestGain, TestGain);
-				SDL_UnlockAudioDevice(m_OutputDevice);
+				SDL_UnlockAudioStream(m_pOutputStream);
 			}
 			MarkLocalVoiceActive(Now);
 			continue;
@@ -1591,8 +1612,8 @@ void CRClientVoice::ProcessCapture() NO_THREAD_SAFETY_ANALYSIS
 			}
 		}
 	}
-	if(SDL_GetQueuedAudioSize(m_CaptureDevice) >= VOICE_FRAME_BYTES)
-		SDL_ClearQueuedAudio(m_CaptureDevice);
+	if(SDL_GetAudioStreamAvailable(m_pCaptureStream) >= VOICE_FRAME_BYTES)
+		SDL_ClearAudioStream(m_pCaptureStream);
 
 	if(ShowMicLevel)
 	{
@@ -1717,7 +1738,7 @@ void CRClientVoice::ProcessIncoming() NO_THREAD_SAFETY_ANALYSIS
 			continue;
 		}
 
-		if(!m_OutputDevice)
+		if(!m_pOutputStream)
 			continue;
 
 		int LocalId = -1;
@@ -2043,7 +2064,7 @@ void CRClientVoice::UpdateEncoderParams()
 
 void CRClientVoice::DecodeJitter()
 {
-	if(!m_OutputDevice)
+	if(!m_pOutputStream)
 		return;
 
 	for(int PeerId = 0; PeerId < MAX_CLIENTS; PeerId++)
@@ -2059,9 +2080,9 @@ void CRClientVoice::DecodeJitter()
 		}
 
 		int FrameCount = 0;
-		SDL_LockAudioDevice(m_OutputDevice);
+		SDL_LockAudioStream(m_pOutputStream);
 		FrameCount = Peer.m_FrameCount;
-		SDL_UnlockAudioDevice(m_OutputDevice);
+		SDL_UnlockAudioStream(m_pOutputStream);
 		if(FrameCount >= SVoicePeer::MAX_FRAMES)
 			continue;
 
@@ -2123,9 +2144,9 @@ void CRClientVoice::DecodeJitter()
 			const float NextLevel = Peak >= PrevLevel ? Peak : (PrevLevel * 0.9f);
 			m_aSpeakerLevel[PeerId].store(NextLevel);
 
-			SDL_LockAudioDevice(m_OutputDevice);
+			SDL_LockAudioStream(m_pOutputStream);
 			PushPeerFrame(PeerId, aPcm, Samples, LeftGain, RightGain);
-			SDL_UnlockAudioDevice(m_OutputDevice);
+			SDL_UnlockAudioStream(m_pOutputStream);
 		}
 		else
 		{
@@ -2226,7 +2247,7 @@ void CRClientVoice::WorkerLoop() NO_THREAD_SAFETY_ANALYSIS
 				Preconditions.m_ServerAddrValid = m_ServerAddrValid.load();
 				Preconditions.m_HaveSocket = m_TransportReady.load();
 				Preconditions.m_Online = OnlineSnap;
-				Preconditions.m_HaveCaptureDevice = m_CaptureDevice != 0;
+				Preconditions.m_HaveCaptureDevice = m_pCaptureStream != 0;
 				Preconditions.m_HaveEncoder = m_pEncoder != nullptr;
 				Preconditions.m_MicMuted = StateConfig.m_QmVoiceMicMute != 0;
 				const uint32_t TxBlockers = VoiceUtils::VoiceTransmitBlockers(Preconditions);
@@ -2241,8 +2262,8 @@ void CRClientVoice::WorkerLoop() NO_THREAD_SAFETY_ANALYSIS
 					m_PingMs.load(),
 					m_TransportReady.load() ? 1 : 0,
 					OnlineSnap ? 1 : 0,
-					m_OutputDevice != 0 ? 1 : 0,
-					m_CaptureDevice != 0 ? 1 : 0,
+					m_pOutputStream != 0 ? 1 : 0,
+					m_pCaptureStream != 0 ? 1 : 0,
 					m_pEncoder != nullptr ? 1 : 0,
 					StateConfig.m_QmVoiceMicMute != 0 ? 1 : 0,
 					(unsigned)TxBlockers,
@@ -2299,13 +2320,13 @@ void CRClientVoice::OnRender() NO_THREAD_SAFETY_ANALYSIS
 		ResetRuntimeState(VoiceUtils::VOICE_RUNTIME_RESET_CONNECTION | VoiceUtils::VOICE_RUNTIME_RESET_PEERS, m_RoomMemberTokenHash.load());
 		if(!m_AudioPausedForInactive)
 		{
-			if(m_CaptureDevice)
+			if(m_pCaptureStream)
 			{
-				SDL_ClearQueuedAudio(m_CaptureDevice);
-				SDL_PauseAudioDevice(m_CaptureDevice, 1);
+				SDL_ClearAudioStream(m_pCaptureStream);
+				SDL_PauseAudioStreamDevice(m_pCaptureStream);
 			}
-			if(m_OutputDevice)
-				SDL_PauseAudioDevice(m_OutputDevice, 1);
+			if(m_pOutputStream)
+				SDL_PauseAudioStreamDevice(m_pOutputStream);
 			m_AudioPausedForInactive = true;
 		}
 		ClearPeerFrames();
@@ -2313,12 +2334,15 @@ void CRClientVoice::OnRender() NO_THREAD_SAFETY_ANALYSIS
 	}
 	if(m_AudioPausedForInactive)
 	{
-		if(m_CaptureDevice)
-			SDL_PauseAudioDevice(m_CaptureDevice, 0);
-		if(m_OutputDevice)
-			SDL_PauseAudioDevice(m_OutputDevice, 0);
+		if(m_pCaptureStream)
+			SDL_ResumeAudioStreamDevice(m_pCaptureStream);
+		if(m_pOutputStream)
+			SDL_ResumeAudioStreamDevice(m_pOutputStream);
 		m_AudioPausedForInactive = false;
 	}
+
+	if(!EnsureAudioSubsystem())
+		return;
 
 	UpdateServerAddrConfig();
 	const bool ContextChanged = UpdateContext();
@@ -2339,17 +2363,24 @@ void CRClientVoice::OnRender() NO_THREAD_SAFETY_ANALYSIS
 		RuntimeConfig.m_QmVoiceTokenHash);
 
 #if defined(CONF_PLATFORM_ANDROID)
-	if(!m_AndroidRecordPermissionKnown)
+	if(!m_AndroidRecordPermissionRequested)
 	{
-		m_AndroidRecordPermissionGranted = RequestAndroidAudioRecordPermission();
-		m_AndroidRecordPermissionKnown = true;
-		if(!m_AndroidRecordPermissionGranted)
-		{
-			LogDiagnosticErrorOnce(m_aAudioErrorLog, sizeof(m_aAudioErrorLog), "Microphone permission denied on Android");
-			m_CaptureUnavailable = true;
-			m_CaptureReady.store(false);
-		}
+		RequestAndroidAudioRecordPermission();
+		m_AndroidRecordPermissionRequested = true;
 	}
+	const auto Permission = AndroidAudioRecordPermission();
+	const bool Granted = Permission == EAndroidPermissionState::GRANTED;
+	const bool WasGranted = m_AndroidRecordPermissionGranted.exchange(Granted);
+	m_AndroidRecordPermissionKnown.store(Granted || Permission == EAndroidPermissionState::DENIED);
+	if(Granted != WasGranted)
+		m_AudioRefreshRequested.store(true);
+	if(Permission == EAndroidPermissionState::DENIED)
+	{
+		LogDiagnosticErrorOnce(m_aAudioErrorLog, sizeof(m_aAudioErrorLog), "Microphone permission denied on Android");
+		m_CaptureUnavailable = true;
+		m_CaptureReady.store(false);
+	}
+
 #endif
 
 	VoiceUtils::SVoiceAudioDeviceConfig RequestedAudioConfig;
