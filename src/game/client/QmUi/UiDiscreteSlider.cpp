@@ -9,8 +9,6 @@
 
 #include <game/client/ui.h>
 
-#include <algorithm>
-
 namespace ui_widget
 {
 	namespace
@@ -85,7 +83,7 @@ namespace ui_widget
 
 		CUiScopedGaussianBlurSuppression GaussianBlurSuppression(pUi);
 		const float Alpha = pUi->Enabled() ? 1.0f : 0.45f;
-		// 槽底和旋钮沿用公共样式；档位填色继续表达数值语义。
+		// 槽底沿用公共样式；由档位填色和刻度表达当前选择。
 		const SUiTheme &Theme = Ctx.m_pTheme != nullptr ? *Ctx.m_pTheme : pUi->QmControlTheme();
 		const auto SharedStyle = ResolveUiSliderStyle(Theme, CUiScopedSurfaceText::CurrentSurface(), Hovered, Active);
 		DrawRoundedSurface(Ctx, Geometry.m_Track, SharedStyle.m_Track.WithMultipliedAlpha(Alpha), ColorRGBA(), ui_token::radius::PILL);
@@ -93,15 +91,9 @@ namespace ui_widget
 		const bool HasSelection = *pValue >= Min && *pValue <= Max;
 		const SDiscreteSliderStyle Style = ResolveDiscreteSliderStyle(*pValue, Min, Max);
 		const float Normalized = DiscreteSliderNormalizedValue(*pValue, Min, Max);
-		float Emphasis = Active ? 1.0f : (Hovered ? 0.5f : 0.0f);
-		if(Ctx.m_pAnim != nullptr && !pUi->RenderOnly())
-		{
-			const uint64_t NodeKey = BuildUiAnimNodeKey(Ctx.m_ScopeHash, reinterpret_cast<uint64_t>(pId));
-			Emphasis = std::clamp(ResolveUiAnimSpringValue(*Ctx.m_pAnim, NodeKey, EUiAnimProperty::SCALE, Emphasis, ui_token::motion::SLIDER_KNOB_SPRING, 2), 0.0f, 1.0f);
-		}
 		if(HasSelection && *pValue > Min)
 		{
-			const CUIRect Fill = Geometry.FillRect(Normalized, Emphasis);
+			const CUIRect Fill = Geometry.FillRect(Normalized);
 			DrawSliderFill(Ctx, Fill, Style, Alpha);
 		}
 
@@ -121,13 +113,6 @@ namespace ui_widget
 				const float DotAlpha = HasSelection && Stop <= *pValue ? 0.42f : 0.30f;
 				DrawRoundedSurface(Ctx, Dot, ResolveUiSurfaceForeground(CUiScopedSurfaceText::CurrentSurface()).WithAlpha(DotAlpha * Alpha), ColorRGBA(), Dot.w * 0.5f);
 			}
-		}
-
-		if(HasSelection)
-		{
-			// 位置直接吸附当前档位，只对悬停大小做动画，避免旋钮滞后于已选档位。
-			const CUIRect Knob = Geometry.KnobRect(Normalized, Emphasis);
-			DrawRoundedSurface(Ctx, Knob, SharedStyle.m_Handle.WithMultipliedAlpha(Alpha), SharedStyle.m_Border.WithMultipliedAlpha(Alpha), ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
 		}
 
 		return Changed;
