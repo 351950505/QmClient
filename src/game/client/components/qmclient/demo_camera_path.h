@@ -145,7 +145,10 @@ namespace qm_demo_camera
 					vTicks.push_back(Range.m_EndTick);
 				for(size_t i = 0; i < vTicks.size(); ++i)
 				{
-					SKeyframe Frame{OutputTick + vTicks[i] - Range.m_StartTick, *Sample(vTicks[i]), ETransition::HOLD};
+					const auto View = Sample(vTicks[i]);
+					if(!View.has_value())
+						return std::nullopt;
+					SKeyframe Frame{OutputTick + vTicks[i] - Range.m_StartTick, *View, ETransition::HOLD};
 					if(i + 1 < vTicks.size())
 					{
 						const auto Next = std::upper_bound(m_vFrames.begin(), m_vFrames.end(), vTicks[i],
