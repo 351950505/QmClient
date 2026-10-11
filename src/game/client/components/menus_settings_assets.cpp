@@ -7439,7 +7439,7 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 				s_WorkshopDownloadConfirmPopup.Reset();
 				s_WorkshopDownloadConfirmPopup.YesNoButtons();
 				str_copy(s_WorkshopDownloadConfirmPopup.m_aMessage, Localize("Download this asset?"));
-				Ui()->ShowPopupConfirm(RequestedDownloadPopupX, RequestedDownloadPopupY, &s_WorkshopDownloadConfirmPopup);
+				Ui()->ShowPopupConfirm(RequestedDownloadPopupX, RequestedDownloadPopupY, &s_WorkshopDownloadConfirmPopup, false);
 			}
 
 			if(s_WorkshopDeleteConfirmPopup.m_Result == CUi::SConfirmPopupContext::CONFIRMED)

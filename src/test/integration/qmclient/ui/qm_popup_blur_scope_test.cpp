@@ -14,7 +14,62 @@ namespace
 {
 	class QmPopupBlurScope : public qm_ui_test::CRealUiFixture
 	{
+	protected:
+		qm_ui_test::CTestUiClient m_Client;
+		IClient *UiClient() override { return &m_Client; }
 	};
+}
+
+TEST_F(QmPopupBlurScope, AnchoredConfirmationUsesRequestedPositionAndCanReopen)
+{
+	CUi::SConfirmPopupContext Context;
+	Context.YesNoButtons();
+	str_copy(Context.m_aMessage, "Download this asset?");
+	m_Ui.ShowPopupConfirm(40, 50, &Context, false);
+	const CUIRect *pPopup = m_Ui.GetPopupMenuRect(&Context);
+	ASSERT_NE(pPopup, nullptr);
+	EXPECT_FLOAT_EQ(pPopup->x, 40);
+	EXPECT_FLOAT_EQ(pPopup->y, 50);
+	EXPECT_EQ(Context.m_Result, CUi::SConfirmPopupContext::UNSET);
+	EXPECT_TRUE(m_Ui.CloseTopPopupMenu());
+	EXPECT_FALSE(m_Ui.IsPopupOpen(&Context));
+	m_Ui.ShowPopupConfirm(100, 150, &Context, false);
+	pPopup = m_Ui.GetPopupMenuRect(&Context);
+	ASSERT_NE(pPopup, nullptr);
+	EXPECT_FLOAT_EQ(pPopup->x, 100);
+	EXPECT_FLOAT_EQ(pPopup->y, 150);
+	EXPECT_EQ(Context.m_Result, CUi::SConfirmPopupContext::UNSET);
+	m_Ui.ClosePopupMenus();
+}
+
+TEST_F(QmPopupBlurScope, AnchoredConfirmationRepositionsAtViewportEdges)
+{
+	CUi::SConfirmPopupContext Context;
+	Context.YesNoButtons();
+	str_copy(Context.m_aMessage, "Download this asset?");
+	const CUIRect Screen = *m_Ui.Screen();
+	m_Ui.ShowPopupConfirm(Screen.w - 1, Screen.h - 1, &Context, false);
+	const CUIRect *pPopup = m_Ui.GetPopupMenuRect(&Context);
+	ASSERT_NE(pPopup, nullptr);
+	EXPECT_GE(pPopup->x, Screen.x);
+	EXPECT_GE(pPopup->y, Screen.y);
+	EXPECT_LE(pPopup->x + pPopup->w, Screen.x + Screen.w);
+	EXPECT_LE(pPopup->y + pPopup->h, Screen.y + Screen.h);
+	m_Ui.ClosePopupMenus();
+}
+
+TEST_F(QmPopupBlurScope, DefaultConfirmationRetainsCenteredPlacement)
+{
+	CUi::SConfirmPopupContext Context;
+	Context.YesNoButtons();
+	str_copy(Context.m_aMessage, "Delete this asset?");
+	m_Ui.ShowPopupConfirm(40, 50, &Context);
+	const CUIRect *pPopup = m_Ui.GetPopupMenuRect(&Context);
+	ASSERT_NE(pPopup, nullptr);
+	const CUIRect Screen = *m_Ui.Screen();
+	EXPECT_FLOAT_EQ(pPopup->x + pPopup->w * 0.5f, Screen.x + Screen.w * 0.5f);
+	EXPECT_FLOAT_EQ(pPopup->y + pPopup->h * 0.5f, Screen.y + Screen.h * 0.5f);
+	m_Ui.ClosePopupMenus();
 }
 
 TEST_F(QmPopupBlurScope, StandaloneScopeEnablesBlurAndRestoresState)
