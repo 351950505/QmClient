@@ -119,7 +119,7 @@ public:
 	// 保存诊断并停止提交后清除待消费标记；GetFatalError 保留第一份故障。
 	// 返回 true 表示刚刚消费掉一个致命错误。
 	// 收尾流程仍可能向后端提交清理命令，停止标志保证这些提交不会再次执行。
-	bool TakeFatalError();
+	bool TakeFatalError() override;
 	bool GetWarning(std::vector<std::string> &WarningStrings) override;
 };
 

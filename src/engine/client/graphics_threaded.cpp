@@ -23,7 +23,9 @@
 #include <game/client/components/qmclient/media_paths.h>
 #include <game/localization.h>
 
+#ifndef BACKEND_NO_SDL
 #include <SDL3/SDL_video.h>
+#endif
 
 #include <cinttypes>
 #include <limits>
@@ -4564,7 +4566,9 @@ void CGraphics_Threaded::WindowCreateNtf(uint32_t WindowId)
 	m_pBackend->WindowCreateNtf(WindowId);
 
 	CCommandBuffer::SCommand_WindowCreateNtf Cmd;
+#ifndef BACKEND_NO_SDL
 	Cmd.m_pWindow = SDL_GetWindowFromID(WindowId);
+#endif
 	Cmd.m_WindowId = WindowId;
 	AddCmd(Cmd);
 

@@ -418,7 +418,7 @@ jobs:
       ANDROID_APP_NAME: QmClient
       ANDROID_PACKAGE_NAME: com.qmclient.client
       ANDROID_BUILD_DIR: build-android-release
-      ANDROID_NDK_VERSION: "26.1.10909125"
+      ANDROID_NDK_VERSION: "27.3.13750724"
       CARGO_NDK_VERSION: "4.1.2"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       SCCACHE_GHA_ENABLED: "true"
