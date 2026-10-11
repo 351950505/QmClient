@@ -88,7 +88,7 @@ private:
 	int m_CandidatePageStart;
 	int m_CandidatePageSize;
 	int m_CandidateTotalCount;
-	// TEXTINPUT 提交后抑制过期 CHANGECANDIDATE，避免选词后弹窗回闪
+	// 提交或结束组合输入后抑制过期 CHANGECANDIDATE，避免旧候选重新出现
 	bool m_ImeSuppressStaleCandidateReload = false;
 
 	// events
