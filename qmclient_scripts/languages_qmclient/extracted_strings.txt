@@ -99,6 +99,7 @@ _ or ' ' = blank spacer
 a = View angle
 A demo with this name already exists
 A folder with this name already exists
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
 a player
 A player name is required.
 A save is already being restored. Please wait.
@@ -207,6 +208,7 @@ Afterimage pop
 Agree
 Aim
 Aim bind
+Air jump
 Alive notification color
 Alive notification font size
 Alive notification horizontal position (percentage of screen width)
@@ -217,6 +219,7 @@ All
 All combined
 All maps
 All players
+All sounds
 All stars
 Allow /map.
 Allow /rescue command to teleport out of freeze (only applies in initial config)
@@ -334,7 +337,6 @@ Audio pack directory
 Audio pack exported.
 Audio packets
 Audio packs
-Audio slots
 AUS
 Authed name color in scoreboard
 Authenticate to rcon
@@ -591,6 +593,8 @@ Cannot join the target player's team
 Cannot open word list file. Previous words remain active.
 Cannot read complete word list file. Previous words remain active.
 Cannot swap: the other player is not in your team
+Capture the flag
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
 Card height animation
 Card list entry animation
 Card opacity
@@ -633,6 +637,7 @@ Chat gradient range percentage
 Chat gradient type (0=linear, 1=radial, 2=angular, 3=reflected, 4=diamond)
 Chat gradient vertical position percentage
 Chat log retention days
+Chat mention / vote alert
 Chat message
 Chat message preview
 Chat message style
@@ -1514,7 +1519,6 @@ Export cut as a separate demo
 Export demo cut
 Export name contains invalid characters.
 Export selected
-Export selected file
 Export to clipboard
 Exported %d chat messages
 Exported to %s
@@ -1605,6 +1609,11 @@ Finished maps
 Fire
 First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
+Flag captured
+Flag dropped
+Flag grab: enemy side
+Flag grab: player side
+Flag returned
 Flip:
 Folder
 Folder Link
@@ -1648,6 +1657,7 @@ Freeze
 Freeze bar opacity (0 invisible, 100 fully visible)
 Freeze border color
 Freeze Collision Border Color
+Freeze heart / health pickup
 Freeze laser collision volume
 Freeze Laser Inner Color
 Freeze laser inner color
@@ -1677,6 +1687,7 @@ Friend online notification
 Friend option color
 Friends
 Friends only
+Frozen fire attempt
 Frozen prediction margin
 FSAA samples
 FSAA samples (may cause lag)
@@ -1790,13 +1801,20 @@ Graphics trace level: 0=off, 1=periodic summary, 2=summary and slow frames, 3=de
 Greek
 Greeting text
 Grenade
+Grenade explosion
+Grenade launch
+Grenade pickup
+Ground jump
 Group name
 GUI cursor assets
 Guide line color
+Gun fire
 Hammer
+Hammer hit
 Hammer interaction
 Hammer Mode
 Hammer skin steal
+Hammer swing
 Hammer: %s
 Handwriting
 Has people playing
@@ -1875,6 +1893,7 @@ Highlight teammates hammering in death or freeze areas
 Highlight teammates holding hammer in death or freeze areas
 Highlighted message
 Highlighted message color
+Hit feedback
 Hitbox Mode Freeze Border Color
 Hitbox Mode Global Opacity
 Hitbox Mode Override
@@ -1885,14 +1904,18 @@ HJ assist
 Hold gun higher like TW 0.6.1 and earlier
 Hold left click for free camera
 Hook
+Hook attaches to ground
+Hook attaches to player
 Hook collision line
 Hook collision line alpha (0 invisible, 100 fully visible)
 Hook collision line length follows cursor distance
 Hook collision line opacity
 Hook Collisions
 Hook collisions
+Hook hits unhookable surface
 Hook interaction
 Hook line tip
+Hook loop
 Hook Strength
 Hook strength scope
 Hook through teleporters (deprecated, use special entities instead)
@@ -1957,6 +1980,8 @@ Import and restart
 Import configuration package
 Import from clipboard
 Improved anti ping
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
 In memory of me
 In-game controller sensitivity
 In-game crosshair scale percent (50=half, 200=double)
@@ -2058,6 +2083,7 @@ Invites are disabled
 It's recommended that you check the settings to adjust them to your liking before joining a server.
 Item
 Item type
+Its use depends on the server or game mode.
 j = Latency jitter
 Japanese
 Jelly duration
@@ -2132,6 +2158,7 @@ L select  R swap  M select only
 Label
 Label type
 LAN
+Landing
 Language
 Language file to use
 Large emoticons and launched emoticons
@@ -2139,9 +2166,11 @@ Large text announcement for friend joining
 Large text content
 Large text for friend join (use %s for friend name)
 Laser
+Laser / shotgun bounce
 Laser / shotgun interaction
 Laser colors
 Laser effect enhancement
+Laser fire
 Laser glow intensity (0-100)
 Laser Opacity (0=transparent, 100=opaque)
 Laser Rounded Ends (0=square, 1=round)
@@ -2407,6 +2436,7 @@ Menu camera rotation time in seconds
 Menu camera speed
 Menu main panel background color
 Menu main panel opacity
+Menu music
 Menu opacity (0-100)
 Menu opened. Press Esc key again to close menu.
 Menu option - normal
@@ -2480,6 +2510,7 @@ Moves to the tile with x/y-number ii
 Multi-resolution blur with a stronger result and balanced GPU cost.
 Multi-View
 Multiple exact Axiom players found
+Music
 Music player volume
 Mute
 Mute death/respawn sound in Zen Mode
@@ -2591,17 +2622,21 @@ Next page in console
 Next track
 Next weapon
 Nickname
+Ninja attack
+Ninja hit
+Ninja pickup
 No
+No ammunition
 No animation
 No answer from server yet.
 No assets
 No assets available for composition.
 No assets found.
 No audio issues detected
-No audio slots found.
 No buttons match your filter criteria
 No callable peer found
 No candidate file selected.
+No candidate files match this search.
 No changes since last save
 No chat log selected
 No chat message available to repeat
@@ -2659,6 +2694,7 @@ No server selected
 No servers found
 No servers match your filter criteria
 No skins match your filter criteria
+No sounds match this search.
 No space for button
 No status bar items
 No such savegame for this map
@@ -2775,8 +2811,10 @@ Original
 Original language for both received and outgoing messages. Use Auto to detect each message.
 Original message language
 Other
+Other game modes
 Other modes
 Other players' hook line width
+Other sounds
 Others
 Others only
 Outgoing language
@@ -2859,6 +2897,7 @@ Pet Skin:
 Pick result: %s
 Pick the source that matches your music app and keep it playing; the lyrics follow automatically.
 Pickup range
+Pickups
 Pie menu
 Pie menu effects
 Pie menu highlight tint
@@ -2885,14 +2924,40 @@ Play time
 Play/Pause
 Play/pause the current demo
 Playback volume
+Played for chat highlights and vote alerts when their notification sound is enabled.
+Played for incoming player chat messages when their notification sound is enabled.
+Played for incoming server chat messages when their notification sound is enabled.
+Played when a grenade explodes.
+Played when a laser or DDNet shotgun beam bounces.
+Played when a ninja dash hits another player.
+Played when a player dies, including suicide.
+Played when a player spawns or respawns.
+Played when firing this weapon.
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+Played when moving fast on the ground and pressing the opposite direction.
+Played when picking up a grenade weapon.
+Played when picking up a shotgun or laser weapon.
+Played when pressing fire while frozen.
+Played when starting a ninja dash attack.
+Played when swinging the hammer, even without hitting a player.
+Played when switching the active weapon.
+Played when the hammer hits another player.
+Played when the hook attaches to a hookable surface.
+Played when the hook attaches to another player.
+Played when the hook hits an unhookable surface.
+Played when using the second jump in the air.
+Played when weapon teleportation moves the player in DDNet.
+Played while offline when menu music is enabled.
 Player
 Player already invited
 Player body color
+Player chat message
 Player clan
 Player count
 Player country (ISO 3166-1 numeric code)
 Player country filter in server browser (ISO 3166-1 numeric)
 Player country:
+Player death
 Player decoration color
 Player eyes color
 Player eyes on join. 0 = normal, 1 = pain, 2 = happy, 3 = surprised, 4 = angry, 5 = blink
@@ -2922,6 +2987,8 @@ Player skin eyes
 Player skin hand
 Player skin marking
 Player skin used for volleyball appearance
+Player spawn
+Player state
 Player stats
 Player stats and info display
 Player to follow across servers until cancelled; empty disables following
@@ -3203,10 +3270,10 @@ Refresh the demo list
 Regex
 Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
 Regular
 Regular background color
 Regular expression
-Relative path
 Relative X position of the draggable back button
 Relative Y position of the draggable back button
 Release date
@@ -3305,6 +3372,7 @@ Replace mode
 Replace mode 0=Regex 1=Full 2=Both
 Replace non-friend names with ID
 Replace non-friend skins with default
+Replace selected variant
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 Replace skin with one having this prefix (e.g. cats, santa)
 Replace video
@@ -3559,7 +3627,6 @@ Select the country flag for each player
 Select which player fields a profile stores
 Selected %d
 Selected button not visible
-Selected candidate
 Selected candidate %d/%d under cursor.
 Selected item color
 Selected part: %d
@@ -3609,6 +3676,7 @@ Server kick/spec votes are no longer actively moderated.
 Server kick/spec votes will now be actively moderated.
 Server list is more than five minutes old
 Server list refresh failed; showing the previous list
+Server message
 Server name
 Server not full
 Server password
@@ -3619,6 +3687,7 @@ Server stress (debug builds only).
 Server type (novice, moderate, etc.)
 Server URL
 Server-assigned style
+Server-dependent
 Set all to Rifle
 Set camera position relative to current view in the map
 Set camera position to x and y in the map
@@ -3656,8 +3725,11 @@ Severe
 Shape
 Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
+Short pain voice
 Short server names
 Shotgun
+Shotgun / laser pickup
+Shotgun fire
 Shotgun Laser Inner Color
 Shotgun laser inner color
 Shotgun Laser Outline Color
@@ -4008,6 +4080,7 @@ Size of entity text data (20% to 100%)
 Size of hook strength icon and number indicator
 Size of key press icons
 Size of strength/weakness icon and number
+Skidding
 Skin
 Skin copying is only available for 0.6 skins
 Skin could not be found.
@@ -4098,6 +4171,7 @@ Sort order in server browser
 Sound
 Sound buffer size (large may cause delay)
 Sound error
+Sound variants
 Sound volume
 Source file does not exist.
 Source file is empty.
@@ -4313,6 +4387,7 @@ Tee 0.7
 Tee appearance
 Tee collision (Tee to Tee)
 Tee color
+Tee cry
 Tee death probe
 Tee freeze probe (Tee to Freeze)
 Tee hitbox color
@@ -4882,6 +4957,8 @@ Weapon
 Weapon animation
 Weapon range color
 Weapon reload animation probability
+Weapon removal / armor pickup
+Weapon switch
 Weapon switch animation
 Weapon switch animation duration (ms)
 Weapon switch animation easing mode
@@ -4892,6 +4969,7 @@ Weapon switch distance
 Weapon switch duration
 Weapon switch easing
 Weapon switch rotation
+Weapon teleport
 Weapon Trajectory
 Weapon trajectory
 Weapon trajectory helper alpha

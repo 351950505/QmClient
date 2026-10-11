@@ -302,6 +302,9 @@ A demo with this name already exists
 A folder with this name already exists
 == Bu isimde bir klasör zaten mevcut
 
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
+== Manuel kaynak dosyası, seçilen aday dosyaya göre önceliklidir. Yalnızca bu varyant değiştirilir.
+
 a player
 == bir oyuncu
 
@@ -626,6 +629,9 @@ Aim
 Aim bind
 == Nişan alma tuşu
 
+Air jump
+== Havada zıplama
+
 Alive notification color
 == Canlı bildirimi rengi
 
@@ -655,6 +661,9 @@ All maps
 
 All players
 == Tüm oyuncular
+
+All sounds
+== Tüm sesler
 
 All stars
 == Tüm yıldızlar
@@ -1006,9 +1015,6 @@ Audio packets
 
 Audio packs
 == Ses paketleri
-
-Audio slots
-== Ses yuvaları
 
 AUS
 == Avustralya
@@ -1778,6 +1784,12 @@ Cannot read complete word list file. Previous words remain active.
 Cannot swap: the other player is not in your team
 == Takas yapılamıyor: diğer oyuncu takımında değil
 
+Capture the flag
+== Bayrak kapmaca (CTF)
+
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
+== Bayrak kapmaca etkinlik sesi; normal DDNet yarışlarından ziyade CTF sunucularında kullanılır.
+
 Card height animation
 == Ayar kartı yüksekliği animasyonu
 
@@ -1903,6 +1915,9 @@ Chat gradient vertical position percentage
 
 Chat log retention days
 == Sohbet günlüğü saklama günü
+
+Chat mention / vote alert
+== Sohbet etiketleme / oylama uyarısı
 
 Chat message
 == Sohbet mesajı
@@ -4547,9 +4562,6 @@ Export name contains invalid characters.
 Export selected
 == Seçileni dışa aktar
 
-Export selected file
-== Seçili dosyayı dışa aktar
-
 Export to clipboard
 == Panoya dışa aktar
 
@@ -4820,6 +4832,21 @@ First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 == Kalabalık sunucularda skor tablosu satırları sabit yükseklikte olur; kalanları görmek için fare tekerleğiyle kaydırın
 
+Flag captured
+== Bayrak ele geçirildi
+
+Flag dropped
+== Bayrak düşürüldü
+
+Flag grab: enemy side
+== Bayrak alındı: düşman tarafı
+
+Flag grab: player side
+== Bayrak alındı: oyuncu tarafı
+
+Flag returned
+== Bayrak geri döndü
+
 Flip:
 == Çevir:
 
@@ -4949,6 +4976,9 @@ Freeze border color
 Freeze Collision Border Color
 == Donma çarpışma kenar rengi
 
+Freeze heart / health pickup
+== Donduran kalp / can alma
+
 Freeze laser collision volume
 == Freeze lazer çarpışma hacmi
 
@@ -5035,6 +5065,9 @@ Friends
 
 Friends only
 == Yalnızca arkadaşlar
+
+Frozen fire attempt
+== Donmuşken ateş etme denemesi
 
 Frozen prediction margin
 == Donmuşken tahmin payı
@@ -5375,6 +5408,18 @@ Greeting text
 Grenade
 == Bombaatar
 
+Grenade explosion
+== Bomba patlaması
+
+Grenade launch
+== Bomba 발사
+
+Grenade pickup
+== Bomba atar alma
+
+Ground jump
+== Yerden zıplama
+
 Group name
 == Grup adı
 
@@ -5384,8 +5429,14 @@ GUI cursor assets
 Guide line color
 == Kılavuz çizgisi rengi
 
+Gun fire
+== Tabanca ateşi
+
 Hammer
 == Çekiç
+
+Hammer hit
+== Çekiç isabeti
 
 Hammer interaction
 == Çekiç etkileşimi
@@ -5395,6 +5446,9 @@ Hammer Mode
 
 Hammer skin steal
 == Çekiç deri çalma
+
+Hammer swing
+== Çekiç sallama
 
 Hammer: %s
 == Çekiç: %s
@@ -5630,6 +5684,9 @@ Highlighted message
 Highlighted message color
 == Vurgulanan mesaj rengi
 
+Hit feedback
+== İsabet bildirimi
+
 Hitbox Mode Freeze Border Color
 == Hitbox modu Freeze sınır rengi
 
@@ -5660,6 +5717,12 @@ Hold left click for free camera
 Hook
 == Kanca
 
+Hook attaches to ground
+== Kanca zemine tutundu
+
+Hook attaches to player
+== Kanca oyuncuya tutundu
+
 Hook collision line
 == Kanca çarpışma çizgisi
 
@@ -5678,11 +5741,17 @@ Hook Collisions
 Hook collisions
 == Kanca çarpışma çizgileri
 
+Hook hits unhookable surface
+== Kanca tutunulamaz yüzeye çarptı
+
 Hook interaction
 == Kanca etkileşimi
 
 Hook line tip
 == Kanca çizgisi ucu
+
+Hook loop
+== Kanca döngüsü
 
 Hook Strength
 == Kanca Gücü
@@ -5875,6 +5944,12 @@ Import from clipboard
 
 Improved anti ping
 == Geliştirilmiş anti ping
+
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+== DDNet'te donduran kalp oyuncuyu dondurduğunda çalar. Diğer modlar bunu can alma sesi olarak kullanabilir.
+
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
+== DDNet'te silahlar alındığında çalar. Diğer modlar bunu zırh alma sesi olarak kullanabilir.
 
 In memory of me
 == Bu istemci beni hatırlasın
@@ -6179,6 +6254,9 @@ Item
 Item type
 == Öğe türü
 
+Its use depends on the server or game mode.
+== Kullanımı sunucuya veya oyun moduna bağlıdır.
+
 j = Latency jitter
 == j = Gecikme titreşimi
 
@@ -6401,6 +6479,9 @@ Label type
 LAN
 == Yerel Ağ
 
+Landing
+== Yere iniş
+
 Language
 == Dil
 
@@ -6422,6 +6503,9 @@ Large text for friend join (use %s for friend name)
 Laser
 == Lazer
 
+Laser / shotgun bounce
+== Lazer / pompalı sekmesi
+
 Laser / shotgun interaction
 == Lazer / pompalı etkileşimi
 
@@ -6430,6 +6514,9 @@ Laser colors
 
 Laser effect enhancement
 == Lazer efekti iyileştirmesi
+
+Laser fire
+== Lazer ateşi
 
 Laser glow intensity (0-100)
 == Lazer parıltı yoğunluğu (0-100)
@@ -7226,6 +7313,9 @@ Menu main panel background color
 Menu main panel opacity
 == Menü ana panel opaklığı
 
+Menu music
+== Menü müziği
+
 Menu opacity (0-100)
 == Menü Opaklığı (0-100)
 
@@ -7444,6 +7534,9 @@ Multi-View
 
 Multiple exact Axiom players found
 == Tam eşleşen birden fazla Axiom oyuncusu bulundu
+
+Music
+== Müzik
 
 Music player volume
 == Müzik oynatıcı ses düzeyi
@@ -7778,8 +7871,20 @@ Next weapon
 Nickname
 == Takma Ad
 
+Ninja attack
+== Ninja kılıcı saldırısı
+
+Ninja hit
+== Ninja kılıcı isabeti
+
+Ninja pickup
+== Ninja kılıcı alma
+
 No
 == Hayır
+
+No ammunition
+== Mermi yok
 
 No animation
 == Animasyon yok
@@ -7799,9 +7904,6 @@ No assets found.
 No audio issues detected
 == Ses anormalliği tespit edilmedi
 
-No audio slots found.
-== Ses yuvası bulunamadı.
-
 No buttons match your filter criteria
 == Filtre kriterlerinize uyan düğme yok
 
@@ -7810,6 +7912,9 @@ No callable peer found
 
 No candidate file selected.
 == Aday dosya seçilmedi.
+
+No candidate files match this search.
+== Bu aramayla eşleşen aday dosya yok.
 
 No changes since last save
 == Son kayıttan bu yana değişiklik yok
@@ -7981,6 +8086,9 @@ No servers match your filter criteria
 
 No skins match your filter criteria
 == Filtre kriterlerinize uyan skin yok
+
+No sounds match this search.
+== Bu aramayla eşleşen ses yok.
 
 No space for button
 == Düğme için yer yok
@@ -8330,11 +8438,17 @@ Original message language
 Other
 == Diğer
 
+Other game modes
+== Diğer oyun modları
+
 Other modes
 == Diğer modlar
 
 Other players' hook line width
 == Diğer oyuncuların kanca çizgisi genişliği
+
+Other sounds
+== Diğer sesler
 
 Others
 == Diğerleri
@@ -8582,6 +8696,9 @@ Pick the source that matches your music app and keep it playing; the lyrics foll
 Pickup range
 == Toplama aralığı
 
+Pickups
+== Toplanabilir öğeler
+
 Pie menu
 == Pasta menüsü
 
@@ -8660,6 +8777,78 @@ Play/pause the current demo
 Playback volume
 == Oynatma sesi
 
+Played for chat highlights and vote alerts when their notification sound is enabled.
+== Bildirim sesi etkinleştirildiğinde sohbet vurgulamaları ve oylama uyarıları için çalar.
+
+Played for incoming player chat messages when their notification sound is enabled.
+== Bildirim sesi etkinleştirildiğinde gelen oyuncu sohbet mesajları için çalar.
+
+Played for incoming server chat messages when their notification sound is enabled.
+== Bildirim sesi etkinleştirildiğinde gelen sunucu sohbet mesajları için çalar.
+
+Played when a grenade explodes.
+== Bir bomba patladığında çalar.
+
+Played when a laser or DDNet shotgun beam bounces.
+== Bir lazer veya DDNet pompalı ışını sektiğinde çalar.
+
+Played when a ninja dash hits another player.
+== Ninja kılıcı atılması başka bir oyuncuya isabet ettiğinde çalar.
+
+Played when a player dies, including suicide.
+== İntihar dahil bir oyuncu öldüğünde çalar.
+
+Played when a player spawns or respawns.
+== Bir oyuncu doğduğunda veya yeniden doğduğ段da çalar.
+
+Played when firing this weapon.
+== Bu silah ateşlendiğinde çalar.
+
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+== Yerden zıplandığında çalar. Sol ve sağ ayak dosyaları aynı ses grubuna aittir.
+
+Played when moving fast on the ground and pressing the opposite direction.
+== Yerde hızlı hareket ederken ters yöne basıldığında çalar.
+
+Played when picking up a grenade weapon.
+== Bomba atar silahı alındığında çalar.
+
+Played when picking up a shotgun or laser weapon.
+== Pompalı tüfek veya lazer silahı alındığında çalar.
+
+Played when pressing fire while frozen.
+== Donmuş haldeyken ateş tuşuna basıldığında çalar.
+
+Played when starting a ninja dash attack.
+== Ninja kılıcı atılma saldırısı başlatıldığında çalar.
+
+Played when swinging the hammer, even without hitting a player.
+== Bir oyuncuya isabet etmese bile çekiç sallandığında çalar.
+
+Played when switching the active weapon.
+== Aktif silah değiştirildiğinde çalar.
+
+Played when the hammer hits another player.
+== Çekiç başka bir oyuncuya isabet ettiğinde çalar.
+
+Played when the hook attaches to a hookable surface.
+== Kanca tutunulabilir bir yüzeye saplandığında çalar.
+
+Played when the hook attaches to another player.
+== Kanca başka bir oyuncuya tutunduğunda çalar.
+
+Played when the hook hits an unhookable surface.
+== Kanca tutunulamaz bir yüzeye çarptığında çalar.
+
+Played when using the second jump in the air.
+== Havada ikinci zıplama kullanıldığında çalar.
+
+Played when weapon teleportation moves the player in DDNet.
+== DDNet'te silah ışınlaması oyuncuyu taşıdığında çalar.
+
+Played while offline when menu music is enabled.
+== Menü müziği etkinleştirildiğinde çevrimdışıyken çalar.
+
 Player
 == Oyuncu
 
@@ -8668,6 +8857,9 @@ Player already invited
 
 Player body color
 == Oyuncu vücut rengi
+
+Player chat message
+== Oyuncu sohbet mesajı
 
 Player clan
 == Oyuncu klanı
@@ -8683,6 +8875,9 @@ Player country filter in server browser (ISO 3166-1 numeric)
 
 Player country:
 == Oyuncu ülkesi:
+
+Player death
+== Oyuncu ölümü
 
 Player decoration color
 == Oyuncu dekorasyon rengi
@@ -8770,6 +8965,12 @@ Player skin marking
 
 Player skin used for volleyball appearance
 == Voleybol görünümü için kullanılan oyuncu derisi
+
+Player spawn
+== Oyuncu doğuşu
+
+Player state
+== Oyuncu durumu
 
 Player stats
 == Oyuncu istatistikleri
@@ -9614,6 +9815,9 @@ Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
 == Sunucuyu genel liste için ana sunucuya kaydet, virgülle ayrılmış protokolleri kabul eder, örn. 'ipv4,ipv6'
 
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
+== Kayıtlı ses; bu DDNet sunucusunda doğrudan bir tetikleyici bulunamadı. Diğer sunucular kullanabilir.
+
 Regular
 == Normal
 
@@ -9622,9 +9826,6 @@ Regular background color
 
 Regular expression
 == Düzenli ifade
-
-Relative path
-== Göreceli yol
 
 Relative X position of the draggable back button
 == Sürüklenebilir geri düğmesinin bağıl X konumu
@@ -9919,6 +10120,9 @@ Replace non-friend names with ID
 
 Replace non-friend skins with default
 == Arkadaş olmayan derileri varsayılanla değiştir
+
+Replace selected variant
+== Seçili varyantı değiştir
 
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 == Ayarlar, tuş atamaları ve listelenen cfg dosyaları değiştirilip yeniden başlatılsın mı? Önce mevcut yapılandırma yedeklenir.
@@ -10682,9 +10886,6 @@ Selected %d
 Selected button not visible
 == Seçili düğme görünmüyor
 
-Selected candidate
-== Seçilen aday
-
 Selected candidate %d/%d under cursor.
 == İmleç altında seçilen aday %d/%d.
 
@@ -10832,6 +11033,9 @@ Server list is more than five minutes old
 Server list refresh failed; showing the previous list
 == Sunucu listesi yenilenemedi; önceki liste gösteriliyor
 
+Server message
+== Sunucu mesajı
+
 Server name
 == Sunucu adı
 
@@ -10861,6 +11065,9 @@ Server URL
 
 Server-assigned style
 == Sunucunun atadığı stil
+
+Server-dependent
+== Sunucuya bağlı
 
 Set all to Rifle
 == Tümünü Tüfek olarak ayarla
@@ -10973,11 +11180,20 @@ Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
 == Parıltı hızı
 
+Short pain voice
+== Kısa acı sesi
+
 Short server names
 == Kısa sunucu adları
 
 Shotgun
 == Pompalı tüfek
+
+Shotgun / laser pickup
+== Pompalı / lazer alma
+
+Shotgun fire
+== Pompalı tüfek ateşi
 
 Shotgun Laser Inner Color
 == Pompalı Tüfek Lazer İç Rengi
@@ -12029,6 +12245,9 @@ Size of key press icons
 Size of strength/weakness icon and number
 == Güçlü/zayıf simgesi ve sayısının boyutu
 
+Skidding
+== Kayma (frenleme)
+
 Skin
 == Skin
 
@@ -12298,6 +12517,9 @@ Sound buffer size (large may cause delay)
 
 Sound error
 == Ses hatası
+
+Sound variants
+== Ses varyantları
 
 Sound volume
 == Ses seviyesi
@@ -12943,6 +13165,9 @@ Tee collision (Tee to Tee)
 
 Tee color
 == Tee rengi
+
+Tee cry
+== Tee ağlama sesi
 
 Tee death probe
 == Tee ölüm algısı
@@ -14651,6 +14876,12 @@ Weapon range color
 Weapon reload animation probability
 == Silah yeniden doldurma animasyonu olasılığı
 
+Weapon removal / armor pickup
+== Silah silinmesi / zırh alma
+
+Weapon switch
+== Silah değiştirme
+
 Weapon switch animation
 == Silah değiştirme animasyonu
 
@@ -14680,6 +14911,9 @@ Weapon switch easing
 
 Weapon switch rotation
 == Silah değiştirme dönüşü
+
+Weapon teleport
+== Silah ışınlaması
 
 Weapon Trajectory
 == Silah Yörüngesi

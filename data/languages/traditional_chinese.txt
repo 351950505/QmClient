@@ -302,6 +302,9 @@ A demo with this name already exists
 A folder with this name already exists
 == 已有同名資料夾
 
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
+== 手動指定的來源檔案優先於選取的候選檔案。僅替換目前音效變體。
+
 a player
 == 一名玩家
 
@@ -626,6 +629,9 @@ Aim
 Aim bind
 == 操作軸綁定
 
+Air jump
+== 空中二段跳
+
 Alive notification color
 == 存活提醒顏色
 
@@ -655,6 +661,9 @@ All maps
 
 All players
 == 所有人
+
+All sounds
+== 全部音效
 
 All stars
 == 全部星級
@@ -1006,9 +1015,6 @@ Audio packets
 
 Audio packs
 == 音頻包
-
-Audio slots
-== 音頻槽位
 
 AUS
 == 澳洲
@@ -1778,6 +1784,12 @@ Cannot read complete word list file. Previous words remain active.
 Cannot swap: the other player is not in your team
 == 無法交換：對方不在你的隊伍中
 
+Capture the flag
+== 奪旗模式 (CTF)
+
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
+== 奪旗模式事件提示音，由 CTF 伺服器使用，非常規 DDNet 競速音效。
+
 Card height animation
 == 設定卡片高度過渡動畫
 
@@ -1903,6 +1915,9 @@ Chat gradient vertical position percentage
 
 Chat log retention days
 == 聊天記錄保留天數
+
+Chat mention / vote alert
+== 聊天提及 / 投票提醒
 
 Chat message
 == 聊天消息
@@ -4547,9 +4562,6 @@ Export name contains invalid characters.
 Export selected
 == 導出選中項
 
-Export selected file
-== 導出已選文件
-
 Export to clipboard
 == 導出到剪貼板
 
@@ -4820,6 +4832,21 @@ First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 == 滿人伺服器改用固定行高計分板，滾輪翻看其餘玩家
 
+Flag captured
+== 成功奪旗
+
+Flag dropped
+== 旗幟掉落
+
+Flag grab: enemy side
+== 敵方奪旗提示
+
+Flag grab: player side
+== 我方奪旗提示
+
+Flag returned
+== 旗幟歸還
+
 Flip:
 == 翻轉：
 
@@ -4949,6 +4976,9 @@ Freeze border color
 Freeze Collision Border Color
 == 凍結碰撞邊框顏色
 
+Freeze heart / health pickup
+== 凍結愛心 / 拾取生命值
+
 Freeze laser collision volume
 == 凍結激光碰撞體積
 
@@ -5035,6 +5065,9 @@ Friends
 
 Friends only
 == 僅限好友
+
+Frozen fire attempt
+== 凍結時嘗試開火
 
 Frozen prediction margin
 == 凍結時預測量
@@ -5375,6 +5408,18 @@ Greeting text
 Grenade
 == 榴彈槍
 
+Grenade explosion
+== 榴彈爆炸
+
+Grenade launch
+== 榴彈發射
+
+Grenade pickup
+== 拾取榴彈槍
+
+Ground jump
+== 地面起跳
+
 Group name
 == 分組名稱
 
@@ -5384,8 +5429,14 @@ GUI cursor assets
 Guide line color
 == 輔助線顏色
 
+Gun fire
+== 手槍射擊
+
 Hammer
 == 錘子
+
+Hammer hit
+== 錘子命中
 
 Hammer interaction
 == 鎚子互動
@@ -5395,6 +5446,9 @@ Hammer Mode
 
 Hammer skin steal
 == 錘中偷皮
+
+Hammer swing
+== 揮動錘子
 
 Hammer: %s
 == 錘：%s
@@ -5630,6 +5684,9 @@ Highlighted message
 Highlighted message color
 == 提及訊息顏色
 
+Hit feedback
+== 命中回饋
+
 Hitbox Mode Freeze Border Color
 == 碰撞箱模式凍結邊框顏色
 
@@ -5660,6 +5717,12 @@ Hold left click for free camera
 Hook
 == 鉤索
 
+Hook attaches to ground
+== 鉤中地形
+
+Hook attaches to player
+== 鉤中玩家
+
 Hook collision line
 == 鉤子輔助線
 
@@ -5678,11 +5741,17 @@ Hook Collisions
 Hook collisions
 == 鉤子輔助線
 
+Hook hits unhookable surface
+== 鉤到不可鉤表面
+
 Hook interaction
 == 鉤子互動
 
 Hook line tip
 == 輔助線提示
+
+Hook loop
+== 鉤子循環音
 
 Hook Strength
 == 鉤索強度
@@ -5875,6 +5944,12 @@ Import from clipboard
 
 Improved anti ping
 == 改進反 Ping
+
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+== 在 DDNet 中，玩家觸碰凍結愛心被凍結時播放。其他模式可能用於拾取生命值。
+
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
+== 在 DDNet 中，移除玩家武器時播放。其他模式可能用於拾取護甲。
 
 In memory of me
 == 謹以此端，回憶我
@@ -6179,6 +6254,9 @@ Item
 Item type
 == 物品類型
 
+Its use depends on the server or game mode.
+== 具體用途取決於伺服器或遊戲模式。
+
 j = Latency jitter
 == j = 延遲抖動
 
@@ -6401,6 +6479,9 @@ Label type
 LAN
 == 局域網
 
+Landing
+== 落地
+
 Language
 == 語言
 
@@ -6422,6 +6503,9 @@ Large text for friend join (use %s for friend name)
 Laser
 == 激光
 
+Laser / shotgun bounce
+== 雷射 / 霰彈光束反彈
+
 Laser / shotgun interaction
 == 激光 / 霰彈槍互動
 
@@ -6430,6 +6514,9 @@ Laser colors
 
 Laser effect enhancement
 == 激光效果增強
+
+Laser fire
+== 雷射發射
 
 Laser glow intensity (0-100)
 == 激光輝光強度 (0-100)
@@ -7226,6 +7313,9 @@ Menu main panel background color
 Menu main panel opacity
 == 菜單主面板透明度
 
+Menu music
+== 主選單音樂
+
 Menu opacity (0-100)
 == 菜單不透明度 (Menu opacity 0-100)
 
@@ -7444,6 +7534,9 @@ Multi-View
 
 Multiple exact Axiom players found
 == 找到多個完全相符的 Axiom 玩家
+
+Music
+== 音樂
 
 Music player volume
 == 音樂播放器音量
@@ -7778,8 +7871,20 @@ Next weapon
 Nickname
 == 暱稱
 
+Ninja attack
+== 忍者刀衝刺
+
+Ninja hit
+== 忍者刀命中
+
+Ninja pickup
+== 拾取忍者刀
+
 No
 == 否
+
+No ammunition
+== 彈藥耗盡
 
 No animation
 == 無動畫
@@ -7799,9 +7904,6 @@ No assets found.
 No audio issues detected
 == 未發現音頻異常
 
-No audio slots found.
-== 未找到音頻槽位。
-
 No buttons match your filter criteria
 == 沒有按鍵符合你的篩選條件
 
@@ -7810,6 +7912,9 @@ No callable peer found
 
 No candidate file selected.
 == 未選擇候選文件。
+
+No candidate files match this search.
+== 沒有符合目前搜尋的候選檔案。
 
 No changes since last save
 == 自上次保存後沒有更改
@@ -7981,6 +8086,9 @@ No servers match your filter criteria
 
 No skins match your filter criteria
 == 沒有皮膚滿足設置的篩選條件
+
+No sounds match this search.
+== 沒有符合目前搜尋的音效。
 
 No space for button
 == 空間不足
@@ -8330,11 +8438,17 @@ Original message language
 Other
 == 其他
 
+Other game modes
+== 其他遊戲模式
+
 Other modes
 == 其他模式
 
 Other players' hook line width
 == 其他玩家的鉤子輔助線寬度
+
+Other sounds
+== 其他音效
 
 Others
 == 他人
@@ -8582,6 +8696,9 @@ Pick the source that matches your music app and keep it playing; the lyrics foll
 Pickup range
 == 拾取物範圍
 
+Pickups
+== 拾取物
+
 Pie menu
 == 餅菜單
 
@@ -8660,6 +8777,78 @@ Play/pause the current demo
 Playback volume
 == 播放音量
 
+Played for chat highlights and vote alerts when their notification sound is enabled.
+== 開啟提示音後，在收到聊天醒目提及或投票提醒時播放。
+
+Played for incoming player chat messages when their notification sound is enabled.
+== 開啟提示音後，在收到其他玩家的聊天訊息時播放。
+
+Played for incoming server chat messages when their notification sound is enabled.
+== 開啟提示音後，在收到伺服器系統訊息時播放。
+
+Played when a grenade explodes.
+== 榴彈爆炸時播放。
+
+Played when a laser or DDNet shotgun beam bounces.
+== 雷射或 DDNet 霰彈光束發生反彈時播放。
+
+Played when a ninja dash hits another player.
+== 忍者刀衝刺命中其他玩家時播放。
+
+Played when a player dies, including suicide.
+== 玩家死亡時播放，包括自殺。
+
+Played when a player spawns or respawns.
+== 玩家出生或重生時播放。
+
+Played when firing this weapon.
+== 使用該武器開火時播放。
+
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+== 從地面起跳時播放。左右腳音訊檔案同屬該音效組。
+
+Played when moving fast on the ground and pressing the opposite direction.
+== 在地面高速移動並按下反方向鍵急停滑行時播放。
+
+Played when picking up a grenade weapon.
+== 拾取榴彈槍時播放。
+
+Played when picking up a shotgun or laser weapon.
+== 拾取霰彈槍或雷射槍時播放。
+
+Played when pressing fire while frozen.
+== 玩家處於凍結狀態並按下開火鍵時播放。
+
+Played when starting a ninja dash attack.
+== 發動忍者刀衝刺攻擊時播放。
+
+Played when swinging the hammer, even without hitting a player.
+== 揮動錘子時播放（即使未命中玩家也會觸發）。
+
+Played when switching the active weapon.
+== 切換目前手持武器時播放。
+
+Played when the hammer hits another player.
+== 錘子命中其他玩家時播放。
+
+Played when the hook attaches to a hookable surface.
+== 鉤子抓住可鉤表面時播放。
+
+Played when the hook attaches to another player.
+== 鉤子抓住其他玩家時播放。
+
+Played when the hook hits an unhookable surface.
+== 鉤子碰到不可鉤表面時播放。
+
+Played when using the second jump in the air.
+== 在空中使用二段跳時播放。
+
+Played when weapon teleportation moves the player in DDNet.
+== 在 DDNet 中武器傳送效果移動玩家時播放。
+
+Played while offline when menu music is enabled.
+== 開啟主選單音樂後，在離線主選單介面播放。
+
 Player
 == 玩家
 
@@ -8668,6 +8857,9 @@ Player already invited
 
 Player body color
 == 玩家身體顏色
+
+Player chat message
+== 玩家聊天訊息
 
 Player clan
 == 玩家戰隊
@@ -8683,6 +8875,9 @@ Player country filter in server browser (ISO 3166-1 numeric)
 
 Player country:
 == 玩家國家
+
+Player death
+== 玩家死亡
 
 Player decoration color
 == 玩家裝飾顏色
@@ -8770,6 +8965,12 @@ Player skin marking
 
 Player skin used for volleyball appearance
 == 排球外觀使用的玩家皮膚
+
+Player spawn
+== 玩家出生
+
+Player state
+== 玩家狀態
 
 Player stats
 == 玩家統計
@@ -9614,6 +9815,9 @@ Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
 == 向主伺服器註冊伺服器以進行公開列表，還可以接受要註冊的以逗號分隔的協議列表，例如“ipv4，ipv6”
 
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
+== 已註冊音效；在目前 DDNet 伺服器中未發現直接觸發點，其他伺服器可能會使用。
+
 Regular
 == 標準
 
@@ -9622,9 +9826,6 @@ Regular background color
 
 Regular expression
 == 正則表達式
-
-Relative path
-== 相對路徑
 
 Relative X position of the draggable back button
 == Relative X position of the draggable back button
@@ -9919,6 +10120,9 @@ Replace non-friend names with ID
 
 Replace non-friend skins with default
 == 用默認皮膚替換非好友皮膚
+
+Replace selected variant
+== 替換所選變體
 
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 == 取代設定、按鍵綁定和所列 cfg 檔案並重新啟動？將先備份目前配置。
@@ -10682,9 +10886,6 @@ Selected %d
 Selected button not visible
 == 選中的按鍵不可見
 
-Selected candidate
-== 已選候選文件
-
 Selected candidate %d/%d under cursor.
 == 已選中光標下的候選項 %d/%d。
 
@@ -10832,6 +11033,9 @@ Server list is more than five minutes old
 Server list refresh failed; showing the previous list
 == 伺服器列表重新整理失敗，正在顯示上次列表
 
+Server message
+== 伺服器訊息
+
 Server name
 == 伺服器名稱
 
@@ -10861,6 +11065,9 @@ Server URL
 
 Server-assigned style
 == 伺服器分配風格
+
+Server-dependent
+== 取決於伺服器
 
 Set all to Rifle
 == 統一為激光槍顏色
@@ -10973,11 +11180,20 @@ Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
 == 流光速度
 
+Short pain voice
+== 短促受傷叫聲
+
 Short server names
 == 短伺服器名稱
 
 Shotgun
 == 霰彈槍
+
+Shotgun / laser pickup
+== 拾取霰彈槍 / 雷射槍
+
+Shotgun fire
+== 霰彈槍射擊
 
 Shotgun Laser Inner Color
 == 霰彈槍彈道實心顏色
@@ -12029,6 +12245,9 @@ Size of key press icons
 Size of strength/weakness icon and number
 == 強/弱狀態圖標和數字的大小
 
+Skidding
+== 急停滑行
+
 Skin
 == 皮膚
 
@@ -12298,6 +12517,9 @@ Sound buffer size (large may cause delay)
 
 Sound error
 == 音頻錯誤
+
+Sound variants
+== 音效變體
 
 Sound volume
 == 音量
@@ -12943,6 +13165,9 @@ Tee collision (Tee to Tee)
 
 Tee color
 == Tee 顏色
+
+Tee cry
+== Tee 哭聲
 
 Tee death probe
 == Tee 死亡探針
@@ -14651,6 +14876,12 @@ Weapon range color
 Weapon reload animation probability
 == 武器裝填動畫機率
 
+Weapon removal / armor pickup
+== 移除武器 / 拾取護甲
+
+Weapon switch
+== 切換武器
+
 Weapon switch animation
 == 武器切換動畫
 
@@ -14680,6 +14911,9 @@ Weapon switch easing
 
 Weapon switch rotation
 == 武器切換旋轉
+
+Weapon teleport
+== 武器傳送
 
 Weapon Trajectory
 == 武器輔助線

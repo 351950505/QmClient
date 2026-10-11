@@ -302,6 +302,9 @@ A demo with this name already exists
 A folder with this name already exists
 == Ein Ordner mit diesem Namen existiert bereits
 
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
+== Eine manuell gewählte Quelldatei hat Vorrang vor dem ausgewählten Kandidaten. Nur diese Variante wird ersetzt.
+
 a player
 == ein Spieler
 
@@ -626,6 +629,9 @@ Aim
 Aim bind
 == Ziel-Bindung
 
+Air jump
+== Luftsprung
+
 Alive notification color
 == Farbe der Überlebensbenachrichtigung
 
@@ -655,6 +661,9 @@ All maps
 
 All players
 == Alle Spieler
+
+All sounds
+== Alle Sounds
 
 All stars
 == Alle Sterne
@@ -1006,9 +1015,6 @@ Audio packets
 
 Audio packs
 == Audio-Pakete
-
-Audio slots
-== Audio-Slots
 
 AUS
 == AUS
@@ -1778,6 +1784,12 @@ Cannot read complete word list file. Previous words remain active.
 Cannot swap: the other player is not in your team
 == Tausch nicht möglich: der andere Spieler ist nicht in deinem Team
 
+Capture the flag
+== Capture the Flag (CTF)
+
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
+== Ereignissignal für Capture the Flag; wird von CTF-Servern statt in gewöhnlichen DDNet-Rennen verwendet.
+
 Card height animation
 == Höhenanimation der Einstellungskarte
 
@@ -1903,6 +1915,9 @@ Chat gradient vertical position percentage
 
 Chat log retention days
 == Aufbewahrungstage des Chat-Logs
+
+Chat mention / vote alert
+== Chat-Erwähnung / Abstimmungsalarm
 
 Chat message
 == Chat-Nachricht
@@ -4547,9 +4562,6 @@ Export name contains invalid characters.
 Export selected
 == Auswahl exportieren
 
-Export selected file
-== Ausgewählte Datei exportieren
-
 Export to clipboard
 == In Zwischenablage exportieren
 
@@ -4820,6 +4832,21 @@ First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 == Bei vollen Servern haben die Scoreboard-Zeilen eine feste Höhe; scrollen Sie mit dem Mausrad
 
+Flag captured
+== Flagge erobert
+
+Flag dropped
+== Flagge fallen gelassen
+
+Flag grab: enemy side
+== Flagge aufgenommen: Gegnerseite
+
+Flag grab: player side
+== Flagge aufgenommen: Spielerseite
+
+Flag returned
+== Flagge zurückgebracht
+
 Flip:
 == Spiegeln:
 
@@ -4949,6 +4976,9 @@ Freeze border color
 Freeze Collision Border Color
 == Freeze-Kollisionsrandfarbe
 
+Freeze heart / health pickup
+== Freeze-Herz / Lebenspunkte-Pickup
+
 Freeze laser collision volume
 == Kollisionsvolumen des Freeze-Lasers
 
@@ -5035,6 +5065,9 @@ Friends
 
 Friends only
 == Nur Freunde
+
+Frozen fire attempt
+== Feuerversuch im eingefrorenen Zustand
 
 Frozen prediction margin
 == Vorhersagespielraum beim Einfrieren
@@ -5375,6 +5408,18 @@ Greeting text
 Grenade
 == Granate
 
+Grenade explosion
+== Granatenexplosion
+
+Grenade launch
+== Granatenabschuss
+
+Grenade pickup
+== Granatwerfer-Pickup
+
+Ground jump
+== Bodensprung
+
 Group name
 == Gruppenname
 
@@ -5384,8 +5429,14 @@ GUI cursor assets
 Guide line color
 == Führungslinienfarbe
 
+Gun fire
+== Pistolenschuss
+
 Hammer
 == Hammer
+
+Hammer hit
+== Hammer-Treffer
 
 Hammer interaction
 == Hammer-Interaktion
@@ -5395,6 +5446,9 @@ Hammer Mode
 
 Hammer skin steal
 == Hammer-Skin-Diebstahl
+
+Hammer swing
+== Hammer-Schwung
 
 Hammer: %s
 == Hammer: %s
@@ -5630,6 +5684,9 @@ Highlighted message
 Highlighted message color
 == Farbe hervorgehobener Nachrichten
 
+Hit feedback
+== Treffer-Feedback
+
 Hitbox Mode Freeze Border Color
 == Hitbox-Modus Freeze-Grenzfarbe
 
@@ -5660,6 +5717,12 @@ Hold left click for free camera
 Hook
 == Haken
 
+Hook attaches to ground
+== Hook greift Oberfläche
+
+Hook attaches to player
+== Hook greift Spieler
+
 Hook collision line
 == Haken-Kollisionslinie
 
@@ -5678,11 +5741,17 @@ Hook Collisions
 Hook collisions
 == Haken-Kollisionslinien
 
+Hook hits unhookable surface
+== Hook trifft nicht greifbare Oberfläche
+
 Hook interaction
 == Haken-Interaktion
 
 Hook line tip
 == Hakenlinien-Spitze
+
+Hook loop
+== Hook-Schleife
 
 Hook Strength
 == Hakenstärke
@@ -5875,6 +5944,12 @@ Import from clipboard
 
 Improved anti ping
 == Verbessertes Anti-Ping
+
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+== Wird in DDNet abgespielt, wenn ein Freeze-Herz den Spieler einfriert. Andere Modi nutzen es eventuell für Lebenspunkte-Pickups.
+
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
+== Wird in DDNet abgespielt, wenn Waffen entfernt werden. Andere Modi nutzen es eventuell für Rüstungs-Pickups.
 
 In memory of me
 == In Erinnerung an mich
@@ -6179,6 +6254,9 @@ Item
 Item type
 == Gegenstandstyp
 
+Its use depends on the server or game mode.
+== Die Verwendung hängt vom Server oder Spielmodus ab.
+
 j = Latency jitter
 == j = Latenz-Jitter
 
@@ -6401,6 +6479,9 @@ Label type
 LAN
 == LAN
 
+Landing
+== Landung
+
 Language
 == Sprache
 
@@ -6422,6 +6503,9 @@ Large text for friend join (use %s for friend name)
 Laser
 == Laser
 
+Laser / shotgun bounce
+== Laser- / Schrotflinten-Abpraller
+
 Laser / shotgun interaction
 == Laser-/Schrotflinten-Interaktion
 
@@ -6430,6 +6514,9 @@ Laser colors
 
 Laser effect enhancement
 == Laser-Effekt-Verbesserung
+
+Laser fire
+== Laserschuss
 
 Laser glow intensity (0-100)
 == Laser-Leuchtstärke (0-100)
@@ -7226,6 +7313,9 @@ Menu main panel background color
 Menu main panel opacity
 == Deckkraft des Hauptpanels im Menü
 
+Menu music
+== Menümusik
+
 Menu opacity (0-100)
 == Menüdeckkraft (Menu opacity 0-100)
 
@@ -7444,6 +7534,9 @@ Multi-View
 
 Multiple exact Axiom players found
 == Mehrere exakt passende Axiom-Spieler gefunden
+
+Music
+== Musik
 
 Music player volume
 == Lautstärke des Musikplayers
@@ -7778,8 +7871,20 @@ Next weapon
 Nickname
 == Spitzname
 
+Ninja attack
+== Ninja-Schwertangriff
+
+Ninja hit
+== Ninja-Schwerttreffer
+
+Ninja pickup
+== Ninja-Schwert-Pickup
+
 No
 == Nein
+
+No ammunition
+== Keine Munition
 
 No animation
 == Keine Animation
@@ -7799,9 +7904,6 @@ No assets found.
 No audio issues detected
 == Keine Audioanomalien erkannt
 
-No audio slots found.
-== Keine Audio-Slots gefunden.
-
 No buttons match your filter criteria
 == Keine Buttons entsprechen deinen Filterkriterien
 
@@ -7810,6 +7912,9 @@ No callable peer found
 
 No candidate file selected.
 == Keine Kandidatendatei ausgewählt.
+
+No candidate files match this search.
+== Keine Kandidatendateien entsprechen dieser Suche.
 
 No changes since last save
 == Keine Änderungen seit dem letzten Speichern
@@ -7981,6 +8086,9 @@ No servers match your filter criteria
 
 No skins match your filter criteria
 == Keine Skins entsprechen deinen Filterkriterien
+
+No sounds match this search.
+== Keine Sounds entsprechen dieser Suche.
 
 No space for button
 == Kein Platz für Button
@@ -8330,11 +8438,17 @@ Original message language
 Other
 == Andere
 
+Other game modes
+== Andere Spielmodi
+
 Other modes
 == Andere Modi
 
 Other players' hook line width
 == Hakenlinienbreite anderer Spieler
+
+Other sounds
+== Sonstige Sounds
 
 Others
 == Andere
@@ -8582,6 +8696,9 @@ Pick the source that matches your music app and keep it playing; the lyrics foll
 Pickup range
 == Aufnahmebereich
 
+Pickups
+== Aufnehmbare Gegenstände
+
 Pie menu
 == Kreis-Menü
 
@@ -8660,6 +8777,78 @@ Play/pause the current demo
 Playback volume
 == Wiedergabelautstärke
 
+Played for chat highlights and vote alerts when their notification sound is enabled.
+== Wird bei Chat-Hervorhebungen und Abstimmungsalarmen abgespielt, wenn deren Benachrichtigungston aktiviert ist.
+
+Played for incoming player chat messages when their notification sound is enabled.
+== Wird bei eingehenden Spieler-Chatnachrichten abgespielt, wenn deren Benachrichtigungston aktiviert ist.
+
+Played for incoming server chat messages when their notification sound is enabled.
+== Wird bei eingehenden Server-Chatnachrichten abgespielt, wenn deren Benachrichtigungston aktiviert ist.
+
+Played when a grenade explodes.
+== Wird abgespielt, wenn eine Granate explodiert.
+
+Played when a laser or DDNet shotgun beam bounces.
+== Wird abgespielt, wenn ein Laser- oder DDNet-Schrotflintenstrahl abprallt.
+
+Played when a ninja dash hits another player.
+== Wird abgespielt, wenn ein Ninja-Schwert-Dash einen anderen Spieler trifft.
+
+Played when a player dies, including suicide.
+== Wird abgespielt, wenn ein Spieler stirbt, einschließlich Selbstmord.
+
+Played when a player spawns or respawns.
+== Wird abgespielt, wenn ein Spieler spawnt oder respawnt.
+
+Played when firing this weapon.
+== Wird beim Abfeuern dieser Waffe abgespielt.
+
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+== Wird beim Absprung vom Boden abgespielt. Die Dateien für den linken und rechten Fuß gehören zu derselben Soundgruppe.
+
+Played when moving fast on the ground and pressing the opposite direction.
+== Wird abgespielt, wenn man sich schnell am Boden bewegt und in die entgegengesetzte Richtung lenkt.
+
+Played when picking up a grenade weapon.
+== Wird beim Aufheben eines Granatwerfers abgespielt.
+
+Played when picking up a shotgun or laser weapon.
+== Wird beim Aufheben einer Schrotflinte oder Laserwaffe abgespielt.
+
+Played when pressing fire while frozen.
+== Wird abgespielt, wenn im eingefrorenen Zustand Feuer gedrückt wird.
+
+Played when starting a ninja dash attack.
+== Wird beim Starten eines Ninja-Schwert-Dash-Angriffs abgespielt.
+
+Played when swinging the hammer, even without hitting a player.
+== Wird beim Schwingen des Hammers abgespielt, auch ohne einen Spieler zu treffen.
+
+Played when switching the active weapon.
+== Wird beim Wechseln der aktiven Waffe abgespielt.
+
+Played when the hammer hits another player.
+== Wird abgespielt, wenn der Hammer einen anderen Spieler trifft.
+
+Played when the hook attaches to a hookable surface.
+== Wird abgespielt, wenn der Hook an einer greifbaren Oberfläche haftet.
+
+Played when the hook attaches to another player.
+== Wird abgespielt, wenn der Hook einen anderen Spieler greift.
+
+Played when the hook hits an unhookable surface.
+== Wird abgespielt, wenn der Hook auf eine nicht greifbare Oberfläche trifft.
+
+Played when using the second jump in the air.
+== Wird beim zweiten Sprung in der Luft abgespielt.
+
+Played when weapon teleportation moves the player in DDNet.
+== Wird in DDNet abgespielt, wenn der Waffen-Teleport-Effekt den Spieler bewegt.
+
+Played while offline when menu music is enabled.
+== Wird offline abgespielt, wenn die Menümusik aktiviert ist.
+
 Player
 == Spieler
 
@@ -8668,6 +8857,9 @@ Player already invited
 
 Player body color
 == Spieler-Körperfarbe
+
+Player chat message
+== Spieler-Chatnachricht
 
 Player clan
 == Spieler-Clan
@@ -8683,6 +8875,9 @@ Player country filter in server browser (ISO 3166-1 numeric)
 
 Player country:
 == Spielerland:
+
+Player death
+== Spielertod
 
 Player decoration color
 == Spieler-Dekorationsfarbe
@@ -8770,6 +8965,12 @@ Player skin marking
 
 Player skin used for volleyball appearance
 == Spieler-Skin für Volleyball-Erscheinungsbild
+
+Player spawn
+== Spieler-Spawn
+
+Player state
+== Spielerstatus
 
 Player stats
 == Spielerstatistiken
@@ -9614,6 +9815,9 @@ Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
 == Server beim Masterserver für die öffentliche Liste registrieren, akzeptiert kommagetrennte Protokolle, z.B. 'ipv4,ipv6'
 
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
+== Registrierter Sound; in diesem DDNet-Server wurde kein direkter Auslöser gefunden. Andere Server verwenden ihn möglicherweise.
+
 Regular
 == Normal
 
@@ -9622,9 +9826,6 @@ Regular background color
 
 Regular expression
 == Regulärer Ausdruck
-
-Relative path
-== Relativer Pfad
 
 Relative X position of the draggable back button
 == Relative X-Position des verschiebbaren Zurück-Buttons
@@ -9919,6 +10120,9 @@ Replace non-friend names with ID
 
 Replace non-friend skins with default
 == Nicht-Freundes-Skins durch Standard ersetzen
+
+Replace selected variant
+== Ausgewählte Variante ersetzen
 
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 == Einstellungen, Tastenbelegungen und die aufgelisteten cfg-Dateien ersetzen und neu starten? Die aktuelle Konfiguration wird vorher gesichert.
@@ -10682,9 +10886,6 @@ Selected %d
 Selected button not visible
 == Ausgewählter Button nicht sichtbar
 
-Selected candidate
-== Ausgewählter Kandidat
-
 Selected candidate %d/%d under cursor.
 == Ausgewählter Kandidat %d/%d unter Cursor.
 
@@ -10832,6 +11033,9 @@ Server list is more than five minutes old
 Server list refresh failed; showing the previous list
 == Serverliste konnte nicht aktualisiert werden; die vorherige Liste wird angezeigt
 
+Server message
+== Servernachricht
+
 Server name
 == Server-Name
 
@@ -10861,6 +11065,9 @@ Server URL
 
 Server-assigned style
 == Vom Server zugewiesener Stil
+
+Server-dependent
+== Serverabhängig
 
 Set all to Rifle
 == Alle auf Gewehr setzen
@@ -10973,11 +11180,20 @@ Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
 == Schimmergeschwindigkeit
 
+Short pain voice
+== Kurzer Schmerzenslaut
+
 Short server names
 == Kurze Servernamen
 
 Shotgun
 == Schrotflinte
+
+Shotgun / laser pickup
+== Schrotflinten- / Laser-Pickup
+
+Shotgun fire
+== Schrotflintenschuss
 
 Shotgun Laser Inner Color
 == Schrotflinten-Laser-Innenfarbe
@@ -12029,6 +12245,9 @@ Size of key press icons
 Size of strength/weakness icon and number
 == Größe des Stärke/Schwäche-Symbols und der Zahl
 
+Skidding
+== Schlittern
+
 Skin
 == Skin
 
@@ -12298,6 +12517,9 @@ Sound buffer size (large may cause delay)
 
 Sound error
 == Soundfehler
+
+Sound variants
+== Sound-Varianten
 
 Sound volume
 == Lautstärke
@@ -12943,6 +13165,9 @@ Tee collision (Tee to Tee)
 
 Tee color
 == Tee-Farbe
+
+Tee cry
+== Tee-Weinen
 
 Tee death probe
 == Tee-Todesprüfung
@@ -14651,6 +14876,12 @@ Weapon range color
 Weapon reload animation probability
 == Wahrscheinlichkeit der Waffen-Nachladeanimation
 
+Weapon removal / armor pickup
+== Waffenentzug / Rüstungs-Pickup
+
+Weapon switch
+== Waffenwechsel
+
 Weapon switch animation
 == Waffenwechselanimation
 
@@ -14680,6 +14911,9 @@ Weapon switch easing
 
 Weapon switch rotation
 == Waffenwechsel-Rotation
+
+Weapon teleport
+== Waffen-Teleport
 
 Weapon Trajectory
 == Waffentrajektorie
