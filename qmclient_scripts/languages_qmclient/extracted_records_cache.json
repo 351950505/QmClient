@@ -2518,7 +2518,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/pie_menu_actions.cpp",
       "context": "",
-      "line": 158
+      "line": 165
     },
     {
       "key": "Additional headers for register endpoint, comma-separated \"header:value\" pairs",
@@ -7796,7 +7796,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/pie_menu_actions.cpp",
       "context": "",
-      "line": 242
+      "line": 249
     },
     {
       "key": "Card height animation",
@@ -11898,7 +11898,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 747
+      "line": 733
     },
     {
       "key": "Copy name",
@@ -11947,7 +11947,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 740
+      "line": 726
     },
     {
       "key": "Copy skin",
@@ -16647,6 +16647,13 @@
       "line": 506
     },
     {
+      "key": "Dummy",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/pie_menu_actions.cpp",
+      "context": "",
+      "line": 128
+    },
+    {
       "key": "Dummy body color",
       "category": "indirect",
       "source": "src/engine/shared/config_variables.h",
@@ -20329,21 +20336,21 @@
       "line": 374
     },
     {
-      "key": "Example: name1|name2|name3",
+      "key": "Example: A|B|C,D|E (C: main, D: dummy)",
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogSearch.cpp",
       "context": "",
       "line": 316
     },
     {
-      "key": "Example: name1|name2|name3",
+      "key": "Example: A|B|C,D|E (C: main, D: dummy)",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/pie_menu_settings.cpp",
       "context": "",
       "line": 103
     },
     {
-      "key": "Example: name1|name2|name3",
+      "key": "Example: A|B|C,D|E (C: main, D: dummy)",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/pie_menu_settings.cpp",
       "context": "",
@@ -22258,7 +22265,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 745
+      "line": 731
     },
     {
       "key": "Follow server",
@@ -23119,7 +23126,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 737
+      "line": 723
     },
     {
       "key": "Friends",
@@ -28264,7 +28271,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 743
+      "line": 729
     },
     {
       "key": "Invite to team",
@@ -28481,7 +28488,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 744
+      "line": 730
     },
     {
       "key": "Join team",
@@ -32625,7 +32632,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 739
+      "line": 725
     },
     {
       "key": "Mention",
@@ -39411,7 +39418,7 @@
       "line": 307
     },
     {
-      "key": "Pie menu rename list (separate with |, e.g., name1|name2)",
+      "key": "Pie menu rename list (| separates entries; main,dummy renames both)",
       "category": "indirect",
       "source": "src/engine/shared/config_variables_qmclient.h",
       "context": "",
@@ -44707,7 +44714,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/pie_menu_actions.cpp",
       "context": "",
-      "line": 149
+      "line": 156
     },
     {
       "key": "Removes all bindwheel binds",
@@ -44973,7 +44980,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 698
+      "line": 684
+    },
+    {
+      "key": "Rename: %s",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/pie_menu_actions.cpp",
+      "context": "",
+      "line": 132
     },
     {
       "key": "Render all custom colored feet as white feet skin",
@@ -48774,7 +48788,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 700
+      "line": 686
     },
     {
       "key": "Self and friends",
@@ -55459,7 +55473,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 742
+      "line": 728
     },
     {
       "key": "Spectate",
@@ -56593,7 +56607,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 745
+      "line": 731
     },
     {
       "key": "Stop following",
@@ -57013,7 +57027,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 741
+      "line": 727
     },
     {
       "key": "Swap",
@@ -64601,7 +64615,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 746
+      "line": 732
     },
     {
       "key": "View points",
@@ -66162,7 +66176,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/pie_menu.cpp",
       "context": "",
-      "line": 738
+      "line": 724
     },
     {
       "key": "Whisper",

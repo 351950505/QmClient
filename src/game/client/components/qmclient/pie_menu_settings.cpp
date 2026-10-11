@@ -100,8 +100,8 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 	Row.VSplitLeft(LabelWidth, &LabelColumn, &ControlColumn);
 	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-pie-menu-rename-queue", &LabelColumn, Localize("Rename queue"), BodySize, TEXTALIGN_ML, {}, (int)LabelColumn.w);
 	static CLineInput s_PieMenuRenameQueue(g_Config.m_QmPieMenuRenameQueue, sizeof(g_Config.m_QmPieMenuRenameQueue));
-	s_PieMenuRenameQueue.SetEmptyText(Localize("Example: name1|name2|name3"));
-	ui_widget::InputField(TextInputCtx, &s_PieMenuRenameQueue, ControlColumn, Localize("Example: name1|name2|name3"), BodySize);
+	s_PieMenuRenameQueue.SetEmptyText(Localize("Example: A|B|C,D|E (C: main, D: dummy)"));
+	ui_widget::InputField(TextInputCtx, &s_PieMenuRenameQueue, ControlColumn, Localize("Example: A|B|C,D|E (C: main, D: dummy)"), BodySize);
 	Content.HSplitTop(LineSpacing * 2.0f, nullptr, &Content);
 
 	struct SPieMenuColorEntry

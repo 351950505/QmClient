@@ -313,7 +313,7 @@ namespace qm_card_catalog
 			{Localizable("Copy skin"), nullptr, "复制皮肤"},
 			{Localizable("Detection distance"), nullptr, "检测距离"},
 			{Localizable("Enable pie menu"), nullptr, "启用饼菜单"},
-			{Localizable("Example: name1|name2|name3"), nullptr, "示例：名字 1|名字 2|名字 3"},
+			{Localizable("Example: A|B|C,D|E (C: main, D: dummy)"), nullptr, "示例：A|B|C,D|E（C 为本体，D 为分身）"},
 			{Localizable("Follow server"), nullptr, "跨服跟随"},
 			{Localizable("Following: %s"), nullptr, "正在跟随：%s"},
 			{Localizable("Friend"), nullptr, "好友"},

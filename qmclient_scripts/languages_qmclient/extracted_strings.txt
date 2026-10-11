@@ -1484,7 +1484,7 @@ Example /help settings will display the help about /settings
 Example of usage
 Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
-Example: name1|name2|name3
+Example: A|B|C,D|E (C: main, D: dummy)
 Exclude
 Execute before connecting
 Execute files on key press/release
@@ -2845,7 +2845,7 @@ Pie menu effects
 Pie menu highlight tint
 Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
-Pie menu rename list (separate with |, e.g., name1|name2)
+Pie menu rename list (| separates entries; main,dummy renames both)
 Ping
 Ping the current server
 Pistol
