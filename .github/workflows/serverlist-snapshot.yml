@@ -1,0 +1,62 @@
+name: Serverlist snapshot
+
+on:
+  push:
+    branches: [codex/serverlist-snapshot-publisher]
+    paths:
+      - .github/workflows/serverlist-snapshot.yml
+      - qmclient_scripts/serverlist_mirror/collect_snapshot.py
+      - qmclient_scripts/serverlist_mirror/test_collect_snapshot.py
+  schedule:
+    - cron: '2-57/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: serverlist-snapshot-publisher
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify collector
+        run: python3 -m unittest discover -s qmclient_scripts/serverlist_mirror -p test_collect_snapshot.py
+      - name: Collect official snapshot
+        run: python3 qmclient_scripts/serverlist_mirror/collect_snapshot.py --output tmp/serverlist-snapshot
+      - name: Publish isolated snapshot branch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const branch = 'serverlist-snapshot';
+            if (branch === context.payload.repository.default_branch || branch === context.ref.replace('refs/heads/', '')) {
+              throw new Error('Refusing to overwrite source branch');
+            }
+            const entries = [];
+            const readme = '# QmClient server list snapshot\n\nGenerated from official DDNet masters. This branch contains data only.\n\nThe embedded qm_snapshot_updated_at records upstream freshness, not the last successful workflow run. Failed collections leave existing data unchanged.\n';
+            for (const [path, content] of [
+              ['servers.json', fs.readFileSync('tmp/serverlist-snapshot/servers.json')],
+              ['snapshot-meta.json', fs.readFileSync('tmp/serverlist-snapshot/snapshot-meta.json')],
+              ['README.md', Buffer.from(readme)]
+            ]) {
+              const blob = await github.rest.git.createBlob({ owner, repo, content: content.toString('base64'), encoding: 'base64' });
+              entries.push({ path, mode: '100644', type: 'blob', sha: blob.data.sha });
+            }
+            const tree = await github.rest.git.createTree({ owner, repo, tree: entries });
+            const commit = await github.rest.git.createCommit({ owner, repo, message: 'Refresh server list snapshot', tree: tree.data.sha, parents: [] });
+            try {
+              await github.rest.git.getRef({ owner, repo, ref: `heads/${branch}` });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.git.createRef({ owner, repo, ref: `refs/heads/${branch}`, sha: commit.data.sha });
+              core.info(`Created data branch at ${commit.data.sha}`);
+              return;
+            }
+            await github.rest.git.updateRef({ owner, repo, ref: `heads/${branch}`, sha: commit.data.sha, force: true });
+            core.info(`Published data branch at ${commit.data.sha}`);
