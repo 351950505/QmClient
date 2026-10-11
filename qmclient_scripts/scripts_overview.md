@@ -155,6 +155,8 @@ python3 qmclient_scripts/gate/check_gate.py --mode default
 python3 qmclient_scripts/gate/check_gate.py --mode full
 ```
 
+本地 gate 默认最多使用 6 个构建 job。按已核对的机器预算或同时进行的独立构建分配资源时，可设置 `QM_GATE_BUILD_JOBS` 为正整数；该值最多使用当前机器的 CPU 数量。CI 未指定该变量时使用运行器全部 CPU。
+
 ### P5 设置页迁移结构清单
 
 ```bash

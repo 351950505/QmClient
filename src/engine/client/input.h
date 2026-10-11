@@ -63,10 +63,10 @@ public:
 	};
 
 private:
-	IEngineGraphics *m_pGraphics;
-	IConsole *m_pConsole;
-	IConfigManager *m_pConfigManager;
-	IClient *m_pClient;
+	IEngineGraphics *m_pGraphics = nullptr;
+	IConsole *m_pConsole = nullptr;
+	IConfigManager *m_pConfigManager = nullptr;
+	IClient *m_pClient = nullptr;
 
 	IEngineGraphics *Graphics() const { return m_pGraphics; }
 	IConsole *Console() const { return m_pConsole; }

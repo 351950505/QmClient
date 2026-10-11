@@ -114,7 +114,8 @@ void CInput::Init()
 
 SDL_Window *CInput::Window() const
 {
-	return SDL_GetWindowFromID(Graphics()->GetWindowId());
+	// IME 管理器在 OnConsoleInit 阶段会关闭输入，早于输入模块取得图形接口。
+	return Graphics() == nullptr ? nullptr : SDL_GetWindowFromID(Graphics()->GetWindowId());
 }
 
 void CInput::Shutdown()
