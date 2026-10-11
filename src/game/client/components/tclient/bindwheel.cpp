@@ -16,19 +16,26 @@ CBindWheel::CBindWheel()
 void CBindWheel::ConBindwheelExecuteHover(IConsole::IResult *pResult, void *pUserData)
 {
 	CBindWheel *pThis = (CBindWheel *)pUserData;
-	pThis->ExecuteHoveredBind();
+	if(pResult->GetInteger(0) != 0)
+		pThis->ExecuteHoveredBind();
 }
 
 void CBindWheel::ConOpenBindwheel(IConsole::IResult *pResult, void *pUserData)
 {
 	CBindWheel *pThis = (CBindWheel *)pUserData;
-	if(pThis->Client()->State() != IClient::STATE_DEMOPLAYBACK)
+	if(pThis->Client()->State() != IClient::STATE_ONLINE || pThis->GameClient()->m_Emoticon.IsActive())
 	{
-		if(pThis->GameClient()->m_Emoticon.IsActive())
-			pThis->m_Active = false;
-		else
-			pThis->m_Active = pResult->GetInteger(0) != 0;
+		pThis->OnRelease();
+		return;
 	}
+	if(pResult->GetInteger(0) != 0)
+	{
+		if(!pThis->IsActive())
+			pThis->GameClient()->m_Emoticon.m_TouchPressedOutside = false;
+		pThis->m_State.Open();
+	}
+	else
+		pThis->m_State.Release(CQmBindWheelState::SelectedBind(pThis->GameClient()->m_Emoticon.m_SelectorMouse, pThis->m_vBinds.size()));
 }
 
 void CBindWheel::ConAddBindwheelLegacy(IConsole::IResult *pResult, void *pUserData)
@@ -46,6 +53,7 @@ void CBindWheel::ConAddBindwheelLegacy(IConsole::IResult *pResult, void *pUserDa
 
 	str_copy(pThis->m_vBinds[BindPos].m_aName, aName);
 	str_copy(pThis->m_vBinds[BindPos].m_aCommand, aCommand);
+	pThis->m_State.InvalidateSelection();
 }
 
 void CBindWheel::ConAddBindwheel(IConsole::IResult *pResult, void *pUserData)
@@ -81,6 +89,7 @@ void CBindWheel::AddBind(const char *pName, const char *pCommand)
 	str_copy(Bind.m_aName, pName);
 	str_copy(Bind.m_aCommand, pCommand);
 	m_vBinds.push_back(Bind);
+	m_State.InvalidateSelection();
 }
 
 void CBindWheel::RemoveBind(const char *pName, const char *pCommand)
@@ -90,7 +99,10 @@ void CBindWheel::RemoveBind(const char *pName, const char *pCommand)
 	str_copy(Bind.m_aCommand, pCommand);
 	auto Iter = std::find(m_vBinds.begin(), m_vBinds.end(), Bind);
 	if(Iter != m_vBinds.end())
+	{
 		m_vBinds.erase(Iter);
+		m_State.InvalidateSelection();
+	}
 }
 
 void CBindWheel::RemoveBind(int Index)
@@ -99,11 +111,13 @@ void CBindWheel::RemoveBind(int Index)
 		return;
 	auto Pos = m_vBinds.begin() + Index;
 	m_vBinds.erase(Pos);
+	m_State.InvalidateSelection();
 }
 
 void CBindWheel::RemoveAllBinds()
 {
 	m_vBinds.clear();
+	m_State.InvalidateSelection();
 }
 
 void CBindWheel::OnConsoleInit()
@@ -123,19 +137,22 @@ void CBindWheel::OnConsoleInit()
 
 void CBindWheel::OnReset()
 {
-	m_WasActive = false;
-	m_Active = false;
+	m_State.Cancel();
+	m_AnimationTime = 0.0f;
+	std::fill(std::begin(m_aAnimationTimeItems), std::end(m_aAnimationTimeItems), 0.0f);
 	m_SelectedBind = -1;
 }
 
 void CBindWheel::OnRelease()
 {
-	m_Active = false;
+	m_State.Cancel();
+	if(g_Config.m_QmResetBindWheelMouse && !GameClient()->m_Emoticon.IsActive())
+		GameClient()->m_Emoticon.m_SelectorMouse = vec2(0.0f, 0.0f);
 }
 
 bool CBindWheel::OnCursorMove(float x, float y, IInput::ECursorType CursorType)
 {
-	if(!m_Active)
+	if(!IsActive())
 		return false;
 
 	Ui()->ConvertMouseMove(&x, &y, CursorType);
@@ -155,8 +172,26 @@ bool CBindWheel::OnInput(const IInput::CEvent &Event)
 
 void CBindWheel::OnRender()
 {
-	if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
+	if(Client()->State() != IClient::STATE_ONLINE)
+	{
+		if(IsActive() || m_AnimationTime > 0.0f)
+			OnReset();
+		else
+			m_State.Cancel();
 		return;
+	}
+	if(GameClient()->m_Emoticon.IsActive())
+	{
+		OnReset();
+		return;
+	}
+	const auto PendingBind = m_State.TakePendingBind();
+	if(PendingBind.has_value())
+	{
+		if(g_Config.m_QmResetBindWheelMouse)
+			GameClient()->m_Emoticon.m_SelectorMouse = vec2(0.0f, 0.0f);
+		ExecuteBind(*PendingBind);
+	}
 
 	static const auto QuadEaseInOut = [](float t) -> float {
 		if(t == 0.0f)
@@ -165,11 +200,6 @@ void CBindWheel::OnRender()
 			return 1.0f;
 		return (t < 0.5f) ? (2.0f * t * t) : (1.0f - std::pow(-2.0f * t + 2.0f, 2) / 2.0f);
 	};
-	static const auto PositiveMod = [](float x, float y) -> float {
-		return std::fmod(x + y, y);
-	};
-
-	static const float s_InnerOuterMouseBoundaryRadius = 110.0f;
 	static const float s_OuterMouseLimitRadius = 170.0f;
 	static const float s_OuterItemRadius = 140.0f; // 10.0f less than emoticons for extra text space
 	static const float s_OuterCircleRadius = 190.0f;
@@ -179,6 +209,8 @@ void CBindWheel::OnRender()
 
 	const float AnimationTime = (float)g_Config.m_QmAnimateWheelTime / 1000.0f;
 	const float ItemAnimationTime = AnimationTime / 2.0f;
+	if(!IsActive() && m_AnimationTime <= 0.0f)
+		return;
 
 	if(AnimationTime != 0.0f)
 	{
@@ -186,17 +218,8 @@ void CBindWheel::OnRender()
 			Time = std::max(0.0f, Time - Client()->RenderFrameTime());
 	}
 
-	if(!m_Active)
+	if(!IsActive())
 	{
-		if(m_WasActive)
-		{
-			if(g_Config.m_QmResetBindWheelMouse)
-				GameClient()->m_Emoticon.m_SelectorMouse = vec2(0.0f, 0.0f);
-			if(m_SelectedBind != -1)
-				ExecuteBind(m_SelectedBind);
-		}
-		m_WasActive = false;
-
 		if(AnimationTime == 0.0f)
 			return;
 
@@ -212,7 +235,6 @@ void CBindWheel::OnRender()
 		m_AnimationTime += Client()->RenderFrameTime();
 		if(m_AnimationTime > AnimationTime)
 			m_AnimationTime = AnimationTime;
-		m_WasActive = true;
 	}
 
 	const CUIRect Screen = *Ui()->Screen();
@@ -234,7 +256,10 @@ void CBindWheel::OnRender()
 	}
 	else if(WasTouchPressed)
 	{
-		m_Active = false;
+		if(GameClient()->m_Emoticon.m_TouchPressedOutside)
+			OnRelease();
+		else
+			m_State.Release(CQmBindWheelState::SelectedBind(GameClient()->m_Emoticon.m_SelectorMouse, m_vBinds.size()));
 	}
 
 	std::array<float, 2> aAnimationPhase;
@@ -251,19 +276,7 @@ void CBindWheel::OnRender()
 	if(length(GameClient()->m_Emoticon.m_SelectorMouse) > s_OuterMouseLimitRadius)
 		GameClient()->m_Emoticon.m_SelectorMouse = normalize(GameClient()->m_Emoticon.m_SelectorMouse) * s_OuterMouseLimitRadius;
 
-	int SegmentCount = m_vBinds.size();
-	if(SegmentCount == 0)
-	{
-		m_SelectedBind = -1;
-	}
-	else
-	{
-		const float SelectedAngle = angle(GameClient()->m_Emoticon.m_SelectorMouse);
-		if(length(GameClient()->m_Emoticon.m_SelectorMouse) > s_InnerOuterMouseBoundaryRadius)
-			m_SelectedBind = PositiveMod(std::round(SelectedAngle / (2.0f * pi) * SegmentCount), SegmentCount);
-		else
-			m_SelectedBind = -1;
-	}
+	m_SelectedBind = CQmBindWheelState::SelectedBind(GameClient()->m_Emoticon.m_SelectorMouse, m_vBinds.size());
 
 	if(m_SelectedBind != -1)
 	{
@@ -318,12 +331,17 @@ void CBindWheel::OnRender()
 
 void CBindWheel::ExecuteBind(int Bind)
 {
-	Console()->ExecuteLine(m_vBinds[Bind].m_aCommand);
+	if(Bind < 0 || Bind >= static_cast<int>(m_vBinds.size()))
+		return;
+	// 命令可以删除自己的条目，执行期间不能借用 vector 内的字符串。
+	char aCommand[BINDWHEEL_MAX_CMD];
+	str_copy(aCommand, m_vBinds[Bind].m_aCommand);
+	Console()->ExecuteLine(aCommand);
 }
 void CBindWheel::ExecuteHoveredBind()
 {
-	if(m_SelectedBind >= 0)
-		Console()->ExecuteLine(m_vBinds[m_SelectedBind].m_aCommand);
+	if(IsActive())
+		ExecuteBind(CQmBindWheelState::SelectedBind(GameClient()->m_Emoticon.m_SelectorMouse, m_vBinds.size()));
 }
 
 void CBindWheel::ConfigSaveCallback(IConfigManager *pConfigManager, void *pUserData)

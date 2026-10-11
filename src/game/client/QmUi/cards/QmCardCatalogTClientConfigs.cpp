@@ -32,6 +32,7 @@
 #include <game/client/QmUi/UiSurface.h>
 #include <game/client/QmUi/cards/QmCardCatalog.h>
 #include <game/client/QmUi/cards/QmCardCatalogTClientInternal.h>
+#include <game/client/QmUi/cards/TClientConfigSource.h>
 #include <game/client/animstate.h>
 #include <game/client/components/binds.h>
 #include <game/client/components/chat.h>
@@ -122,7 +123,8 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 	};
 	struct SStrState
 	{
-		CLineInputBuffered<512> m_Input;
+		std::vector<char> m_vBuffer;
+		CLineInput m_Input;
 		bool m_Inited = false;
 	};
 	struct SColState
@@ -219,13 +221,10 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 			{
 				const auto Entry = s_StagedStrs.find(pVar);
 				dbg_assert(Entry != s_StagedStrs.end(), "missing staged string");
-				char aEsc[1024];
-				aEsc[0] = '\0';
-				char *pDst = aEsc;
-				str_escape(&pDst, Entry->second.m_Value.c_str(), aEsc + sizeof(aEsc));
-				char aCmd[1200];
-				str_format(aCmd, sizeof(aCmd), "%s \"%s\"", pVar->m_pScriptName, aEsc);
-				Console()->ExecuteLine(aCmd);
+				const auto *pString = static_cast<const SStringConfigVariable *>(pVar);
+				std::vector<char> vCommand(pString->MaxSerializedSize());
+				pString->Serialize(vCommand.data(), vCommand.size(), Entry->second.m_Value.c_str());
+				Console()->ExecuteLine(vCommand.data());
 			}
 			for(const SConfigVariable *pVar : SortStagedKeys(s_StagedCols))
 			{
@@ -496,12 +495,12 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		}
 
 		auto GetConfigSource = [&](const SConfigVariable *pVar) {
-			// v3 起所有变量合并进单一 QMCLIENT 域，按前缀区分来源
+			// TClient 配置也使用 qm_ 前缀，先按定义清单区分来源。
 			const char *pName = pVar->m_pScriptName ? pVar->m_pScriptName : "";
+			if(IsTClientConfigVariable(pName) || str_startswith(pName, "tc_"))
+				return EConfigSource::TCLIENT;
 			if(str_startswith(pName, "qm_"))
 				return EConfigSource::QM;
-			if(str_startswith(pName, "tc_"))
-				return EConfigSource::TCLIENT;
 			return EConfigSource::DDNET;
 		};
 
@@ -606,31 +605,25 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		const int DomainMask = (g_Config.m_QmUiShowDDNet != 0 ? 1 : 0) |
 				       (g_Config.m_QmUiShowTClient != 0 ? 2 : 0) |
 				       (g_Config.m_QmUiShowQm != 0 ? 4 : 0);
-		static std::vector<const SConfigVariable *> s_vFilteredConfigs;
+		static std::vector<const SConfigVariable *> s_vCandidateConfigs;
 		static std::string s_CachedConfigSearch;
 		static int s_CachedConfigDomainMask = -1;
-		static int s_CachedConfigChangesCount = -1;
-		static int s_CachedConfigOnlyModified = -1;
 		static unsigned int s_CachedConfigTagMask = 0;
 		static size_t s_CachedConfigVarCount = 0;
 		static uint64_t s_CachedConfigLanguageHash = 0;
 		const uint64_t ConfigLanguageHash = str_quickhash(g_Config.m_ClLanguagefile);
 		if(s_CachedConfigSearch != (pSearch ? pSearch : "") ||
 			s_CachedConfigDomainMask != DomainMask ||
-			s_CachedConfigChangesCount != ChangesCount ||
-			s_CachedConfigOnlyModified != g_Config.m_QmUiOnlyModified ||
 			s_CachedConfigTagMask != SelectedTagMask ||
 			s_CachedConfigVarCount != s_vAllClientVars.size() ||
 			s_CachedConfigLanguageHash != ConfigLanguageHash)
 		{
-			s_vFilteredConfigs.clear();
-			s_vFilteredConfigs.reserve(s_vAllClientVars.size());
+			s_vCandidateConfigs.clear();
+			s_vCandidateConfigs.reserve(s_vAllClientVars.size());
 			for(size_t i = 0; i < s_vAllClientVars.size(); ++i)
 			{
 				const SConfigVariable *pVar = s_vAllClientVars[i];
 				if(!SourceEnabled(GetConfigSource(pVar)))
-					continue;
-				if(g_Config.m_QmUiOnlyModified && IsEffectiveDefaultVar(pVar))
 					continue;
 				if(pSearch && pSearch[0])
 				{
@@ -646,17 +639,24 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 					if((VarTagMask & SelectedTagMask) == 0 && !(VarTagMask == 0 && (SelectedTagMask & MiscTagMask) != 0))
 						continue;
 				}
-				s_vFilteredConfigs.push_back(pVar);
+				s_vCandidateConfigs.push_back(pVar);
 			}
 			s_CachedConfigSearch = pSearch ? pSearch : "";
 			s_CachedConfigDomainMask = DomainMask;
-			s_CachedConfigChangesCount = ChangesCount;
-			s_CachedConfigOnlyModified = g_Config.m_QmUiOnlyModified;
 			s_CachedConfigTagMask = SelectedTagMask;
 			s_CachedConfigVarCount = s_vAllClientVars.size();
 			s_CachedConfigLanguageHash = ConfigLanguageHash;
 		}
-		const std::vector<const SConfigVariable *> &vpFiltered = s_vFilteredConfigs;
+		// 搜索和标签候选可缓存；是否为默认值取决于暂存值及其他卡片的实时修改。
+		static std::vector<const SConfigVariable *> s_vModifiedConfigs;
+		if(g_Config.m_QmUiOnlyModified)
+		{
+			s_vModifiedConfigs.clear();
+			for(const SConfigVariable *pVar : s_vCandidateConfigs)
+				if(!IsEffectiveDefaultVar(pVar))
+					s_vModifiedConfigs.push_back(pVar);
+		}
+		const auto &vpFiltered = g_Config.m_QmUiOnlyModified ? s_vModifiedConfigs : s_vCandidateConfigs;
 
 		static CScrollRegion s_ConfigListScrollRegion;
 		static CScrollRegion s_ConfigListReadOnlyScrollRegion;
@@ -864,6 +864,8 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 				const char *Effective = StagedStr != s_StagedStrs.end() ? StagedStr->second.m_Value.c_str() : pStr->m_pStr;
 				if(!State.m_Inited)
 				{
+					State.m_vBuffer.resize(pStr->m_MaxSize);
+					State.m_Input.SetBuffer(State.m_vBuffer.data(), State.m_vBuffer.size());
 					State.m_Input.Set(Effective);
 					State.m_Inited = true;
 				}

@@ -77,6 +77,7 @@ void CSkinProfiles::ApplyProfile(int Dummy, const CProfile &Profile)
 		str_copy(Dummy ? g_Config.m_ClDummySkin : g_Config.m_ClPlayerSkin, Profile.m_SkinName);
 	if(g_Config.m_QmProfileColors && Profile.m_BodyColor != -1 && Profile.m_FeetColor != -1)
 	{
+		(Dummy ? g_Config.m_ClDummyUseCustomColor : g_Config.m_ClPlayerUseCustomColor) = 1;
 		(Dummy ? g_Config.m_ClDummyColorBody : g_Config.m_ClPlayerColorBody) = Profile.m_BodyColor;
 		(Dummy ? g_Config.m_ClDummyColorFeet : g_Config.m_ClPlayerColorFeet) = Profile.m_FeetColor;
 	}

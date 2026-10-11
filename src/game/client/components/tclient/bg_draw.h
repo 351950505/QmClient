@@ -10,16 +10,15 @@
 #include <list>
 #include <optional>
 
-#define BG_DRAW_MAX_POINTS_PER_ITEM 1024
-
 class CBgDrawItem;
 
 class CBgDraw : public CComponent
 {
 private:
-	float m_NextAutoSave;
-	bool m_Dirty;
-	std::array<std::optional<CBgDrawItem *>, NUM_DUMMIES> m_apActiveItems;
+	float m_NextAutoSave = 60.0f;
+	bool m_Dirty = false;
+	bool m_MapActive = false;
+	std::array<CBgDrawItem *, NUM_DUMMIES> m_apActiveItems = {};
 	std::array<std::optional<vec2>, NUM_DUMMIES> m_aLastPos;
 	std::list<CBgDrawItem> *m_pvItems;
 	static void ConBgDraw(IConsole::IResult *pResult, void *pUserData);
@@ -41,7 +40,7 @@ public:
 		DRAW = 1,
 		ERASE = 2,
 	};
-	std::array<InputMode, NUM_DUMMIES> m_aInputData;
+	std::array<InputMode, NUM_DUMMIES> m_aInputData = {};
 
 	int Sizeof() const override { return sizeof(*this); }
 	void OnConsoleInit() override;
