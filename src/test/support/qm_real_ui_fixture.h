@@ -51,6 +51,12 @@ namespace qm_ui_test
 			*pY1 = m_MapRect.y + m_MapRect.h;
 		}
 		bool HasRoundedRectSdf() override { return true; }
+		void DestroyRenderTarget(CRenderTargetHandle *pTarget) override
+		{
+			// 设备接口允许销毁空句柄；这个 fixture 不创建离屏目标。
+			if(pTarget != nullptr && pTarget->IsValid())
+				throw std::logic_error("unexpected live render target in UI fixture");
+		}
 		void RenderRoundedRectSdf(const SRoundedRectSdfParams &) override {}
 		// 裁剪、光标与选区只提交 GPU 绘制，不替代真实文字布局和输入行为。
 		void ClipEnable(int, int, int, int) override {}
