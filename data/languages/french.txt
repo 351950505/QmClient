@@ -4334,9 +4334,6 @@ Endless hook has been activated
 Endless hook has been deactivated
 == Grappin infini désactivé
 
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== Style de flux de l'anneau de grappin infini (0=couleur unique, 1=arc-en-ciel, 2=statique)
-
 Endpoint
 == Point d'accès
 
@@ -4789,9 +4786,6 @@ Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 
 Flip:
 == Retourner :
-
-Flow style
-== Style de fluxo
 
 Folder
 == Dossier
@@ -12385,9 +12379,6 @@ Start skin queue from a random position when entering a map
 
 Statboard
 == Tableau des stats
-
-Static
-== Statique
 
 Stats
 == Statistiques

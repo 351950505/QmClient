@@ -4334,9 +4334,6 @@ Endless hook has been activated
 Endless hook has been deactivated
 == El gancho infinito se ha desactivado
 
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== Estilo de flujo del anillo de gancho infinito (0=color único, 1=arcoíris, 2=estático)
-
 Endpoint
 == Punto final
 
@@ -4789,9 +4786,6 @@ Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 
 Flip:
 == Voltear:
-
-Flow style
-== Estilo de flujo
 
 Folder
 == Carpeta
@@ -12385,9 +12379,6 @@ Start skin queue from a random position when entering a map
 
 Statboard
 == Tabla de estadísticas
-
-Static
-== Estático
 
 Stats
 == Estadísticas
