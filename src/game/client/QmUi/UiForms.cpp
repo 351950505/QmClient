@@ -199,14 +199,20 @@ namespace ui_widget
 				if(HasTrailingAction)
 					DrawInputFieldIcon(Ctx, TrailingRect, Options.m_pTrailingActionIcon, IconColor, Options.m_TrailingActionQmIcon);
 			}
+			// 后台绘制必须和正常输入框共用 CLineInput 的排版路径。
+			// 之前空文本单独走 DoLabel，F1 叠加绘制时会继承控制台的文本状态，
+			// 导致占位文本与实际输入文本出现水平偏移和亮度变化。
 			const char *pPlaceholder = Options.m_pPlaceholder != nullptr ? Options.m_pPlaceholder : (Search ? Localize("Search") : nullptr);
-			if(WasEmpty && pPlaceholder != nullptr)
-				Ctx.m_pUi->DoLabel(&TextRect, pPlaceholder, FontSize, TextAlign);
-			else if(!WasEmpty && (!pInput->IsHidden() || !Ctx.m_pUi->MeasurementOnly()))
+			const char *pPreviousPlaceholder = pInput->GetEmptyText();
+			pInput->SetEmptyText(pPlaceholder);
+			if(!pInput->IsHidden() || !Ctx.m_pUi->MeasurementOnly())
 			{
 				const CQmCardLabelHintScope PreserveInput(Ctx.m_pUi, false);
-				Ctx.m_pUi->DoLabel(&TextRect, pInput->GetDisplayedString(), FontSize, TextAlign);
+				Ctx.m_pUi->ClipEnable(&TextRect);
+				pInput->Render(&TextRect, FontSize, TextAlign, false, -1.0f, 0.0f);
+				Ctx.m_pUi->ClipDisable();
 			}
+			pInput->SetEmptyText(pPreviousPlaceholder);
 			if(Options.m_pTrailingText != nullptr && TrailingRect.w > 0.0f)
 				Ctx.m_pUi->DoLabel(&TrailingRect, Options.m_pTrailingText, FontSize * 0.82f, TEXTALIGN_MC);
 			return {};
