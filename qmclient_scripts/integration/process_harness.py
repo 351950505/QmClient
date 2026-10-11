@@ -37,7 +37,7 @@ DEFAULT_TEMP_PREFIX = "qmclient_smoke_"
 
 def log_message(line: str) -> str:
 	parts = line.split(" ", 3)
-	if len(parts) == 4 and parts[2] in {"D", "I", "W", "E"}:
+	if len(parts) == 4 and parts[2] in {"T", "D", "I", "W", "E"}:
 		return parts[3]
 	return line
 

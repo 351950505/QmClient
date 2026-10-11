@@ -12,6 +12,18 @@ from unittest import mock
 from qmclient_scripts.integration import process_harness
 
 
+class ProcessLogMessageTest(unittest.TestCase):
+	def test_trace_and_other_levels_preserve_the_same_payload(self):
+		payload = "datafile: loading done. datafile='themes/heavens_day.map'"
+		for level in ("T", "D", "I", "W", "E"):
+			with self.subTest(level=level):
+				self.assertEqual(process_harness.log_message(f"2026-10-12 03:00:00 {level} {payload}"), payload)
+
+	def test_unprefixed_message_is_unchanged(self):
+		message = "plain console message with spaces"
+		self.assertEqual(process_harness.log_message(message), message)
+
+
 class ProcessFifoTest(unittest.TestCase):
 	def setUp(self):
 		self.process = process_harness.Process.__new__(process_harness.Process)
@@ -21,7 +33,7 @@ class ProcessFifoTest(unittest.TestCase):
 		self.process._process = mock.Mock()
 		self.process._process.poll.return_value = None
 		self.process._lines = ["client: initialization failed"]
-		self.api = SimpleNamespace(name="posix", open=mock.Mock(), fdopen=mock.Mock(), set_blocking=mock.Mock(), O_WRONLY=os.O_WRONLY, O_NONBLOCK=getattr(os, "O_NONBLOCK", 2048))
+		self.api = SimpleNamespace(name="posix", open=mock.Mock(), fdopen=mock.Mock(), set_blocking=mock.Mock(), close=mock.Mock(), O_WRONLY=os.O_WRONLY, O_NONBLOCK=getattr(os, "O_NONBLOCK", 2048))
 		patcher = mock.patch.object(process_harness, "os", self.api)
 		patcher.start()
 		self.addCleanup(patcher.stop)
@@ -48,6 +60,14 @@ class ProcessFifoTest(unittest.TestCase):
 			self.process.command("echo 中文")
 		self.api.fdopen.return_value.write.assert_called_once_with("echo 中文\n")
 		self.api.set_blocking.assert_called_once_with(42, True)
+
+	def test_stream_initialization_failure_closes_descriptor(self):
+		self.api.open.return_value = 42
+		self.api.fdopen.side_effect = ValueError("stream unavailable")
+		with self.assertRaisesRegex(ValueError, "stream unavailable"):
+			self.process._open_fifo()
+		self.api.close.assert_called_once_with(42)
+		self.assertIsNone(self.process._fifo)
 
 
 @unittest.skipIf(os.name == "nt", "requires native POSIX FIFOs")

@@ -35,14 +35,15 @@ inline void AppendSdlTextEvents(std::vector<IInput::CEvent> &vEvents, const char
 }
 
 // 配置中的数字键位和键名沿用旧编号，不能直接把 SDL3 扫描码当作游戏键位。
-inline int SdlScancodeToKey(SDL_Scancode Scancode)
+// 使用整数参数拒绝越界编号，避免先构造无效枚举而触发未定义行为。
+inline int SdlScancodeToKey(int Scancode)
 {
 	if(Scancode >= SDL_SCANCODE_UNKNOWN && Scancode <= SDL_SCANCODE_MODE)
-		return static_cast<int>(Scancode);
+		return Scancode;
 	if(Scancode >= SDL_SCANCODE_SOFTLEFT && Scancode <= SDL_SCANCODE_ENDCALL)
-		return KEY_SOFTLEFT + static_cast<int>(Scancode) - SDL_SCANCODE_SOFTLEFT;
+		return KEY_SOFTLEFT + Scancode - SDL_SCANCODE_SOFTLEFT;
 	if(Scancode >= SDL_SCANCODE_AC_SEARCH && Scancode <= SDL_SCANCODE_AC_BOOKMARKS)
-		return KEY_AC_SEARCH + static_cast<int>(Scancode) - SDL_SCANCODE_AC_SEARCH;
+		return KEY_AC_SEARCH + Scancode - SDL_SCANCODE_AC_SEARCH;
 	switch(Scancode)
 	{
 	case SDL_SCANCODE_SLEEP: return KEY_SLEEP;

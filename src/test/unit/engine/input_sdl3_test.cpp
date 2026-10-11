@@ -32,8 +32,8 @@ TEST(Sdl3InputMapping, NewOrInvalidScancodesCannotTriggerMouseOrJoystickBindings
 {
 	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_RECORD), KEY_UNKNOWN);
 	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_PAUSE), KEY_UNKNOWN);
-	EXPECT_EQ(SdlScancodeToKey(static_cast<SDL_Scancode>(KEY_MOUSE_1)), KEY_UNKNOWN);
-	EXPECT_EQ(SdlScancodeToKey(static_cast<SDL_Scancode>(-1)), KEY_UNKNOWN);
+	EXPECT_EQ(SdlScancodeToKey(KEY_MOUSE_1), KEY_UNKNOWN);
+	EXPECT_EQ(SdlScancodeToKey(-1), KEY_UNKNOWN);
 	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_COUNT), KEY_UNKNOWN);
 }
 

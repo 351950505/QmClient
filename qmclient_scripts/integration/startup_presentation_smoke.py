@@ -145,6 +145,9 @@ def smoke_window_presentation(env: StartupEnvironment) -> None:
 
 def smoke_vulkan_window_presentation(env: StartupEnvironment) -> None:
 	check_window_presentation(env, ["qm_graphics_mode 1", "gfx_backend Vulkan"])
+	assert env.client is not None
+	if not any("gfx: GPU version: Vulkan " in line for line in env.client._lines):
+		raise AssertionError("client fell back from Vulkan before producing the screenshot")
 
 
 def smoke_metal_window_presentation(env: StartupEnvironment) -> None:
