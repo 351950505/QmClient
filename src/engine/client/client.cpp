@@ -68,6 +68,7 @@
 
 #include <game/client/components/qmclient/media_paths.h>
 #include <game/client/components/qmclient/perf_logging.h>
+#include <game/client/components/qmclient/screenshot_viewer.h>
 #include <game/client/frame_scheduler.h>
 #include <game/localization.h>
 #include <game/version.h>
@@ -6432,6 +6433,10 @@ int main(int argc, const char **argv)
 	CWindowsComLifecycle WindowsComLifecycle(true);
 #endif
 	CCmdlineFix CmdlineFix(&argc, &argv);
+
+	// 独立看图进程在游戏、配置和网络初始化之前分流。
+	if(argc >= 2 && str_comp(argv[1], "--qm-screenshot-viewer") == 0)
+		return argc == 5 ? RunQmScreenshotViewer(argv[2], argv[3], argv[4]) : 2;
 
 	// QmClient: 测试专用注入开关，供 qmclient_scripts/integration 的进程级回归测试
 	// 在真实客户端里触发主线程断言。正常运行不会传入该参数。

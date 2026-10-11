@@ -3552,6 +3552,9 @@ if(CLIENT)
     components/qmclient/settings_resource_preview.h
     components/qmclient/screenshot_image_job.cpp
     components/qmclient/screenshot_image_job.h
+    components/qmclient/screenshot_viewer.cpp
+    components/qmclient/screenshot_viewer.h
+    components/qmclient/screenshot_viewer_viewport.h
     components/qmclient/skin_source_job.cpp
     components/qmclient/skin_source_job.h
     components/qmclient/media_paths.h
@@ -4771,7 +4774,6 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_font_resource_policy_test.cpp
     src/test/contract/qmclient/client/qm_demo_cut_contract_test.cpp
     src/test/unit/qmclient/client/qm_demo_cut_test.cpp
-    src/test/contract/qmclient/client/qm_screenshot_gallery_contract_test.cpp
     src/test/unit/qmclient/client/qm_local_saves_test.cpp
     src/test/contract/qmclient/client/qm_storage_path_contract_test.cpp
     src/test/contract/qmclient/ui/qm_new_ui_menu_cards_surface_contract_test.cpp
@@ -4906,6 +4908,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_config_package_test.cpp
     src/test/integration/qmclient/client/qm_config_package_storage_test.cpp
     src/test/unit/qmclient/client/qm_screenshot_image_policy_test.cpp
+    src/test/unit/qmclient/client/qm_screenshot_viewer_viewport_test.cpp
     src/test/unit/qmclient/client/qm_friend_menu_policy_test.cpp
     src/test/unit/qmclient/ui/qm_rounded_surface_geometry_test.cpp
     src/test/unit/qmclient/ui/qm_rounded_surface_render_test.cpp
