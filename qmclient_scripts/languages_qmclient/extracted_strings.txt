@@ -762,6 +762,7 @@ Command to run when joining server
 Command:
 Commands
 Commands run in the console
+Common filters
 Common key bindings
 Communities
 Community
@@ -2321,6 +2322,7 @@ Map folders
 Map name
 Map play history
 Map Preview TODO
+Map progress
 Map progress bar
 Map progress bar color
 Map progress bar height
@@ -2887,6 +2889,7 @@ Player
 Player already invited
 Player body color
 Player clan
+Player count
 Player country (ISO 3166-1 numeric code)
 Player country filter in server browser (ISO 3166-1 numeric)
 Player country:

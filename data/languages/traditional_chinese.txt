@@ -2291,6 +2291,9 @@ Commands
 Commands run in the console
 == 在控制台中執行的命令
 
+Common filters
+== 常用篩選
+
 Common key bindings
 == 常見的按鍵綁定
 
@@ -2799,7 +2802,7 @@ Could not stage configuration restore.
 == 無法準備配置還原檔案。
 
 Count players only
-== 屏蔽旁觀位
+== 不計旁觀者
 
 Countries
 == 國家
@@ -4740,7 +4743,7 @@ Filter chat messages by regular expression
 == 按正則表達式過濾聊天消息
 
 Filter connecting players
-== 篩選正在連接的玩家
+== 不計連接中
 
 Filter empty servers in browser
 == 過濾掉瀏覽器中的空伺服器
@@ -5919,7 +5922,7 @@ Incoming language
 == 接收語言
 
 Indicate map finish
-== 標記已完成的地圖
+== 標記已完成
 
 Indicator alive color
 == 指示器存活顏色
@@ -6967,6 +6970,9 @@ Map play history
 
 Map Preview TODO
 == 地圖預覽待做
+
+Map progress
+== 地圖進度
 
 Map progress bar
 == 地圖進度條
@@ -8666,6 +8672,9 @@ Player body color
 Player clan
 == 玩家戰隊
 
+Player count
+== 人數統計
+
 Player country (ISO 3166-1 numeric code)
 == 玩家國家（ISO 3166-1 數字碼）
 
@@ -8673,7 +8682,7 @@ Player country filter in server browser (ISO 3166-1 numeric)
 == 在伺服器瀏覽器中過濾的玩家國家/地區（ISO 3166-1 數字）
 
 Player country:
-== 玩家國家/地區：
+== 玩家國家
 
 Player decoration color
 == 玩家裝飾顏色
@@ -10827,7 +10836,7 @@ Server name
 == 伺服器名稱
 
 Server not full
-== 伺服器未滿
+== 未滿員
 
 Server password
 == 伺服器密碼
@@ -11262,7 +11271,7 @@ Show friend tag (♥) on nametag
 == 在名牌上顯示好友標記 (♥ )
 
 Show friends only
-== 只顯示好友
+== 僅好友
 
 Show frozen Tee HUD
 == 顯示凍結 Tee HUD
@@ -12585,7 +12594,7 @@ Strict game type filter
 == 嚴格遊戲模式篩選
 
 Strict gametype filter
-== 嚴格遊戲模式篩選
+== 嚴格匹配
 
 Strict mode
 == 嚴格模式
@@ -13947,7 +13956,7 @@ Unfinished
 == 未完成
 
 Unfinished map
-== 未完成的地圖
+== 僅未完成
 
 Unfinished map count: %d
 == 未完成圖數量：%d
