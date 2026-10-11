@@ -158,7 +158,7 @@ void CMenus::RenderQmFunctionGoresContent(CUIRect &Content, float LineHeight, fl
 	Row.VSplitLeft(LabelWidth, &LabelColumn, &ControlColumn);
 	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-gores-axiom-website", &LabelColumn, Localize("Axiom website"), BodySize, TEXTALIGN_ML, {}, (int)LabelColumn.w);
 	static CButtonContainer s_AxiomWebsiteButton;
-	if(!PrewarmOnly && !Ui()->RenderOnly() && Ui()->DoButton_QmIcon(&s_AxiomWebsiteButton, EQmIcon::ARROW_UP_RIGHT_FROM_SQUARE, FONT_ICON_ARROW_UP_RIGHT_FROM_SQUARE, 0, &ControlColumn, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL))
+	if(Ui()->DoButton_QmIcon(&s_AxiomWebsiteButton, EQmIcon::ARROW_UP_RIGHT_FROM_SQUARE, FONT_ICON_ARROW_UP_RIGHT_FROM_SQUARE, 0, &ControlColumn, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL) && !PrewarmOnly && !Ui()->RenderOnly())
 		Client()->ViewLink("https://axiom.teeworlds.cn/");
 	Content.HSplitTop(LineSpacing, nullptr, &Content);
 

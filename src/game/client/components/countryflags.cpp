@@ -389,44 +389,14 @@ void CCountryFlags::Render(const CCountryFlag &Flag, ColorRGBA Color, float x, f
 		float RenderH = h;
 		ColorRGBA RenderColor = Color;
 
-		const bool AnimEnabled = g_Config.m_QmCountryFlagAnim != 0 && g_Config.m_QmUiMotionLevel > 0;
-		const bool MeasurePass = Ui()->RenderOnly();
-		const int64_t Now = time_get();
-		const float Duration = g_Config.m_QmUiMotionLevel == 1 ? 0.16f : COUNTRY_FLAG_ANIM_DURATION;
-		const float Overshoot = g_Config.m_QmUiMotionLevel == 1 ? 1.4f : COUNTRY_FLAG_ANIM_OVERSHOOT;
-		int64_t AnimationStartTime = 0;
-		if(AnimEnabled && !MeasurePass)
-		{
-			if(CustomStartTime > 0)
-			{
-				AnimationStartTime = CustomStartTime;
-			}
-			else
-			{
-				const int64_t Gap = Now - Flag.m_LastRenderTimestamp;
-				const bool Reappeared = Flag.m_LastRenderTimestamp <= 0 || Gap >= (int64_t)(COUNTRY_FLAG_ANIM_REAPPEAR_GAP * time_freq());
-				if(Reappeared)
-					Flag.m_AnimStartTimestamp = Now;
-				if(Flag.m_AnimStartTimestamp > 0 && (Now - Flag.m_AnimStartTimestamp) / (float)time_freq() < Duration)
-					AnimationStartTime = Flag.m_AnimStartTimestamp;
-			}
-			Flag.m_LastRenderTimestamp = Now;
-		}
-		if(AnimEnabled && AnimationStartTime > 0)
-		{
-			if(Now < AnimationStartTime)
-				return;
-			const float Elapsed = (Now - AnimationStartTime) / (float)time_freq();
-			if(Elapsed >= 0.0f && Elapsed < Duration)
-			{
-				const float Progress = Elapsed / Duration;
-				const float Scale = ComputeCountryFlagEntryScale(Progress, Overshoot);
-				const float AlphaScale = ComputeCountryFlagEntryAlpha(Progress);
-
-				ComputeCountryFlagEntryRect(x, y, w, h, Scale, RenderX, RenderY, RenderW, RenderH);
-				RenderColor.a *= AlphaScale;
-			}
-		}
+		const auto Pass = Ui()->MeasurementOnly()  ? EQmCountryFlagRenderPass::MEASUREMENT :
+				  Ui()->BackgroundRender() ? EQmCountryFlagRenderPass::BACKGROUND :
+							     EQmCountryFlagRenderPass::INTERACTIVE;
+		const auto Visual = Flag.ResolveEntryAnimation(Pass, g_Config.m_QmCountryFlagAnim != 0, g_Config.m_QmUiMotionLevel, CustomStartTime, time_get(), time_freq());
+		if(!Visual.m_Visible)
+			return;
+		ComputeCountryFlagEntryRect(x, y, w, h, Visual.m_Scale, RenderX, RenderY, RenderW, RenderH);
+		RenderColor.a *= Visual.m_Alpha;
 
 		if(RenderW <= 0.001f || RenderH <= 0.001f || RenderColor.a <= 0.001f)
 			return;

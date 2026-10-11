@@ -310,9 +310,7 @@ void CMenus::RenderQmFunctionKeywordReplyContent(CUIRect &Content, float UiScale
 	for(int Index = 0; Index < 3; ++Index)
 	{
 		const CUIRect Tab = Tabs.Cell(TabsArea, Index);
-		if(ReadOnly)
-			Ui()->DoLabel(&Tab, apTabs[Index], BodySize, TEXTALIGN_MC);
-		else if(DoButtonLineSize_Menu(&s_aTabButtons[Index], apTabs[Index], s_KeywordReplyTab == Index, &Tab, LineHeight))
+		if(DoButtonLineSize_Menu(&s_aTabButtons[Index], apTabs[Index], s_KeywordReplyTab == Index, &Tab, LineHeight) && !ReadOnly)
 		{
 			if(s_KeywordReplyTab != Index)
 			{
@@ -354,7 +352,7 @@ void CMenus::RenderQmFunctionKeywordReplyContent(CUIRect &Content, float UiScale
 	ControlColumn.VSplitRight(maximum(LineHeight, 24.0f * UiScale), &ControlColumn, &AddRuleButtonRect);
 	AddRuleButtonRect.VMargin((AddRuleButtonRect.w - AddRuleButtonRect.h) * 0.5f, &AddRuleButtonRect);
 	QmKeywordReplyRules::SEditorChanges Changes;
-	if(s_KeywordReplyTab == 0 && !ReadOnly && DoButton_Menu_QmIcon(&s_KeywordAddRuleButton, EQmIcon::PLUS, FONT_ICON_PLUS, 0, &AddRuleButtonRect, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::PILL))
+	if(s_KeywordReplyTab == 0 && DoButton_Menu_QmIcon(&s_KeywordAddRuleButton, EQmIcon::PLUS, FONT_ICON_PLUS, 0, &AddRuleButtonRect, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::PILL) && !ReadOnly)
 	{
 		auto pNewRule = CreateAutoReplyRuleInputRow();
 		pNewRule->m_TriggerInput.Activate(EInputPriority::UI);
@@ -399,7 +397,7 @@ void CMenus::RenderQmFunctionKeywordReplyContent(CUIRect &Content, float UiScale
 			Props.m_EllipsisAtEnd = true;
 			Ui()->DoLabel(&InputColumn, pRule->m_TriggerInput.GetString(), BodySize, TEXTALIGN_ML, Props);
 		}
-		const bool RemoveClicked = s_KeywordReplyTab == 0 && !ReadOnly && DoButton_Menu_QmIcon(&s_vKeywordRemoveRuleButtons[i], EQmIcon::MINUS, FONT_ICON_MINUS, 0, &RemoveButtonRect, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::PILL);
+		const bool RemoveClicked = s_KeywordReplyTab == 0 && DoButton_Menu_QmIcon(&s_vKeywordRemoveRuleButtons[i], EQmIcon::MINUS, FONT_ICON_MINUS, 0, &RemoveButtonRect, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::PILL) && !ReadOnly;
 		Content.HSplitTop(LineSpacing, nullptr, &Content);
 		if(s_KeywordReplyTab == 0)
 		{

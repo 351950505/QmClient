@@ -168,7 +168,7 @@ void CMenus::RenderSettingsQmClientBindCard(CUIRect &Content, const bool Prewarm
 		if(Index + 1 < s_apModifierLabels.size())
 			ModifierRow.VSplitLeft(LineSpacing, nullptr, &ModifierRow);
 		const bool Checked = (State.m_ModifierMask & ModifierBit(s_aModifierIds[Index])) != 0;
-		if(!ReadOnly && DoButton_Menu(&State.m_aModifierButtons[Index], s_apModifierLabels[Index], Checked, &Button))
+		if(DoButton_Menu(&State.m_aModifierButtons[Index], s_apModifierLabels[Index], Checked, &Button) && !ReadOnly)
 		{
 			State.m_ModifierMask ^= ModifierBit(s_aModifierIds[Index]);
 			if(State.m_HasSelected)

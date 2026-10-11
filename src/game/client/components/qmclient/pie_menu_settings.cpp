@@ -8,6 +8,7 @@
 #include <engine/textrender.h>
 
 #include <game/client/QmUi/QmPieMenuRender.h>
+#include <game/client/QmUi/QmPieMenuSettingsControls.h>
 #include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/components/menus.h>
@@ -46,7 +47,7 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 		Props.m_EllipsisAtEnd = true;
 		Ui()->DoLabel(&Row, aStatus, BodySize, TEXTALIGN_ML, Props);
 		static CButtonContainer s_CancelFollowButton;
-		if(!PrewarmOnly && Ui()->DoButton_QmIcon(&s_CancelFollowButton, EQmIcon::CLOSE, FontIcons::FONT_ICON_XMARK, 0, &CancelButton, BUTTONFLAG_LEFT))
+		if(Ui()->DoButton_QmIcon(&s_CancelFollowButton, EQmIcon::CLOSE, FontIcons::FONT_ICON_XMARK, 0, &CancelButton, BUTTONFLAG_LEFT) && !PrewarmOnly && !Ui()->RenderOnly())
 			GameClient()->m_PieMenu.CancelFollow();
 		if(!PrewarmOnly)
 			GameClient()->m_Tooltips.DoToolTip(&s_CancelFollowButton, &CancelButton, Localize("Stop following"));
@@ -156,22 +157,14 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 		SLabelProperties Props;
 		Props.m_MaxWidth = Label.w;
 		DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Entry.m_pTextId, &Label, Entry.m_pName, BodySize, TEXTALIGN_MC, Props);
-		if(!PrewarmOnly && !Ui()->RenderOnly())
-		{
-			const float SwatchSize = std::min(LineHeight, Cell.w);
-			const float ControlGap = std::min(LineSpacing, std::max(0.0f, Cell.w - SwatchSize));
-			const float ToggleWidth = std::min(LineHeight * 2.0f, std::max(0.0f, Cell.w - SwatchSize - ControlGap));
-			const float GroupWidth = ToggleWidth + ControlGap + SwatchSize;
-			const CUIRect Toggle{Cell.x + (Cell.w - GroupWidth) * 0.5f, Cell.y, ToggleWidth, LineHeight};
-			const CUIRect Swatch{Toggle.x + ToggleWidth + ControlGap, Cell.y, SwatchSize, LineHeight};
-			bool Enabled = *Entry.m_pEnabled != 0;
-			if(ui_widget::Toggle(TextInputCtx, Entry.m_pEnabled, &Enabled, Toggle))
-				*Entry.m_pEnabled = Enabled;
-			Swatch.Draw(color_cast<ColorRGBA>(ColorHSLA(*Entry.m_pColorValue, Entry.m_Alpha)), IGraphics::CORNER_ALL, CornerRadius * 0.5f);
-			if(Ui()->DoButtonLogic(Entry.m_pColorValue, 0, &Swatch, BUTTONFLAG_LEFT))
-				OpenColorPopup(Entry);
-			GameClient()->m_Tooltips.DoToolTip(Entry.m_pColorValue, &Swatch, Localize("Set color"));
-		}
+		const auto Controls = QmDrawPieOptionControls(TextInputCtx, Entry.m_pEnabled, Entry.m_pColorValue, *Entry.m_pEnabled != 0,
+			color_cast<ColorRGBA>(ColorHSLA(*Entry.m_pColorValue, Entry.m_Alpha)), Cell, LineHeight, LineSpacing, CornerRadius * 0.5f, !PrewarmOnly);
+		if(Controls.m_EnabledChanged)
+			*Entry.m_pEnabled = Controls.m_Enabled;
+		if(Controls.m_ColorClicked)
+			OpenColorPopup(Entry);
+		if(!PrewarmOnly)
+			GameClient()->m_Tooltips.DoToolTip(Entry.m_pColorValue, &Controls.m_Swatch, Localize("Set color"));
 	}
 	Content.HSplitTop(LineSpacing, nullptr, &Content);
 	Content.HSplitTop(BodySize, &Row, &Content);
@@ -275,7 +268,7 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 	CUIRect ResetButton;
 	const float ResetWidth = minimum(ButtonHeight, maximum(0.0f, ResetRow.w));
 	ResetRow.VSplitRight(ResetWidth, nullptr, &ResetButton);
-	if(!PrewarmOnly && Ui()->DoButton_QmIcon(&s_ResetAllColorsButton, EQmIcon::ARROW_ROTATE_RIGHT, FontIcons::FONT_ICON_ARROW_ROTATE_RIGHT, 0, &ResetButton, BUTTONFLAG_LEFT))
+	if(Ui()->DoButton_QmIcon(&s_ResetAllColorsButton, EQmIcon::ARROW_ROTATE_RIGHT, FontIcons::FONT_ICON_ARROW_ROTATE_RIGHT, 0, &ResetButton, BUTTONFLAG_LEFT) && !PrewarmOnly && !Ui()->RenderOnly())
 		for(const auto &Entry : aColorEntries)
 			*Entry.m_pColorValue = color_cast<ColorHSLA>(Entry.m_DefaultColor).Pack(Entry.m_Alpha);
 	if(!PrewarmOnly)

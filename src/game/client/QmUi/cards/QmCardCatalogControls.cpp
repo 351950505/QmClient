@@ -168,11 +168,11 @@ void CMenusSettingsControls::RenderSettingsBinds(EBindOptionGroup Group, CUIRect
 			KeyReaders.HSplitTop(m_CardMetrics.m_LineHeight, &KeyReader, &KeyReaders);
 			KeyReaders.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &KeyReaders);
 			const bool ActivateKeyReader = BindOption.m_AddNewBindActivate && CurrentBind.m_Bind == EMPTY_BIND_SLOT;
-			if(ReadOnly)
-				continue;
 			const CKeyBinder::CKeyReaderResult KeyReaderResult = GameClient()->m_KeyBinder.DoKeyReader(
 				&CurrentBind.m_KeyReaderButton, &CurrentBind.m_KeyResetButton,
-				&KeyReader, CurrentBind.m_Bind, ActivateKeyReader);
+				&KeyReader, CurrentBind.m_Bind, !ReadOnly && ActivateKeyReader);
+			if(ReadOnly)
+				continue;
 			if(ActivateKeyReader)
 			{
 				BindOption.m_AddNewBindActivate = false;

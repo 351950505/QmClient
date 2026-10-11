@@ -173,10 +173,10 @@ void CMenus::RenderQmFunctionTranslateContent(CUIRect &Content, float LineHeight
 	const bool PendingTest = m_TranslateProbe.Pending();
 	if(PendingTest)
 	{
-		if(!PrewarmOnly && !Ui()->RenderOnly() && DoButton_Menu(&s_CancelTranslationTestButton, Localize("Cancel translation test"), 0, &Row))
+		if(DoButton_Menu(&s_CancelTranslationTestButton, Localize("Cancel translation test"), 0, &Row) && !PrewarmOnly && !Ui()->RenderOnly())
 			m_TranslateProbe.Cancel();
 	}
-	else if(!PrewarmOnly && !Ui()->RenderOnly() && DoButton_Menu(&s_TestTranslationButton, Localize("Test translation"), 0, &Row))
+	else if(DoButton_Menu(&s_TestTranslationButton, Localize("Test translation"), 0, &Row) && !PrewarmOnly && !Ui()->RenderOnly())
 		m_TranslateProbe.Start(*Http(), "Hello, please hook me.", g_Config.m_QmTranslateTarget, "en");
 	Content.HSplitTop(LineSpacing, nullptr, &Content);
 	Content.HSplitTop(LineHeight, &Row, &Content);

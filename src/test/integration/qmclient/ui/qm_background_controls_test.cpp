@@ -2,11 +2,13 @@
 #include <engine/keys.h>
 
 #include <game/client/QmUi/QmAnimResolve.h>
+#include <game/client/QmUi/QmPieMenuSettingsControls.h>
 #include <game/client/QmUi/SettingsCardMeasure.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiDiscreteSlider.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
+#include <game/client/qm_icon.h>
 #include <game/client/ui_scrollregion.h>
 
 #include <test/support/qm_real_ui_fixture.h>
@@ -688,6 +690,105 @@ TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayKeepsCapsulePlateAndIndica
 	m_Ui.EndRenderOnly();
 	m_Ui.EndBackgroundRender();
 	EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
+}
+
+TEST_F(QmBackgroundControlsIntegration, PieOptionControlsKeepToggleAndSwatchBehindConsole)
+{
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	const ColorRGBA Color(0.8f, 0.2f, 0.3f, 0.75f);
+	for(const bool Enabled : {false, true})
+	{
+		SCOPED_TRACE(Enabled);
+		m_Recording.m_vSurfaces.clear();
+		QmDrawPieOptionControls(Ctx, &m_Toggle, &m_Button, Enabled, Color, m_Rect, 24.0f, 4.0f, 6.0f, true);
+		const auto Baseline = m_Recording.m_vSurfaces;
+		ASSERT_GE(Baseline.size(), 3u);
+		m_Recording.m_vSurfaces.clear();
+		m_Ui.SetEnabled(false);
+		m_Ui.BeginBackgroundRender();
+		const auto Result = QmDrawPieOptionControls(Ctx, &m_Toggle, &m_Button, Enabled, Color, m_Rect, 24.0f, 4.0f, 6.0f, true);
+		m_Ui.EndBackgroundRender();
+		EXPECT_EQ(Result.m_Enabled, Enabled);
+		EXPECT_FALSE(Result.m_EnabledChanged);
+		EXPECT_FALSE(Result.m_ColorClicked);
+		ASSERT_EQ(m_Recording.m_vSurfaces.size(), Baseline.size());
+		for(size_t i = 0; i < Baseline.size(); ++i)
+		{
+			EXPECT_EQ(m_Recording.m_vSurfaces[i].m_FillColor, Baseline[i].m_FillColor);
+			EXPECT_FLOAT_EQ(m_Recording.m_vSurfaces[i].m_Rect.x, Baseline[i].m_Rect.x);
+			EXPECT_FLOAT_EQ(m_Recording.m_vSurfaces[i].m_Rect.y, Baseline[i].m_Rect.y);
+			EXPECT_TRUE(m_Recording.m_vSurfaceVisibility[i]);
+		}
+		m_Recording.m_vSurfaces.clear();
+		m_Ui.BeginRenderOnly();
+		QmDrawPieOptionControls(Ctx, &m_Toggle, &m_Button, Enabled, Color, m_Rect, 24.0f, 4.0f, 6.0f, false);
+		m_Ui.EndRenderOnly();
+		EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
+		m_Ui.SetEnabled(true);
+	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, PieOptionPointerInputResumesOnlyAfterConsoleCloses)
+{
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	const ColorRGBA Color(0.8f, 0.2f, 0.3f, 0.75f);
+	const CUIRect Cell{20, 20, 100, 24};
+	const auto Initial = QmDrawPieOptionControls(Ctx, &m_Toggle, &m_Button, true, Color, Cell, 24.0f, 4.0f, 6.0f, true);
+	const auto Frame = [&](vec2 Position, bool Pressed, bool Background) {
+		const vec2 Pixels = Position * vec2(m_Recording.WindowWidth(), m_Recording.WindowHeight()) / m_Ui.Screen()->Size();
+		const vec2 Delta = Pixels - m_Ui.UpdatedMousePos();
+		m_Ui.OnCursorMove(Delta.x, Delta.y);
+		m_Input.m_HeldKey = Pressed ? KEY_MOUSE_1 : 0;
+		m_Client.AdvanceFrame();
+		m_Ui.Update();
+		if(Background)
+			m_Ui.BeginBackgroundRender();
+		const auto Result = QmDrawPieOptionControls(Ctx, &m_Toggle, &m_Button, true, Color, Cell, 24.0f, 4.0f, 6.0f, true);
+		if(Background)
+			m_Ui.EndBackgroundRender();
+		return Result;
+	};
+	const vec2 ToggleCenter(Initial.m_Swatch.x - 4.0f - 24.0f, Cell.y + Cell.h * 0.5f);
+	for(const auto Position : {ToggleCenter, Initial.m_Swatch.Center()})
+	{
+		for(const bool Pressed : {false, true, false})
+		{
+			const auto Result = Frame(Position, Pressed, true);
+			EXPECT_TRUE(Result.m_Enabled);
+			EXPECT_FALSE(Result.m_EnabledChanged);
+			EXPECT_FALSE(Result.m_ColorClicked);
+		}
+	}
+	EXPECT_EQ(m_Ui.ActiveItem(), nullptr);
+	Frame(ToggleCenter, false, false);
+	Frame(ToggleCenter, true, false);
+	const auto Toggled = Frame(ToggleCenter, false, false);
+	EXPECT_TRUE(Toggled.m_EnabledChanged);
+	EXPECT_FALSE(Toggled.m_Enabled);
+	Frame(Initial.m_Swatch.Center(), false, false);
+	Frame(Initial.m_Swatch.Center(), true, false);
+	EXPECT_TRUE(Frame(Initial.m_Swatch.Center(), false, false).m_ColorClicked);
+}
+
+TEST_F(QmBackgroundControlsIntegration, BackgroundActionIconsRemainVisibleWithoutClicks)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	const EQmIcon aIcons[] = {EQmIcon::ARROW_ROTATE_RIGHT, EQmIcon::ARROW_UP_RIGHT_FROM_SQUARE, EQmIcon::PLUS, EQmIcon::CLOSE};
+	const char *apFallbacks[] = {FontIcons::FONT_ICON_ARROW_ROTATE_RIGHT, FontIcons::FONT_ICON_ARROW_UP_RIGHT_FROM_SQUARE, FontIcons::FONT_ICON_PLUS, FontIcons::FONT_ICON_XMARK};
+	for(size_t i = 0; i < std::size(aIcons); ++i)
+	{
+		SCOPED_TRACE(static_cast<int>(aIcons[i]));
+		m_Recording.m_vSurfaces.clear();
+		m_Recording.m_vQuads.clear();
+		const CUIRect Rect{20, 20, 24, 24};
+		m_Ui.BeginBackgroundRender();
+		EXPECT_EQ(m_Ui.DoButton_QmIcon(&m_Button, aIcons[i], apFallbacks[i], 0, &Rect, BUTTONFLAG_LEFT), 0);
+		m_Ui.EndBackgroundRender();
+		ASSERT_FALSE(m_Recording.m_vSurfaces.empty());
+		EXPECT_TRUE(m_Recording.m_vSurfaceVisibility.back());
+		EXPECT_TRUE(std::any_of(m_Recording.m_vQuads.begin(), m_Recording.m_vQuads.end(), [](const auto &Quad) { return Quad.m_Visible; }));
+	}
 }
 
 TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayDoesNotDimDiscreteServerFilter)

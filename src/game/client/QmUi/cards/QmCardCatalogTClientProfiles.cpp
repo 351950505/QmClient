@@ -307,30 +307,29 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientProfilesCard(const qm_card
 	auto RenderActionButtons = [&](CUIRect Actions) {
 		Actions.HSplitTop(ProfileMetrics.m_ButtonHeight, &Button, &Actions);
 		static CButtonContainer s_LoadButton;
-		if(!ReadOnly && DoTClientSettingsButton_Menu(&s_LoadButton, "tclient-profile-load", Localize("Load"), 0, &Button))
+		if(DoTClientSettingsButton_Menu(&s_LoadButton, "tclient-profile-load", Localize("Load"), 0, &Button) && !ReadOnly)
 			ApplySelectedProfile();
 		Actions.HSplitTop(MarginSmall, nullptr, &Actions);
 		Actions.HSplitTop(ProfileMetrics.m_ButtonHeight, &Button, &Actions);
 		static CButtonContainer s_SaveButton;
-		if(!ReadOnly && DoTClientSettingsButton_Menu(&s_SaveButton, "tclient-profile-save", Localize("Save"), 0, &Button))
+		if(DoTClientSettingsButton_Menu(&s_SaveButton, "tclient-profile-save", Localize("Save"), 0, &Button) && !ReadOnly)
 		{
 			const CProfile ProfileToSave = BuildProfileFromCurrentSettings();
 			GameClient()->m_SkinProfiles.AddProfile(ProfileToSave.m_BodyColor, ProfileToSave.m_FeetColor, ProfileToSave.m_CountryFlag, ProfileToSave.m_Emote, ProfileToSave.m_SkinName, ProfileToSave.m_Name, ProfileToSave.m_Clan);
 		}
 		Actions.HSplitTop(MarginSmall, nullptr, &Actions);
-		if(!ReadOnly)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&s_AllowDelete, "tclient-profile-enable-deleting", Localizable("Enable Deleting"), &s_AllowDelete, &Actions, LineSize);
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&s_AllowDelete, "tclient-profile-enable-deleting", Localizable("Enable Deleting"), &s_AllowDelete, &Actions, LineSize);
 		if(s_AllowDelete)
 		{
 			Actions.HSplitTop(MarginSmall, nullptr, &Actions);
 			Actions.HSplitTop(ProfileMetrics.m_ButtonHeight, &Button, &Actions);
 			static CButtonContainer s_DeleteButton;
-			if(!ReadOnly && DoTClientSettingsButton_Menu(&s_DeleteButton, "tclient-profile-delete", Localize("Delete"), 0, &Button))
+			if(DoTClientSettingsButton_Menu(&s_DeleteButton, "tclient-profile-delete", Localize("Delete"), 0, &Button) && !ReadOnly)
 				DeleteSelectedProfile();
 			Actions.HSplitTop(MarginSmall, nullptr, &Actions);
 			Actions.HSplitTop(ProfileMetrics.m_ButtonHeight, &Button, &Actions);
 			static CButtonContainer s_OverrideButton;
-			if(!ReadOnly && DoTClientSettingsButton_Menu(&s_OverrideButton, "tclient-profile-override", Localize("Override"), 0, &Button))
+			if(DoTClientSettingsButton_Menu(&s_OverrideButton, "tclient-profile-override", Localize("Override"), 0, &Button) && !ReadOnly)
 			{
 				if(CProfile *pProfile = pSelectedProfile())
 					*pProfile = BuildProfileFromCurrentSettings();
@@ -380,17 +379,17 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientProfilesCard(const qm_card
 		const auto RenderIdentityOptions = [&](CUIRect &View) {
 			CTClientSettingsRowAllocator IdentityRows(View);
 			CUIRect Row = IdentityRows.Next();
-			if(!ReadOnly && DoTClientSettingsButton_CheckBox(&m_Dummy, "tclient-profile-dummy", Localize("Dummy"), m_Dummy, &Row))
+			if(DoTClientSettingsButton_CheckBox(&m_Dummy, "tclient-profile-dummy", Localize("Dummy"), m_Dummy, &Row) && !ReadOnly)
 				m_Dummy = 1 - m_Dummy;
 			static int s_CustomColorId = 0;
 			Row = IdentityRows.Next();
-			if(!ReadOnly && DoTClientSettingsButton_CheckBox(&s_CustomColorId, "tclient-profile-custom-colors", Localize("Custom colors"), *pCurrentUseCustomColor, &Row))
+			if(DoTClientSettingsButton_CheckBox(&s_CustomColorId, "tclient-profile-custom-colors", Localize("Custom colors"), *pCurrentUseCustomColor, &Row) && !ReadOnly)
 			{
 				*pCurrentUseCustomColor = *pCurrentUseCustomColor ? 0 : 1;
 				SetNeedSendInfo();
 			}
 			Row = IdentityRows.Next();
-			if(!ReadOnly && DoTClientSettingsButton_CheckBox(&g_Config.m_QmProfileOverwriteClanWithEmpty, "tclient-profile-overwrite-empty-clan", Localize("Overwrite clan even if empty"), g_Config.m_QmProfileOverwriteClanWithEmpty, &Row))
+			if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmProfileOverwriteClanWithEmpty, "tclient-profile-overwrite-empty-clan", Localize("Overwrite clan even if empty"), g_Config.m_QmProfileOverwriteClanWithEmpty, &Row) && !ReadOnly)
 				g_Config.m_QmProfileOverwriteClanWithEmpty = 1 - g_Config.m_QmProfileOverwriteClanWithEmpty;
 		};
 		if(Right.w > 0.0f)
@@ -410,7 +409,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientProfilesCard(const qm_card
 		static CButtonContainer s_ProfilesFile;
 		const float ProfilesButtonWidth = std::clamp(ProfileMetrics.m_LabelWidth, ProfileMetrics.m_ButtonHeight * 4.0f, ProfileMetrics.m_LabelWidth * 1.25f);
 		SelectorRect.VSplitLeft(ProfilesButtonWidth, &Button, &SelectorRect);
-		if(!ReadOnly && DoTClientSettingsButton_Menu(&s_ProfilesFile, "tclient-profiles-file", Localize("Profiles file"), 0, &Button))
+		if(DoTClientSettingsButton_Menu(&s_ProfilesFile, "tclient-profiles-file", Localize("Profiles file"), 0, &Button) && !ReadOnly)
 		{
 			char aBuf[IO_MAX_PATH_LENGTH];
 			Storage()->GetCompletePath(IStorage::TYPE_SAVE, s_aConfigDomains[ConfigDomain::TCLIENTPROFILES].m_aConfigPath, aBuf, sizeof(aBuf));
