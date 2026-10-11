@@ -4248,6 +4248,8 @@ void CMenus::Render()
 				m_SettingsScrollActive);
 			if(CanPrewarmSettings && MenuOpenFrame > 0)
 				PrewarmVisibleSettingsResources(MainView);
+			if(m_GamePage != PAGE_CALLVOTE)
+				m_QmVoteMenu.m_Loader.Suspend();
 			if(m_GamePage == PAGE_GAME)
 			{
 				CPerfTimer StageTimer;
@@ -5696,6 +5698,8 @@ void CMenus::RenderThemeSelection(CUIRect MainView, const SSettingsContentMetric
 
 void CMenus::SetActive(bool Active)
 {
+	if(!Active)
+		m_QmVoteMenu.m_Loader.Suspend();
 	if(Active != m_MenuActive)
 	{
 		if(Active)
@@ -6174,6 +6178,7 @@ void CMenus::OnReset()
 
 void CMenus::OnShutdown()
 {
+	m_QmVoteMenu.m_Loader.Suspend();
 	if(m_pScreenshotWatermarkJob)
 		m_pScreenshotWatermarkJob->Cancel();
 	m_pScreenshotWatermarkJob.reset();
@@ -7784,6 +7789,11 @@ bool CMenus::OnInput(const IInput::CEvent &Event)
 
 void CMenus::OnStateChange(int NewState, int OldState)
 {
+	m_QmVoteMenu.m_Loader.Suspend();
+	m_QmVoteMenu.m_SelectedName.clear();
+	m_QmVoteMenu.m_Status.clear();
+	m_QmVoteMenu.m_Dirty = true;
+	m_QmPlayersMenu.m_Selection.Validate(nullptr);
 	if(NewState == IClient::STATE_DEMOPLAYBACK)
 	{
 		m_DemoDisplayExpanded = false;

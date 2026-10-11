@@ -21,8 +21,10 @@
 #include <generated/client_data.h>
 
 #include <game/client/QmUi/QmIslandNotice.h>
+#include <game/client/QmUi/QmPlayersMenu.h>
 #include <game/client/QmUi/QmScroll.h>
 #include <game/client/QmUi/QmUiPerf.h>
+#include <game/client/QmUi/QmVoteMenu.h>
 #include <game/client/QmUi/SettingsCardDeck.h>
 #include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
@@ -1707,6 +1709,8 @@ protected:
 	int m_CallvoteSelectedOption;
 	int m_CallvoteSelectedPlayer;
 	ECallvoteMapSort m_CallvoteMapSort = ECallvoteMapSort::ALL;
+	SQmVoteMenuState m_QmVoteMenu;
+	SQmPlayersMenuState m_QmPlayersMenu;
 	CUi::SDropDownState m_CallvoteMapSortDropDownState;
 	CLineInputBuffered<VOTE_REASON_LENGTH> m_CallvoteReasonInput;
 	CLineInputBuffered<64> m_FilterInput;
@@ -2314,6 +2318,8 @@ protected:
 	void DrainIngameUiSnapshotTextRuntime();
 	void DrainIngameUiTextRuntime(bool AllowCurrentFrame = false);
 	void RenderServerControl(CUIRect MainView);
+	void RenderServerControlLegacy(CUIRect MainView);
+	void RenderVoteMapLibrary(CUIRect MainView);
 	void RenderUnfinishedMaps(CUIRect MainView);
 	bool RenderServerControlKick(CUIRect MainView, bool FilterSpectators, bool UpdateScroll);
 	bool RenderServerControlServer(CUIRect MainView, bool UpdateScroll);
