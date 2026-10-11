@@ -1,0 +1,36 @@
+#include <engine/client/input_sdl3.h>
+
+#include <gtest/gtest.h>
+
+TEST(Sdl3InputMapping, PreservesOrdinaryKeyboardBindings)
+{
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_A), KEY_A);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_RETURN), KEY_RETURN);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_RCTRL), KEY_RCTRL);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MODE), KEY_MODE);
+}
+
+TEST(Sdl3InputMapping, PreservesStoredMultimediaKeyNumbers)
+{
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_NEXT_TRACK), 258);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_PREVIOUS_TRACK), 259);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_STOP), 260);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_PLAY), 261);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_PLAY_PAUSE), 261);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_SELECT), 263);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_AC_BACK), KEY_AC_BACK);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_EJECT), KEY_EJECT);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_SLEEP), KEY_SLEEP);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_REWIND), KEY_AUDIOREWIND);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_FAST_FORWARD), KEY_AUDIOFASTFORWARD);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_ENDCALL), KEY_ENDCALL);
+}
+
+TEST(Sdl3InputMapping, NewOrInvalidScancodesCannotTriggerMouseOrJoystickBindings)
+{
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_RECORD), KEY_UNKNOWN);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_MEDIA_PAUSE), KEY_UNKNOWN);
+	EXPECT_EQ(SdlScancodeToKey(static_cast<SDL_Scancode>(KEY_MOUSE_1)), KEY_UNKNOWN);
+	EXPECT_EQ(SdlScancodeToKey(static_cast<SDL_Scancode>(-1)), KEY_UNKNOWN);
+	EXPECT_EQ(SdlScancodeToKey(SDL_SCANCODE_COUNT), KEY_UNKNOWN);
+}

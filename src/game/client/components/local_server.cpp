@@ -7,10 +7,16 @@
 #include <android/android_main.h>
 #endif
 
-bool CLocalServer::RunServer(const std::vector<const char *> &vpArguments)
+bool CLocalServer::RunServer(const std::vector<const char *> &vpArguments, bool ConnectWhenReady)
 {
-	if(IsServerRunning())
+	if(IsServerStarting())
 		return true;
+	if(IsServerRunning())
+	{
+		if(ConnectWhenReady)
+			Client()->Connect("localhost");
+		return true;
+	}
 	secure_random_password(m_aRconPassword, sizeof(m_aRconPassword), 16);
 	char aAuthCommand[64 + sizeof(m_aRconPassword)];
 	str_format(aAuthCommand, sizeof(aAuthCommand), "auth_add %s admin %s", DEFAULT_SAVED_RCON_USER, m_aRconPassword);
@@ -19,17 +25,13 @@ bool CLocalServer::RunServer(const std::vector<const char *> &vpArguments)
 	vpArgumentsWithAuth.push_back(aAuthCommand);
 
 #if defined(CONF_PLATFORM_ANDROID)
-	if(StartAndroidServer(vpArgumentsWithAuth.data(), vpArgumentsWithAuth.size()))
-	{
-		GameClient()->m_Menus.ForceRefreshLanPage();
-		return true;
-	}
-	else
-	{
-		Client()->AddWarning(SWarning(Localize("Server could not be started. Make sure to grant the notification permission in the app settings so the server can run in the background.")));
-		mem_zero(m_aRconPassword, sizeof(m_aRconPassword));
-		return false;
-	}
+	m_vPendingArguments.clear();
+	for(const char *pArgument : vpArgumentsWithAuth)
+		m_vPendingArguments.emplace_back(pArgument);
+	m_ConnectWhenReady = ConnectWhenReady;
+	m_StartPending = true;
+	RequestAndroidNotificationPermission();
+	return true;
 #else
 	char aBuf[IO_MAX_PATH_LENGTH];
 	Storage()->GetBinaryPath(PLAT_SERVER_EXEC, aBuf, sizeof(aBuf));
@@ -51,6 +53,8 @@ bool CLocalServer::RunServer(const std::vector<const char *> &vpArguments)
 		if(m_Process != INVALID_PROCESS)
 		{
 			GameClient()->m_Menus.ForceRefreshLanPage();
+			if(ConnectWhenReady)
+				Client()->Connect("localhost");
 			return true;
 		}
 		else
@@ -69,9 +73,49 @@ bool CLocalServer::RunServer(const std::vector<const char *> &vpArguments)
 #endif
 }
 
+bool CLocalServer::IsServerStarting() const
+{
+#if defined(CONF_PLATFORM_ANDROID)
+	return m_StartPending;
+#else
+	return false;
+#endif
+}
+
+void CLocalServer::Update()
+{
+#if defined(CONF_PLATFORM_ANDROID)
+	if(!m_StartPending)
+		return;
+	const auto Permission = AndroidNotificationPermission();
+	if(Permission == EAndroidPermissionState::PENDING || Permission == EAndroidPermissionState::UNKNOWN)
+		return;
+	m_StartPending = false;
+	std::vector<const char *> vpArguments;
+	for(const auto &Argument : m_vPendingArguments)
+		vpArguments.push_back(Argument.c_str());
+	if(Permission == EAndroidPermissionState::GRANTED && StartAndroidServer(vpArguments.data(), vpArguments.size()))
+	{
+		GameClient()->m_Menus.ForceRefreshLanPage();
+		if(m_ConnectWhenReady)
+			Client()->Connect("localhost");
+	}
+	else
+	{
+		Client()->AddWarning(SWarning(Localize("Server could not be started. Make sure to grant the notification permission in the app settings so the server can run in the background.")));
+		mem_zero(m_aRconPassword, sizeof(m_aRconPassword));
+	}
+	m_vPendingArguments.clear();
+	m_ConnectWhenReady = false;
+#endif
+}
+
 void CLocalServer::KillServer()
 {
 #if defined(CONF_PLATFORM_ANDROID)
+	m_StartPending = false;
+	m_ConnectWhenReady = false;
+	m_vPendingArguments.clear();
 	ExecuteAndroidServerCommand("shutdown");
 	GameClient()->m_Menus.ForceRefreshLanPage();
 #else

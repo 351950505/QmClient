@@ -8,7 +8,9 @@
 #include <engine/gfx/image_manipulation.h>
 #include <engine/storage.h>
 
-#include <SDL.h>
+#define SDL_MAIN_HANDLED
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 
 #include <algorithm>
 #include <cmath>
@@ -73,7 +75,7 @@ int RunQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char
 #ifdef SDL_HINT_WINDOWS_DPI_AWARENESS
 	SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
 #endif
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
+	if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 	{
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, pErrorTitle, pErrorMessage, nullptr);
 		return 1;
@@ -82,7 +84,6 @@ int RunQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char
 	{
 		~SSdlLifetime() { SDL_Quit(); }
 	} SdlLifetime;
-	SDL_StopTextInput();
 	using CWindow = std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)>;
 	using CRenderer = std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)>;
 	using CTexture = std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>;
@@ -109,23 +110,25 @@ int RunQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char
 	}
 
 	SDL_Rect Bounds{0, 0, 1280, 800};
-	if(SDL_GetDisplayUsableBounds(0, &Bounds) != 0)
+	if(!SDL_GetDisplayUsableBounds(SDL_GetPrimaryDisplay(), &Bounds))
 		Bounds = {0, 0, 1280, 800};
 	const int Width = std::max(1, std::min((int)Image.m_Width, Bounds.w * 4 / 5));
 	const int Height = std::max(1, std::min((int)Image.m_Height, Bounds.h * 4 / 5));
-	CWindow pWindow(SDL_CreateWindow("QmClient", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-				std::max(320, Width), std::max(240, Height), SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI),
+	CWindow pWindow(SDL_CreateWindow("QmClient",
+				std::max(320, Width), std::max(240, Height), SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY),
 		SDL_DestroyWindow);
 	if(!pWindow)
 		return Fail();
+	SDL_SetWindowPosition(pWindow.get(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+	SDL_StopTextInput(pWindow.get());
 	// 软件渲染器独立于游戏使用的 OpenGL/Vulkan/Metal 后端与驱动状态。
-	CRenderer pRenderer(SDL_CreateRenderer(pWindow.get(), -1, SDL_RENDERER_SOFTWARE), SDL_DestroyRenderer);
+	CRenderer pRenderer(SDL_CreateRenderer(pWindow.get(), "software"), SDL_DestroyRenderer);
 	if(!pRenderer)
 		return Fail();
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 	CTexture pTexture(SDL_CreateTexture(pRenderer.get(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, (int)Image.m_Width, (int)Image.m_Height), SDL_DestroyTexture);
-	if(!pTexture || SDL_UpdateTexture(pTexture.get(), nullptr, Image.m_pData, (int)Image.m_Width * 4) != 0)
+	if(!pTexture || !SDL_UpdateTexture(pTexture.get(), nullptr, Image.m_pData, (int)Image.m_Width * 4))
 		return Fail();
+	SDL_SetTextureScaleMode(pTexture.get(), SDL_SCALEMODE_LINEAR);
 	SDL_SetTextureBlendMode(pTexture.get(), SDL_BLENDMODE_BLEND);
 	SDL_SetWindowMinimumSize(pWindow.get(), 320, 240);
 
@@ -140,7 +143,7 @@ int RunQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char
 		int WindowWidth, WindowHeight;
 		SDL_GetWindowSize(pWindow.get(), &WindowWidth, &WindowHeight);
 		int OutputWidth, OutputHeight;
-		if(SDL_GetRendererOutputSize(pRenderer.get(), &OutputWidth, &OutputHeight) != 0)
+		if(!SDL_GetCurrentRenderOutputSize(pRenderer.get(), &OutputWidth, &OutputHeight))
 			return Fail();
 		Viewport.Resize(OutputWidth, OutputHeight);
 		const float MouseScaleX = WindowWidth > 0 ? (float)OutputWidth / WindowWidth : 1.0f;
@@ -150,8 +153,8 @@ int RunQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char
 			SDL_SetRenderDrawColor(pRenderer.get(), 24, 24, 24, 255);
 			SDL_RenderClear(pRenderer.get());
 			const auto Rect = Viewport.ImageRect();
-			const SDL_Rect Destination{(int)std::lround(Rect.m_X), (int)std::lround(Rect.m_Y), std::max(1, (int)std::lround(Rect.m_Width)), std::max(1, (int)std::lround(Rect.m_Height))};
-			if(SDL_RenderCopy(pRenderer.get(), pTexture.get(), nullptr, &Destination) != 0)
+			const SDL_FRect Destination{Rect.m_X, Rect.m_Y, std::max(1.0f, Rect.m_Width), std::max(1.0f, Rect.m_Height)};
+			if(!SDL_RenderTexture(pRenderer.get(), pTexture.get(), nullptr, &Destination))
 				return Fail();
 			SDL_RenderPresent(pRenderer.get());
 			char aTitle[IO_MAX_PATH_LENGTH + 64];
@@ -165,29 +168,31 @@ int RunQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char
 			continue;
 		switch(Event.type)
 		{
-		case SDL_QUIT:
+		case SDL_EVENT_QUIT:
 			Running = false;
 			break;
-		case SDL_WINDOWEVENT:
-			if(Event.window.event == SDL_WINDOWEVENT_CLOSE)
-				Running = false;
-			if(Event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
-			{
-				Dragging = false;
-				SDL_CaptureMouse(SDL_FALSE);
-			}
+		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+			Running = false;
+			break;
+		case SDL_EVENT_WINDOW_FOCUS_LOST:
+			Dragging = false;
+			SDL_CaptureMouse(false);
+			break;
+		case SDL_EVENT_WINDOW_EXPOSED:
+		case SDL_EVENT_WINDOW_RESIZED:
+		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 			Dirty = true;
 			break;
-		case SDL_MOUSEWHEEL:
+		case SDL_EVENT_MOUSE_WHEEL:
 		{
-			int X, Y;
+			float X, Y;
 			SDL_GetMouseState(&X, &Y);
-			const int Steps = Event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -Event.wheel.y : Event.wheel.y;
+			const int Steps = Event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -Event.wheel.integer_y : Event.wheel.integer_y;
 			Viewport.ZoomAt(std::pow(1.2f, (float)std::clamp(Steps, -20, 20)), X * MouseScaleX, Y * MouseScaleY);
 			Dirty = true;
 			break;
 		}
-		case SDL_MOUSEBUTTONDOWN:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
 			if(Event.button.button == SDL_BUTTON_LEFT)
 			{
 				if(Event.button.clicks == 2)
@@ -195,27 +200,27 @@ int RunQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char
 				else
 				{
 					Dragging = true;
-					SDL_CaptureMouse(SDL_TRUE);
+					SDL_CaptureMouse(true);
 				}
 				Dirty = true;
 			}
 			break;
-		case SDL_MOUSEBUTTONUP:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
 			if(Event.button.button == SDL_BUTTON_LEFT)
 			{
 				Dragging = false;
-				SDL_CaptureMouse(SDL_FALSE);
+				SDL_CaptureMouse(false);
 			}
 			break;
-		case SDL_MOUSEMOTION:
+		case SDL_EVENT_MOUSE_MOTION:
 			if(Dragging)
 			{
 				Viewport.Pan(Event.motion.xrel * MouseScaleX, Event.motion.yrel * MouseScaleY);
 				Dirty = true;
 			}
 			break;
-		case SDL_KEYDOWN:
-			switch(Event.key.keysym.sym)
+		case SDL_EVENT_KEY_DOWN:
+			switch(Event.key.key)
 			{
 			case SDLK_ESCAPE: Running = false; break;
 			case SDLK_0: Viewport.Fit(); break;
@@ -229,17 +234,8 @@ int RunQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char
 			}
 			Dirty = true;
 			break;
-		case SDL_DROPFILE:
-		case SDL_DROPTEXT:
-			SDL_free(Event.drop.file);
-			break;
-#if SDL_VERSION_ATLEAST(2, 0, 22)
-		case SDL_TEXTEDITING_EXT:
-			SDL_free(Event.editExt.text);
-			break;
-#endif
 		}
 	}
-	SDL_CaptureMouse(SDL_FALSE);
+	SDL_CaptureMouse(false);
 	return 0;
 }

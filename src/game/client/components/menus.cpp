@@ -5237,7 +5237,9 @@ void CMenus::RenderPopupFullscreen(CUIRect Screen)
 		}
 		else if(m_JoinTutorial.m_LocalServerState == CJoinTutorial::ELocalServerState::WAITING_START)
 		{
-			if(LastStateChangeSeconds >= 5.0f)
+			if(GameClient()->m_LocalServer.IsServerStarting())
+				m_JoinTutorial.m_StateChange = time_get_nanoseconds();
+			if(LastStateChangeSeconds >= 5.0f && !GameClient()->m_LocalServer.IsServerStarting())
 			{
 				ShowFinalErrorMessage();
 			}
@@ -5265,6 +5267,8 @@ void CMenus::RenderPopupFullscreen(CUIRect Screen)
 			Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE) ||
 			Ui()->ConsumeHotkey(CUi::HOTKEY_ENTER))
 		{
+			if(GameClient()->m_LocalServer.IsServerStarting())
+				GameClient()->m_LocalServer.KillServer();
 			m_Popup = POPUP_NONE;
 		}
 	}

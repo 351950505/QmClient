@@ -12,38 +12,38 @@
 namespace
 {
 
-struct SInlineList
-{
-	std::array<char, QmWordFilterList::INLINE_CAPACITY> m_aText{};
-	bool m_AppendFailed = false;
-};
-
-void SetList(IConsole::IResult *pResult, void *pUser)
-{
-	auto &List = *static_cast<SInlineList *>(pUser);
-	str_copy(List.m_aText.data(), pResult->GetString(0), List.m_aText.size());
-}
-
-void AppendList(IConsole::IResult *pResult, void *pUser)
-{
-	auto &List = *static_cast<SInlineList *>(pUser);
-	List.m_AppendFailed |= !QmWordFilterList::AppendInlineHexChunk(List.m_aText.data(), List.m_aText.size(), pResult->GetString(0));
-}
-
-void RoundTrip(const std::string &Original)
-{
-	auto pConsole = CreateConsole(CFGFLAG_CLIENT);
-	SInlineList List;
-	pConsole->Register("qm_block_words_list", "?r", CFGFLAG_CLIENT, SetList, &List, "");
-	pConsole->Register("qm_block_words_list_append", "s", CFGFLAG_CLIENT, AppendList, &List, "");
-	for(const std::string &Line : QmWordFilterList::SerializeInline(Original.c_str()))
+	struct SInlineList
 	{
-		EXPECT_LT(Line.size(), 16384u);
-		pConsole->ExecuteLine(Line.c_str());
+		std::array<char, QmWordFilterList::INLINE_CAPACITY> m_aText{};
+		bool m_AppendFailed = false;
+	};
+
+	void SetList(IConsole::IResult *pResult, void *pUser)
+	{
+		auto &List = *static_cast<SInlineList *>(pUser);
+		str_copy(List.m_aText.data(), pResult->GetString(0), List.m_aText.size());
 	}
-	EXPECT_FALSE(List.m_AppendFailed);
-	EXPECT_EQ(std::string(List.m_aText.data()), Original);
-}
+
+	void AppendList(IConsole::IResult *pResult, void *pUser)
+	{
+		auto &List = *static_cast<SInlineList *>(pUser);
+		List.m_AppendFailed |= !QmWordFilterList::AppendInlineHexChunk(List.m_aText.data(), List.m_aText.size(), pResult->GetString(0));
+	}
+
+	void RoundTrip(const std::string &Original)
+	{
+		auto pConsole = CreateConsole(CFGFLAG_CLIENT);
+		SInlineList List;
+		pConsole->Register("qm_block_words_list", "?r", CFGFLAG_CLIENT, SetList, &List, "");
+		pConsole->Register("qm_block_words_list_append", "s", CFGFLAG_CLIENT, AppendList, &List, "");
+		for(const std::string &Line : QmWordFilterList::SerializeInline(Original.c_str()))
+		{
+			EXPECT_LT(Line.size(), 16384u);
+			pConsole->ExecuteLine(Line.c_str());
+		}
+		EXPECT_FALSE(List.m_AppendFailed);
+		EXPECT_EQ(std::string(List.m_aText.data()), Original);
+	}
 
 }
 

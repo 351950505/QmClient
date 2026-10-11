@@ -54,7 +54,7 @@
 #include <game/client/ui_scrollregion.h>
 #include <game/localization.h>
 
-#include <SDL_audio.h>
+#include <SDL3/SDL_audio.h>
 
 #include <algorithm>
 #include <array>

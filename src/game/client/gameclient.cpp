@@ -1189,6 +1189,7 @@ void CGameClient::PrewarmSettingsRuntimeCachesDuringLoading(const char *pLoading
 
 void CGameClient::OnUpdate()
 {
+	m_LocalServer.Update();
 	// 返回客户端后先交接输入，再向组件分发这一帧的事件。
 	m_QmImeManager.SetClientOwnership(true);
 	// 字体配置变化通过统一窗口失效路径清理缓存。

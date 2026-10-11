@@ -8,10 +8,11 @@
 #include <engine/graphics.h>
 
 #ifndef BACKEND_NO_SDL
-#include <SDL_video.h>
+#include <SDL3/SDL_video.h>
 #else
 struct SDL_Window;
 typedef void *SDL_GLContext;
+typedef uint32_t SDL_DisplayID;
 #endif
 
 #include <atomic>
@@ -285,8 +286,6 @@ class CGraphicsBackend_SDL_GL : public CGraphicsBackend_Threaded
 
 	TGLBackendReadPresentedImageData m_ReadPresentedImageDataFunc;
 
-	int m_NumScreens;
-
 	SBackendCapabilities m_Capabilities;
 
 	char m_aVendorString[gs_GpuInfoStringSize] = {};
@@ -301,6 +300,10 @@ class CGraphicsBackend_SDL_GL : public CGraphicsBackend_Threaded
 	EBackendType DetectBackend() const;
 	static void ClampDriverVersion(EBackendType BackendType);
 
+	static SDL_DisplayID DisplayIdFromIndex(int Index);
+	static int IndexFromDisplayId(SDL_DisplayID DisplayId);
+	bool SetExclusiveFullscreenMode(int Index, int Width, int Height, int RefreshRate);
+
 public:
 	CGraphicsBackend_SDL_GL(TTranslateFunc &&TranslateFunc);
 	void SetBackendOverride(EBackendType BackendType) override { m_BackendOverride = BackendType; }
@@ -314,11 +317,11 @@ public:
 
 	const TTwGraphicsGpuList &GetGpus() const override;
 
-	int GetNumScreens() const override { return m_NumScreens; }
-	const char *GetScreenName(int Screen) const override;
+	int GetNumScreens() const override;
+	const char *GetScreenName(int Index) const override;
 
-	void GetVideoModes(CVideoMode *pModes, int MaxModes, int *pNumModes, float HiDPIScale, int MaxWindowWidth, int MaxWindowHeight, int ScreenId) override;
-	void GetCurrentVideoMode(CVideoMode &CurMode, float HiDPIScale, int MaxWindowWidth, int MaxWindowHeight, int ScreenId) override;
+	void GetVideoModes(CVideoMode *pModes, int MaxModes, int *pNumModes, float HiDPIScale, int MaxWindowWidth, int MaxWindowHeight, int Index) override;
+	bool GetCurrentVideoMode(CVideoMode &CurMode, float HiDPIScale, int MaxWindowWidth, int MaxWindowHeight, int Index) override;
 
 	void Minimize() override;
 	void HideWindow() override;
@@ -327,6 +330,7 @@ public:
 	bool SetWindowScreen(int Index, bool MoveToCenter, ivec2 *pDesktopSize) override;
 	bool UpdateDisplayMode(int Index, ivec2 *pDesktopSize) override;
 	int GetWindowScreen() override;
+	uint32_t GetWindowId() const override;
 	int WindowActive() override;
 	int WindowOpen() override;
 	void SetWindowGrab(bool Grab) override;

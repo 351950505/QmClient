@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12...3.27.4)
+cmake_minimum_required(VERSION 3.16...3.27.4)
 
 # In-source builds can leave generated files in the source tree and contaminate
 # later out-of-source builds.
@@ -812,7 +812,9 @@ if(CLIENT AND NOT WebP_FOUND)
   message(FATAL_ERROR "QmClient client requires WebP for bundled chat emojis and friend-link icons")
 endif()
 find_package(Rust)
-find_package(SDL2)
+if(CLIENT)
+  find_package(SDL3 REQUIRED)
+endif()
 find_package(SQLite3)
 if(DISCORD)
   find_package(DiscordSdk)
@@ -938,7 +940,7 @@ show_dependency_status("Opus" OPUS)
 show_dependency_status("Opusfile" OPUSFILE)
 show_dependency_status("PNG" PNG)
 show_dependency_status("Python3" Python3)
-show_dependency_status("SDL2" SDL2)
+show_dependency_status("SDL3" SDL3)
 show_dependency_status("SQLite3" SQLite3)
 show_dependency_status("Wavpack" WAVPACK)
 show_dependency_status("WebP" WebP)
@@ -1009,8 +1011,8 @@ endif()
 if(CLIENT AND NOT(OPUSFILE_FOUND))
   message(SEND_ERROR "You must install Opusfile to compile the ${CMAKE_PROJECT_NAME} client")
 endif()
-if(CLIENT AND NOT(SDL2_FOUND))
-  message(SEND_ERROR "You must install SDL2 to compile the ${CMAKE_PROJECT_NAME} client")
+if(CLIENT AND NOT(SDL3_FOUND))
+  message(SEND_ERROR "You must install SDL3 to compile the ${CMAKE_PROJECT_NAME} client")
 endif()
 if(TARGET_OS STREQUAL "android" AND NOT(CRYPTO_FOUND))
   message(SEND_ERROR "You must install BoringSSL to compile ${CMAKE_PROJECT_NAME} for Android")
@@ -2552,7 +2554,7 @@ set(COPY_FILES
   ${FREETYPE_COPY_FILES}
   ${OPUSFILE_COPY_FILES}
   ${PNG_COPY_FILES}
-  ${SDL2_COPY_FILES}
+  ${SDL3_COPY_FILES}
   ${SQLite3_COPY_FILES}
   ${FFMPEG_COPY_FILES}
   ${WAVPACK_COPY_FILES}
@@ -2565,7 +2567,7 @@ set(COPY_FILES
 )
 file(COPY ${COPY_FILES} DESTINATION .)
 
-set(COPY_DIRS ${SDL2_COPY_DIRS})
+set(COPY_DIRS ${SDL3_COPY_DIRS})
 file(COPY ${COPY_DIRS} DESTINATION .)
 
 ########################################################################
@@ -3102,6 +3104,8 @@ if(CLIENT)
     graphics_threaded_sprites.cpp
     input.cpp
     input.h
+    input_sdl3.h
+    audio_sdl3.h
     keynames.cpp
     keynames.h
     notifications.cpp
@@ -3910,7 +3914,7 @@ if(CLIENT)
     ${FREETYPE_LIBRARIES}
     ${GLEW_LIBRARIES}
     ${PNG_LIBRARIES}
-    ${SDL2_LIBRARIES}
+    ${SDL3_LIBRARIES}
     ${WAVPACK_LIBRARIES}
     ${FFMPEG_LIBRARIES}
     ${WebP_LIBRARIES}
@@ -3951,7 +3955,7 @@ if(CLIENT)
     ${OPUSFILE_INCLUDE_DIRS}
     ${OPUS_INCLUDE_DIRS}
     ${PNG_INCLUDE_DIRS}
-    ${SDL2_INCLUDE_DIRS}
+    ${SDL3_INCLUDE_DIRS}
     ${WAVPACK_INCLUDE_DIRS}
     ${FFMPEG_INCLUDE_DIRS}
     ${WebP_INCLUDE_DIRS}
@@ -5196,6 +5200,12 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     list(APPEND TESTS_EXTRA src/game/client/components/qmclient/screenshot_manager.cpp)
   endif()
 
+  if(CLIENT)
+    list(APPEND TESTS
+      src/test/unit/engine/input_sdl3_test.cpp
+      src/test/integration/engine/audio_sdl3_test.cpp
+    )
+  endif()
   set(TARGET_TESTRUNNER testrunner)
   add_executable(${TARGET_TESTRUNNER} EXCLUDE_FROM_ALL
     ${TESTS}
@@ -5221,6 +5231,9 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     target_link_libraries(${TARGET_TESTRUNNER} ${FREETYPE_LIBRARIES})
     target_include_directories(${TARGET_TESTRUNNER} SYSTEM PRIVATE ${FREETYPE_INCLUDE_DIRS})
   endif()
+  if(CLIENT)
+    target_link_libraries(${TARGET_TESTRUNNER} ${SDL3_LIBRARIES})
+  endif()
   if(TARGET_OS STREQUAL "windows")
     target_link_libraries(${TARGET_TESTRUNNER} bcrypt winhttp ws2_32)
   endif()
@@ -5233,14 +5246,14 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
   if(METAL)
     add_dependencies(${TARGET_TESTRUNNER} build_metal_shaders)
     target_compile_definitions(${TARGET_TESTRUNNER} PRIVATE CONF_BACKEND_METAL CONF_BACKEND_METAL_READY)
-    target_link_libraries(${TARGET_TESTRUNNER} ${SDL2_LIBRARIES} "-framework Metal" "-framework QuartzCore")
+    target_link_libraries(${TARGET_TESTRUNNER} "-framework Metal" "-framework QuartzCore")
   endif()
   if(MSVC)
     target_compile_options(${TARGET_TESTRUNNER} PRIVATE /bigobj)
   endif()
   target_include_directories(${TARGET_TESTRUNNER} SYSTEM PRIVATE
     ${GTEST_INCLUDE_DIRS}
-    ${SDL2_INCLUDE_DIRS}
+    ${SDL3_INCLUDE_DIRS}
     ${VULKAN_INCLUDE_DIRS}
   )
   if(FFMPEG_FOUND)
@@ -5991,7 +6004,6 @@ if(CLIENT AND DMGBUILD_FOUND)
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/other/icons/${CLIENT_EXECUTABLE}.icns ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/Resources/
     COMMAND ${CMAKE_COMMAND} -E copy bundle/client/Info.plist ${PROJECT_SOURCE_DIR}/other/bundle/client/PkgInfo ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:game-client> ${TARGET_TOOLS_FILES} ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/MacOS/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/ddnet-libs/sdl/${LIB_DIR}/SDL2.framework ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/Frameworks/SDL2.framework
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/ddnet-libs/discord/${LIB_DIR}/discord_game_sdk.dylib ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/Frameworks/
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/ddnet-libs/freetype/${LIB_DIR}/libfreetype.6.dylib ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/Frameworks/
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/ddnet-libs/png/${LIB_DIR}/libpng16.16.dylib ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/Frameworks/
@@ -6003,7 +6015,6 @@ if(CLIENT AND DMGBUILD_FOUND)
     COMMAND ${CMAKE_INSTALL_NAME_TOOL} -add_rpath @loader_path/../Frameworks ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/MacOS/${CLIENT_EXECUTABLE}
     COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/qmclient_scripts/darwin_fix_install_names.py ${CMAKE_OTOOL} ${CMAKE_INSTALL_NAME_TOOL} ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/Frameworks --executable ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/MacOS/${CLIENT_EXECUTABLE}
     COMMAND codesign --force --sign - ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/Frameworks/*.dylib
-    COMMAND codesign --force --sign - ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/Frameworks/SDL2.framework/Versions/A/SDL2
     COMMAND codesign --force --sign - ${DMG_TMPDIR}/${CLIENT_EXECUTABLE}.app/Contents/MacOS/${CLIENT_EXECUTABLE}
 
     # SERVER

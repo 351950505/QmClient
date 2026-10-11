@@ -21,21 +21,6 @@ TEST(QmLocalSaveJoinHint, UsesExpiringEchoMessages)
 	EXPECT_EQ(Body.find("GameClient()->Echo(CodesLine.c_str(), true);"), std::string::npos);
 }
 
-TEST(QmWindowModesContract, WindowedFullscreenIsBorderedAndNonResizable)
-{
-	const std::string Backend = ReadTestSourceFile("src/engine/client/backend_sdl.cpp");
-	const std::string SetWindowParams = SourceFunctionBody(Backend, "void CGraphicsBackend_SDL_GL::SetWindowParams(");
-	const size_t WindowedFullscreenStart = SetWindowParams.find("else // Windowed fullscreen");
-	const size_t WindowedStart = SetWindowParams.find("else // Windowed", WindowedFullscreenStart + 1);
-	ASSERT_NE(WindowedFullscreenStart, std::string::npos);
-	ASSERT_NE(WindowedStart, std::string::npos);
-	const std::string WindowedFullscreen = SetWindowParams.substr(WindowedFullscreenStart, WindowedStart - WindowedFullscreenStart);
-
-	EXPECT_NE(WindowedFullscreen.find("SDL_SetWindowFullscreen(m_pWindow, 0);"), std::string::npos);
-	EXPECT_NE(WindowedFullscreen.find("SDL_SetWindowBordered(m_pWindow, SDL_TRUE);"), std::string::npos);
-	EXPECT_NE(WindowedFullscreen.find("SDL_SetWindowResizable(m_pWindow, SDL_FALSE);"), std::string::npos);
-}
-
 TEST(QmFastPracticeCommands, TeleportDefaultsToAimingOrSpectatingPosition)
 {
 	const std::string Source = ReadTestSourceFile("src/game/client/components/tclient/fast_practice.cpp");

@@ -76,7 +76,7 @@ class ReleaseWorkflowContractTest(unittest.TestCase):
 		self.assertIn("qmclient_scripts/verify_macos_dmg.sh", workflow)
 
 	def test_android_versions_are_derived_from_qmclient_version(self) -> None:
-		script = (REPO_ROOT / "scripts/android/cmake_android.sh").read_text(encoding="utf-8")
+		script = (REPO_ROOT / "qmclient_scripts/android/cmake_android.sh").read_text(encoding="utf-8")
 
 		self.assertIn("QMCLIENT_VERSION=", script)
 		self.assertIn("QMCLIENT_VERSION_CODE", script)

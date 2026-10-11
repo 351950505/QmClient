@@ -33,6 +33,7 @@ public:
 	bool SwitchWindowScreen(int Index, bool MoveToCenter) override { throw std::logic_error("unexpected graphics boundary: SwitchWindowScreen"); }
 	bool SetVSync(bool State) override { throw std::logic_error("unexpected graphics boundary: SetVSync"); }
 	bool SetMultiSampling(uint32_t ReqMultiSamplingCount, uint32_t &MultiSamplingCountBackend) override { throw std::logic_error("unexpected graphics boundary: SetMultiSampling"); }
+	uint32_t GetWindowId() const override { return 0; }
 	int GetWindowScreen() override { throw std::logic_error("unexpected graphics boundary: GetWindowScreen"); }
 	void Move(int x, int y) override { throw std::logic_error("unexpected graphics boundary: Move"); }
 	bool Resize(int w, int h, int RefreshRate) override { throw std::logic_error("unexpected graphics boundary: Resize"); }
@@ -289,7 +290,7 @@ public:
 	void TakeScreenshot(const char *pFilename, FScreenshotCallback pfnCallback, FScreenshotProcessor pfnProcessor = nullptr) override { throw std::logic_error("unexpected graphics boundary: TakeScreenshot"); }
 	void TakeCustomScreenshot(const char *pFilename) override { throw std::logic_error("unexpected graphics boundary: TakeCustomScreenshot"); }
 	int GetVideoModes(CVideoMode *pModes, int MaxModes, int Screen) override { throw std::logic_error("unexpected graphics boundary: GetVideoModes"); }
-	void GetCurrentVideoMode(CVideoMode &CurMode, int Screen) override { throw std::logic_error("unexpected graphics boundary: GetCurrentVideoMode"); }
+	bool GetCurrentVideoMode(CVideoMode &CurMode, int Screen) override { throw std::logic_error("unexpected graphics boundary: GetCurrentVideoMode"); }
 	void Swap() override { throw std::logic_error("unexpected graphics boundary: Swap"); }
 	int GetNumScreens() const override { throw std::logic_error("unexpected graphics boundary: GetNumScreens"); }
 	const char *GetScreenName(int Screen) const override { throw std::logic_error("unexpected graphics boundary: GetScreenName"); }

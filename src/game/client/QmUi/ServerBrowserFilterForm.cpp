@@ -54,12 +54,13 @@ void CMenus::RenderServerbrowserFilterForm(CUIRect &View)
 
 	DrawLabel(Localize("Common filters"));
 	DoSettingsToggleGroup(-1, -1, -1, View, {
-		Entry(&g_Config.m_BrFilterEmpty, Localizable("Has people playing")),
-		Entry(&g_Config.m_BrFilterFull, Localizable("Server not full")),
-		Entry(&g_Config.m_BrFilterFriends, Localizable("Show friends only")),
-		Entry(&g_Config.m_BrFilterPw, Localizable("No password")),
-		Entry(&g_Config.m_BrFilterLogin, Localizable("No login required")),
-	}, Metrics);
+							Entry(&g_Config.m_BrFilterEmpty, Localizable("Has people playing")),
+							Entry(&g_Config.m_BrFilterFull, Localizable("Server not full")),
+							Entry(&g_Config.m_BrFilterFriends, Localizable("Show friends only")),
+							Entry(&g_Config.m_BrFilterPw, Localizable("No password")),
+							Entry(&g_Config.m_BrFilterLogin, Localizable("No login required")),
+						},
+		Metrics);
 
 	View.HSplitTop(Metrics.m_SectionGap, nullptr, &View);
 	const char *pGameTypes = Localize("Game types:");
@@ -120,9 +121,10 @@ void CMenus::RenderServerbrowserFilterForm(CUIRect &View)
 
 	DrawSection(Localize("Player count"));
 	DoSettingsToggleGroup(-1, -1, -1, View, {
-		Entry(&g_Config.m_BrFilterSpectators, Localizable("Count players only")),
-		Entry(&g_Config.m_BrFilterConnectingPlayers, Localizable("Filter connecting players")),
-	}, Metrics);
+							Entry(&g_Config.m_BrFilterSpectators, Localizable("Count players only")),
+							Entry(&g_Config.m_BrFilterConnectingPlayers, Localizable("Filter connecting players")),
+						},
+		Metrics);
 
 	if(ServerBrowser()->CommunityCache().AnyRanksAvailable())
 	{

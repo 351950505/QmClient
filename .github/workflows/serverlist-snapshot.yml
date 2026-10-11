@@ -2,7 +2,7 @@ name: Serverlist snapshot
 
 on:
   push:
-    branches: [codex/serverlist-snapshot-publisher]
+    branches: [master]
     paths:
       - .github/workflows/serverlist-snapshot.yml
       - qmclient_scripts/serverlist_mirror/collect_snapshot.py

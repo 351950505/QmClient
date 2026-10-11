@@ -11,7 +11,8 @@
 
 #include <engine/shared/protocol.h>
 
-#include <SDL_audio.h>
+#include <SDL3/SDL_audio.h>
+#include <SDL3/SDL_events.h>
 
 #include <array>
 #include <atomic>
@@ -154,8 +155,12 @@ class CRClientVoice
 	std::atomic<bool> m_ServerAddrValid = false;
 	char m_aServerAddrStr[256] = {0};
 
-	SDL_AudioDeviceID m_CaptureDevice = 0;
-	SDL_AudioDeviceID m_OutputDevice = 0;
+	SDL_AudioStream *m_pCaptureStream = nullptr;
+	std::atomic<SDL_AudioDeviceID> m_CaptureLogicalDevice = 0;
+	std::atomic<bool> m_CaptureRemoved = false;
+	SDL_AudioStream *m_pOutputStream = nullptr;
+	std::atomic<SDL_AudioDeviceID> m_OutputLogicalDevice = 0;
+	std::atomic<bool> m_OutputRemoved = false;
 	SDL_AudioSpec m_CaptureSpec = {};
 	SDL_AudioSpec m_OutputSpec = {};
 	char m_aAudioBackend[64] = {0};
@@ -182,8 +187,9 @@ class CRClientVoice
 	std::atomic<bool> m_CaptureUnavailable = false;
 	std::atomic<bool> m_OutputUnavailable = false;
 #if defined(CONF_PLATFORM_ANDROID)
-	bool m_AndroidRecordPermissionKnown = false;
-	bool m_AndroidRecordPermissionGranted = false;
+	bool m_AndroidRecordPermissionRequested = false;
+	std::atomic<bool> m_AndroidRecordPermissionKnown = false;
+	std::atomic<bool> m_AndroidRecordPermissionGranted = false;
 #endif
 	float m_HpfPrevIn = 0.0f;
 	float m_HpfPrevOut = 0.0f;
@@ -281,6 +287,10 @@ class CRClientVoice
 	void UpdateVoiceTransport() NO_THREAD_SAFETY_ANALYSIS;
 	bool SendVoicePacket(const uint8_t *pData, size_t Size) NO_THREAD_SAFETY_ANALYSIS;
 	bool EnsureAudio() NO_THREAD_SAFETY_ANALYSIS;
+	bool EnsureAudioSubsystem();
+	void CloseCaptureStream();
+	void CloseOutputStream();
+	static bool SDLCALL AudioDeviceEvent(void *pUser, SDL_Event *pEvent);
 	void UpdateServerAddrConfig();
 	bool UpdateContext();
 	void UpdateClientSnapshot(bool Force = false);
@@ -308,8 +318,7 @@ class CRClientVoice
 	void ResetPeer(SVoicePeer &Peer);
 	bool FindMinLiveQueuedSeq(const SVoicePeer &Peer, uint16_t &OutSeq) const;
 	bool SeedPeerNextSeq(SVoicePeer &Peer);
-	static void SDLAudioCallback(void *pUserData, Uint8 *pStream, int Len);
-	const char *FindDeviceName(bool Capture, const char *pDesired) const;
+	static void SDLCALL SDLAudioCallback(void *pUserData, SDL_AudioStream *pStream, int AdditionalBytes, int TotalBytes);
 	void StartWorker();
 	void StopWorker();
 	void WorkerLoop() NO_THREAD_SAFETY_ANALYSIS;

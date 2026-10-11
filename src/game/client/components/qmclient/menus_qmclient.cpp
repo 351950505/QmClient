@@ -74,7 +74,7 @@
 #include <game/localization.h>
 #include <game/version.h>
 
-#include <SDL_audio.h>
+#include <SDL3/SDL_audio.h>
 
 #include <algorithm>
 #include <array>

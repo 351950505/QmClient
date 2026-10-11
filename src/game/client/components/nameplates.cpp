@@ -2313,7 +2313,7 @@ static void BuildNamePlatePreviewData(CGameClient &This, int DummyIdx, CNamePlat
 	const int LocalClientId = This.m_aLocalIds[DummyIdx];
 	const bool InGame = This.Client()->State() == IClient::STATE_ONLINE || This.Client()->State() == IClient::STATE_DEMOPLAYBACK;
 	const bool HasLocalClient = InGame &&
-		LocalClientId >= 0 && LocalClientId < MAX_CLIENTS && This.m_aClients[LocalClientId].m_Active;
+				    LocalClientId >= 0 && LocalClientId < MAX_CLIENTS && This.m_aClients[LocalClientId].m_Active;
 	Data.m_Color = NameplateTextColor(This, HasLocalClient ? LocalClientId : -1);
 	Data.m_Color.a = 1.0f;
 	const bool IsOwnPreview = DummyIdx == g_Config.m_ClDummy;

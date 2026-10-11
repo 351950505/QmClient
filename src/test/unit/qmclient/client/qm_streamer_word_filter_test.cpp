@@ -152,11 +152,11 @@ TEST(QmStreamerWordFilter, HandlesEmptyAndInvalidUtf8WithoutJoiningAcrossIt)
 namespace
 {
 
-class QmStreamerExternalWords : public testing::Test
-{
-	void SetUp() override { QmStreamerWordFilter::SetAdditionalWords({}); }
-	void TearDown() override { QmStreamerWordFilter::SetAdditionalWords({}); }
-};
+	class QmStreamerExternalWords : public testing::Test
+	{
+		void SetUp() override { QmStreamerWordFilter::SetAdditionalWords({}); }
+		void TearDown() override { QmStreamerWordFilter::SetAdditionalWords({}); }
+	};
 
 }
 

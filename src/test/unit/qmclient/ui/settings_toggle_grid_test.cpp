@@ -223,8 +223,7 @@ TEST(SettingsToggleGrid, ShortLabelFitsOneTextButtonWithoutASeparateControlRow)
 
 TEST(SettingsToggleGrid, WrappedButtonLabelExpandsItsRowAndKeepsThePadding)
 {
-	std::array<SSettingsToggleSize, 2> aItems = {{
-		ResolveSettingsToggleButtonSize(100, 12, 20, 8, 3),
+	std::array<SSettingsToggleSize, 2> aItems = {{ResolveSettingsToggleButtonSize(100, 12, 20, 8, 3),
 		ResolveSettingsToggleButtonSize(100, 40, 20, 8, 3)}};
 	const auto Grid = ResolveSettingsToggleGrid(240, aItems, 8);
 	const CUIRect Area{10, 20, 240, Grid.Height()};

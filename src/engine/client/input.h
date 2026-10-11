@@ -7,11 +7,16 @@
 #include <engine/input.h>
 #include <engine/keys.h>
 
-#include <SDL_events.h>
-#include <SDL_joystick.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_joystick.h>
 
+#include <deque>
 #include <string>
 #include <vector>
+
+#if defined(CONF_FAMILY_WINDOWS)
+struct tagMSG;
+#endif
 
 class IEngineGraphics;
 class IClient;
@@ -77,6 +82,8 @@ private:
 	float GetJoystickDeadzone();
 
 	bool m_InputGrabbed;
+	bool m_JoystickInitialized = false;
+	SDL_Window *Window() const;
 
 	bool m_MouseFocus;
 
@@ -125,7 +132,19 @@ private:
 
 	char m_aDropFile[IO_MAX_PATH_LENGTH];
 
-	void ProcessSystemMessage(SDL_SysWMmsg *pMsg);
+#if defined(CONF_FAMILY_WINDOWS)
+	struct SWindowsMessage
+	{
+		void *m_pWindow;
+		uint32_t m_Message;
+		uintptr_t m_WParam;
+		intptr_t m_LParam;
+	};
+	std::deque<SWindowsMessage> m_QueuedWindowsMessages;
+	uint32_t m_WindowsMessageEvent = 0;
+	void ProcessSystemMessage(tagMSG *pMsg);
+	static bool SDLCALL WindowsMessageHook(void *pUser, tagMSG *pMsg);
+#endif
 
 public:
 	CInput();

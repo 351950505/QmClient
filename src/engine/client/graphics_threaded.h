@@ -19,6 +19,8 @@
 #include <type_traits>
 #include <vector>
 
+struct SDL_Window;
+
 constexpr int CMD_BUFFER_DATA_BUFFER_SIZE = 1024 * 1024 * 2;
 constexpr int CMD_BUFFER_CMD_BUFFER_SIZE = 1024 * 256;
 
@@ -722,6 +724,7 @@ public:
 		SCommand_WindowCreateNtf() :
 			SCommand(CMD_WINDOW_CREATE_NTF) {}
 
+		SDL_Window *m_pWindow = nullptr;
 		uint32_t m_WindowId;
 	};
 
@@ -880,11 +883,11 @@ public:
 
 	virtual const TTwGraphicsGpuList &GetGpus() const = 0;
 
-	virtual void GetVideoModes(CVideoMode *pModes, int MaxModes, int *pNumModes, float HiDPIScale, int MaxWindowWidth, int MaxWindowHeight, int Screen) = 0;
-	virtual void GetCurrentVideoMode(CVideoMode &CurMode, float HiDPIScale, int MaxWindowWidth, int MaxWindowHeight, int Screen) = 0;
+	virtual void GetVideoModes(CVideoMode *pModes, int MaxModes, int *pNumModes, float HiDPIScale, int MaxWindowWidth, int MaxWindowHeight, int Index) = 0;
+	virtual bool GetCurrentVideoMode(CVideoMode &CurMode, float HiDPIScale, int MaxWindowWidth, int MaxWindowHeight, int Index) = 0;
 
 	virtual int GetNumScreens() const = 0;
-	virtual const char *GetScreenName(int Screen) const = 0;
+	virtual const char *GetScreenName(int Index) const = 0;
 
 	virtual void Minimize() = 0;
 	virtual void HideWindow() = 0;
@@ -893,6 +896,7 @@ public:
 	virtual bool SetWindowScreen(int Index, bool MoveToCenter, ivec2 *pDesktopSize) = 0;
 	virtual bool UpdateDisplayMode(int Index, ivec2 *pDesktopSize) = 0;
 	virtual int GetWindowScreen() = 0;
+	virtual uint32_t GetWindowId() const = 0;
 	virtual int WindowActive() = 0;
 	virtual int WindowOpen() = 0;
 	virtual void SetWindowGrab(bool Grab) = 0;
@@ -1537,7 +1541,7 @@ public:
 	void IndicesNumRequiredNotify(unsigned int RequiredIndicesCount) override;
 
 	int GetNumScreens() const override;
-	const char *GetScreenName(int Screen) const override;
+	const char *GetScreenName(int Index) const override;
 
 	void Minimize() override;
 	void HideWindow() override;
@@ -1563,6 +1567,7 @@ public:
 	// 创建/重建引擎内部的空纹理（槽位 0）。设备重建后必须重新创建。
 	void CreateNullTexture();
 	int GetWindowScreen() override;
+	uint32_t GetWindowId() const override;
 
 	void WindowDestroyNtf(uint32_t WindowId) override;
 	void WindowCreateNtf(uint32_t WindowId) override;
@@ -1586,8 +1591,8 @@ public:
 	bool SetVSync(bool State) override;
 	bool SetMultiSampling(uint32_t ReqMultiSamplingCount, uint32_t &MultiSamplingCountBackend) override;
 
-	int GetVideoModes(CVideoMode *pModes, int MaxModes, int Screen) override;
-	void GetCurrentVideoMode(CVideoMode &CurMode, int Screen) override;
+	int GetVideoModes(CVideoMode *pModes, int MaxModes, int Index) override;
+	bool GetCurrentVideoMode(CVideoMode &CurMode, int Index) override;
 
 	// synchronization
 	void InsertSignal(CSemaphore *pSemaphore) override;
