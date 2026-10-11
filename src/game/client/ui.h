@@ -1330,7 +1330,7 @@ public:
 		void Reset();
 		void YesNoButtons();
 	};
-	void ShowPopupConfirm(float X, float Y, SConfirmPopupContext *pContext);
+	void ShowPopupConfirm(float X, float Y, SConfirmPopupContext *pContext, bool CenterInViewport = true);
 
 	struct SSelectionPopupContext : public SPopupMenuId
 	{

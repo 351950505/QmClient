@@ -126,6 +126,7 @@ struct SSettingsToggleEntry
 	const char *m_pLabel;
 	const void *m_pId = nullptr;
 	int m_Mask = 0;
+	const char *m_pTooltip = nullptr;
 };
 
 inline bool SettingsToggleEntryValue(const SSettingsToggleEntry &Entry)

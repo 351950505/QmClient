@@ -280,6 +280,8 @@ bool CMenus::DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect
 	{
 		if(pOverrideTooltip != nullptr)
 			Context.m_pTooltips->DoToolTip(pId, &Button, pOverrideTooltip);
+		else if(Entry.m_pTooltip != nullptr)
+			Context.m_pTooltips->DoToolTip(pId, &Button, Entry.m_pTooltip);
 		else
 			Context.m_pTooltips->DoSettingsToolTipForConfig(pId, &Button, Entry.m_pValue, &Label);
 	}
