@@ -4545,7 +4545,8 @@ int CGraphics_Threaded::GetWindowScreen()
 
 uint32_t CGraphics_Threaded::GetWindowId() const
 {
-	return m_pBackend->GetWindowId();
+	// 输入模块可能在图形后端关闭后才清理 SDL 文本输入。
+	return m_pBackend == nullptr ? 0 : m_pBackend->GetWindowId();
 }
 
 void CGraphics_Threaded::WindowDestroyNtf(uint32_t WindowId)
