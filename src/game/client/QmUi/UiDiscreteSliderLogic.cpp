@@ -26,6 +26,14 @@ namespace ui_widget
 		return {Position(Normalized) - Size * 0.5f, m_Track.y + (m_Track.h - Size) * 0.5f, Size, Size};
 	}
 
+	CUIRect SDiscreteSliderGeometry::FillRect(float Normalized, float Emphasis) const
+	{
+		CUIRect Fill = m_Track;
+		// 填充止于当前旋钮前沿，悬停放大后也不从半透明旋钮内透出。
+		Fill.w = std::clamp(KnobRect(Normalized, Emphasis).x - Fill.x, 0.0f, Fill.w);
+		return Fill;
+	}
+
 	SDiscreteSliderGeometry ResolveDiscreteSliderGeometry(const CUIRect &Rect, float UiScale)
 	{
 		SDiscreteSliderGeometry Geometry;
@@ -36,7 +44,8 @@ namespace ui_widget
 		Geometry.m_KnobSize = std::min(18.0f * Scale, Rect.h / 1.12f);
 		// 两端预留悬停放大后的半径，绘制与鼠标换算共用圆心行程。
 		const float Padding = Geometry.m_KnobSize * 0.56f;
-		const float TrackHeight = Geometry.m_KnobSize * (6.0f / 7.0f);
+		// 轨道明显细于旋钮，避免左端圆帽看起来像另一个旋钮。
+		const float TrackHeight = Geometry.m_KnobSize * 0.5f;
 		Geometry.m_TravelStart = Rect.x + Padding;
 		Geometry.m_TravelWidth = std::max(0.0f, Rect.w - Padding * 2.0f);
 		// 胶囊延伸到端点旋钮外缘，圆点与鼠标换算仍使用圆心行程。

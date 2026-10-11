@@ -214,8 +214,8 @@ TEST(DiscreteSliderGeometry, DrawnStopsMatchClicksAtDifferentSizesAndOrigins)
 		SCOPED_TRACE(Rect.w);
 		const auto Geometry = ui_widget::ResolveDiscreteSliderGeometry(Rect);
 		ASSERT_TRUE(Geometry.IsUsable());
-		EXPECT_LT(Geometry.m_Track.h, Geometry.m_KnobSize);
-		EXPECT_GT(Geometry.m_Track.h, Geometry.m_KnobSize * 0.8f);
+		EXPECT_LE(Geometry.m_Track.h, Geometry.m_KnobSize * 0.5f);
+		EXPECT_GT(Geometry.m_Track.h, Geometry.m_DotSize);
 		const CUIRect FirstKnob = Geometry.KnobRect(0.0f, 1.0f);
 		const CUIRect LastKnob = Geometry.KnobRect(1.0f, 1.0f);
 		EXPECT_GE(FirstKnob.x, Rect.x - 0.001f);
@@ -259,6 +259,54 @@ TEST(DiscreteSliderGeometry, UiScaleKeepsKnobInsideRectAndStopMappingStable)
 			Input.m_MouseX = Geometry.Position(Stop / 6.0f);
 			Input.m_Hovered = Input.m_Pressed = Input.m_Down = true;
 			EXPECT_EQ(ui_widget::UpdateDiscreteSlider(State, Geometry, Input, -1, 0, 6).m_Value, Stop);
+		}
+	}
+}
+
+TEST(DiscreteSliderGeometry, FillStopsBeforeKnobAtEveryLevelAndEmphasis)
+{
+	const CUIRect Rect{10.0f, 20.0f, 240.0f, 24.0f};
+	for(float Scale : {0.78f, 1.0f, 1.25f, 2.0f})
+	{
+		const auto Geometry = ui_widget::ResolveDiscreteSliderGeometry(Rect, Scale);
+		for(float Emphasis : {0.0f, 0.5f, 1.0f})
+		{
+			for(int Stop = 0; Stop <= 6; ++Stop)
+			{
+				SCOPED_TRACE(::testing::Message() << "scale=" << Scale << " emphasis=" << Emphasis << " stop=" << Stop);
+				const float Normalized = ui_widget::DiscreteSliderNormalizedValue(Stop, 0, 6);
+				const CUIRect Fill = Geometry.FillRect(Normalized, Emphasis);
+				const CUIRect Knob = Geometry.KnobRect(Normalized, Emphasis);
+				EXPECT_FLOAT_EQ(Fill.x, Geometry.m_Track.x);
+				EXPECT_FLOAT_EQ(Fill.y, Geometry.m_Track.y);
+				EXPECT_FLOAT_EQ(Fill.h, Geometry.m_Track.h);
+				if(Stop == 0)
+					EXPECT_FLOAT_EQ(Fill.w, 0.0f);
+				else
+				{
+					EXPECT_GT(Fill.w, 0.0f);
+					EXPECT_NEAR(Fill.x + Fill.w, Knob.x, 0.001f);
+				}
+			}
+		}
+	}
+}
+
+TEST(DiscreteSliderGeometry, NarrowTrackFillStaysNonnegativeAndOutsideKnob)
+{
+	const auto Geometry = ui_widget::ResolveDiscreteSliderGeometry({0.0f, 0.0f, 28.0f, 16.0f});
+	for(float Emphasis : {0.0f, 0.5f, 1.0f})
+	{
+		for(int Stop = 0; Stop <= 6; ++Stop)
+		{
+			SCOPED_TRACE(::testing::Message() << "emphasis=" << Emphasis << " stop=" << Stop);
+			const float Normalized = ui_widget::DiscreteSliderNormalizedValue(Stop, 0, 6);
+			const CUIRect Fill = Geometry.FillRect(Normalized, Emphasis);
+			const CUIRect Knob = Geometry.KnobRect(Normalized, Emphasis);
+			EXPECT_GE(Fill.w, 0.0f);
+			EXPECT_LE(Fill.w, Geometry.m_Track.w);
+			if(Fill.w > 0.0f)
+				EXPECT_LE(Fill.x + Fill.w, Knob.x + 0.001f);
 		}
 	}
 }
