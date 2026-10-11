@@ -3,8 +3,10 @@
 #include <base/mem.h>
 #include <base/str.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace
@@ -182,24 +184,32 @@ namespace
 		CWordTrie()
 		{
 			for(const char *pWord : s_apWords)
+				Add(pWord);
+		}
+
+		void Add(const char *pWord)
+		{
+			size_t Node = 0;
+			bool Latin = true;
+			for(const char *pCursor = pWord; *pCursor;)
 			{
-				size_t Node = 0;
-				bool Latin = true;
-				for(const char *pCursor = pWord; *pCursor;)
+				const int Code = Normalize(str_utf8_decode(&pCursor));
+				if(IsSeparator(Code))
+					continue;
+				Latin &= IsWordCharacter(Code);
+				const auto It = m_vNodes[Node].m_Children.find(Code);
+				if(It != m_vNodes[Node].m_Children.end())
+					Node = It->second;
+				else
 				{
-					const int Code = Normalize(str_utf8_decode(&pCursor));
-					Latin &= IsWordCharacter(Code);
-					const auto It = m_vNodes[Node].m_Children.find(Code);
-					if(It != m_vNodes[Node].m_Children.end())
-						Node = It->second;
-					else
-					{
-						const size_t Next = m_vNodes.size();
-						m_vNodes[Node].m_Children.emplace(Code, Next);
-						m_vNodes.emplace_back();
-						Node = Next;
-					}
+					const size_t Next = m_vNodes.size();
+					m_vNodes[Node].m_Children.emplace(Code, Next);
+					m_vNodes.emplace_back();
+					Node = Next;
 				}
+			}
+			if(Node != 0)
+			{
 				m_vNodes[Node].m_Terminal = true;
 				m_vNodes[Node].m_RequiresWordBoundary = Latin;
 			}
@@ -245,6 +255,37 @@ namespace
 			return pEnd;
 		}
 	};
+
+	struct SSharedFilter
+	{
+		CWordTrie m_Trie;
+		std::vector<std::string> m_vAdditionalWords;
+		uint64_t m_Revision = 1;
+	};
+
+	SSharedFilter &SharedFilter()
+	{
+		static SSharedFilter s_Filter;
+		return s_Filter;
+	}
+}
+
+void QmStreamerWordFilter::SetAdditionalWords(const std::vector<std::string> &vWords)
+{
+	auto &Filter = SharedFilter();
+	if(Filter.m_vAdditionalWords == vWords)
+		return;
+	CWordTrie Trie;
+	for(const std::string &Word : vWords)
+		Trie.Add(Word.c_str());
+	Filter.m_Trie = std::move(Trie);
+	Filter.m_vAdditionalWords = vWords;
+	++Filter.m_Revision;
+}
+
+uint64_t QmStreamerWordFilter::Revision()
+{
+	return SharedFilter().m_Revision;
 }
 
 bool QmStreamerWordFilter::Filter(char *pText, bool Enabled)
@@ -252,18 +293,19 @@ bool QmStreamerWordFilter::Filter(char *pText, bool Enabled)
 	if(!Enabled || pText == nullptr || pText[0] == '\0')
 		return false;
 
-	// 初始化后词表只读；每次过滤直接在调用方缓冲区压缩，不分配临时字符数组。
-	static const CWordTrie s_Trie;
+	// 过滤只读取已发布的词表；直接在调用方缓冲区压缩。
+	const CWordTrie &Trie = SharedFilter().m_Trie;
 	bool Changed = false;
 	const char *pRead = pText;
 	char *pWrite = pText;
 	while(*pRead)
 	{
-		if(const char *pEnd = s_Trie.MatchEnd(pText, pRead))
+		if(const char *pEnd = Trie.MatchEnd(pText, pRead))
 		{
-			// 最短规则为三个 ASCII 字节或两个汉字，固定三个星号不会增长输入。
-			mem_copy(pWrite, "***", 3);
-			pWrite += 3;
+			// 外部词表可有短 ASCII 词；替换长度不能超过命中片段。
+			const size_t ReplacementLength = std::min(size_t{3}, static_cast<size_t>(pEnd - pRead));
+			mem_copy(pWrite, "***", ReplacementLength);
+			pWrite += ReplacementLength;
 			pRead = pEnd;
 			Changed = true;
 		}

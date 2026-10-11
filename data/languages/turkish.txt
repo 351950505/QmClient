@@ -52,6 +52,9 @@
 %d teams
 == %d takım
 
+%d words loaded
+== %d kelime yüklendi
+
 %d. %s | main: %s | dummy: %s
 == %d. %s | ana oyuncu: %s | kukla: %s
 
@@ -820,6 +823,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == Yardım balonlarının görünümü
+
+Append saved word list chunk
+== Kaydedilmiş kelime listesi parçasını ekle
 
 Append to log file instead of overwriting
 == Günlük dosyasının üzerine yazmak yerine sonuna ekle
@@ -1763,6 +1769,12 @@ Candidate files
 Cannot join the target player's team
 == Bu oyuncunun takımına katılınamıyor
 
+Cannot open word list file. Previous words remain active.
+== Kelime listesi dosyası açılamıyor. Önceki kelimeler etkin kalır.
+
+Cannot read complete word list file. Previous words remain active.
+== Kelime listesi dosyası tamamen okunamıyor. Önceki kelimeler etkin kalır.
+
 Cannot swap: the other player is not in your team
 == Takas yapılamıyor: diğer oyuncu takımında değil
 
@@ -1918,6 +1930,9 @@ Chat width
 
 Chat word filtering
 == Sohbet kelime filtreleme
+
+Chat word list file
+== Sohbet kelime listesi dosyası
 
 Cheats are disabled on this server
 == Bu sunucuda hileler devre dışı
@@ -6113,6 +6128,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == Yapılandırma yolu geçersiz veya yinelenmiş.
 
+Invalid quoted word. Use one word per line.
+== Tırnak içindeki kelime geçersiz. Her satıra bir kelime yazın.
+
 Invalid save number. Use a number from the save list.
 == Geçersiz kayıt numarası. Listedeki bir numarayı kullanın.
 
@@ -9632,6 +9650,9 @@ Reload the map while preserving the state of tees and teams
 Reload the maplist
 == Harita listesini yeniden yükle
 
+Reload word list files
+== Kelime listesi dosyalarını yeniden yükle
+
 Reloaded images.
 == Görseller yeniden yüklendi.
 
@@ -12548,6 +12569,9 @@ Stop the current demo
 Streamer mode
 == Yayıncı modu
 
+Streamer word list file
+== Yayıncı modu kelime listesi dosyası
+
 Strength icons assets
 == Güç simgeleri varlıkları
 
@@ -14258,6 +14282,9 @@ Used by active shared text and numeric input fields
 Uses the active action with the current aiming position.
 == Mevcut nişan alma konumuyla etkin eylemi kullanır.
 
+UTF-8 text, one word per line (max 2 MiB).
+== UTF-8 metni, satır başına bir kelime (en fazla 2 MiB).
+
 v = Velocity
 == v = Hız
 
@@ -14824,6 +14851,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == Kelime filtresi eylemi: 0=eşleşen kelimeleri değiştir, 1=tüm mesajı gizle
+
+Word list entries cannot contain control characters.
+== Kelimeler kontrol karakterleri içeremez.
+
+Word list exceeds 100000 unique entries.
+== Kelime listesi 100000 benzersiz kelime sınırını aşıyor.
+
+Word list file
+== Kelime listesi dosyası
+
+Word list file exceeds 2 MiB.
+== Kelime listesi dosyası 2 MiB sınırını aşıyor.
+
+Word list must be UTF-8 text without NUL characters.
+== Kelime listesi NUL karakteri içermeyen UTF-8 metni olmalıdır.
 
 Write local console contents to a text file
 == Yerel konsol içeriğini bir metin dosyasına yaz

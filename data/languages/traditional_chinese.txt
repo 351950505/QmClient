@@ -52,6 +52,9 @@
 %d teams
 == %d 個隊伍
 
+%d words loaded
+== 已載入 %d 個詞條
+
 %d. %s | main: %s | dummy: %s
 == %d. %s | 本體：%s | 分身：%s
 
@@ -820,6 +823,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == 提示氣泡外觀
+
+Append saved word list chunk
+== 附加已儲存的詞表片段
 
 Append to log file instead of overwriting
 == 追加到日誌文件而不是每次覆蓋
@@ -1763,6 +1769,12 @@ Candidate files
 Cannot join the target player's team
 == 無法加入目標玩家的隊伍
 
+Cannot open word list file. Previous words remain active.
+== 無法開啟詞表檔案，繼續使用上次成功載入的詞條。
+
+Cannot read complete word list file. Previous words remain active.
+== 無法完整讀取詞表檔案，繼續使用上次成功載入的詞條。
+
 Cannot swap: the other player is not in your team
 == 無法交換：對方不在你的隊伍中
 
@@ -1918,6 +1930,9 @@ Chat width
 
 Chat word filtering
 == 聊天屏蔽詞過濾
+
+Chat word list file
+== 聊天屏蔽詞檔案
 
 Cheats are disabled on this server
 == 本伺服器已關閉作弊功能
@@ -6113,6 +6128,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == 配置路徑無效或重複。
 
+Invalid quoted word. Use one word per line.
+== 帶引號的詞條格式錯誤，請每行填寫一個詞。
+
 Invalid save number. Use a number from the save list.
 == 存檔序號無效，請使用清單中的序號。
 
@@ -9632,6 +9650,9 @@ Reload the map while preserving the state of tees and teams
 Reload the maplist
 == 重新加載地圖列表
 
+Reload word list files
+== 重新載入詞表檔案
+
 Reloaded images.
 == 已重新加載圖像。
 
@@ -12548,6 +12569,9 @@ Stop the current demo
 Streamer mode
 == 直播模式
 
+Streamer word list file
+== 主播模式詞表檔案
+
 Strength icons assets
 == 強弱圖標資源
 
@@ -14258,6 +14282,9 @@ Used by active shared text and numeric input fields
 Uses the active action with the current aiming position.
 == 使用當前動作配合目前的瞄準位置。
 
+UTF-8 text, one word per line (max 2 MiB).
+== UTF-8 文字，每行一個詞（最大 2 MiB）。
+
 v = Velocity
 == v = 速度
 
@@ -14824,6 +14851,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == 屏蔽詞操作：0=替換匹配詞，1=隱藏整條訊息
+
+Word list entries cannot contain control characters.
+== 詞條不能包含控制字元。
+
+Word list exceeds 100000 unique entries.
+== 詞表超過 100000 個不重複詞條。
+
+Word list file
+== 詞表檔案
+
+Word list file exceeds 2 MiB.
+== 詞表檔案超過 2 MiB。
+
+Word list must be UTF-8 text without NUL characters.
+== 詞表必須是 UTF-8 文字，且不含 NUL 字元。
 
 Write local console contents to a text file
 == 將本地控制台內容寫入文本文件

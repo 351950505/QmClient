@@ -3233,6 +3233,7 @@ if(CLIENT)
     QmUi/cards/QmCardCatalogSearch.h
     QmUi/cards/QmCardCatalogBind.cpp
     QmUi/cards/QmCardCatalogFunction.cpp
+    QmUi/cards/QmWordFilterFileCard.cpp
     QmUi/cards/QmCardCatalogGeneral.cpp
     QmUi/cards/QmConfigPackageCard.cpp
     QmUi/cards/QmCardCatalogPlayer.cpp
@@ -3431,6 +3432,8 @@ if(CLIENT)
     components/qmclient/console_text.h
     components/qmclient/streamer_word_filter.cpp
     components/qmclient/streamer_word_filter.h
+    components/qmclient/word_filter_list.cpp
+    components/qmclient/word_filter_list.h
     components/qmclient/data_version.h
     components/qmclient/dummy_hammer_input.cpp
     components/qmclient/dummy_hammer_input.h
@@ -4699,6 +4702,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_console_syntax_test.cpp
     src/test/unit/qmclient/client/qm_console_text_test.cpp
     src/test/unit/qmclient/client/qm_streamer_word_filter_test.cpp
+    src/test/unit/qmclient/client/qm_word_filter_list_test.cpp
+    src/test/integration/qmclient/client/qm_word_filter_persistence_test.cpp
     src/test/integration/qmclient/client/qm_console_text_pipeline_test.cpp
     src/test/unit/qmclient/client/qm_red_packet_auto_claim_test.cpp
     src/test/unit/qmclient/client/qm_tclient_warlist_test.cpp
@@ -5088,6 +5093,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/game/client/components/qmclient/axiom_scores.cpp
     src/game/client/components/qmclient/axiom_scores_data.cpp
     src/game/client/components/qmclient/streamer_word_filter.cpp
+    src/game/client/components/qmclient/word_filter_list.cpp
     src/test/support/ui_test_stubs.cpp
     src/game/client/components/qmclient/monitoring/monitoring_device_perf.cpp
     src/game/client/components/qmclient/music_lyrics/music_lyrics_krc.cpp

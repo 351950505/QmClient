@@ -23,6 +23,7 @@
 #include <game/client/components/qmclient/sponsor_chat_render.h>
 #include <game/client/components/qmclient/translate/translate_jobs.h>
 #include <game/client/components/qmclient/translate/translate_ui_popup.h>
+#include <game/client/components/qmclient/word_filter_list.h>
 #include <game/client/lineinput.h>
 #include <game/client/render.h>
 #include <game/client/ui.h>
@@ -245,6 +246,9 @@ private:
 	std::array<int, 4> m_aPrevTitleVisibility = {};
 	bool m_PrevSponsorChatEffects = true;
 	int m_LastStreamerFilterWords = -1;
+	uint64_t m_LastStreamerFilterRevision = 0;
+	QmWordFilterList::CFileList m_BlockWordsFile;
+	QmWordFilterList::CFileList m_StreamerWordsFile;
 	uint64_t m_PreparedGlyphAtlasRevision = 0;
 	std::array<int, 5> m_aPreparedChatTextSettings = {-1, -1, -1, -1, -1};
 	CQmSponsorChatRenderer m_SponsorChatRenderer;
@@ -357,6 +361,9 @@ private:
 	static void ConShowChat(IConsole::IResult *pResult, void *pUserData);
 	static void ConEcho(IConsole::IResult *pResult, void *pUserData);
 	static void ConClearChat(IConsole::IResult *pResult, void *pUserData);
+	static void ConAppendBlockWords(IConsole::IResult *pResult, void *pUserData);
+	static void ConReloadWordFiles(IConsole::IResult *pResult, void *pUserData);
+	static void SaveBlockWords(class IConfigManager *pConfig, void *pUserData);
 
 	static void ConchainChatOld(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainChatFontSize(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
@@ -579,6 +586,8 @@ public:
 	void OnInit() override;
 	void OnShutdown() override;
 
+	void ReloadWordFilterFile(bool Streamer, bool Force = true);
+	const QmWordFilterList::CFileList &WordFilterFile(bool Streamer) const { return Streamer ? m_StreamerWordsFile : m_BlockWordsFile; }
 	void RebuildChat();
 	void ClearLines();
 

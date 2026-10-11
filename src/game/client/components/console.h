@@ -66,7 +66,7 @@ private:
 			int m_ExportId;
 			bool m_ExportSelected;
 			bool m_CommandEcho;
-			bool m_StreamerWordsFiltered;
+			uint64_t m_StreamerWordsRevision;
 			char m_aText[1];
 		};
 		CStaticRingBuffer<CBacklogEntry, 1024 * 1024, CRingBufferBase::FLAG_RECYCLE> m_Backlog;

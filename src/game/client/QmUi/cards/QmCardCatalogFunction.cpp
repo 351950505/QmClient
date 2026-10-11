@@ -89,7 +89,8 @@ void CMenus::RenderQmFunctionBlockWordsContent(CUIRect &Content, float UiScale, 
 		Content.HSplitTop(LineSpacing, nullptr, &Content);
 	}
 
-	static CLineInputBuffered<1024> s_BlockWordsInput;
+	RenderQmWordFilterFileContent(Content, false, LineHeight, LineSpacing, BodySize);
+	static CLineInputBuffered<QmWordFilterList::INLINE_CAPACITY> s_BlockWordsInput;
 	static bool s_BlockWordsInited = false;
 	if(!s_BlockWordsInited)
 	{
@@ -196,7 +197,7 @@ namespace qm_card_catalog
 			case EQmModuleId::Emoticons: return Rows(3.0f);
 			case EQmModuleId::Ime: return QmImeAppearanceCardHeight(LineHeight, Metrics.m_ButtonHeight, LineSpacing);
 			case EQmModuleId::BetterScoreboard: return Rows(5.0f);
-			case EQmModuleId::BlockWords: return Row() * (g_Config.m_QmBlockWordsAction == 0 ? 7.0f : 4.0f) + CalcQiaFenInputHeight(QmCardRenderHook::TextRenderer(pMenus), g_Config.m_QmBlockWordsList, std::max(1.0f, ContentWidth - LabelWidth), BodySize, std::clamp(2.0f * UiScale, 1.0f, 2.0f), LineHeight);
+			case EQmModuleId::BlockWords: return Row() * (g_Config.m_QmBlockWordsAction == 0 ? 12.0f : 9.0f) + CalcQiaFenInputHeight(QmCardRenderHook::TextRenderer(pMenus), g_Config.m_QmBlockWordsList, std::max(1.0f, ContentWidth - LabelWidth), BodySize, std::clamp(2.0f * UiScale, 1.0f, 2.0f), LineHeight);
 			case EQmModuleId::Translate:
 			{
 				// 行数口径与 RenderQmFunctionTranslateContent 的渲染分支一一对应，逐块注释；

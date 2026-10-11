@@ -52,6 +52,9 @@
 %d teams
 == %d Teams
 
+%d words loaded
+== %d Wörter geladen
+
 %d. %s | main: %s | dummy: %s
 == %d. %s | Hauptspieler: %s | Dummy: %s
 
@@ -820,6 +823,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == Darstellung der Hinweisblasen
+
+Append saved word list chunk
+== Gespeicherten Wortlistenabschnitt anhängen
 
 Append to log file instead of overwriting
 == An Logdatei anhängen anstatt zu überschreiben
@@ -1763,6 +1769,12 @@ Candidate files
 Cannot join the target player's team
 == Dem Team dieses Spielers kann nicht beigetreten werden
 
+Cannot open word list file. Previous words remain active.
+== Die Wortlistendatei kann nicht geöffnet werden. Bisherige Wörter bleiben aktiv.
+
+Cannot read complete word list file. Previous words remain active.
+== Die Wortlistendatei kann nicht vollständig gelesen werden. Bisherige Wörter bleiben aktiv.
+
 Cannot swap: the other player is not in your team
 == Tausch nicht möglich: der andere Spieler ist nicht in deinem Team
 
@@ -1918,6 +1930,9 @@ Chat width
 
 Chat word filtering
 == Chat-Wortfilter
+
+Chat word list file
+== Wortlistendatei für den Chat
 
 Cheats are disabled on this server
 == Cheats sind auf diesem Server deaktiviert
@@ -6113,6 +6128,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == Ungültiger oder doppelter Konfigurationspfad.
 
+Invalid quoted word. Use one word per line.
+== Ungültiges Wort in Anführungszeichen. Ein Wort pro Zeile verwenden.
+
 Invalid save number. Use a number from the save list.
 == Ungültige Spielstandnummer. Bitte eine Nummer aus der Liste verwenden.
 
@@ -9632,6 +9650,9 @@ Reload the map while preserving the state of tees and teams
 Reload the maplist
 == Die Kartenliste neu laden
 
+Reload word list files
+== Wortlistendateien neu laden
+
 Reloaded images.
 == Bilder neu geladen.
 
@@ -12548,6 +12569,9 @@ Stop the current demo
 Streamer mode
 == Streamer-Modus
 
+Streamer word list file
+== Wortlistendatei für den Streamer-Modus
+
 Strength icons assets
 == Stärkesymbole-Assets
 
@@ -14258,6 +14282,9 @@ Used by active shared text and numeric input fields
 Uses the active action with the current aiming position.
 == Verwendet die aktive Aktion mit der aktuellen Zielposition.
 
+UTF-8 text, one word per line (max 2 MiB).
+== UTF-8-Text, ein Wort pro Zeile (max. 2 MiB).
+
 v = Velocity
 == v = Geschwindigkeit
 
@@ -14824,6 +14851,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == Wortfilter-Aktion: 0=übereinstimmende Wörter ersetzen, 1=gesamte Nachricht ausblenden
+
+Word list entries cannot contain control characters.
+== Wörter dürfen keine Steuerzeichen enthalten.
+
+Word list exceeds 100000 unique entries.
+== Die Wortliste enthält mehr als 100000 unterschiedliche Wörter.
+
+Word list file
+== Wortlistendatei
+
+Word list file exceeds 2 MiB.
+== Die Wortlistendatei ist größer als 2 MiB.
+
+Word list must be UTF-8 text without NUL characters.
+== Die Wortliste muss UTF-8-Text ohne NUL-Zeichen sein.
 
 Write local console contents to a text file
 == Lokale Konsoleninhalte in eine Textdatei schreiben

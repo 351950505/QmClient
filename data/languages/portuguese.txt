@@ -52,6 +52,9 @@
 %d teams
 == %d equipas
 
+%d words loaded
+== %d palavras carregadas
+
 %d. %s | main: %s | dummy: %s
 == %d. %s | principal: %s | dummy: %s
 
@@ -820,6 +823,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == Aspeto dos balões de ajuda
+
+Append saved word list chunk
+== Adicionar segmento guardado da lista
 
 Append to log file instead of overwriting
 == Anexar ao ficheiro de registo em vez de sobrescrever
@@ -1763,6 +1769,12 @@ Candidate files
 Cannot join the target player's team
 == Não é possível entrar na equipa deste jogador
 
+Cannot open word list file. Previous words remain active.
+== Não foi possível abrir o ficheiro. As palavras anteriores continuam ativas.
+
+Cannot read complete word list file. Previous words remain active.
+== Não foi possível ler o ficheiro completo. As palavras anteriores continuam ativas.
+
 Cannot swap: the other player is not in your team
 == Não é possível trocar: o outro jogador não está na tua equipa
 
@@ -1918,6 +1930,9 @@ Chat width
 
 Chat word filtering
 == Filtragem de palavras do chat
+
+Chat word list file
+== Ficheiro de palavras do chat
 
 Cheats are disabled on this server
 == Os cheats estão desativados neste servidor
@@ -6113,6 +6128,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == Caminho de configuração inválido ou duplicado.
 
+Invalid quoted word. Use one word per line.
+== Palavra entre aspas inválida. Use uma palavra por linha.
+
 Invalid save number. Use a number from the save list.
 == Número de jogo guardado inválido. Usa um número da lista.
 
@@ -9632,6 +9650,9 @@ Reload the map while preserving the state of tees and teams
 Reload the maplist
 == Recarregar a lista de mapas
 
+Reload word list files
+== Recarregar ficheiros de palavras
+
 Reloaded images.
 == Imagens recarregadas.
 
@@ -12548,6 +12569,9 @@ Stop the current demo
 Streamer mode
 == Modo streamer
 
+Streamer word list file
+== Ficheiro de palavras do modo streamer
+
 Strength icons assets
 == Recursos de ícones de força
 
@@ -14258,6 +14282,9 @@ Used by active shared text and numeric input fields
 Uses the active action with the current aiming position.
 == Usa a ação ativa com a posição de mira atual.
 
+UTF-8 text, one word per line (max 2 MiB).
+== Texto UTF-8, uma palavra por linha (máx. 2 MiB).
+
 v = Velocity
 == v = Velocidade
 
@@ -14824,6 +14851,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == Ação do filtro de palavras: 0=substituir palavras correspondentes, 1=ocultar a mensagem inteira
+
+Word list entries cannot contain control characters.
+== As palavras não podem conter caracteres de controlo.
+
+Word list exceeds 100000 unique entries.
+== A lista excede 100000 palavras únicas.
+
+Word list file
+== Ficheiro de palavras
+
+Word list file exceeds 2 MiB.
+== O ficheiro de palavras excede 2 MiB.
+
+Word list must be UTF-8 text without NUL characters.
+== A lista deve ser texto UTF-8 sem caracteres NUL.
 
 Write local console contents to a text file
 == Escrever conteúdo da consola local para um ficheiro de texto

@@ -62,6 +62,7 @@ void CMenus::RenderQmVisualStreamerContent(CUIRect &Content, float LineHeight, f
 			{&g_Config.m_QmStreamerScoreboardDefaultFlags, "Use default flags on scoreboard", Localize("Use default flags on scoreboard")},
 		},
 		Metrics);
+	RenderQmWordFilterFileContent(Content, true, LineHeight, LineSpacing, Metrics.m_BodySize);
 }
 
 void CMenus::RenderQmVisualTranslateUiContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing)
