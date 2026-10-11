@@ -7,6 +7,7 @@
 #include <game/client/components/qmclient/afk_presentation.h>
 #include <game/client/components/qmclient/input_overlay.h>
 #include <game/client/components/qmclient/score_hud_layout.h>
+#include <game/client/components/qmclient/scoreboard_scroll.h>
 #include <game/client/components/qmclient/scoreboard_team_modes.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/qm_icon.h>
@@ -497,6 +498,281 @@ TEST(QmScoreboardRender, SmallDeadTeeKeepsItsSizeAndIsCentered)
 	EXPECT_FLOAT_EQ(Tee.h, 16.0f);
 	EXPECT_FLOAT_EQ(Tee.Center().x, 115.0f);
 	EXPECT_FLOAT_EQ(Tee.Center().y, Row.Center().y);
+}
+
+TEST(QmScoreboardLayout, EightyOnePlayersWithSparseTeamsUseAllThreeColumns)
+{
+	std::array<SQmScoreboardLayoutRow, MAX_CLIENTS> aRows{};
+	// 三个二人队伍夹在 Team0 玩家中，不能按 128 人容量把最后一列留空。
+	for(const int Start : {10, 38, 65})
+	{
+		aRows[Start] = {Start, false, false};
+		aRows[Start + 1] = {Start, true, true};
+	}
+	const auto Columns = QmScoreboardColumns(aRows, 81, 1050.0f, 388.0f, 310.0f);
+	ASSERT_FALSE(Columns.m_Scroll);
+	ASSERT_EQ(Columns.m_Count, 3);
+	int First = 0;
+	for(int i = 0; i < Columns.m_Count; ++i)
+	{
+		const int End = Columns.m_aEndRows[i];
+		EXPECT_GT(End, First);
+		EXPECT_LE(End - First, 29);
+		int Labels = 0;
+		for(int Row = First; Row < End; ++Row)
+			Labels += aRows[Row].m_TeamLabel;
+		const auto Metrics = QmScoreboardRowMetrics(388.0f, End - First, Labels, Labels, false);
+		EXPECT_GE(Metrics.m_FontSize, SQmScoreboardColumns::MIN_FONT_SIZE);
+		EXPECT_GT(Metrics.m_LineHeight, 7.5f);
+		EXPECT_LE(ScoreboardRowsHeight(End - First, Labels, Labels, Metrics.m_LineHeight, Metrics.m_Spacing, Metrics.m_FontSize / 1.5f, Metrics.m_FontSize), 388.001f);
+		if(End < 81)
+			EXPECT_TRUE(aRows[End - 1].m_DDTeam == TEAM_FLOCK || aRows[End - 1].m_DDTeam != aRows[End].m_DDTeam);
+		First = End;
+	}
+	EXPECT_EQ(First, 81);
+}
+
+TEST(QmScoreboardLayout, FullServerUsesActualRangesAndScrollsWhenThreeColumnsAreUnreadable)
+{
+	std::array<SQmScoreboardLayoutRow, MAX_CLIENTS> aRows{};
+	const auto Tall = QmScoreboardColumns(aRows, 127, 1050.0f, 800.0f, 310.0f);
+	ASSERT_FALSE(Tall.m_Scroll);
+	ASSERT_EQ(Tall.m_Count, 3);
+	EXPECT_EQ(Tall.m_aEndRows[2], 127);
+	int First = 0;
+	for(int i = 0; i < Tall.m_Count; ++i)
+	{
+		EXPECT_GT(Tall.m_aEndRows[i], First);
+		EXPECT_LE(Tall.m_aEndRows[i] - First, 43);
+		First = Tall.m_aEndRows[i];
+	}
+	const auto Normal = QmScoreboardColumns(aRows, 127, 1050.0f, 388.0f, 310.0f);
+	EXPECT_TRUE(Normal.m_Scroll);
+	EXPECT_EQ(Normal.m_Count, 1);
+	EXPECT_EQ(Normal.m_aEndRows[0], 127);
+	const auto Metrics = QmScoreboardRowMetrics(388.0f, 127, 0, 0, Normal.m_Scroll);
+	EXPECT_GE(Metrics.m_FontSize, SQmScoreboardColumns::MIN_FONT_SIZE);
+	EXPECT_GT(ScoreboardRowsHeight(127, 0, 0, Metrics.m_LineHeight, Metrics.m_Spacing, Metrics.m_FontSize / 1.5f, Metrics.m_FontSize), 388.0f);
+}
+
+TEST(QmScoreboardLayout, LowViewportUsesRealSparseRowHeightForTwelvePlayers)
+{
+	std::array<SQmScoreboardLayoutRow, MAX_CLIENTS> aRows{};
+	const auto Columns = QmScoreboardColumns(aRows, 12, 900.0f, 200.0f, 300.0f);
+	ASSERT_FALSE(Columns.m_Scroll);
+	ASSERT_EQ(Columns.m_Count, 3);
+	int First = 0;
+	for(int i = 0; i < Columns.m_Count; ++i)
+	{
+		const auto Metrics = QmScoreboardRowMetrics(200.0f, Columns.m_aEndRows[i] - First, 0, 0, false);
+		EXPECT_FLOAT_EQ(Metrics.m_FontSize, 12.0f);
+		EXPECT_LE(ScoreboardRowsHeight(Columns.m_aEndRows[i] - First, 0, 0, Metrics.m_LineHeight, Metrics.m_Spacing, Metrics.m_FontSize / 1.5f, Metrics.m_FontSize), 200.0f);
+		First = Columns.m_aEndRows[i];
+	}
+	EXPECT_EQ(First, 12);
+}
+
+TEST(QmScoreboardLayout, OneLargeTeamStaysCompleteAndFallsBackToReadableScroll)
+{
+	std::array<SQmScoreboardLayoutRow, MAX_CLIENTS> aRows{};
+	for(int i = 0; i < 127; ++i)
+		aRows[i] = {7, i == 126, i == 126};
+	const auto Columns = QmScoreboardColumns(aRows, 127, 1050.0f, 388.0f, 310.0f);
+	EXPECT_TRUE(Columns.m_Scroll);
+	EXPECT_EQ(Columns.m_Count, 1);
+	EXPECT_EQ(Columns.m_aEndRows[0], 127);
+	const auto Metrics = QmScoreboardRowMetrics(388.0f, 127, 1, 1, Columns.m_Scroll);
+	EXPECT_FLOAT_EQ(Metrics.m_FontSize, 12.0f);
+	EXPECT_FLOAT_EQ(Metrics.m_LineHeight, 20.0f);
+}
+
+TEST(QmScoreboardLayout, ScreenshotLargeTeamUsesThreeColumnsBeforeScrollFallback)
+{
+	std::array<SQmScoreboardLayoutRow, MAX_CLIENTS> aRows{};
+	for(int i = 20; i < 73; ++i)
+		aRows[i] = {1, i == 72, i == 72};
+	const auto Columns = QmScoreboardColumns(aRows, 81, 1050.0f, 388.0f, 310.0f);
+	ASSERT_FALSE(Columns.m_Scroll);
+	ASSERT_EQ(Columns.m_Count, 3);
+	int First = 0;
+	for(int Column = 0; Column < Columns.m_Count; ++Column)
+	{
+		const int End = Columns.m_aEndRows[Column];
+		EXPECT_GT(End, First);
+		EXPECT_LE(End - First, 29);
+		const int Labels = First <= 72 && End > 72 ? 1 : 0;
+		const auto Metrics = QmScoreboardRowMetrics(388.0f, End - First, Labels, Labels, false);
+		EXPECT_GE(Metrics.m_FontSize, SQmScoreboardColumns::MIN_FONT_SIZE);
+		First = End;
+	}
+	EXPECT_EQ(First, 81);
+}
+
+TEST(QmScoreboardLayout, CrowdedRowsUseAddedPanelHeightWithoutOversizedText)
+{
+	for(const int Count : {17, 24, 27, 43})
+	{
+		SCOPED_TRACE(Count);
+		for(const float Height : {388.0f, 500.0f, 800.0f})
+		{
+			SCOPED_TRACE(Height);
+			const auto Metrics = QmScoreboardRowMetrics(Height, Count, 3, 2, false);
+			const float ActualHeight = ScoreboardRowsHeight(Count, 3, 2, Metrics.m_LineHeight, Metrics.m_Spacing, Metrics.m_FontSize / 1.5f, minimum(SCOREBOARD_TEAM_MODE_ICON_SIZE, Metrics.m_FontSize));
+			EXPECT_NEAR(ActualHeight, Height, 0.001f);
+			EXPECT_LE(Metrics.m_FontSize, 15.0f);
+		}
+	}
+	const auto Small = QmScoreboardRowMetrics(800.0f, 8, 0, 0, false);
+	EXPECT_FLOAT_EQ(Small.m_LineHeight, 30.0f);
+	EXPECT_FLOAT_EQ(Small.m_FontSize, 12.0f);
+	const auto Scroll = QmScoreboardRowMetrics(800.0f, 81, 3, 2, true);
+	EXPECT_FLOAT_EQ(Scroll.m_LineHeight, 20.0f);
+	EXPECT_FLOAT_EQ(Scroll.m_FontSize, 12.0f);
+}
+
+TEST(QmScoreboardLayout, WidthAndTeamBoundariesLimitColumnsWithoutReordering)
+{
+	std::array<SQmScoreboardLayoutRow, MAX_CLIENTS> aRows{};
+	for(int i = 0; i < 60; ++i)
+		aRows[i] = {1 + i / 20, i % 20 == 19, i % 20 == 19};
+	const auto Wide = QmScoreboardColumns(aRows, 60, 1050.0f, 388.0f, 310.0f);
+	ASSERT_FALSE(Wide.m_Scroll);
+	ASSERT_EQ(Wide.m_Count, 3);
+	EXPECT_EQ(Wide.m_aEndRows[0], 20);
+	EXPECT_EQ(Wide.m_aEndRows[1], 40);
+	EXPECT_EQ(Wide.m_aEndRows[2], 60);
+	const auto Narrow = QmScoreboardColumns(aRows, 60, 600.0f, 388.0f, 310.0f);
+	EXPECT_TRUE(Narrow.m_Scroll);
+	EXPECT_EQ(Narrow.m_Count, 1);
+	EXPECT_EQ(Narrow.m_aEndRows[0], 60);
+}
+
+TEST(QmScoreboardLayout, EmptyAndSparseBoardsKeepOneColumnAndPreferredFont)
+{
+	std::array<SQmScoreboardLayoutRow, MAX_CLIENTS> aRows{};
+	for(const int Count : {0, 1, 4, 8, 12, 16})
+	{
+		SCOPED_TRACE(Count);
+		const auto Columns = QmScoreboardColumns(aRows, Count, 1050.0f, 388.0f, 310.0f);
+		EXPECT_FALSE(Columns.m_Scroll);
+		EXPECT_EQ(Columns.m_Count, 1);
+		EXPECT_EQ(Columns.m_aEndRows[0], Count);
+		const auto Metrics = QmScoreboardRowMetrics(388.0f, Count, 0, 0, false);
+		EXPECT_FLOAT_EQ(Metrics.m_FontSize, 12.0f);
+		EXPECT_GE(Metrics.m_LineHeight, 20.0f);
+	}
+}
+
+TEST(QmScoreboardLayout, CacheReusesPlansAndInvalidatesHeightWidthLabelsTeamsAndCount)
+{
+	std::array<SQmScoreboardLayoutRow, MAX_CLIENTS> aRows{};
+	CQmScoreboardLayoutCache Cache;
+	ASSERT_EQ(Cache.Resolve(aRows, 81, 1050.0f, 388.0f, 310.0f).m_Count, 3);
+	const auto Revision = Cache.Revision();
+	for(int Frame = 0; Frame < 100; ++Frame)
+		EXPECT_EQ(Cache.Resolve(aRows, 81, 1050.0f, 388.0f, 310.0f).m_Count, 3);
+	EXPECT_EQ(Cache.Revision(), Revision);
+	aRows[80].m_TeamLabel = true;
+	Cache.Resolve(aRows, 81, 1050.0f, 388.0f, 310.0f);
+	EXPECT_EQ(Cache.Revision(), Revision + 1);
+	aRows[80].m_TeamModeLabel = true;
+	Cache.Resolve(aRows, 81, 1050.0f, 388.0f, 310.0f);
+	EXPECT_EQ(Cache.Revision(), Revision + 2);
+	aRows[80].m_DDTeam = 5;
+	Cache.Resolve(aRows, 81, 1050.0f, 388.0f, 310.0f);
+	EXPECT_EQ(Cache.Revision(), Revision + 3);
+	EXPECT_TRUE(Cache.Resolve(aRows, 81, 600.0f, 388.0f, 310.0f).m_Scroll);
+	EXPECT_EQ(Cache.Revision(), Revision + 4);
+	Cache.Resolve(aRows, 81, 600.0f, 800.0f, 310.0f);
+	EXPECT_EQ(Cache.Revision(), Revision + 5);
+	Cache.Resolve(aRows, 81, 600.0f, 800.0f, 300.0f);
+	EXPECT_EQ(Cache.Revision(), Revision + 6);
+	EXPECT_FALSE(Cache.Resolve(aRows, 4, 600.0f, 800.0f, 300.0f).m_Scroll);
+	EXPECT_EQ(Cache.Revision(), Revision + 7);
+	EXPECT_EQ(Cache.Resolve(aRows, 81, 1050.0f, 388.0f, 310.0f).m_Count, 3);
+}
+
+TEST(QmScoreboardLayout, IdentityColumnsShareAllRemainingWidthAndNeverGoNegative)
+{
+	const auto Small = QmScoreboardIdentityWidths(100.0f, true);
+	const auto Large = QmScoreboardIdentityWidths(300.0f, true);
+	EXPECT_GT(Large.m_Name, Small.m_Name);
+	EXPECT_GT(Large.m_Clan, Small.m_Clan);
+	EXPECT_FLOAT_EQ(Large.m_Name + Large.m_Clan, 300.0f);
+	EXPECT_FLOAT_EQ(QmScoreboardIdentityWidths(300.0f, false).m_Name, 300.0f);
+	EXPECT_FLOAT_EQ(QmScoreboardIdentityWidths(300.0f, false).m_Clan, 0.0f);
+	const auto Unavailable = QmScoreboardIdentityWidths(-10.0f, true);
+	EXPECT_FLOAT_EQ(Unavailable.m_Name, 0.0f);
+	EXPECT_FLOAT_EQ(Unavailable.m_Clan, 0.0f);
+}
+
+TEST(QmScoreboardLayout, DemoCursorUnlockRoutesWheelAndSliderEventsThroughProductionInput)
+{
+	struct CInputObserver
+	{
+		int m_Count = 0;
+		int m_Key = 0;
+		bool OnInput(const IInput::CEvent &Event)
+		{
+			++m_Count;
+			m_Key = Event.m_Key;
+			return false;
+		}
+	} Ui;
+	bool Unlocked = false;
+	ASSERT_TRUE(QmScoreboardToggleCursor(Unlocked, true, false, IClient::STATE_DEMOPLAYBACK));
+	ASSERT_TRUE(Unlocked);
+	for(const int Key : {KEY_MOUSE_WHEEL_DOWN, KEY_MOUSE_WHEEL_UP, KEY_MOUSE_1})
+	{
+		IInput::CEvent Event{};
+		Event.m_Key = Key;
+		Event.m_Flags = IInput::FLAG_PRESS;
+		EXPECT_TRUE(QmScoreboardUiInput(Ui, QmScoreboardCursorInputEnabled(true, Unlocked, IClient::STATE_DEMOPLAYBACK), Event));
+		EXPECT_EQ(Ui.m_Key, Key);
+	}
+	EXPECT_EQ(Ui.m_Count, 3);
+	ASSERT_TRUE(QmScoreboardToggleCursor(Unlocked, true, false, IClient::STATE_DEMOPLAYBACK));
+	EXPECT_FALSE(Unlocked);
+	IInput::CEvent Event{};
+	Event.m_Key = KEY_MOUSE_WHEEL_DOWN;
+	Event.m_Flags = IInput::FLAG_PRESS;
+	EXPECT_FALSE(QmScoreboardUiInput(Ui, QmScoreboardCursorInputEnabled(true, Unlocked, IClient::STATE_DEMOPLAYBACK), Event));
+	EXPECT_EQ(Ui.m_Count, 3);
+}
+
+TEST(QmScoreboardLayout, CursorToggleRejectsClosedScoreboardOpenMenusAndOfflineStates)
+{
+	bool Unlocked = false;
+	EXPECT_FALSE(QmScoreboardToggleCursor(Unlocked, false, false, IClient::STATE_DEMOPLAYBACK));
+	EXPECT_FALSE(QmScoreboardToggleCursor(Unlocked, true, true, IClient::STATE_DEMOPLAYBACK));
+	EXPECT_FALSE(QmScoreboardToggleCursor(Unlocked, true, false, IClient::STATE_OFFLINE));
+	EXPECT_FALSE(Unlocked);
+	EXPECT_TRUE(QmScoreboardToggleCursor(Unlocked, true, false, IClient::STATE_ONLINE));
+	EXPECT_TRUE(QmScoreboardCursorInputEnabled(true, Unlocked, IClient::STATE_ONLINE));
+	EXPECT_FALSE(QmScoreboardCursorInputEnabled(false, Unlocked, IClient::STATE_ONLINE));
+	EXPECT_FALSE(QmScoreboardCursorInputEnabled(true, Unlocked, IClient::STATE_OFFLINE));
+}
+
+TEST(QmScoreboardLayout, AutomaticScrollClickEnablesManualAndDisablingManualRestoresAuto)
+{
+	auto Mode = QmScoreboardScrollMode(false, true);
+	ASSERT_EQ(Mode, EQmScoreboardScrollMode::AUTO);
+	const int ManualEnabled = QmScoreboardManualScrollAfterClick(Mode);
+	EXPECT_EQ(ManualEnabled, 1);
+	Mode = QmScoreboardScrollMode(ManualEnabled != 0, true);
+	ASSERT_EQ(Mode, EQmScoreboardScrollMode::MANUAL);
+	const int RestoreAuto = QmScoreboardManualScrollAfterClick(Mode);
+	EXPECT_EQ(RestoreAuto, 0);
+	EXPECT_EQ(QmScoreboardScrollMode(RestoreAuto != 0, true), EQmScoreboardScrollMode::AUTO);
+}
+
+TEST(QmScoreboardLayout, ManualScrollClickKeepsExistingOnOffBehaviorWhenRowsFit)
+{
+	auto Mode = QmScoreboardScrollMode(false, false);
+	ASSERT_EQ(Mode, EQmScoreboardScrollMode::FIT);
+	Mode = QmScoreboardScrollMode(QmScoreboardManualScrollAfterClick(Mode) != 0, false);
+	ASSERT_EQ(Mode, EQmScoreboardScrollMode::MANUAL);
+	EXPECT_EQ(QmScoreboardScrollMode(QmScoreboardManualScrollAfterClick(Mode) != 0, false), EQmScoreboardScrollMode::FIT);
 }
 
 TEST(QmScoreHudLayout, ShortRankKeepsOriginalFootprint)

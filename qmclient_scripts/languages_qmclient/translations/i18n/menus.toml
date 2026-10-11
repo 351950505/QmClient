@@ -22347,3 +22347,83 @@ brazilian_portuguese = "Escolha uma GPU para este aplicativo nas configurações
 portuguese = "Escolha uma GPU para esta aplicação nas definições gráficas do sistema e reinicie o cliente."
 turkish = "Sistem grafik ayarlarından bu uygulama için bir GPU seçin, ardından istemciyi yeniden başlatın."
 polish = "Wybierz GPU dla tej aplikacji w systemowych ustawieniach grafiki, a następnie uruchom ponownie klienta."
+
+[[message]]
+key = "Shuffle skin queue"
+[message.translations]
+simplified_chinese = "皮肤队列随机排序"
+traditional_chinese = "隨機排序皮膚佇列"
+japanese = "スキンキューをシャッフル"
+korean = "스킨 큐 순서 섞기"
+russian = "Перемешать очередь скинов"
+german = "Skin-Warteschlange mischen"
+spanish = "Mezclar la cola de skins"
+french = "Mélanger la file de skins"
+brazilian_portuguese = "Embaralhar a fila de skins"
+portuguese = "Baralhar a fila de skins"
+turkish = "Skin kuyruğunu karıştır"
+polish = "Wymieszaj kolejkę skórek"
+
+[[message]]
+key = "Apply to player"
+[message.translations]
+simplified_chinese = "应用到本体"
+traditional_chinese = "套用至本體"
+japanese = "プレイヤーに適用"
+korean = "플레이어에 적용"
+russian = "Применить к игроку"
+german = "Auf Spieler anwenden"
+spanish = "Aplicar al jugador"
+french = "Appliquer au joueur"
+brazilian_portuguese = "Aplicar ao jogador"
+portuguese = "Aplicar ao jogador"
+turkish = "Oyuncuya uygula"
+polish = "Zastosuj do gracza"
+
+[[message]]
+key = "Apply to dummy"
+[message.translations]
+simplified_chinese = "应用到分身"
+traditional_chinese = "套用至分身"
+japanese = "ダミーに適用"
+korean = "더미에 적용"
+russian = "Применить к Дами"
+german = "Auf Dummy anwenden"
+spanish = "Aplicar al dummy"
+french = "Appliquer au dummy"
+brazilian_portuguese = "Aplicar ao dummy"
+portuguese = "Aplicar ao dummy"
+turkish = "Dummy’ye uygula"
+polish = "Zastosuj do dummy"
+
+[[message]]
+key = "Select a preset, then apply it to player or dummy"
+[message.translations]
+simplified_chinese = "先选择预设，再应用到本体或分身"
+traditional_chinese = "先選擇預設，再套用至本體或分身"
+japanese = "プリセットを選択し、プレイヤーまたはダミーに適用"
+korean = "프리셋을 선택한 뒤 플레이어나 더미에 적용"
+russian = "Выберите пресет, затем примените его к игроку или Дами"
+german = "Voreinstellung auswählen und auf Spieler oder Dummy anwenden"
+spanish = "Selecciona un preajuste y aplícalo al jugador o al dummy"
+french = "Choisissez un préréglage, puis appliquez-le au joueur ou au dummy"
+brazilian_portuguese = "Selecione um preset e aplique ao jogador ou ao dummy"
+portuguese = "Selecione uma predefinição e aplique ao jogador ou ao dummy"
+turkish = "Bir ön ayar seçip oyuncuya veya dummy’ye uygula"
+polish = "Wybierz preset, a następnie zastosuj do gracza lub dummy"
+
+[[message]]
+key = "Scroll mode: Auto"
+[message.translations]
+simplified_chinese = "滚动模式：自动"
+traditional_chinese = "捲動模式：自動"
+japanese = "スクロールモード：自動"
+korean = "스크롤 모드: 자동"
+russian = "Режим прокрутки: авто"
+german = "Scrollmodus: Automatisch"
+spanish = "Modo de desplazamiento: Automático"
+french = "Mode de défilement : Auto"
+brazilian_portuguese = "Modo de rolagem: Automático"
+portuguese = "Modo de deslocamento: Automático"
+turkish = "Kaydırma modu: Otomatik"
+polish = "Tryb przewijania: Automatyczny"

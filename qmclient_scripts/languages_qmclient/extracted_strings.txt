@@ -284,6 +284,8 @@ Apply Qm recommended appearance
 Apply quick input to other Tees as well
 Apply squishy Tee deformation to other players
 Apply this preset
+Apply to dummy
+Apply to player
 Apply watermark
 Applying this preset changes the appearance settings listed below.
 Arabic
@@ -3495,6 +3497,7 @@ Screenshot watermark: include map name
 Screenshot watermark: include timestamp
 Screenshots
 Screenshots directory
+Scroll mode: Auto
 Scroll mode: Off
 Scroll mode: On
 Search
@@ -3520,6 +3523,7 @@ SecretKey
 See /practicecmdlist for a list of all available practice commands. Most commonly used ones are /telecursor, /lasttp and /rescue
 See you at the next checkpoint.
 Select a configuration package to preview its contents.
+Select a preset, then apply it to player or dummy
 Select a saved .map file (client limit: 64 MiB).
 Select all chat
 Select button by touch
@@ -3965,6 +3969,7 @@ Shows the team rank of player with name r (your team rank by default)
 Shows the top ranks of the global and regional ladder beginning with rank i (1 by default, -1 for worst)
 Shrink
 Shrug:
+Shuffle skin queue
 Shut down
 Shutdown server when empty
 Silently disconnect from the current server while keeping Tee timeout protection

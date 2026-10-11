@@ -458,7 +458,7 @@ inline float ResolveSettingsTeeQueuePresetHeight(const SSettingsContentMetrics &
 {
 	// 操作图标与标题同一行，列表区域仅保留必要内边距。
 	const float PresetRowSpacing = Metrics.m_LineSpacing * 0.5f;
-	return Metrics.m_LineSpacing * 4.0f + Metrics.m_LineHeight + ResolveSettingsListViewportHeight(VisiblePresetRows, Metrics.m_ListRowHeight, PresetRowSpacing);
+	return Metrics.m_LineSpacing * 5.0f + Metrics.m_LineHeight + Metrics.m_ButtonHeight + ResolveSettingsListViewportHeight(VisiblePresetRows, Metrics.m_ListRowHeight, PresetRowSpacing);
 }
 
 inline int ResolveSettingsTeeVisiblePresetRows(const int PresetCount)

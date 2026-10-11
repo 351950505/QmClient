@@ -857,6 +857,12 @@ Apply squishy Tee deformation to other players
 Apply this preset
 == Dieses Preset anwenden
 
+Apply to dummy
+== Auf Dummy anwenden
+
+Apply to player
+== Auf Spieler anwenden
+
 Apply watermark
 == Wasserzeichen anwenden
 
@@ -10490,6 +10496,9 @@ Screenshots
 Screenshots directory
 == Screenshot-Verzeichnis
 
+Scroll mode: Auto
+== Scrollmodus: Automatisch
+
 Scroll mode: Off
 == Scrollmodus: Aus
 
@@ -10564,6 +10573,9 @@ See you at the next checkpoint.
 
 Select a configuration package to preview its contents.
 == Wählen Sie ein Konfigurationspaket aus, um seinen Inhalt anzuzeigen.
+
+Select a preset, then apply it to player or dummy
+== Voreinstellung auswählen und auf Spieler oder Dummy anwenden
 
 Select a saved .map file (client limit: 64 MiB).
 == Eine gespeicherte .map-Datei auswählen (Client-Limit: 64 MiB).
@@ -11899,6 +11911,9 @@ Shrink
 
 Shrug:
 == Achselzucken:
+
+Shuffle skin queue
+== Skin-Warteschlange mischen
 
 Shut down
 == Herunterfahren

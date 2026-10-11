@@ -857,6 +857,12 @@ Apply squishy Tee deformation to other players
 Apply this preset
 == Применить этот пресет
 
+Apply to dummy
+== Применить к Дами
+
+Apply to player
+== Применить к игроку
+
 Apply watermark
 == Применить водяной знак
 
@@ -10490,6 +10496,9 @@ Screenshots
 Screenshots directory
 == Каталог скриншотов
 
+Scroll mode: Auto
+== Режим прокрутки: авто
+
 Scroll mode: Off
 == Режим прокрутки: выкл.
 
@@ -10564,6 +10573,9 @@ See you at the next checkpoint.
 
 Select a configuration package to preview its contents.
 == Выберите пакет настроек для предварительного просмотра содержимого.
+
+Select a preset, then apply it to player or dummy
+== Выберите пресет, затем примените его к игроку или Дами
 
 Select a saved .map file (client limit: 64 MiB).
 == Выберите сохранённый файл .map (лимит клиента: 64 MiB).
@@ -11899,6 +11911,9 @@ Shrink
 
 Shrug:
 == Пожатие плечами:
+
+Shuffle skin queue
+== Перемешать очередь скинов
 
 Shut down
 == Завершить работу

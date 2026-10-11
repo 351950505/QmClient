@@ -1,7 +1,7 @@
 {
   "summary": {
-    "must_i18n": 9735,
-    "business_data": 13813,
+    "must_i18n": 9739,
+    "business_data": 13819,
     "test_only": 5380,
     "needs_review": 553,
     "violation": 0
@@ -34484,588 +34484,609 @@
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 522,
+      "line": 523,
       "text": "Download skins",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 523,
+      "line": 524,
       "text": "Download community skins",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 524,
+      "line": 525,
       "text": "Vanilla skins only",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 525,
+      "line": 526,
       "text": "Fat skins (DDFat)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 526,
+      "line": 527,
       "text": "Show skin date and author",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 529,
+      "line": 530,
       "text": "Skin prefix",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 676,
+      "line": 677,
       "text": "Dummy",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 676,
+      "line": 677,
       "text": "Player",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 752,
+      "line": 753,
       "text": "Skin is loading.",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 757,
-      "text": "Skin could not be found.",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 757,
-      "text": "This skin name cannot be used.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
       "line": 758,
-      "text": "Skin could not be loaded due to an error. Check the local console for details.",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 764,
-      "text": "Dummy",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 764,
-      "text": "Player",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 766,
-      "text": "Your skin",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 789,
-      "text": "Create a random skin",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 793,
-      "text": "Copy skin from dummy",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 793,
-      "text": "Copy skin from player",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 793,
-      "text": "Swap",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 871,
-      "text": "Choose default eyes when joining a server",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 874,
-      "text": "Custom colors",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 891,
-      "text": "Random Colors",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 894,
-      "text": "Body",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 894,
-      "text": "Feet",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 979,
-      "text": "Skin is loading.",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 993,
-      "text": "This skin name cannot be used.",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 997,
-      "text": "Skin could not be loaded due to an error. Check the local console for details.",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1001,
       "text": "Skin could not be found.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1017,
-      "text": "All",
+      "line": 758,
+      "text": "This skin name cannot be used.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1017,
-      "text": "Favorites",
+      "line": 759,
+      "text": "Skin could not be loaded due to an error. Check the local console for details.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1017,
-      "text": "Recent",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1035,
-      "text": "Recent",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1044,
-      "text": "Clear recent skins",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1048,
-      "text": "Skin sort",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1051,
-      "text": "Name",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1051,
-      "text": "Time",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1406,
-      "text": "Add to queue",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1406,
-      "text": "Remove from queue",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1866,
-      "text": "No recently used skins",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1866,
-      "text": "No skins match your filter criteria",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1869,
-      "text": "Reset filter",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1894,
-      "text": "Skin Database",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1899,
-      "text": "Edit skin texture",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1908,
-      "text": "Open the directory to add custom skins",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1917,
-      "text": "Refresh",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2146,
-      "text": "Default preset",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2148,
-      "text": "Server preset",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2155,
+      "line": 765,
       "text": "Dummy",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2155,
+      "line": 765,
       "text": "Player",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2157,
-      "text": "Enable rotation",
+      "line": 767,
+      "text": "Your skin",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2161,
-      "text": "Enable skin queue rotation",
+      "line": 790,
+      "text": "Create a random skin",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2165,
-      "text": "Queue preset: %s",
+      "line": 794,
+      "text": "Copy skin from dummy",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2169,
-      "text": "Custom",
+      "line": 794,
+      "text": "Copy skin from player",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2169,
-      "text": "Queue preset: %s",
+      "line": 794,
+      "text": "Swap",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2177,
-      "text": "Switch interval",
+      "line": 872,
+      "text": "Choose default eyes when joining a server",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2218,
-      "text": "0 disables timed rotation; skins only switch on random start events",
+      "line": 875,
+      "text": "Custom colors",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2224,
-      "text": "Random skin on map join",
+      "line": 892,
+      "text": "Random Colors",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2228,
-      "text": "Start from a random queue position on every map join (also on dummy connect or re-enabling the queue). Set the switch interval to 0 to disable timed rotation and only switch on map join.",
+      "line": 895,
+      "text": "Body",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2257,
-      "text": "Apply a random skin from the queue",
+      "line": 895,
+      "text": "Feet",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2263,
-      "text": "Clear current queue",
+      "line": 980,
+      "text": "Skin is loading.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2290,
-      "text": "Queue is empty",
+      "line": 994,
+      "text": "This skin name cannot be used.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2381,
+      "line": 998,
+      "text": "Skin could not be loaded due to an error. Check the local console for details.",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1002,
+      "text": "Skin could not be found.",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1018,
+      "text": "All",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1018,
+      "text": "Favorites",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1018,
+      "text": "Recent",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1036,
+      "text": "Recent",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1045,
+      "text": "Clear recent skins",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1049,
+      "text": "Skin sort",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1052,
+      "text": "Name",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1052,
+      "text": "Time",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1410,
+      "text": "Add to queue",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 1410,
       "text": "Remove from queue",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2476,
-      "text": "Preset bar",
+      "line": 1872,
+      "text": "No recently used skins",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2500,
-      "text": "Apply a writable preset and edit first",
+      "line": 1872,
+      "text": "No skins match your filter criteria",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2500,
-      "text": "Save changes back to this preset",
+      "line": 1875,
+      "text": "Reset filter",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2506,
-      "text": "Queue is empty",
+      "line": 1900,
+      "text": "Skin Database",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2506,
-      "text": "Save current queue as a new preset",
+      "line": 1905,
+      "text": "Edit skin texture",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2515,
-      "text": "Apply a preset first",
+      "line": 1914,
+      "text": "Open the directory to add custom skins",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2515,
-      "text": "Open rename dialog",
+      "line": 1924,
+      "text": "Refresh",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2520,
-      "text": "Apply a preset first",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2520,
-      "text": "Delete this preset",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2526,
-      "text": "No presets yet",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2572,
-      "text": "Rotate all server player skins",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2576,
+      "line": 2156,
       "text": "Default preset",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2580,
-      "text": "Apply this preset",
+      "line": 2158,
+      "text": "Server preset",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2622,
+      "line": 2169,
+      "text": "Player",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2171,
+      "text": "Dummy",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2174,
+      "text": "Enable rotation",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2178,
+      "text": "Enable skin queue rotation",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2182,
+      "text": "Queue preset: %s",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2186,
+      "text": "Custom",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2186,
+      "text": "Queue preset: %s",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2194,
+      "text": "Switch interval",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2235,
+      "text": "0 disables timed rotation; skins only switch on random start events",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2241,
+      "text": "Random skin on map join",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2245,
+      "text": "Start from a random queue position on every map join (also on dummy connect or re-enabling the queue). Set the switch interval to 0 to disable timed rotation and only switch on map join.",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2275,
+      "text": "Apply a random skin from the queue",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2280,
+      "text": "Shuffle skin queue",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2286,
+      "text": "Clear current queue",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2313,
+      "text": "Queue is empty",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2404,
+      "text": "Remove from queue",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2499,
+      "text": "Preset bar",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2523,
+      "text": "Apply a writable preset and edit first",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2523,
+      "text": "Save changes back to this preset",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2530,
+      "text": "Queue is empty",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2530,
+      "text": "Save current queue as a new preset",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2539,
+      "text": "Apply a preset first",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2539,
+      "text": "Open rename dialog",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2544,
+      "text": "Apply a preset first",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2544,
+      "text": "Delete this preset",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2553,
+      "text": "Apply to player",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2555,
+      "text": "Apply to dummy",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2560,
+      "text": "No presets yet",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2606,
+      "text": "Rotate all server player skins",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2610,
+      "text": "Default preset",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2614,
+      "text": "Select a preset, then apply it to player or dummy",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2669,
       "text": "Team tee glow",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2631,
+      "line": 2678,
       "text": "Team 0 glow",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2632,
+      "line": 2679,
       "text": "Custom color",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2632,
+      "line": 2679,
       "text": "Off",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2632,
+      "line": 2679,
       "text": "Rainbow",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2632,
+      "line": 2679,
       "text": "Tee color",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2642,
+      "line": 2689,
       "text": "Team tee glow intensity",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2643,
+      "line": 2690,
       "text": "Team tee glow halo size",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2648,
+      "line": 2695,
       "text": "Team 0 glow color",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -55400,455 +55421,462 @@
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 303,
+      "line": 300,
       "text": "Show scoreboard",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 304,
+      "line": 301,
       "text": "Toggle scoreboard cursor",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 567,
+      "line": 564,
       "text": "Score limit",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 573,
+      "line": 570,
       "text": "Time limit: %d min",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 579,
+      "line": 576,
       "text": "Round %d/%d",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 614,
+      "line": 611,
       "text": "Spectators",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 638,
+      "line": 635,
       "text": "%d others…",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 950,
+      "line": 947,
       "text": "Muted",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 950,
+      "line": 947,
       "text": "Unmuted",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1273,
+      "line": 1207,
       "text": "Score",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1273,
+      "line": 1207,
       "text": "Time",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1279,
+      "line": 1213,
       "text": "Points",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1282,
+      "line": 1216,
       "text": "Name",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1285,
+      "line": 1219,
       "text": "Clan",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1288,
+      "line": 1222,
       "text": "Ping",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1367,
+      "line": 1301,
       "text": "Super",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1369,
+      "line": 1303,
       "text": "Team %d (%d/%d)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1371,
+      "line": 1305,
       "text": "Team %d",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1702,
+      "line": 1637,
       "text": "Manual",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1703,
+      "line": 1638,
       "text": "Race",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1704,
+      "line": 1639,
       "text": "Auto",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1705,
+      "line": 1640,
       "text": "Replay",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1912,
+      "line": 1871,
       "text": "Current: Ranks",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1914,
+      "line": 1873,
       "text": "Current: Score",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1914,
+      "line": 1873,
       "text": "Current: Time",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1932,
+      "line": 1891,
       "text": "Players",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1962,
+      "line": 1921,
       "text": "Red team wins!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1966,
+      "line": 1925,
       "text": "%s wins!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1974,
+      "line": 1933,
       "text": "Blue team wins!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1978,
+      "line": 1937,
       "text": "%s wins!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1984,
+      "line": 1943,
       "text": "Draw!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2060,
+      "line": 2019,
       "text": "Red team",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2061,
+      "line": 2020,
       "text": "Blue team",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2074,
+      "line": 2033,
       "text": "Game over",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2088,
-      "text": "Scroll mode: Off",
+      "line": 2047,
+      "text": "Scroll mode: Auto",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2088,
+      "line": 2048,
       "text": "Scroll mode: On",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2401,
+      "line": 2049,
+      "text": "Scroll mode: Off",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/scoreboard.cpp",
+      "line": 2323,
       "text": "Add friend",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2401,
+      "line": 2323,
       "text": "Remove friend",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2409,
+      "line": 2331,
       "text": "Mute",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2409,
+      "line": 2331,
       "text": "Unmute",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2418,
+      "line": 2340,
       "text": "Mute emoticons",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2418,
+      "line": 2340,
       "text": "Unmute emoticons",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2427,
+      "line": 2349,
       "text": "Copy name",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2443,
+      "line": 2365,
       "text": "Skin: %s",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2446,
+      "line": 2368,
       "text": "Skin copying is only available for 0.6 skins",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2448,
+      "line": 2370,
       "text": "Copy skin",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2459,
+      "line": 2381,
       "text": "Copy skin ID",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2483,
+      "line": 2405,
       "text": "Spectate",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1367,
+      "line": 1370,
       "text": "Restore a recently used Tee skin",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1368,
+      "line": 1371,
       "text": "Add a skin as a favorite",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1369,
+      "line": 1372,
       "text": "Remove a skin from the favorites",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1370,
+      "line": 1373,
       "text": "Add a skin to the queue",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1371,
+      "line": 1374,
       "text": "Add a skin to the dummy queue",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1372,
+      "line": 1375,
       "text": "Add a colored skin to the queue",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1373,
+      "line": 1376,
       "text": "Add a colored skin to the dummy queue",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1374,
+      "line": 1377,
       "text": "Add a queue preset",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1375,
+      "line": 1378,
       "text": "Add a dummy queue preset",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1376,
+      "line": 1379,
       "text": "Add a skin to a queue preset",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1377,
+      "line": 1380,
       "text": "Add a skin to a dummy queue preset",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1378,
+      "line": 1381,
       "text": "Add a colored skin to a queue preset",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1379,
+      "line": 1382,
       "text": "Add a colored skin to a dummy queue preset",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1380,
+      "line": 1383,
       "text": "Apply a random skin from the queue",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1381,
+      "line": 1384,
       "text": "Apply a random skin from the dummy queue",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3453,
+      "line": 3472,
       "text": "Preset %d",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3512,
+      "line": 3531,
       "text": "Preset %d",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -100727,882 +100755,903 @@
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 314,
+      "line": 315,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 447,
+      "line": 448,
       "text": "event=work_drain page=settings:tee kind=merge count=%llu bytes=%d dur_ms=%.3f stop=%s source=list_drain_summary scope=session uploads_done_total=%llu loaded_total=%llu uploads_per_sec=%.3f loaded_per_sec=%.3f requested=%d pending=%d loading=%d loaded=%d max_requested=%d max_pending=%d max_loading=%d max_real_inflight=%d count_fuse_limit=%d total_requested=%llu total_admitted=%llu total_started=%llu num_loading_window_waits=%d num_gpu_budget_waits=%d num_queue_fuse_waits=%d full_list_ready=%d final_real_inflight=%d last_wait_reason=%s last_dynamic_decision=%s last_request_budget_block_reason=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 476,
+      "line": 477,
       "text": "perf/settings-skin-source",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 476,
+      "line": 477,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 522,
+      "line": 523,
       "text": "tee-download-skins",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 523,
+      "line": 524,
       "text": "tee-download-community-skins",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 524,
+      "line": 525,
       "text": "tee-vanilla-skins-only",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 525,
+      "line": 526,
       "text": "tee-fat-skins",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 526,
+      "line": 527,
       "text": "tee-show-skin-metadata",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 529,
+      "line": 530,
       "text": "tee_skin_prefix_label",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 535,
+      "line": 536,
       "text": "settings_tee_skin_prefix_text_input",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 662,
+      "line": 663,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 676,
+      "line": 677,
       "text": "%s: %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 764,
+      "line": 765,
       "text": "tee-edit-target",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 766,
+      "line": 767,
       "text": "tee-current-skin",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 773,
+      "line": 774,
       "text": "settings_tee_skin_name_text_input",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 849,
+      "line": 850,
       "text": "settings_tee_eyes_slider_thumb",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 871,
+      "line": 872,
       "text": "%s (%d) - %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 874,
+      "line": 875,
       "text": "tee-dummy-custom-colors",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 874,
+      "line": 875,
       "text": "tee-player-custom-colors",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 902,
+      "line": 903,
       "text": "tee_custom_color_body_label",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 902,
+      "line": 903,
       "text": "tee_custom_color_feet_label",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 913,
+      "line": 914,
       "text": "settings_tee_color_body",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 913,
+      "line": 914,
       "text": "settings_tee_color_feet",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1035,
+      "line": 1036,
       "text": "tee-recent-label",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1048,
+      "line": 1049,
       "text": "tee_skin_sort_label",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1151,
+      "line": 1153,
       "text": "event=tee_skin_list_prescan items_total=%d items_scanned=%d selected_scan=%d ready_scan=%d dur_ms=%.3f full_list_ready=%d source_settled_count=%d",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1155,
+      "line": 1157,
       "text": "perf/settings-skin-source",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1155,
+      "line": 1157,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1340,
+      "line": 1344,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1345,
+      "line": 1349,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1348,
+      "line": 1352,
       "text": "%04d-%02d-%02d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1351,
+      "line": 1355,
       "text": "%s - %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1476,
+      "line": 1482,
       "text": "visible_source_unsettled",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1484,
+      "line": 1490,
       "text": "prewarm_disabled",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1488,
+      "line": 1494,
       "text": "scan_complete",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1516,
+      "line": 1522,
       "text": "scan_complete",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1526,
+      "line": 1532,
       "text": "event=tee_skin_background_scan items_total=%d items_scanned=%d items_skipped_visible=%d requests_issued=%d complete=%d budget=%d dur_ms=%.3f block_reason=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1530,
+      "line": 1536,
       "text": "perf/settings-skin-source",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1530,
+      "line": 1536,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1534,
+      "line": 1540,
       "text": "event=tee_preview_pipeline page=settings:tee tee_preview_admissions=%d tee_ready_textures=%d tee_placeholders=%d visible_ready_ratio=%.3f",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1537,
+      "line": 1543,
       "text": "perf/settings-skin-source",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1537,
+      "line": 1543,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1550,
+      "line": 1556,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1577,
+      "line": 1583,
       "text": "event=tee_enter visible_rows=%d first_visible_index=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1579,
+      "line": 1585,
       "text": "perf/interaction",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1579,
+      "line": 1585,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1585,
+      "line": 1591,
       "text": "event=click_begin visible_rows=%d first_visible_index=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1587,
+      "line": 1593,
       "text": "perf/interaction",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1587,
+      "line": 1593,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1592,
+      "line": 1598,
       "text": "event=click_end visible_rows=%d first_visible_index=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1594,
+      "line": 1600,
       "text": "perf/interaction",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1594,
+      "line": 1600,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1600,
+      "line": 1606,
       "text": "event=scroll_begin visible_rows=%d first_visible_index=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1602,
+      "line": 1608,
       "text": "perf/interaction",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1602,
+      "line": 1608,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1607,
+      "line": 1613,
       "text": "event=scroll_end visible_rows=%d first_visible_index=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1609,
+      "line": 1615,
       "text": "perf/interaction",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1609,
+      "line": 1615,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1616,
+      "line": 1622,
       "text": "event=first_visible_ready dur_ms=%.3f visible_rows=%d first_visible_index=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1619,
+      "line": 1625,
       "text": "perf/skin-ux",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1619,
+      "line": 1625,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1628,
+      "line": 1634,
       "text": "event=all_visible_ready dur_ms=%.3f visible_rows=%d first_visible_index=%d last_visible_index=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1631,
+      "line": 1637,
       "text": "perf/skin-ux",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1631,
+      "line": 1637,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1637,
+      "line": 1643,
       "text": "event=full_list_ready dur_ms=%.3f total=%d visible_rows=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1640,
+      "line": 1646,
       "text": "perf/skin-ux",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1640,
+      "line": 1646,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1645,
+      "line": 1651,
       "text": "event=tee_refresh_end dur_ms=%.3f visible_rows=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1648,
+      "line": 1654,
       "text": "perf/interaction",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1648,
+      "line": 1654,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1666,
+      "line": 1672,
       "text": "event=request_window visible=%d visible_ready=%d visible_waiting=%d visible_background_requested=%d visible_nonterminal_waiting=%d background_budget=%d background_issued=%d requested=%d idle=%d scroll=%d recovery=%d pending=%zu loading=%zu loaded=%zu total=%d first_visible_index=%d first_visible_skin=%s count_fuse_limit=%d real_inflight=%d visible_reserve=%d request_budget_default=%d request_budget_actual=%d request_budget_block_reason=%s gpu_upload_limit_units=%d gpu_upload_remaining_units=%d finalize_budget_limit=%d effective_frame_context=%s controller_reason=%s frame_time_avg_ms=%.3f render_frame_time_ms=%.3f admission_underfed=%d underfed_streak=%d",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1680,
+      "line": 1686,
       "text": "perf/settings-skin-source",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1680,
+      "line": 1686,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1712,
+      "line": 1718,
       "text": "event=list_drain_tick mode=%s visible_ready=%d visible_total=%d visible_waiting=%d visible_background_requested=%d visible_nonterminal_waiting=%d requested=%d pending=%d loading=%d loaded=%d uploads_done_delta=%llu loaded_delta=%llu requested_delta=%d admitted_delta=%d started_delta=%d real_inflight=%d loading_window_limit=%d loading_window_used=%d dynamic_decision=%s request_budget_block_reason=%s last_wait_reason=%s gpu_upload_limit_units=%d gpu_upload_remaining_units=%d finalize_budget_limit=%d effective_frame_context=%s controller_reason=%s visible_reserve_effective=%d frame_time_avg_ms=%.3f render_frame_time_ms=%.3f admission_underfed=%d underfed_streak=%d",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1713,
+      "line": 1719,
       "text": "background_drain",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1744,
+      "line": 1750,
       "text": "perf/settings-skin-source",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1744,
+      "line": 1750,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1753,
+      "line": 1759,
       "text": "loading_window",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1755,
+      "line": 1761,
       "text": "gpu_upload_budget",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1757,
+      "line": 1763,
       "text": "queue_fuse",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1774,
+      "line": 1780,
       "text": "event=admission_invariant_violation pending=%d loading=%d real_inflight=%d count_fuse_limit=%d",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1779,
+      "line": 1785,
       "text": "perf/settings-skin-source",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1779,
+      "line": 1785,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1791,
+      "line": 1797,
       "text": "event=list_frame page=settings:tee rows_total=%d rows_visible=%d rows_rendered=%d rows_iterated=%d rows_skipped=%d first_visible_index=%d last_visible_index=%d dur_ms=%.3f source=settings_tee",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1793,
+      "line": 1799,
       "text": "perf/interaction",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1793,
+      "line": 1799,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1799,
+      "line": 1805,
       "text": "skins_grid_scroll",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1802,
+      "line": 1808,
       "text": "skins_grid_scroll",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1867,
+      "line": 1873,
       "text": "tee_no_skins_match_label",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1869,
+      "line": 1875,
       "text": "tee-reset-filter",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1878,
+      "line": 1884,
       "text": "settings_tee_skin_search",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1892,
+      "line": 1898,
       "text": "https://ddnet.org/skins/",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1904,
+      "line": 1910,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 1905,
+      "line": 1911,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2068,
+      "line": 2075,
       "text": "loading_window",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2070,
+      "line": 2077,
       "text": "gpu_upload_budget",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2072,
+      "line": 2079,
       "text": "queue_fuse",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2155,
-      "text": "tee-queue-target",
+      "line": 2169,
+      "text": "tee-queue-target-player",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2157,
+      "line": 2171,
+      "text": "tee-queue-target-dummy",
+      "category": "business_data",
+      "reason": "localization context metadata"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2174,
       "text": "tee-dummy-skin-queue-enabled",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2157,
+      "line": 2174,
       "text": "tee-player-skin-queue-enabled",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2210,
+      "line": 2227,
       "text": "settings_tee_skin_queue_interval_text_input",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2224,
+      "line": 2241,
       "text": "tee-dummy-skin-queue-random-join",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2224,
+      "line": 2241,
       "text": "tee-player-skin-queue-random-join",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2290,
+      "line": 2313,
       "text": "tee_queue_empty_label",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2354,
+      "line": 2377,
       "text": "%d. %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2424,
+      "line": 2447,
       "text": "%d. %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2476,
+      "line": 2499,
       "text": "%s (%d)",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2482,
+      "line": 2505,
       "text": "tee_queue_presets_label",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2526,
+      "line": 2553,
+      "text": "tee-queue-apply-player",
+      "category": "business_data",
+      "reason": "localization context metadata"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2555,
+      "text": "tee-queue-apply-dummy",
+      "category": "business_data",
+      "reason": "localization context metadata"
+    },
+    {
+      "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
+      "line": 2560,
       "text": "tee_no_presets_label",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2556,
+      "line": 2590,
       "text": "%s (%d)",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2560,
+      "line": 2594,
       "text": "%s (%d)",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2622,
+      "line": 2669,
       "text": "tee-team-glow",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2631,
+      "line": 2678,
       "text": "tee-team-glow-team0-label",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2640,
+      "line": 2687,
       "text": "%",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2642,
+      "line": 2689,
       "text": "tee-team-glow-strength",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2643,
+      "line": 2690,
       "text": "tee-team-glow-size",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2666,
+      "line": 2713,
       "text": "event=tee_refresh_begin visible_rows=%d first_visible_skin=%s",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2668,
+      "line": 2715,
       "text": "perf/interaction",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2668,
+      "line": 2715,
       "text": "settings:tee",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2679,
+      "line": 2726,
       "text": "qm:skin_appearance",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2688,
+      "line": 2735,
       "text": "deck:tee-identity",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2699,
+      "line": 2746,
       "text": "deck:tee-skin-options",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2704,
+      "line": 2751,
       "text": "deck:tee-skin-list",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2715,
+      "line": 2762,
       "text": "deck:tee-skin-queue",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
     },
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogTee.cpp",
-      "line": 2724,
+      "line": 2771,
       "text": "deck:tee-glow",
       "category": "business_data",
       "reason": "settings matcher, command, or serialized config token"
@@ -143903,441 +143952,462 @@
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 47,
+      "line": 48,
       "text": "qm_extra_scoreboard_presentation",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 122,
+      "line": 123,
       "text": "屏蔽主要武器发射与命中相关声音。",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 122,
+      "line": 123,
       "text": "武器音效",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 123,
+      "line": 124,
       "text": "屏蔽武器切换及相关切换提示音。",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 123,
+      "line": 124,
       "text": "武器切换音效",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 124,
+      "line": 125,
       "text": "屏蔽武器无弹药时的提示音。",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 124,
+      "line": 125,
       "text": "无弹药提示音",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 125,
+      "line": 126,
       "text": "屏蔽钩子发射、收回等相关声音。",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 125,
+      "line": 126,
       "text": "钩子音效",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 126,
+      "line": 127,
       "text": "屏蔽行走与跳跃等移动相关声音。",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 126,
+      "line": 127,
       "text": "移动音效",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 127,
+      "line": 128,
       "text": "屏蔽玩家状态变化相关声音。",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 127,
+      "line": 128,
       "text": "玩家状态音效",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 128,
+      "line": 129,
       "text": "屏蔽道具与武器拾取相关声音。",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 128,
+      "line": 129,
       "text": "拾取音效",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 129,
+      "line": 130,
       "text": "屏蔽 CTF 旗帜事件相关声音。",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 129,
+      "line": 130,
       "text": "旗帜音效",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 130,
+      "line": 131,
       "text": "地图音效",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 130,
+      "line": 131,
       "text": "屏蔽地图环境与脚本触发音效。",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 132,
+      "line": 133,
       "text": "Sound mute button count mismatch",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 255,
+      "line": 256,
       "text": "%lld",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 259,
+      "line": 260,
       "text": "...",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 268,
+      "line": 269,
       "text": "-",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 303,
+      "line": 300,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 303,
+      "line": 300,
       "text": "+scoreboard",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 304,
+      "line": 301,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 304,
+      "line": 301,
       "text": "toggle_scoreboard_cursor",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 309,
+      "line": 306,
       "text": "deadtee.png",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 436,
+      "line": 433,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 459,
+      "line": 456,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 468,
+      "line": 465,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 472,
+      "line": 469,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 485,
+      "line": 482,
       "text": "Team invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 488,
+      "line": 485,
       "text": "00:00:00",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 567,
+      "line": 564,
       "text": "%s: %d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 618,
+      "line": 615,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 630,
+      "line": 627,
       "text": ", ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 638,
+      "line": 635,
       "text": "Spectators",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 671,
+      "line": 668,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 717,
+      "line": 714,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 722,
+      "line": 719,
       "text": "%s - %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 762,
+      "line": 759,
       "text": "Sound mute button state mismatch",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 950,
+      "line": 947,
       "text": "%s (%s)",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1111,
+      "line": 1108,
       "text": "Team invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1254,
+      "line": 1187,
       "text": "00:00:00",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1254,
+      "line": 1187,
       "text": "99999",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1256,
+      "line": 1189,
       "text": "99999",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1256,
+      "line": 1189,
       "text": "999999",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1305,
+      "line": 1239,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1448,
+      "line": 1382,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1492,
+      "line": 1426,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1496,
+      "line": 1430,
       "text": "...",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1668,
+      "line": 1603,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1688,
+      "line": 1623,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1696,
+      "line": 1631,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1698,
+      "line": 1633,
       "text": "  ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1930,
+      "line": 1843,
+      "text": "00:00:00",
+      "category": "business_data",
+      "reason": "numeric display format template"
+    },
+    {
+      "file": "src/game/client/components/scoreboard.cpp",
+      "line": 1843,
+      "text": "99999",
+      "category": "business_data",
+      "reason": "numeric display format template"
+    },
+    {
+      "file": "src/game/client/components/scoreboard.cpp",
+      "line": 1844,
+      "text": "999999",
+      "category": "business_data",
+      "reason": "numeric display format template"
+    },
+    {
+      "file": "src/game/client/components/scoreboard.cpp",
+      "line": 1889,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1932,
+      "line": 1891,
       "text": "%s: %d/%d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2275,
+      "line": 2197,
       "text": "Team invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2448,
+      "line": 2370,
       "text": "%s\\n%s",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2459,
+      "line": 2381,
       "text": "%s\\n%s",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2488,
+      "line": 2410,
       "text": "say /spec",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2500,
+      "line": 2422,
       "text": "say /spec \"",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
@@ -144813,28 +144883,28 @@
     },
     {
       "file": "src/game/client/components/settings_resource_jobs.h",
-      "line": 208,
+      "line": 261,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/settings_resource_jobs.h",
-      "line": 209,
+      "line": 262,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/settings_resource_jobs.h",
-      "line": 210,
+      "line": 263,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/settings_resource_jobs.h",
-      "line": 212,
+      "line": 265,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
@@ -145331,595 +145401,588 @@
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 828,
+      "line": 831,
       "text": "Default preset",
       "category": "business_data",
       "reason": "skin queue built-in preset storage name"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 829,
+      "line": 832,
       "text": "Server preset",
       "category": "business_data",
       "reason": "skin queue built-in preset storage name"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 849,
+      "line": 852,
       "text": "x_",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 880,
+      "line": 883,
       "text": ".png",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 890,
+      "line": 893,
       "text": "Skin name is not valid: %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 890,
+      "line": 893,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 891,
+      "line": 894,
       "text": "%s",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 891,
+      "line": 894,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 898,
+      "line": 901,
       "text": "skins/%s",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 943,
+      "line": 946,
       "text": ", format=%s): %s",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 943,
+      "line": 946,
       "text": ", h=%",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 943,
+      "line": 946,
       "text": "Skin data is invalid (w=%",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 943,
+      "line": 946,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1100,
+      "line": 1103,
       "text": "Loaded skin '%s'",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1100,
+      "line": 1103,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1104,
+      "line": 1107,
       "text": "LoadSkinFinish on skin '%s' which is not in m_Skins",
       "category": "business_data",
       "reason": "skin manager assertion diagnostic text"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1112,
+      "line": 1115,
       "text": "upload_done",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1279,
+      "line": 1282,
       "text": "FinishSkinPreviewUpload on skin '%s' which is not in m_Skins",
       "category": "business_data",
       "reason": "skin manager assertion diagnostic text"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1295,
+      "line": 1298,
       "text": "upload_done",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1341,
+      "line": 1344,
       "text": "skins/%s.png",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1347,
+      "line": 1350,
       "text": "Failed to load PNG of skin '%s' from '%s'",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1347,
+      "line": 1350,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1367,
+      "line": 1370,
       "text": "qm_recent_tee_skin",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1367,
+      "line": 1370,
       "text": "s[skin_name] i[use_custom_color] i[color_body] i[color_feet]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1368,
+      "line": 1371,
       "text": "add_favorite_skin",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1368,
+      "line": 1371,
       "text": "s[skin_name]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1369,
+      "line": 1372,
       "text": "remove_favorite_skin",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1369,
+      "line": 1372,
       "text": "s[skin_name]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1370,
+      "line": 1373,
       "text": "add_skin_queue",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1370,
+      "line": 1373,
       "text": "s[skin_name]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1371,
+      "line": 1374,
       "text": "add_dummy_skin_queue",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1371,
+      "line": 1374,
       "text": "s[skin_name]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1372,
+      "line": 1375,
       "text": "add_skin_queue_ex",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1372,
+      "line": 1375,
       "text": "s[skin_name] i[use_custom_color] i[color_body] i[color_feet]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1373,
+      "line": 1376,
       "text": "add_dummy_skin_queue_ex",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1373,
+      "line": 1376,
       "text": "s[skin_name] i[use_custom_color] i[color_body] i[color_feet]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1374,
+      "line": 1377,
       "text": "add_skin_queue_preset",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1374,
+      "line": 1377,
       "text": "s[preset_name]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1375,
+      "line": 1378,
       "text": "add_dummy_skin_queue_preset",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1375,
+      "line": 1378,
       "text": "s[preset_name]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1376,
+      "line": 1379,
       "text": "add_skin_queue_preset_item",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1376,
+      "line": 1379,
       "text": "i[preset_index] s[skin_name]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1377,
+      "line": 1380,
       "text": "add_dummy_skin_queue_preset_item",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1377,
+      "line": 1380,
       "text": "i[preset_index] s[skin_name]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1378,
+      "line": 1381,
       "text": "add_skin_queue_preset_item_ex",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1378,
+      "line": 1381,
       "text": "i[preset_index] s[skin_name] i[use_custom_color] i[color_body] i[color_feet]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1379,
+      "line": 1382,
       "text": "add_dummy_skin_queue_preset_item_ex",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1379,
+      "line": 1382,
       "text": "i[preset_index] s[skin_name] i[use_custom_color] i[color_body] i[color_feet]",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1380,
+      "line": 1383,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1380,
+      "line": 1383,
       "text": "random_skin_queue",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1381,
+      "line": 1384,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1381,
+      "line": 1384,
       "text": "random_dummy_skin_queue",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1383,
+      "line": 1386,
       "text": "player_skin",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1384,
+      "line": 1387,
       "text": "dummy_skin",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1453,
+      "line": 1456,
       "text": "No skin container found for managed tee render info: %s",
       "category": "business_data",
       "reason": "skin manager assertion diagnostic text"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1876,
+      "line": 1881,
       "text": "bytes_budget",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1876,
+      "line": 1881,
       "text": "queue_count",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1882,
+      "line": 1887,
       "text": "queue_count",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 1951,
+      "line": 1956,
       "text": "m_SkinsUsageList contains skin which is not BACKGROUND_REQUESTED, PENDING, LOADING or LOADED",
       "category": "business_data",
       "reason": "skin manager assertion diagnostic text"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2128,
+      "line": 2136,
       "text": "queue_fuse",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2129,
+      "line": 2137,
       "text": "queue_fuse",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2159,
+      "line": 2167,
       "text": "pSkinContainer->Type() invalid",
       "category": "business_data",
       "reason": "skin manager assertion diagnostic text"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2227,
+      "line": 2232,
       "text": "disabled_explicit_queues",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2227,
+      "line": 2232,
       "text": "fallback_sweep",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2301,
+      "line": 2306,
       "text": ".png",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2301,
+      "line": 2306,
       "text": "downloadedskins/",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2310,
+      "line": 2315,
       "text": "not found in enabled sources",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2310,
+      "line": 2315,
       "text": "request or image validation failed",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2310,
+      "line": 2315,
       "text": "Skin '%s' download ended: %s",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2310,
+      "line": 2315,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2329,
+      "line": 2334,
       "text": "Skin container in loading state must have a load job",
       "category": "business_data",
       "reason": "skin manager assertion diagnostic text"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2387,
+      "line": 2392,
       "text": "gpu_upload_budget",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2407,
+      "line": 2412,
       "text": "preview_uploads",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2459,
+      "line": 2464,
       "text": "max_per_frame",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2517,
+      "line": 2522,
       "text": "max_per_frame",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2607,
+      "line": 2612,
       "text": "default",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2640,
+      "line": 2645,
       "text": "x_ninja",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2641,
+      "line": 2646,
       "text": "x_spec",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2761,
+      "line": 2766,
       "text": "dummy=%d selected=%s visible_total=%d",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2762,
+      "line": 2767,
       "text": "warmup_request",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2774,
+      "line": 2779,
       "text": "warmup_miss",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2782,
+      "line": 2787,
       "text": "warmup_miss",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2794,
+      "line": 2799,
       "text": "selected_source_loading",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2794,
-      "text": "visible_source_loading",
-      "category": "business_data",
-      "reason": "command, config, or machine token"
-    },
-    {
-      "file": "src/game/client/components/skins.cpp",
-      "line": 2811,
+      "line": 2799,
       "text": "visible_source_loading",
       "category": "business_data",
       "reason": "command, config, or machine token"
@@ -145927,300 +145990,307 @@
     {
       "file": "src/game/client/components/skins.cpp",
       "line": 2816,
+      "text": "visible_source_loading",
+      "category": "business_data",
+      "reason": "command, config, or machine token"
+    },
+    {
+      "file": "src/game/client/components/skins.cpp",
+      "line": 2821,
       "text": "dummy=%d selected_ready=%d visible_ready_count=%d visible_total=%d source_loaded_count=%d preview_ready_count=0 restore_queue_count=0",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2818,
+      "line": 2823,
       "text": "warmup_gate",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2822,
+      "line": 2827,
       "text": "dummy=%d reason=%s",
       "category": "business_data",
       "reason": "log or telemetry key/value payload"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 2823,
+      "line": 2828,
       "text": "warmup_miss",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3184,
+      "line": 3189,
       "text": "%s_%s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3244,
+      "line": 3249,
       "text": "Favorite skin name '%s' is not valid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3244,
+      "line": 3249,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3245,
+      "line": 3250,
       "text": "%s",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3245,
+      "line": 3250,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3292,
+      "line": 3297,
       "text": "Queue skin name '%s' is not valid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3292,
+      "line": 3297,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3293,
+      "line": 3298,
       "text": "%s",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3293,
+      "line": 3298,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3686,
+      "line": 3704,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3699,
+      "line": 3717,
       "text": "skins/%s.png",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3711,
+      "line": 3729,
       "text": "Failed to read skin file '%s'",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3711,
+      "line": 3729,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3726,
+      "line": 3744,
       "text": "Failed to decode skin PNG '%s'",
       "category": "business_data",
       "reason": "diagnostic or assertion message"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3726,
+      "line": 3744,
       "text": "skins",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3736,
+      "line": 3754,
       "text": "decode_done",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3744,
+      "line": 3762,
       "text": ".png",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3745,
+      "line": 3763,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3745,
+      "line": 3763,
       "text": ".png",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3747,
+      "line": 3765,
       "text": ".png",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3747,
+      "line": 3765,
       "text": "downloadedskins/",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3849,
+      "line": 3867,
       "text": "add_favorite_skin \"%s\"",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3868,
+      "line": 3886,
       "text": "%s \"%s\" %d %d %d",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3869,
+      "line": 3887,
       "text": "add_dummy_skin_queue_ex",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3869,
+      "line": 3887,
       "text": "add_skin_queue_ex",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3877,
+      "line": 3895,
       "text": "%s \"%s\"",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3878,
+      "line": 3896,
       "text": "add_dummy_skin_queue",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3878,
+      "line": 3896,
       "text": "add_skin_queue",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3884,
+      "line": 3902,
       "text": "%s %d \"%s\" %d %d %d",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3885,
+      "line": 3903,
       "text": "add_skin_queue_preset_item_ex",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3894,
+      "line": 3912,
       "text": "%s %d \"%s\"",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3895,
+      "line": 3913,
       "text": "add_skin_queue_preset_item",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.cpp",
-      "line": 3921,
+      "line": 3939,
       "text": "add_skin_queue_preset \"%s\"",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/skins.h",
-      "line": 152,
+      "line": 153,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/skins.h",
-      "line": 437,
+      "line": 438,
       "text": "Failed skin load must be loading or loaded",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.h",
-      "line": 497,
+      "line": 498,
       "text": "idle_visible",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.h",
-      "line": 752,
+      "line": 769,
       "text": "Passing 0 to this function is not allowed.",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/skins.h",
-      "line": 849,
+      "line": 866,
       "text": "x_ninja",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/skins.h",
-      "line": 849,
+      "line": 866,
       "text": "x_spec",
       "category": "business_data",
       "reason": "command, config, or machine token"
@@ -168972,7 +169042,7 @@
     },
     {
       "file": "src/test/benchmark/qm_skin_download_benchmark.cpp",
-      "line": 47,
+      "line": 48,
       "text": "pending session setup failed",
       "category": "test_only",
       "reason": "test fixture or assertion text"

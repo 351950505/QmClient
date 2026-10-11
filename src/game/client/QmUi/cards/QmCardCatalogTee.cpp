@@ -303,6 +303,7 @@ namespace
 
 	struct STeeSettingsPageState
 	{
+		std::array<int, NUM_DUMMIES> m_aSelectedQueuePreset = {-1, -1};
 		bool m_SkinListScrollActiveLastFrame = false;
 		int m_SkinListScrollCooldownFrames = 0;
 		int m_SkinListPostScrollRecoveryFrames = 0;
@@ -1074,6 +1075,7 @@ void CMenus::RenderSettingsTeeSkinList(CUIRect Content, const SSettingsContentMe
 	if(s_vVisibleSkinIndices.capacity() < 32)
 		s_vVisibleSkinIndices.reserve(32);
 	std::vector<size_t> &vVisibleSkinIndices = s_vVisibleSkinIndices;
+	std::vector<std::string> vCurrentVisibleSkinNames;
 	const SQmPerformanceMetrics &PerfSnapshot = GameClient()->m_QmMonitoring.Snapshot().m_Performance;
 	SSettingsAdaptiveBudgetInput TeeBudgetInput;
 	TeeBudgetInput.m_FrameId = Client()->PerfFrame();
@@ -1258,6 +1260,8 @@ void CMenus::RenderSettingsTeeSkinList(CUIRect Content, const SSettingsContentMe
 			++RowsRendered;
 
 		vVisibleSkinIndices.push_back(i);
+		if(CSettingsSkinLoadViewport::RowVisible(Ui()->MeasurementOnly(), Item.m_Rect, Ui()->IsClipped() ? Ui()->ClipArea() : nullptr))
+			vCurrentVisibleSkinNames.emplace_back(pSkinContainer->Name());
 		const bool EntryNonTerminalWaiting = !SourceReady &&
 						     (State == CSkins::CSkinContainer::EState::UNLOADED ||
 							     State == CSkins::CSkinContainer::EState::BACKGROUND_REQUESTED ||
@@ -1424,9 +1428,11 @@ void CMenus::RenderSettingsTeeSkinList(CUIRect Content, const SSettingsContentMe
 	const int TailItems = (int)vSkinList.size() - VisibleRange.m_EndItem;
 	if(TailItems > 0)
 		s_ListBox.SkipItems(TailItems);
+	GameClient()->m_Skins.SetSettingsVisibleSkinLoads(std::move(vCurrentVisibleSkinNames), Ui()->MeasurementOnly());
 	for(auto It = vVisibleSkinIndices.rbegin(); It != vVisibleSkinIndices.rend(); ++It)
 	{
-		vSkinList[*It].RequestLoad(ESettingsResourcePriority::VISIBLE);
+		if(!Ui()->MeasurementOnly())
+			vSkinList[*It].RequestLoad(ESettingsResourcePriority::VISIBLE);
 	}
 	const bool SkinListScrollInteraction = m_SettingsScrollActive || s_ListBox.ScrollbarActive() || s_ListBox.ScrollbarAnimating() || s_SkinListScrollActiveLastFrame;
 	const int PreviousSkinListScrollCooldownFrames = s_SkinListScrollCooldownFrames;
@@ -2137,7 +2143,10 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 	int &QueueIndex = QueueDummy ? g_Config.m_QmDummySkinQueueIndex : g_Config.m_QmSkinQueueIndex;
 	int &QueueRandomJoin = QueueDummy ? g_Config.m_QmDummySkinQueueRandomJoin : g_Config.m_QmSkinQueueRandomJoin;
 	const int AppliedPresetIndex = GameClient()->m_Skins.AppliedSkinQueuePresetIndex(QueueDummy);
-	const int ActivePresetIndex = AppliedPresetIndex;
+	int &SelectedPresetIndex = gs_TeeSettingsPageState.m_aSelectedQueuePreset[QueueDummy];
+	if(SelectedPresetIndex < 0 || (size_t)SelectedPresetIndex >= GameClient()->m_Skins.SkinQueuePresets(QueueDummy).size())
+		SelectedPresetIndex = AppliedPresetIndex >= 0 ? AppliedPresetIndex : 0;
+	const int ActivePresetIndex = SelectedPresetIndex;
 	const bool QueueDirty = GameClient()->m_Skins.SkinQueueDirty(QueueDummy);
 	const auto &SkinQueue = GameClient()->m_Skins.SkinQueue(QueueDummy);
 	const auto &vQueuePresets = GameClient()->m_Skins.SkinQueuePresets(QueueDummy);
@@ -2153,7 +2162,14 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 	CUIRect QueueTarget;
 	QueueSection.HSplitTop(TeeMetrics.m_LineHeight, &QueueTarget, &QueueSection);
 	QueueSection.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &QueueSection);
-	DoSettingsMenuLabel(SETTINGS_TEE, -1, -1, "tee-queue-target", &QueueTarget, QueueDummy ? Localize("Dummy") : Localize("Player"), BodySize, TEXTALIGN_ML);
+	CUIRect PlayerTarget, DummyTarget;
+	QueueTarget.VSplitMid(&PlayerTarget, &DummyTarget, TeeMetrics.m_LineSpacing);
+	static CButtonContainer s_aQueueTargets[NUM_DUMMIES];
+	int RequestedTarget = QueueDummy;
+	if(DoSettingsButton_Menu(SETTINGS_TEE, -1, -1, &s_aQueueTargets[0], "tee-queue-target-player", Localize("Player"), QueueDummy == 0, &PlayerTarget, TeeMetrics))
+		RequestedTarget = 0;
+	if(DoSettingsButton_Menu(SETTINGS_TEE, -1, -1, &s_aQueueTargets[1], "tee-queue-target-dummy", Localize("Dummy"), QueueDummy == 1, &DummyTarget, TeeMetrics))
+		RequestedTarget = 1;
 	QueueSection.HSplitTop(TeeMetrics.m_LineHeight, &QueueHeader, &QueueSection);
 	if(DoSettingsButton_CheckBox(SETTINGS_TEE, -1, &QueueEnabled, QueueDummy ? "tee-dummy-skin-queue-enabled" : "tee-player-skin-queue-enabled", Localize("Enable rotation"), QueueEnabled, &QueueHeader))
 	{
@@ -2240,8 +2256,9 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 	QueueList.HSplitTop(TeeMetrics.m_LineHeight, &QueueListHeader, &QueueListBody);
 	QueueListBody.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &QueueListBody);
 	QueueListBody.HSplitTop(minimum(QueueListBody.h, QueueGeometry.m_QueueListViewportHeight), &QueueListBody, nullptr);
-	CUIRect QueueListHeaderLabel, QueueRandomRect, ClearQueueRect;
+	CUIRect QueueListHeaderLabel, QueueRandomRect, QueueShuffleRect, ClearQueueRect;
 	QueueListHeader.VSplitRight(minimum(QueueListHeader.w, TeeMetrics.m_ButtonHeight), &QueueListHeader, &ClearQueueRect);
+	QueueListHeader.VSplitRight(minimum(QueueListHeader.w, TeeMetrics.m_ButtonHeight), &QueueListHeader, &QueueShuffleRect);
 	QueueListHeader.VSplitRight(minimum(QueueListHeader.w, TeeMetrics.m_ButtonHeight), &QueueListHeaderLabel, &QueueRandomRect);
 	CurrentQueueLabelProps.m_MaxWidth = QueueListHeaderLabel.w;
 	Ui()->DoLabel(&QueueListHeaderLabel, aCurrentQueueLabel, BodySize, TEXTALIGN_ML, CurrentQueueLabelProps);
@@ -2256,6 +2273,11 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 		}
 	}
 	GameClient()->m_Tooltips.DoToolTip(&s_TeeRandomSkinQueueButton, &QueueRandomRect, Localize("Apply a random skin from the queue"));
+	static CButtonContainer s_TeeShuffleSkinQueueButton;
+	const bool CanShuffleQueue = SkinQueue.size() > 1;
+	if(Ui()->DoButton_QmIcon(&s_TeeShuffleSkinQueueButton, EQmIcon::ARROWS_LEFT_RIGHT, FONT_ICON_ARROWS_LEFT_RIGHT, CanShuffleQueue ? 0 : -1, &QueueShuffleRect, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL) && CanShuffleQueue)
+		GameClient()->m_Skins.ShuffleSkinQueue(QueueDummy);
+	GameClient()->m_Tooltips.DoToolTip(&s_TeeShuffleSkinQueueButton, &QueueShuffleRect, Localize("Shuffle skin queue"));
 	static CButtonContainer s_TeeClearCurrentSkinQueueButton;
 	if(Ui()->DoButton_QmIcon(&s_TeeClearCurrentSkinQueueButton, EQmIcon::TRASH, FONT_ICON_TRASH, 0, &ClearQueueRect, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL))
 	{
@@ -2489,7 +2511,7 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 		PresetControls.VSplitLeft(ActionButtonWidth, &RenamePresetButton, &PresetControls);
 		PresetControls.VSplitLeft(ActionGapWidth, nullptr, &RemovePresetButton);
 		const bool HasAppliedPreset = ActivePresetIndex >= 0 && (size_t)ActivePresetIndex < vQueuePresets.size();
-		const bool CanSavePreset = HasAppliedPreset && ActivePresetIndex != (int)CSkins::SKIN_QUEUE_SERVER_PRESET && QueueDirty;
+		const bool CanSavePreset = HasAppliedPreset && ActivePresetIndex == AppliedPresetIndex && ActivePresetIndex != (int)CSkins::SKIN_QUEUE_SERVER_PRESET && QueueDirty;
 		const bool CanSaveAsPreset = !SkinQueue.empty();
 		const bool CanRenamePreset = HasAppliedPreset && ActivePresetIndex != (int)CSkins::SKIN_QUEUE_SERVER_PRESET;
 		const bool CanRemovePreset = HasAppliedPreset && (size_t)ActivePresetIndex >= 2;
@@ -2502,7 +2524,8 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 		static CButtonContainer s_SaveAsPresetButton;
 		if(Ui()->DoButton_QmIcon(&s_SaveAsPresetButton, EQmIcon::COPY, FONT_ICON_COPY, CanSaveAsPreset ? 0 : -1, &SaveAsButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL) && CanSaveAsPreset)
 		{
-			GameClient()->m_Skins.AddSkinQueuePresetFromCurrent(QueueDummy);
+			if(GameClient()->m_Skins.AddSkinQueuePresetFromCurrent(QueueDummy))
+				SelectedPresetIndex = GameClient()->m_Skins.AppliedSkinQueuePresetIndex(QueueDummy);
 		}
 		GameClient()->m_Tooltips.DoToolTip(&s_SaveAsPresetButton, &SaveAsButton, CanSaveAsPreset ? Localize("Save current queue as a new preset") : Localize("Queue is empty"));
 		static CButtonContainer s_RenameSelectedPresetButton;
@@ -2521,6 +2544,16 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 		GameClient()->m_Tooltips.DoToolTip(&s_RemoveSelectedPresetButton, &RemovePresetButton, CanRemovePreset ? Localize("Delete this preset") : Localize("Apply a preset first"));
 
 		QueuePresets.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &QueuePresets);
+		CUIRect ApplyRow, ApplyPlayer, ApplyDummy;
+		QueuePresets.HSplitTop(TeeMetrics.m_ButtonHeight, &ApplyRow, &QueuePresets);
+		QueuePresets.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &QueuePresets);
+		ApplyRow.VSplitMid(&ApplyPlayer, &ApplyDummy, TeeMetrics.m_LineSpacing);
+		static CButtonContainer s_aApplyQueuePresetButtons[NUM_DUMMIES];
+		int ApplyPresetTarget = -1;
+		if(DoSettingsButton_Menu(SETTINGS_TEE, -1, -1, &s_aApplyQueuePresetButtons[0], "tee-queue-apply-player", Localize("Apply to player"), HasAppliedPreset ? 0 : -1, &ApplyPlayer, TeeMetrics) && HasAppliedPreset)
+			ApplyPresetTarget = 0;
+		if(DoSettingsButton_Menu(SETTINGS_TEE, -1, -1, &s_aApplyQueuePresetButtons[1], "tee-queue-apply-dummy", Localize("Apply to dummy"), HasAppliedPreset ? 0 : -1, &ApplyDummy, TeeMetrics) && HasAppliedPreset)
+			ApplyPresetTarget = 1;
 		PresetList = QueuePresets;
 		if(vQueuePresets.empty())
 		{
@@ -2578,7 +2611,7 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 				}
 				else
 				{
-					pPresetTooltip = Localize("Apply this preset");
+					pPresetTooltip = Localize("Select a preset, then apply it to player or dummy");
 				}
 				GameClient()->m_Tooltips.DoToolTip(&s_vPresetItemIds[i], &SelectRect, pPresetTooltip);
 			}
@@ -2599,17 +2632,30 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 			}
 			else if(SelectPresetIndex >= 0)
 			{
-				CommitSettingsTeeSkinEdits();
-				const SQmRecentTeeSkin Before = QmCurrentTeeSkin(g_Config, QueueDummy != 0);
-				GameClient()->m_Skins.ApplySkinQueuePreset((size_t)SelectPresetIndex, QueueDummy);
-				if(!(Before == QmCurrentTeeSkin(g_Config, QueueDummy != 0)))
-					GameClient()->m_Skins.RecordRecentSkin(QueueDummy);
+				SelectedPresetIndex = SelectPresetIndex;
 			}
 			else if(RemovePresetIndex >= 0)
 			{
 				GameClient()->m_Skins.RemoveSkinQueuePreset((size_t)RemovePresetIndex, QueueDummy);
+				for(int &Index : gs_TeeSettingsPageState.m_aSelectedQueuePreset)
+					Index = CSkins::NextAppliedPresetIndexAfterRemove(Index, RemovePresetIndex);
+			}
+			else if(ApplyPresetTarget >= 0)
+			{
+				CommitSettingsTeeSkinEdits();
+				const SQmRecentTeeSkin Before = QmCurrentTeeSkin(g_Config, ApplyPresetTarget != 0);
+				GameClient()->m_Skins.ApplySkinQueuePreset((size_t)ActivePresetIndex, ApplyPresetTarget);
+				gs_TeeSettingsPageState.m_aSelectedQueuePreset[ApplyPresetTarget] = ActivePresetIndex;
+				if(!(Before == QmCurrentTeeSkin(g_Config, ApplyPresetTarget != 0)))
+					GameClient()->m_Skins.RecordRecentSkin(ApplyPresetTarget);
 			}
 		}
+	}
+	if(RequestedTarget != QueueDummy && !Ui()->RenderOnly())
+	{
+		CommitSettingsTeeSkinEdits();
+		m_Dummy = RequestedTarget != 0;
+		m_SkinListScrollToSelected = true;
 	}
 }
 

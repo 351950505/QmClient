@@ -504,10 +504,12 @@ TEST(SettingsPageLayout, SavedProfilesHeightTracksRowsAndCapsTheViewport)
 TEST(SettingsPageLayout, TeeQueueListViewportUsesCompleteRowsAndPrioritizesQueueSpace)
 {
 	const SSettingsContentMetrics Metrics = ResolveSettingsContentMetrics(1000.0f);
-	const float FixedChromeHeight = Metrics.m_LineSpacing * 4.0f + Metrics.m_LineHeight;
 	const float PresetRowSpacing = Metrics.m_LineSpacing * 0.5f;
-	EXPECT_FLOAT_EQ(ResolveSettingsTeeQueuePresetHeight(Metrics, 3), FixedChromeHeight + ResolveSettingsListViewportHeight(3, Metrics.m_ListRowHeight, PresetRowSpacing));
-	EXPECT_FLOAT_EQ(ResolveSettingsTeeQueuePresetHeight(Metrics, 6), FixedChromeHeight + ResolveSettingsListViewportHeight(6, Metrics.m_ListRowHeight, PresetRowSpacing));
+	const float ThreeRowsHeight = ResolveSettingsTeeQueuePresetHeight(Metrics, 3);
+	const float SixRowsHeight = ResolveSettingsTeeQueuePresetHeight(Metrics, 6);
+	EXPECT_FLOAT_EQ(SixRowsHeight - ThreeRowsHeight, ResolveSettingsListViewportHeight(6, Metrics.m_ListRowHeight, PresetRowSpacing) - ResolveSettingsListViewportHeight(3, Metrics.m_ListRowHeight, PresetRowSpacing));
+	// 预设工具栏与应用目标按钮不挤占列表的完整行。
+	EXPECT_GE(ThreeRowsHeight - ResolveSettingsListViewportHeight(3, Metrics.m_ListRowHeight, PresetRowSpacing), Metrics.m_LineHeight + Metrics.m_ButtonHeight);
 	EXPECT_EQ(ResolveSettingsTeeVisiblePresetRows(0), 2);
 	EXPECT_EQ(ResolveSettingsTeeVisiblePresetRows(3), 3);
 	EXPECT_EQ(ResolveSettingsTeeVisiblePresetRows(12), 3);

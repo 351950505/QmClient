@@ -857,6 +857,12 @@ Apply squishy Tee deformation to other players
 Apply this preset
 == 이 프리셋 적용
 
+Apply to dummy
+== 더미에 적용
+
+Apply to player
+== 플레이어에 적용
+
 Apply watermark
 == 워터마크 적용
 
@@ -10490,6 +10496,9 @@ Screenshots
 Screenshots directory
 == 스크린샷 디렉터리
 
+Scroll mode: Auto
+== 스크롤 모드: 자동
+
 Scroll mode: Off
 == 스크롤 모드: 끄기
 
@@ -10564,6 +10573,9 @@ See you at the next checkpoint.
 
 Select a configuration package to preview its contents.
 == 설정 패키지를 선택하여 내용을 미리 확인하세요.
+
+Select a preset, then apply it to player or dummy
+== 프리셋을 선택한 뒤 플레이어나 더미에 적용
 
 Select a saved .map file (client limit: 64 MiB).
 == 저장된 .map 파일을 선택하세요(클라이언트 제한: 64 MiB).
@@ -11899,6 +11911,9 @@ Shrink
 
 Shrug:
 == 어깨 으쓱：
+
+Shuffle skin queue
+== 스킨 큐 순서 섞기
 
 Shut down
 == 종료

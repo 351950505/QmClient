@@ -5380,6 +5380,7 @@ if(TARGET benchmark::benchmark AND SERVER AND FREETYPE_FOUND)
     src/test/benchmark/qm_text_benchmark.cpp
     src/test/benchmark/qm_ime_layout_benchmark.cpp
     src/test/benchmark/qm_chat_layout_benchmark.cpp
+    src/test/benchmark/qm_scoreboard_layout_benchmark.cpp
     src/test/benchmark/qm_translate_benchmark.cpp
     src/game/client/components/qmclient/translate/translate_jobs.cpp
     src/game/client/components/qmclient/translate/translate_parse.cpp

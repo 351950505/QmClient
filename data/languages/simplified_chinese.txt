@@ -857,6 +857,12 @@ Apply squishy Tee deformation to other players
 Apply this preset
 == 应用此预设
 
+Apply to dummy
+== 应用到分身
+
+Apply to player
+== 应用到本体
+
 Apply watermark
 == 应用水印
 
@@ -10490,6 +10496,9 @@ Screenshots
 Screenshots directory
 == 截图目录
 
+Scroll mode: Auto
+== 滚动模式：自动
+
 Scroll mode: Off
 == 滚动模式：关
 
@@ -10564,6 +10573,9 @@ See you at the next checkpoint.
 
 Select a configuration package to preview its contents.
 == 选择配置包以预览内容。
+
+Select a preset, then apply it to player or dummy
+== 先选择预设，再应用到本体或分身
 
 Select a saved .map file (client limit: 64 MiB).
 == 选择已保存的 .map 文件（客户端上限：64 MiB）。
@@ -11899,6 +11911,9 @@ Shrink
 
 Shrug:
 == 耸肩：
+
+Shuffle skin queue
+== 皮肤队列随机排序
 
 Shut down
 == 关闭
