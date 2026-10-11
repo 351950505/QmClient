@@ -9,6 +9,7 @@
 #include <engine/shared/config.h>
 
 #include <game/client/animstate.h>
+#include <game/client/components/qmclient/bg_draw_state.h>
 #include <game/client/components/tclient/bg_draw_file.h>
 #include <game/client/gameclient.h>
 #include <game/client/render.h>
@@ -44,33 +45,6 @@ static bool line_intersects(vec2 A, vec2 B, vec2 C, vec2 D)
 }
 
 // NOLINTNEXTLINE(misc-use-internal-linkage)
-class CBoundingBox
-{
-public:
-	vec2 m_Min = vec2(0.0f, 0.0f);
-	vec2 m_Max = vec2(0.0f, 0.0f);
-	void ExtendBoundingBox(vec2 Pos, float Radius)
-	{
-		const vec2 MinPos = Pos - vec2(Radius, Radius);
-		const vec2 MaxPos = Pos + vec2(Radius, Radius);
-		if(m_Min == m_Max)
-		{
-			m_Min = MinPos;
-			m_Max = MaxPos;
-			return;
-		}
-		if(MinPos.x < m_Min.x)
-			m_Min.x = MinPos.x;
-		if(MinPos.y < m_Min.y)
-			m_Min.y = MinPos.y;
-		if(MaxPos.x > m_Max.x)
-			m_Max.x = MaxPos.x;
-		if(MaxPos.y > m_Max.y)
-			m_Max.y = MaxPos.y;
-	}
-};
-
-// NOLINTNEXTLINE(misc-use-internal-linkage)
 class CPathContainer
 {
 private:
@@ -87,8 +61,8 @@ private:
 	}
 	void Upload()
 	{
-		int &QuadContainerIndex = *(m_vQuadContainerIndexes.end() - 1);
-		m_Graphics.QuadContainerUpload(QuadContainerIndex);
+		if(!m_vQuadContainerIndexes.empty())
+			m_Graphics.QuadContainerUpload(m_vQuadContainerIndexes.back());
 	}
 	void AddQuads(IGraphics::CFreeformItem *pFreeformItem, int Count, ColorRGBA Color)
 	{
@@ -102,7 +76,7 @@ private:
 			int &QuadContainerIndex = *(m_vQuadContainerIndexes.end() - 1);
 			m_Graphics.QuadContainerUpload(QuadContainerIndex);
 			m_vQuadContainerIndexes.push_back(m_Graphics.CreateQuadContainer(false));
-			m_QuadCount = 0;
+			m_QuadCount = Count;
 		}
 		int &QuadContainerIndex = *(m_vQuadContainerIndexes.end() - 1);
 		m_Graphics.SetColor(Color);
@@ -111,7 +85,7 @@ private:
 	void AddCircle(vec2 Pos, float Angle1, float Angle2, float Width, ColorRGBA Color)
 	{
 		const float Radius = Width / 2.0f;
-		const int Segments = (int)(std::fabs(Angle2 - Angle1) / (pi / 8.0f));
+		const int Segments = std::clamp((int)(std::fabs(Angle2 - Angle1) / (pi / 8.0f)), 1, 20);
 		const float SegmentAngle = (Angle2 - Angle1) / Segments;
 		IGraphics::CFreeformItem FreeformItems[20];
 		for(int i = 0; i < Segments; ++i)
@@ -177,11 +151,8 @@ class CBgDrawItem
 private:
 	CGameClient &m_This;
 
-	int m_Drawing = true;
-
-	CBoundingBox m_BoundingBox;
 	CPathContainer m_PathContainer;
-	CBgDrawItemData m_Data;
+	CQmBgDrawStroke m_Stroke;
 
 	float CurrentWidth() const
 	{
@@ -196,46 +167,27 @@ public:
 	bool m_Killed = false;
 	float m_SecondsAge = 0.0f;
 
-	const CBgDrawItemData &Data() const { return m_Data; }
-	const CBoundingBox &BoundingBox() const { return m_BoundingBox; }
+	const CBgDrawItemData &Data() const { return m_Stroke.Data(); }
+	vec2 Min() const { return m_Stroke.Min(); }
+	vec2 Max() const { return m_Stroke.Max(); }
 
-	bool PenUp(const CBgDrawItemDataPoint &Point)
-	{
-		if(!m_Drawing)
-			return false;
-		m_Drawing = false;
-		m_PathContainer.Update(m_Data);
-		return true;
-	}
-	bool PenUp(vec2 Pos)
-	{
-		return PenUp({Pos, CurrentWidth(), CurrentColor()});
-	}
-	bool MoveTo(const CBgDrawItemDataPoint &Point)
-	{
-		if(!m_Drawing)
-			return false;
-		if(m_Data.size() > BG_DRAW_MAX_POINTS_PER_ITEM)
-			return PenUp(Point.Pos());
-		if(m_Data.size() >= 2 && distance((m_Data.end() - 2)->Pos(), (m_Data.end() - 1)->Pos()) < Point.w * 0.75f)
-			*(m_Data.end() - 1) = Point;
-		else
-			m_Data.emplace_back(Point);
-		m_PathContainer.Update(m_Data);
-		return true;
-	}
+	void PenUp() { m_Stroke.PenUp(); }
 	bool MoveTo(vec2 Pos)
 	{
-		return MoveTo(CBgDrawItemDataPoint(Pos, CurrentWidth(), CurrentColor()));
+		if(!m_Stroke.MoveTo({Pos, CurrentWidth(), CurrentColor()}))
+			return false;
+		m_PathContainer.Update(Data());
+		return true;
 	}
 	bool PointIntersect(const vec2 Pos, const float Radius) const
 	{
-		if(m_Data.empty())
+		const auto &vData = Data();
+		if(vData.empty())
 			return true;
-		if(m_Data.size() == 1)
-			return distance(m_Data[0].Pos(), Pos) < m_Data[0].w + Radius;
-		vec2 C, D = m_Data[0].Pos();
-		for(auto It = std::next(m_Data.begin()); It != m_Data.end(); ++It)
+		if(vData.size() == 1)
+			return distance(vData[0].Pos(), Pos) < vData[0].w + Radius;
+		vec2 C, D = vData[0].Pos();
+		for(auto It = std::next(vData.begin()); It != vData.end(); ++It)
 		{
 			const CBgDrawItemDataPoint &Point = *It;
 			C = D;
@@ -250,18 +202,19 @@ public:
 	}
 	bool LineIntersect(const vec2 A, const vec2 B) const
 	{
-		if(m_Data.empty())
+		const auto &vData = Data();
+		if(vData.empty())
 			return true;
-		if(m_Data.size() == 1)
+		if(vData.size() == 1)
 		{
-			vec2 P = m_Data[0].Pos();
+			vec2 P = vData[0].Pos();
 			vec2 Closest;
 			if(!closest_point_on_line(A, B, P, Closest))
 				return false;
-			return distance(Closest, P) < m_Data[0].w;
+			return distance(Closest, P) < vData[0].w;
 		}
-		vec2 C, D = m_Data[0].Pos();
-		for(auto It = std::next(m_Data.begin()); It != m_Data.end(); ++It)
+		vec2 C, D = vData[0].Pos();
+		for(auto It = std::next(vData.begin()); It != vData.end(); ++It)
 		{
 			const CBgDrawItemDataPoint &Point = *It;
 			C = D;
@@ -278,27 +231,15 @@ public:
 
 	CBgDrawItem() = delete;
 	CBgDrawItem(CGameClient &This, vec2 StartPos) :
-		m_This(This), m_PathContainer(*This.Graphics())
+		m_This(This), m_PathContainer(*This.Graphics()),
+		m_Stroke(CBgDrawItemDataPoint(StartPos, CurrentWidth(), CurrentColor()))
 	{
-		m_BoundingBox.ExtendBoundingBox(StartPos, CurrentWidth());
-		m_Data.emplace_back(StartPos, CurrentWidth(), CurrentColor());
-	}
-	CBgDrawItem(CGameClient &This, CBgDrawItemDataPoint StartPoint) :
-		CBgDrawItem(This, StartPoint.Pos())
-	{
-		m_Data.clear();
-		m_Data.push_back(StartPoint);
+		m_PathContainer.Update(Data());
 	}
 	CBgDrawItem(CGameClient &This, const CBgDrawItemData &Data) :
-		CBgDrawItem(This, Data[0])
+		m_This(This), m_PathContainer(*This.Graphics()), m_Stroke(Data)
 	{
-		if(Data.size() > 1)
-			for(auto It = Data.begin() + 1; It != Data.end() - 1; ++It)
-			{
-				const CBgDrawItemDataPoint &Point = *It;
-				MoveTo(Point);
-			}
-		PenUp(Data.back());
+		m_PathContainer.Update(this->Data());
 	}
 };
 
@@ -368,22 +309,15 @@ static IOHANDLE BgDrawOpenFile(CGameClient &This, const char *pFilename, int Fla
 
 bool CBgDraw::Save(const char *pFilename, bool Verbose)
 {
-	if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
+	if(!m_MapActive)
 		return false;
 
-	if(m_pvItems->size() == 0)
-	{
-		if(Verbose)
-			GameClient()->Echo(Localize("No items to write"));
-		return false;
-	}
 	if(!m_Dirty)
 	{
 		if(Verbose)
 			GameClient()->Echo(Localize("No changes since last save"));
 		return false;
 	}
-	m_Dirty = false;
 	IOHANDLE Handle = BgDrawOpenFile(*GameClient(), pFilename, IOFLAG_WRITE);
 	if(!Handle)
 		return false;
@@ -406,7 +340,9 @@ bool CBgDraw::Save(const char *pFilename, bool Verbose)
 		str_format(aMsg, sizeof(aMsg), Localize("Written %d items"), Written);
 		GameClient()->Echo(aMsg);
 	}
-	io_close(Handle);
+	Success = io_close(Handle) == 0 && Success;
+	if(Success)
+		m_Dirty = false;
 	return Success;
 }
 
@@ -422,9 +358,15 @@ bool CBgDraw::Load(const char *pFilename, bool Verbose)
 	int ItemsDiscarded = 0;
 	{
 		CBgDrawItemData Data;
-		while(BgDrawFile::Read(Handle, Data) && (ItemsLoaded++) < MAX_ITEMS_TO_LOAD)
+		while(ItemsLoaded < MAX_ITEMS_TO_LOAD && BgDrawFile::Read(Handle, Data))
 		{
-			if((int)Queue.size() > g_Config.m_QmBgDrawMaxItems)
+			++ItemsLoaded;
+			if(g_Config.m_QmBgDrawMaxItems == 0)
+			{
+				++ItemsDiscarded;
+				continue;
+			}
+			if((int)Queue.size() >= g_Config.m_QmBgDrawMaxItems)
 			{
 				ItemsDiscarded += 1;
 				Queue.pop_front();
@@ -462,24 +404,8 @@ CBgDrawItem *CBgDraw::AddItem(T &&...Aargs)
 
 void CBgDraw::MakeSpaceFor(int Count)
 {
-	if(g_Config.m_QmBgDrawMaxItems == 0 || Count >= g_Config.m_QmBgDrawMaxItems)
-	{
-		m_pvItems->clear();
-		return;
-	}
-	while((int)m_pvItems->size() + Count > g_Config.m_QmBgDrawMaxItems)
-	{
-		// Prevent floating pointer
-		for(std::optional<CBgDrawItem *> &ActiveItem : m_apActiveItems)
-		{
-			if(!ActiveItem.has_value())
-				continue;
-			if(ActiveItem.value() != &(*m_pvItems->begin()))
-				continue;
-			ActiveItem = std::nullopt;
-		}
-		m_pvItems->pop_front();
-	}
+	if(QmBgDrawMakeSpace(*m_pvItems, m_apActiveItems, g_Config.m_QmBgDrawMaxItems, Count))
+		m_Dirty = true;
 }
 
 void CBgDraw::OnConsoleInit()
@@ -512,7 +438,7 @@ void CBgDraw::OnRender()
 	{
 		// Handle updating active item
 		const InputMode Input = m_aInputData[Dummy];
-		std::optional<CBgDrawItem *> &ActiveItem = m_apActiveItems[Dummy];
+		CBgDrawItem *&ActiveItem = m_apActiveItems[Dummy];
 		vec2 Pos;
 		if(GameClient()->m_Snap.m_SpecInfo.m_Active && Dummy == g_Config.m_ClDummy)
 			Pos = GameClient()->m_Camera.m_Center;
@@ -520,16 +446,15 @@ void CBgDraw::OnRender()
 			Pos = (GameClient()->m_Controls.m_aTargetPos[Dummy] - GameClient()->m_Camera.m_Center) * GameClient()->m_Camera.m_Zoom + GameClient()->m_Camera.m_Center;
 		if(Input == InputMode::DRAW)
 		{
-			if(ActiveItem.has_value())
-				(*ActiveItem)->MoveTo(Pos);
+			if(ActiveItem != nullptr)
+				m_Dirty |= ActiveItem->MoveTo(Pos);
 			else
 				ActiveItem = AddItem(*GameClient(), Pos);
-			m_Dirty = true;
 		}
-		else if(ActiveItem.has_value())
+		else if(ActiveItem != nullptr)
 		{
-			(*ActiveItem)->PenUp(Pos);
-			ActiveItem = std::nullopt;
+			ActiveItem->PenUp();
+			ActiveItem = nullptr;
 		}
 		std::optional<vec2> &LastPos = m_aLastPos[Dummy];
 		if(Input == InputMode::ERASE)
@@ -546,6 +471,7 @@ void CBgDraw::OnRender()
 					if(Item.PointIntersect(Pos, 2.0f))
 						Item.m_Killed = true;
 			}
+			LastPos = Pos;
 		}
 		else
 		{
@@ -560,8 +486,8 @@ void CBgDraw::OnRender()
 	for(CBgDrawItem &Item : *m_pvItems)
 	{
 		// If this item is currently active
-		if(std::any_of(std::begin(m_apActiveItems), std::end(m_apActiveItems), [&](const std::optional<CBgDrawItem *> &ActiveItem) {
-			   return ActiveItem.value_or(nullptr) == &Item;
+		if(std::any_of(std::begin(m_apActiveItems), std::end(m_apActiveItems), [&](const CBgDrawItem *pActiveItem) {
+			   return pActiveItem == &Item;
 		   }))
 		{
 			Item.m_SecondsAge = 0.0f;
@@ -572,15 +498,15 @@ void CBgDraw::OnRender()
 			if(g_Config.m_QmBgDrawFadeTime > 0 && Item.m_SecondsAge > (float)g_Config.m_QmBgDrawFadeTime)
 				Item.m_Killed = true;
 		}
-		const bool InRangeX = Item.BoundingBox().m_Min.x < ScreenX1 && Item.BoundingBox().m_Max.x > ScreenX0;
-		const bool InRangeY = Item.BoundingBox().m_Min.y < ScreenY1 && Item.BoundingBox().m_Max.y > ScreenY0;
+		const bool InRangeX = Item.Min().x < ScreenX1 && Item.Max().x > ScreenX0;
+		const bool InRangeY = Item.Min().y < ScreenY1 && Item.Max().y > ScreenY0;
 		if(InRangeX && InRangeY)
 			Item.Render();
 	}
-	for(std::optional<CBgDrawItem *> &ActiveItem : m_apActiveItems)
+	for(CBgDrawItem *&ActiveItem : m_apActiveItems)
 	{
-		if(ActiveItem.has_value() && ActiveItem.value()->m_Killed)
-			ActiveItem = std::nullopt;
+		if(ActiveItem != nullptr && ActiveItem->m_Killed)
+			ActiveItem = nullptr;
 	}
 	// Remove killed items
 	if(m_pvItems->remove_if([&](CBgDrawItem &Item) { return Item.m_Killed; }))
@@ -592,7 +518,8 @@ void CBgDraw::Reset()
 {
 	m_aInputData.fill(InputMode::NONE);
 	m_aLastPos.fill(std::nullopt);
-	m_apActiveItems.fill(std::nullopt);
+	m_apActiveItems.fill(nullptr);
+	m_Dirty |= !m_pvItems->empty();
 	m_pvItems->clear();
 }
 
@@ -608,6 +535,8 @@ void CBgDraw::OnStateChange(int NewState, int OldState)
 			Save(nullptr, true);
 	}
 	Reset();
+	m_Dirty = false;
+	m_MapActive = NewState == IClient::STATE_ONLINE || NewState == IClient::STATE_DEMOPLAYBACK;
 	m_NextAutoSave = AUTO_SAVE_INTERVAL;
 	if(NewState == IClient::STATE_ONLINE || NewState == IClient::STATE_DEMOPLAYBACK)
 	{
@@ -619,6 +548,7 @@ void CBgDraw::OnStateChange(int NewState, int OldState)
 void CBgDraw::OnShutdown()
 {
 	Reset();
+	m_MapActive = false;
 }
 
 CBgDraw::CBgDraw() :

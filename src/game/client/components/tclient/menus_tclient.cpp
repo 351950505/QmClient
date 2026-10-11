@@ -739,8 +739,9 @@ int CMenus::DoButtonNoRect_QmIcon(CButtonContainer *pButtonContainer, EQmIcon Ic
 
 void CMenus::PopupConfirmRemoveWarType()
 {
-	GameClient()->m_WarList.RemoveWarType(m_pRemoveWarType->m_aWarName);
-	++s_TClientWarListFilterRevision;
+	const auto &vpTypes = GameClient()->m_WarList.m_WarTypes;
+	if(std::find(vpTypes.begin(), vpTypes.end(), m_pRemoveWarType) != vpTypes.end())
+		GameClient()->m_WarList.RemoveWarType(m_pRemoveWarType->m_aWarName);
 	m_pRemoveWarType = nullptr;
 }
 

@@ -426,6 +426,7 @@ void *CGameClient::TranslateGameMsg(int *pMsgId, CUnpacker *pUnpacker, int Conn)
 		protocol7::CNetMsg_Sv_VoteSet *pMsg7 = (protocol7::CNetMsg_Sv_VoteSet *)pRawMsg;
 		::CNetMsg_Sv_VoteSet *pMsg = (::CNetMsg_Sv_VoteSet *)s_aRawMsg;
 
+		m_TClient.SetVoteCallerId(pMsg7->m_Timeout ? pMsg7->m_ClientId : -1);
 		pMsg->m_Timeout = pMsg7->m_Timeout;
 		pMsg->m_pDescription = pMsg7->m_pDescription;
 		pMsg->m_pReason = pMsg7->m_pReason;

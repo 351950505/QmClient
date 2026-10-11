@@ -449,12 +449,18 @@ class CTClient : public CComponent
 	void CheckFriendEnterGreet();
 
 	bool m_QmAspectApplyPending = false;
+	int m_VoteCallerId = -1;
 
 public:
 	CTClient();
 	int Sizeof() const override { return sizeof(*this); }
 	void OnInit() override;
-	void OnReset() override { CancelSoloSplit(); }
+	void OnReset() override
+	{
+		CancelSoloSplit();
+		m_VoteCallerId = -1;
+	}
+	void SetVoteCallerId(int ClientId) { m_VoteCallerId = ClientId; }
 	void CancelSoloSplit() { m_SoloSplit.Reset(); }
 	void OnShutdown() override;
 	void OnWindowResize() override;

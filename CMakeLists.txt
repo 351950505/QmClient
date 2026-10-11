@@ -3254,6 +3254,7 @@ if(CLIENT)
     QmUi/cards/QmCardCatalogTClientVisual.cpp
     QmUi/cards/QmCardCatalogTClientGameplay.cpp
     QmUi/cards/QmCardCatalogTClientInternal.h
+    QmUi/cards/TClientConfigSource.h
     QmUi/cards/QmCardCatalogControls.cpp
     QmUi/cards/QmCardCatalogVisualContent.cpp
     QmUi/cards/QmCardCatalogFunctionContent.cpp
@@ -3598,6 +3599,12 @@ if(CLIENT)
     components/qmclient/translate/translate_ui_settings.h
     components/qmclient/update_version.cpp
     components/qmclient/font_download_storage.h
+    components/qmclient/auto_vote.h
+    components/qmclient/bg_draw_state.h
+    components/qmclient/bindwheel_state.h
+    components/qmclient/statusbar_items.h
+    components/qmclient/warlist_model.cpp
+    components/qmclient/warlist_model.h
     components/qmclient/update_version.h
     components/qmclient/update_manifest.cpp
     components/qmclient/update_manifest.h
@@ -4695,6 +4702,13 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/integration/qmclient/client/qm_console_text_pipeline_test.cpp
     src/test/unit/qmclient/client/qm_red_packet_auto_claim_test.cpp
     src/test/unit/qmclient/client/qm_tclient_warlist_test.cpp
+    src/test/unit/qmclient/client/qm_auto_vote_test.cpp
+    src/test/unit/qmclient/client/qm_bg_draw_state_test.cpp
+    src/test/unit/qmclient/client/qm_bg_draw_file_test.cpp
+    src/test/unit/qmclient/client/qm_bindwheel_state_test.cpp
+    src/test/unit/qmclient/client/qm_statusbar_items_test.cpp
+    src/test/unit/qmclient/client/qm_warlist_model_test.cpp
+    src/test/unit/qmclient/settings/tclient_config_source_test.cpp
     src/test/contract/qmclient/client/qm_chat_contract_test.cpp
     src/test/contract/qmclient/client/qm_chat_message_merge_contract_test.cpp
     src/test/unit/qmclient/client/qm_gores_mode_test.cpp
@@ -4761,7 +4775,6 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/settings/settings_tee_skin_list_state_test.cpp
     src/test/unit/qmclient/client/qm_plausible_sizes_contract_test.cpp
     src/test/unit/qmclient/client/qm_tclient_statusbar_score_contract_test.cpp
-    src/test/contract/qmclient/client/qm_tclient_statusbar_contract_test.cpp
     src/test/contract/qmclient/client/qm_graphics_shutdown_contract_test.cpp
     src/test/unit/qmclient/client/qm_crashdump_shutdown_suppression_test.cpp
     src/test/unit/qmclient/client/qm_hang_watchdog_state_test.cpp
@@ -5024,6 +5037,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/game/client/race_parse.cpp
     src/game/client/skin.cpp
     src/game/client/components/tclient/map_history.cpp
+    src/game/client/components/tclient/bg_draw_file.cpp
+    src/game/client/components/qmclient/warlist_model.cpp
     src/game/client/components/tclient/swap_countdown_message.cpp
     src/game/client/components/tclient/qm_tee_trail.cpp
     src/game/client/components/qmclient/tee_trail_styles.cpp
