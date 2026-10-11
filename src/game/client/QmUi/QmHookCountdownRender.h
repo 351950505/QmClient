@@ -9,6 +9,7 @@ namespace qm_hook_countdown_ui
 {
 	constexpr float OUTER_RADIUS = 12.5f;
 	constexpr float INNER_RADIUS = 8.5f;
+	constexpr float INFINITY_OUTER_RADIUS = 18.0f;
 
 	// 任意弧段：StartAngle/EndAngle 为弧度，0 = 环顶部，向顺时针增，EndAngle > StartAngle。
 	// 新后端走 RenderProceduralRing（旋转+对称扇区参数化），老后端复用 DrawSector。
@@ -48,38 +49,75 @@ namespace qm_hook_countdown_ui
 		DrawArcSegment(pGraphics, Center, InnerRadius, OuterRadius, 0.0f, 2.0f * pi * Progress, Color, PixelSize);
 	}
 
+	inline void DrawInfinity(IGraphics *pGraphics, const SQmHookCountdownVisual &Visual, float PixelSize)
+	{
+		const auto &aPath = QmHookCountdownInfinityPath();
+		const float Breath = QmHookCountdownBreath(Visual.m_BreathPhase);
+		const float Scale = Visual.m_Scale * (0.97f + Breath * 0.05f);
+		const float CoreHalfWidth = std::max(0.35f * Scale, PixelSize * 0.35f);
+		const float aHalfWidths[] = {CoreHalfWidth, CoreHalfWidth + 0.5f * Scale, CoreHalfWidth + 1.45f * Scale, CoreHalfWidth + 2.85f * Scale, CoreHalfWidth + 5.05f * Scale + PixelSize};
+		const float aAlphas[] = {0.76f, 0.46f, 0.14f, 0.02f, 0.0f};
+		const float GlowAlpha = Visual.m_Alpha * (0.65f + Breath * 0.3f);
+		std::array<ColorRGBA, 97> aColors;
+		for(size_t i = 0; i < aPath.size(); ++i)
+			aColors[i] = QmHookCountdownFlowColor(Visual.m_FlowPhase, aPath[i].m_PathPosition);
+
+		pGraphics->TextureClear();
+		pGraphics->QuadsBegin();
+		// 两侧用连续透明度带形成外发光，曲线和颜色端点共享，避免旧圆环的分段暗缝。
+		for(size_t Layer = 0; Layer + 1 < std::size(aHalfWidths); ++Layer)
+		{
+			for(size_t i = 0; i + 1 < aPath.size(); ++i)
+			{
+				const auto &From = aPath[i];
+				const auto &To = aPath[i + 1];
+				const IGraphics::CColorVertex aVertices[] = {
+					{0, aColors[i].WithAlpha(GlowAlpha * aAlphas[Layer])},
+					{1, aColors[i + 1].WithAlpha(GlowAlpha * aAlphas[Layer])},
+					{2, aColors[i].WithAlpha(GlowAlpha * aAlphas[Layer + 1])},
+					{3, aColors[i + 1].WithAlpha(GlowAlpha * aAlphas[Layer + 1])}};
+				pGraphics->SetColorVertex(aVertices, std::size(aVertices));
+				for(float Side : {-1.0f, 1.0f})
+				{
+					const IGraphics::CFreeformItem Quad(
+						Visual.m_Position + From.m_Position * Scale + From.m_Normal * (aHalfWidths[Layer] * Side),
+						Visual.m_Position + To.m_Position * Scale + To.m_Normal * (aHalfWidths[Layer] * Side),
+						Visual.m_Position + From.m_Position * Scale + From.m_Normal * (aHalfWidths[Layer + 1] * Side),
+						Visual.m_Position + To.m_Position * Scale + To.m_Normal * (aHalfWidths[Layer + 1] * Side));
+					pGraphics->QuadsDrawFreeform(&Quad, 1);
+				}
+			}
+		}
+		// 浅色细芯最后绘制，保证交叉处不会被后绘制的彩色光晕盖住。
+		pGraphics->SetColor(ColorRGBA(0.95f, 0.98f, 1.0f, Visual.m_Alpha * (0.72f + Breath * 0.14f)));
+		for(size_t i = 0; i + 1 < aPath.size(); ++i)
+		{
+			const auto &From = aPath[i];
+			const auto &To = aPath[i + 1];
+			const IGraphics::CFreeformItem Quad(
+				Visual.m_Position + From.m_Position * Scale - From.m_Normal * CoreHalfWidth,
+				Visual.m_Position + To.m_Position * Scale - To.m_Normal * CoreHalfWidth,
+				Visual.m_Position + From.m_Position * Scale + From.m_Normal * CoreHalfWidth,
+				Visual.m_Position + To.m_Position * Scale + To.m_Normal * CoreHalfWidth);
+			pGraphics->QuadsDrawFreeform(&Quad, 1);
+		}
+		pGraphics->SetColor(ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f));
+		pGraphics->QuadsEnd();
+	}
+
 	inline void Render(IGraphics *pGraphics, const SQmHookCountdownVisual &Visual, float PixelSize)
 	{
+		if(Visual.m_EndlessHook)
+		{
+			DrawInfinity(pGraphics, Visual, PixelSize);
+			return;
+		}
 		const float InnerRadius = INNER_RADIUS * Visual.m_Scale;
 		const float OuterRadius = OUTER_RADIUS * Visual.m_Scale;
 		const float Outline = std::min(PixelSize * 0.7f, InnerRadius * 0.25f);
 		DrawArc(pGraphics, Visual.m_Position, InnerRadius - Outline, OuterRadius + Outline, 1.0f, ColorRGBA(0.04f, 0.07f, 0.11f, Visual.m_Alpha * 0.45f), PixelSize);
 		DrawArc(pGraphics, Visual.m_Position, InnerRadius, OuterRadius, 1.0f, Visual.m_Color.WithAlpha(Visual.m_Alpha * 0.20f), PixelSize);
-		if(Visual.m_EndlessHook && Visual.m_FlowStyle != static_cast<int>(EQmHookCountdownFlowStyle::STATIC))
-		{
-			// 无限钩：静止满环换成沿外环流动的光弧——细分多段让亮度与颜色沿弧平滑渐变，
-			// 随 m_FlowPhase 旋转；松钩收拢时随 Visual.m_Alpha 一起淡出。
-			constexpr float HeadSweep = pi / 3.0f;
-			constexpr float TailSweep = 2.0f * pi / 3.0f;
-			constexpr int FlowSegments = 12;
-			const float TotalSweep = HeadSweep + TailSweep;
-			const float Head = Visual.m_FlowPhase * 2.0f * pi;
-			for(int i = 0; i < FlowSegments; ++i)
-			{
-				const float From = TotalSweep * i / FlowSegments;
-				const float To = TotalSweep * (i + 1) / FlowSegments;
-				// 亮度窗：光头最亮，向尾部余弦渐暗（段中取样，细分足够时观感连续）。
-				const float T = (From + To) * 0.5f / TotalSweep;
-				const float Window = 0.10f + 0.90f * (0.5f + 0.5f * std::cos(pi * T));
-				// 彩虹模式：色相随相位流动、沿弧向后偏移，形成移动的彩虹渐变段。
-				ColorRGBA SegmentColor = Visual.m_Color;
-				if(Visual.m_FlowStyle == static_cast<int>(EQmHookCountdownFlowStyle::RAINBOW))
-					SegmentColor = QmHookCountdownFlowColor(Visual.m_FlowPhase, T);
-				DrawArcSegment(pGraphics, Visual.m_Position, InnerRadius, OuterRadius, Head - To, Head - From, SegmentColor.WithAlpha(Visual.m_Alpha * Window), PixelSize);
-			}
-		}
-		else
-			DrawArc(pGraphics, Visual.m_Position, InnerRadius, OuterRadius, Visual.m_Progress, Visual.m_Color.WithAlpha(Visual.m_Alpha), PixelSize);
+		DrawArc(pGraphics, Visual.m_Position, InnerRadius, OuterRadius, Visual.m_Progress, Visual.m_Color.WithAlpha(Visual.m_Alpha), PixelSize);
 	}
 }
 

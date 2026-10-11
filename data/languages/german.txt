@@ -7,6 +7,9 @@
  seconds (never)
 == Sekunden (nie)
 
+ · %d finishers · average %d:%02d:%02d
+==  · %d Spieler im Ziel · Ø %d:%02d:%02d
+
 "%s" is not compatible with pnglite and cannot be loaded by old DDNet versions:
 == "%s" ist nicht mit pnglite kompatibel und kann von alten DDNet-Versionen nicht geladen werden
 
@@ -18,6 +21,9 @@
 
 %c Team %d
 == %c Team %d
+
+%d / %d maps
+== %d / %d Karten
 
 %d items selected
 == %d Elemente ausgewählt
@@ -646,6 +652,9 @@ All
 
 All combined
 == Alle kombiniert
+
+All maps
+== Alle Karten
 
 All players
 == Alle Spieler
@@ -3035,6 +3044,9 @@ DDNet Client needs to be restarted to complete update!
 DDNet contributors and staff credits
 == DDNet-Mitwirkende und Team
 
+DDNet map library
+== DDNet-Kartenbibliothek
+
 DDNet Memory
 == DDNet-Speicher
 
@@ -3367,6 +3379,9 @@ Diamond gradient
 
 died
 == gestorben
+
+Difficulty
+== Schwierigkeit
 
 Difficulty stars
 == Schwierigkeitssterne
@@ -4280,6 +4295,9 @@ Enable Tee trail
 Enable tee trails
 == Tee-Spuren aktivieren
 
+Enable the finished indicator and wait for player data
+== Abschlussanzeige aktivieren und auf Spielerdaten warten
+
 Enable thinking mode (slower)
 == Denkmodus aktivieren (langsamer)
 
@@ -4348,9 +4366,6 @@ Endless hook has been activated
 
 Endless hook has been deactivated
 == Endloser Haken wurde deaktiviert
-
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== Flussstil des Endlos-Hakenrings (0=einfarbig, 1=Regenbogen, 2=statisch)
 
 Endpoint
 == Endpunkt
@@ -4816,9 +4831,6 @@ Flag returned
 
 Flip:
 == Spiegeln:
-
-Flow style
-== Flussstil
 
 Folder
 == Ordner
@@ -7004,6 +7016,9 @@ Map browser: show favorite maps only
 Map danger border
 == Karten-Gefahrengrenze
 
+Map data unavailable; server votes remain available
+== Kartendaten nicht verfügbar; Serverabstimmungen sind weiterhin möglich
+
 Map download send window
 == Karten-Download-Sendefenster
 
@@ -7081,6 +7096,9 @@ Map upload network error.
 
 Map uploaded successfully.
 == Karte erfolgreich hochgeladen.
+
+Mapper
+== Kartenersteller
 
 Maps finished
 == Abgeschlossene Karten
@@ -7577,6 +7595,9 @@ Mute:
 Muted
 == Stummgeschaltet
 
+Muted players
+== Stummgeschaltete Spieler
+
 my_%s
 == mein_%s
 
@@ -7805,6 +7826,9 @@ New preset name
 New random timeout code
 == Neuer zufälliger Timeout-Code
 
+Newest first
+== Neueste zuerst
+
 News
 == Neuigkeiten
 
@@ -7943,6 +7967,9 @@ No map selected
 No maps found on this server!
 == Auf diesem Server wurden keine passenden Karten gefunden!
 
+No maps match these filters
+== Keine Karten entsprechen diesen Filtern
+
 No matching assets.
 == Keine passenden Assets.
 
@@ -7975,6 +8002,9 @@ No player nearby
 
 No player with this name found.
 == Kein Spieler mit diesem Namen gefunden.
+
+No players match these filters
+== Keine Spieler entsprechen diesen Filtern
 
 No presets yet
 == Noch keine Presets
@@ -9665,6 +9695,9 @@ Realtime channel reconnect backoff cap (ms)
 Reason
 == Grund
 
+Reason (optional)
+== Grund (optional)
+
 Reason:
 == Grund:
 
@@ -9772,6 +9805,9 @@ Relative X position of the draggable back button
 
 Relative Y position of the draggable back button
 == Relative Y-Position des verschiebbaren Zurück-Buttons
+
+Release date
+== Veröffentlichung
 
 Release notes
 == Versionshinweise
@@ -10304,6 +10340,9 @@ Restoring save %d: main '%s', dummy '%s'.
 Retry
 == Wiederholen
 
+Retry details
+== Details erneut laden
+
 Retry remote stats
 == Remote-Statistiken erneut abrufen
 
@@ -10730,8 +10769,14 @@ Search maps and downloadedmaps, including subfolders
 Search maps for Rank 1 replays ...
 == Maps mit Rank-1-Replays durchsuchen ...
 
+Search maps or mappers
+== Karten oder Autoren suchen
+
 Search online fonts…
 == Onlineschriften suchen…
+
+Search players or clans
+== Spieler oder Clans suchen
 
 Search settings by title, feature, or keyword
 == Search settings by title, feature, or keyword
@@ -10777,6 +10822,12 @@ See you at the next checkpoint.
 
 Select a configuration package to preview its contents.
 == Wählen Sie ein Konfigurationspaket aus, um seinen Inhalt anzuzeigen.
+
+Select a map
+== Karte auswählen
+
+Select a player to manage
+== Spieler zum Verwalten auswählen
 
 Select a saved .map file (client limit: 64 MiB).
 == Eine gespeicherte .map-Datei auswählen (Client-Limit: 64 MiB).
@@ -10912,6 +10963,9 @@ Server browser filter string
 
 Server browser sort column
 == Server-Browser-Sortierspalte
+
+Server control
+== Serververwaltung
 
 Server could not be started
 == Server konnte nicht gestartet werden
@@ -12607,9 +12661,6 @@ Start skin queue from a random position when entering a map
 
 Statboard
 == Statistiktafel
-
-Static
-== Statisch
 
 Stats
 == Statistik

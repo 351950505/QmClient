@@ -1099,6 +1099,14 @@ void CInput::ProcessSystemMessage(SDL_SysWMmsg *pMsg)
 		return;
 
 #if defined(CONF_FAMILY_WINDOWS)
+	if(pMsg->subsystem == SDL_SYSWM_WINDOWS && pMsg->msg.win.msg == WM_IME_ENDCOMPOSITION)
+	{
+		// 删除或取消组合输入时也要清理旧候选，不能只依赖文本提交或关闭候选通知。
+		ClearImeState();
+		m_ImeSuppressStaleCandidateReload = true;
+		return;
+	}
+
 	// Todo SDL: remove this after SDL2 supports IME candidates
 	if(pMsg->subsystem == SDL_SYSWM_WINDOWS && pMsg->msg.win.msg == WM_IME_NOTIFY)
 	{
