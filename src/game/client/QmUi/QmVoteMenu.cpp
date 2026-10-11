@@ -12,6 +12,7 @@
 #include <engine/keys.h>
 #include <engine/serverbrowser.h>
 #include <engine/shared/config.h>
+#include <engine/shared/localization.h>
 #include <engine/textrender.h>
 
 #include <game/client/components/menus.h>
@@ -82,7 +83,7 @@ void CMenus::RenderVoteMapLibrary(CUIRect MainView)
 	const CCommunity *pCommunity = ServerBrowser()->Community(Server.m_aCommunityId);
 	// DDNet 元数据不能套在 Gores 等同名地图上；这些服仍保留原始投票入口。
 	const bool UseCatalog = (str_comp_nocase(Server.m_aGameType, "DDNet") == 0 || str_comp_nocase(Server.m_aGameType, "DDRaceNetwork") == 0 || str_comp_nocase(Server.m_aGameType, "DDRace") == 0) &&
-		str_comp_nocase(Server.m_aCommunityId, "kog") != 0 && str_find_nocase(Server.m_aCommunityType, "gores") == nullptr;
+				str_comp_nocase(Server.m_aCommunityId, "kog") != 0 && str_find_nocase(Server.m_aCommunityType, "gores") == nullptr;
 	if(UseCatalog)
 		State.m_Loader.Update(Http(), Engine(), Client()->LocalTime());
 	else
@@ -165,7 +166,7 @@ void CMenus::RenderVoteMapLibrary(CUIRect MainView)
 		Rect.VMargin(4.0f, &Text);
 		Label(Text, pText, 12.0f, TEXTALIGN_MC, Checked < 0);
 		GameClient()->m_Tooltips.DoToolTip(&Button, &Rect, pText);
-		return Checked >= 0 && !Ui()->RenderOnly() && Ui()->DoButtonLogic(&Button, Checked, &Rect) != 0;
+		return Checked >= 0 && !Ui()->RenderOnly() && Ui()->DoButtonLogic(&Button, Checked, &Rect, BUTTONFLAG_LEFT) != 0;
 	};
 	CUIRect Refresh, Search, Exclude;
 	Header.VSplitRight(28.0f, &Header, &Refresh);
@@ -431,7 +432,7 @@ void CMenus::RenderVoteMapLibrary(CUIRect MainView)
 		TextRender()->TextColor(Favorite ? ResolveUiSurfaceIconColor(SurfaceText.Surface(), ColorRGBA(1.0f, 0.76f, 0.24f, 1.0f)) : PreviousText.WithMultipliedAlpha(0.3f));
 		Ui()->DoLabel_QmIcon(&Marker, EQmIcon::STAR, FontIcons::FONT_ICON_STAR, 12.0f, TEXTALIGN_MC);
 		TextRender()->TextColor(PreviousText);
-		if(Ui()->DoButtonLogic(&Map.m_Points, 0, &Marker))
+		if(Ui()->DoButtonLogic(&Map.m_Points, 0, &Marker, BUTTONFLAG_LEFT))
 		{
 			if(Favorite)
 				GameClient()->m_TClient.RemoveFavoriteMap(Map.m_Name.c_str());

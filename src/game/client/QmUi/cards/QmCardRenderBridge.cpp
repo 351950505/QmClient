@@ -68,6 +68,11 @@ void qm_card_catalog::QmCardRenderHook::RenderQmVisualChatBubbleContent(CMenus *
 	pMenus->RenderQmVisualChatBubbleContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
 }
 
+void qm_card_catalog::QmCardRenderHook::RenderQmVisualSpectatorModeContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
+{
+	pMenus->RenderQmVisualSpectatorModeContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
+}
+
 void qm_card_catalog::QmCardRenderHook::RenderQmVisualCameraViewContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
 	pMenus->RenderQmVisualCameraViewContent(Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
@@ -158,9 +163,9 @@ void qm_card_catalog::QmCardRenderHook::RenderQmFunctionKeywordReplyContent(CMen
 	pMenus->RenderQmFunctionKeywordReplyContent(Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
 }
 
-void qm_card_catalog::QmCardRenderHook::RenderQmFunctionPieMenuContent(CMenus *pMenus, CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CardCornerRadius, bool PrewarmOnly, int MaxGridColumns)
+void qm_card_catalog::QmCardRenderHook::RenderQmFunctionPieMenuContent(CMenus *pMenus, CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CardCornerRadius, bool PrewarmOnly)
 {
-	pMenus->RenderQmFunctionPieMenuContent(Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, PrewarmOnly, MaxGridColumns);
+	pMenus->RenderQmFunctionPieMenuContent(Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, PrewarmOnly);
 }
 
 void qm_card_catalog::QmCardRenderHook::RenderQmFunctionMapUploadContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, bool PrewarmOnly)

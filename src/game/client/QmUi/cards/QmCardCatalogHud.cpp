@@ -63,7 +63,7 @@ namespace qm_card_catalog
 			case EQmModuleId::Background3D: return ResolveQmHudBackground3DHeight(Metrics, ContentWidth, g_Config.m_Qm3DParticles != 0, g_Config.m_Qm3DParticlesColorMode == 1, g_Config.m_Qm3DParticlesGlow != 0, g_Config.m_Qm3DParticlesTrail != 0, g_Config.m_Qm3DParticlesPulse != 0, g_Config.m_Qm3DParticlesTwinkle != 0);
 			case EQmModuleId::BindStatusHud:
 				return Rows(4.0f); // 当前卡片实际渲染 4 个状态开关
-			case EQmModuleId::GoresDrownBoard: return Rows(g_Config.m_QmGoresDrownBoard != 0 ? 4.0f : 1.0f);
+			case EQmModuleId::GoresDrownBoard: return Rows(g_Config.m_QmGoresDrownBoard != 0 ? 5.0f : 1.0f);
 			default: return Rows(1.0f);
 			}
 		}
@@ -172,12 +172,8 @@ namespace qm_card_catalog
 
 					for(int Index = 0; Index < 5; ++Index)
 						ConsumeQmHudRow(Content, Metrics); // server, input/output device, bitrate and noise mode
-					if(g_Config.m_QmVoiceNoiseSuppressEnable != 0)
+					if(g_Config.m_QmVoiceNoiseSuppressEnable == 1)
 					{
-#if !defined(CONF_RNNOISE)
-						if(g_Config.m_QmVoiceNoiseSuppressEnable == 2)
-							ConsumeQmHudHeight(Content, LineHeight * 0.78f + LineSpacing * 0.75f);
-#endif
 						ConsumeQmHudRow(Content, Metrics); // noise reduction strength
 					}
 					ConsumeQmHudRow(Content, Metrics); // AGC
@@ -276,19 +272,12 @@ namespace qm_card_catalog
 					Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, LineHeight, LineSpacing, &g_Config.m_Qm3DParticlesTwinkle, &g_Config.m_Qm3DParticlesTwinkle) || Changed;
 					return Changed;
 				};
-			case EQmModuleId::BindStatusHud:
-				return [pMenus, LineHeight, LineSpacing](CUIRect Content) {
-					bool Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, LineHeight, LineSpacing, &g_Config.m_ClShowhudKeyStatusReset, &g_Config.m_ClShowhudKeyStatusReset);
-					Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, LineHeight, LineSpacing, &g_Config.m_ClShowhudKeyStatusHammer, &g_Config.m_ClShowhudKeyStatusHammer) || Changed;
-					Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, LineHeight, LineSpacing, &g_Config.m_ClShowhudKeyStatusControl, &g_Config.m_ClShowhudKeyStatusControl) || Changed;
-					Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, LineHeight, LineSpacing, &g_Config.m_ClShowhudKeyStatusSync, &g_Config.m_ClShowhudKeyStatusSync) || Changed;
-					return Changed;
-				};
 			case EQmModuleId::GoresDrownBoard:
 				return [pMenus, Metrics](CUIRect Content) {
 					bool Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, Metrics.m_LineHeight, Metrics.m_LineSpacing, &g_Config.m_QmGoresDrownBoard, &g_Config.m_QmGoresDrownBoard);
 					if(!g_Config.m_QmGoresDrownBoard)
 						return Changed;
+					Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, Metrics.m_LineHeight, Metrics.m_LineSpacing, &g_Config.m_QmGoresDrownBoardIncludeTeam0, &g_Config.m_QmGoresDrownBoardIncludeTeam0) || Changed;
 					ConsumeQmHudRow(Content, Metrics);
 					ConsumeQmHudRow(Content, Metrics);
 					Changed = qm_card_catalog::QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, Metrics.m_LineHeight, Metrics.m_LineSpacing, &g_Config.m_QmGoresDrownBoardShowTee, &g_Config.m_QmGoresDrownBoardShowTee) || Changed;

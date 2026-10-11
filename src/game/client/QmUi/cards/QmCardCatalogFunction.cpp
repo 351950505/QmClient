@@ -2,10 +2,9 @@
 #include "QmCardCatalogInternal.h"
 #include "QmCardMeasureRevision.h"
 
-#include <game/client/QmUi/QmImeAppearance.h>
-
 #include <engine/shared/config.h>
 
+#include <game/client/QmUi/QmImeAppearance.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/components/menus.h>
 #include <game/client/gameclient.h>
@@ -126,11 +125,15 @@ void CMenus::RenderQmFunctionHJAssistContent(CUIRect &Content, float LineHeight,
 	const auto RenderCheckbox = [this, &Content, LineHeight, LineSpacing, PrewarmOnly](const char *pText, int *pValue) {
 		RenderQmFunctionCheckboxRow(Content, LineHeight, LineSpacing, pValue, pText, Localize(pText), pValue, PrewarmOnly);
 	};
-	RenderCheckbox(Localizable("Auto unspec on unfreeze"), &g_Config.m_QmAutoUnspecOnUnfreeze);
-	RenderCheckbox(Localizable("Auto switch to the tee that got unfrozen"), &g_Config.m_QmAutoSwitchOnUnfreeze);
-	RenderCheckbox(Localizable("Automatically close the current chat after waking from freeze"), &g_Config.m_QmAutoCloseChatOnUnfreeze);
-	RenderCheckbox(Localizable("Show wake-up popup on the other tee"), &g_Config.m_QmFreezeWakeupPopup);
-	RenderCheckbox(Localizable("Auto team lock"), &g_Config.m_QmAutoTeamLock);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmAutoUnspecOnUnfreeze, Localizable("Auto unspec on unfreeze"), Localize("Auto unspec on unfreeze")},
+			{&g_Config.m_QmAutoSwitchOnUnfreeze, Localizable("Auto switch to the tee that got unfrozen"), Localize("Auto switch to the tee that got unfrozen")},
+			{&g_Config.m_QmAutoCloseChatOnUnfreeze, Localizable("Automatically close the current chat after waking from freeze"), Localize("Automatically close the current chat after waking from freeze")},
+			{&g_Config.m_QmFreezeWakeupPopup, Localizable("Show wake-up popup on the other tee"), Localize("Show wake-up popup on the other tee")},
+			{&g_Config.m_QmAutoTeamLock, Localizable("Auto team lock"), Localize("Auto team lock")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	if(g_Config.m_QmAutoTeamLock)
 	{
 		Content.HSplitTop(LineHeight, &Row, &Content);
@@ -190,7 +193,7 @@ namespace qm_card_catalog
 			case EQmModuleId::Gores:
 				return Row() * (3.0f + (g_Config.m_QmAxiomAutoLogin ? 2.0f : 0.0f) + ((g_Config.m_QmGores || g_Config.m_QmGoresAutoEnable) ? 7.0f : 0.0f));
 			case EQmModuleId::KeyBinds: return Rows(8.0f);
-			case EQmModuleId::Emoticons: return Rows(7.0f);
+			case EQmModuleId::Emoticons: return Rows(3.0f);
 			case EQmModuleId::Ime: return QmImeAppearanceCardHeight(LineHeight, Metrics.m_ButtonHeight, LineSpacing);
 			case EQmModuleId::BetterScoreboard: return Rows(5.0f);
 			case EQmModuleId::BlockWords: return Row() * (g_Config.m_QmBlockWordsAction == 0 ? 7.0f : 4.0f) + CalcQiaFenInputHeight(QmCardRenderHook::TextRenderer(pMenus), g_Config.m_QmBlockWordsList, std::max(1.0f, ContentWidth - LabelWidth), BodySize, std::clamp(2.0f * UiScale, 1.0f, 2.0f), LineHeight);
@@ -208,7 +211,7 @@ namespace qm_card_catalog
 				const bool IsDeeplBackend = str_comp_nocase(g_Config.m_QmTranslateBackend, "deepl") == 0;
 				const bool ShowAdvanced = g_Config.m_QmTranslateShowAdvanced != 0;
 				// 常驻行：收/发自动翻译、译文字号、翻译服务、收/发目标语言、高级选项开关。
-				float Height = Rows(9.0f); // 常驻测试按钮与诊断开关
+				float Height = Rows(10.0f); // 常驻测试按钮与诊断开关
 				if(IsBaiduBackend)
 					Height += Row() * 2.0f;
 				if(IsMymemoryBackend)
@@ -388,9 +391,8 @@ namespace qm_card_catalog
 			Add(Id, "qm:qiafen", "Keyword Reply", "I am a robot", [pMenus, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ReadOnly](CUIRect &Content) { qm_card_catalog::QmCardRenderHook::RenderQmFunctionKeywordReplyContent(pMenus, Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ReadOnly); });
 			return true;
 		case EQmModuleId::PieMenu:
-			Add(Id, "qm:pie_menu", "Pie Menu", "Quick action menu for players", [pMenus, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, ReadOnly, Page = Ctx.m_Page](CUIRect &Content) {
-				const bool FullWidth = !Page.m_TwoColumns || Content.w > (Page.m_ContentViewport.w + Page.m_aColumns[0].w) * 0.5f - 2.0f * CardPadding;
-				qm_card_catalog::QmCardRenderHook::RenderQmFunctionPieMenuContent(pMenus, Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, ReadOnly, FullWidth ? 4 : 2);
+			Add(Id, "qm:pie_menu", "Pie Menu", "Quick action menu for players", [pMenus, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, ReadOnly](CUIRect &Content) {
+				qm_card_catalog::QmCardRenderHook::RenderQmFunctionPieMenuContent(pMenus, Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, ReadOnly);
 			});
 			return true;
 		case EQmModuleId::MapUpload:

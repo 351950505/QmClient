@@ -818,6 +818,7 @@ protected:
 		const SQmTitleRenderStyle RenderStyle = QmTitleResolveRenderStyle(pStyle);
 		const bool Changed = m_FontSize != FontSize || m_TitleColorStyle != ColorStyle || str_comp(m_aText, Data.m_aQmTitle) != 0 ||
 				     str_comp(m_aStyle, pStyle) != 0 || m_TitleRenderStyle.m_pStyle != RenderStyle.m_pStyle ||
+				     m_TitleRenderStyle.m_Bob.m_Mode != RenderStyle.m_Bob.m_Mode ||
 				     m_TitleRenderStyle.m_Bob.m_Amplitude != RenderStyle.m_Bob.m_Amplitude ||
 				     m_TitleRenderStyle.m_Bob.m_WaveLength != RenderStyle.m_Bob.m_WaveLength ||
 				     m_TitleRenderStyle.m_Bob.m_Speed != RenderStyle.m_Bob.m_Speed ||
@@ -830,7 +831,7 @@ protected:
 
 	float ExtraVerticalPadding() const override
 	{
-		float Padding = m_TitleRenderStyle.m_Bob.m_Amplitude;
+		float Padding = QmTitleStyleBobPadding(m_TitleRenderStyle.m_Bob, 0.0f, m_FontSize);
 		if(g_Config.m_QmTitleEffect == QM_TITLE_EFFECT_POLISHED)
 			Padding += 3.5f;
 		else if(g_Config.m_QmTitleEffect == QM_TITLE_EFFECT_CLASSIC && m_TitleRenderStyle.m_pStyle != nullptr && g_Config.m_QmTitleBloom > 0)
@@ -1792,9 +1793,11 @@ public:
 				int Cost = 0;
 				for(const auto &Part : m_vpParts)
 					Cost += Part->TextRebuildCost();
-				const bool DensityChanged = m_Density.Update(RefHeight / (Y1 - Y0), This.Graphics()->ScreenHeight() / RefHeight,
+				// 小像素姓名只增加有限采样密度，整块名牌继续共用档位、滞回和重建预算。
+				const float SamplingScale = QmNameplateSmallTextSamplingScale(Data.m_FontSize, This.Graphics()->ScreenHeight() / (Y1 - Y0));
+				const bool DensityChanged = m_Density.Update(SamplingScale * RefHeight / (Y1 - Y0), This.Graphics()->ScreenHeight() / RefHeight,
 					QM_NAMEPLATE_BAKE_DENSITY_LOG_GRID, This.m_Camera.m_Zooming, Cost,
-					NAMEPLATE_TEXT_REBUILD_BUDGET_PER_FRAME, s_NameplateTextRebuildBudget);
+					NAMEPLATE_TEXT_REBUILD_BUDGET_PER_FRAME, s_NameplateTextRebuildBudget, RefHeight / (Y1 - Y0));
 				if(DensityChanged && QmPerfEnabled())
 				{
 					char aPayload[256];

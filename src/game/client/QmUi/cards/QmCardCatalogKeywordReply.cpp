@@ -13,6 +13,7 @@
 #include <game/localization.h>
 
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -300,10 +301,10 @@ void CMenus::RenderQmFunctionKeywordReplyContent(CUIRect &Content, float UiScale
 	CUIRect Row, LabelColumn, ControlColumn;
 	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();
 	const char *apTabs[] = {Localize("Rule list"), Localize("Reply content"), Localize("Trigger limits")};
-	float MinTabWidth = 0.0f;
-	for(const char *pTab : apTabs)
-		MinTabWidth = std::max(MinTabWidth, TextRender()->TextWidth(BodySize, pTab) + LineHeight);
-	const SSettingsToggleGrid Tabs = ResolveSettingsToggleGrid(Content.w, MinTabWidth, LineHeight, LineSpacing, 3, 3);
+	std::array<SSettingsToggleSize, 3> aTabSizes{};
+	for(size_t Index = 0; Index < aTabSizes.size(); ++Index)
+		aTabSizes[Index] = {TextRender()->TextWidth(BodySize, apTabs[Index]) + LineHeight, LineHeight};
+	const auto Tabs = ResolveSettingsToggleGrid(Content.w, aTabSizes, LineSpacing);
 	CUIRect TabsArea;
 	Content.HSplitTop(Tabs.Height() + LineSpacing, &TabsArea, &Content);
 	static CButtonContainer s_aTabButtons[3];
@@ -403,8 +404,11 @@ void CMenus::RenderQmFunctionKeywordReplyContent(CUIRect &Content, float UiScale
 		Content.HSplitTop(LineSpacing, nullptr, &Content);
 		if(s_KeywordReplyTab == 0)
 		{
-			const float MinOptionWidth = std::max(TextRender()->TextWidth(BodySize, pRenameLabel), TextRender()->TextWidth(BodySize, pRegexLabel)) + LineHeight * 2.0f;
-			const SSettingsToggleGrid Options = ResolveSettingsToggleGrid(Content.w, MinOptionWidth, LineHeight, LineSpacing, 2, 2);
+			const std::array<SSettingsToggleSize, 2> aOptionSizes = {{
+				{TextRender()->TextWidth(BodySize, pRenameLabel) + LineHeight * 2.0f, LineHeight},
+				{TextRender()->TextWidth(BodySize, pRegexLabel) + LineHeight * 2.0f, LineHeight},
+			}};
+			const auto Options = ResolveSettingsToggleGrid(Content.w, aOptionSizes, LineSpacing);
 			CUIRect OptionsArea;
 			Content.HSplitTop(Options.Height(), &OptionsArea, &Content);
 			Changes.m_Rename |= RenderRuleOption("Rename", pRenameLabel, &pRule->m_AutoRename, Options.Cell(OptionsArea, 0));

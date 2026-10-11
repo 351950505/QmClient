@@ -21,7 +21,7 @@ class CQmVoteMapLoader::CLoadJob : public IJob
 		size_t Length = 0;
 		m_pRequest->Result(&pData, &Length);
 		m_Success = m_Catalog ? QmVoteMaps::ParseCatalog((const char *)pData, Length, m_vMaps) :
-			QmVoteMaps::ParseDetails((const char *)pData, Length, m_Map, m_Details);
+					QmVoteMaps::ParseDetails((const char *)pData, Length, m_Map, m_Details);
 		m_pRequest.reset();
 	}
 

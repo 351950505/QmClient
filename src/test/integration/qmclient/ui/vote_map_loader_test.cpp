@@ -1,11 +1,11 @@
-#include <game/client/components/qmclient/vote_map_loader.h>
-
 #include <base/str.h>
 #include <base/system.h>
 
 #include <engine/engine.h>
 #include <engine/http.h>
 #include <engine/shared/jobs.h>
+
+#include <game/client/components/qmclient/vote_map_loader.h>
 
 #include <gtest/gtest.h>
 
@@ -20,7 +20,8 @@ namespace
 	{
 	public:
 		bool m_Aborted = false;
-		explicit CResponse(const char *pUrl) : IHttpRequest(pUrl) {}
+		explicit CResponse(const char *pUrl) :
+			IHttpRequest(pUrl) {}
 		void Header(const char *) override {}
 		void Abort() override { m_Aborted = true; }
 		void Fail() { m_State = EHttpState::ERROR; }

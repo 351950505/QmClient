@@ -79,7 +79,8 @@ bool QmVoteMaps::ParseCatalog(const char *pJson, size_t Length, std::vector<SMap
 	std::stable_sort(vParsed.begin(), vParsed.end(), NameLess);
 	vParsed.erase(std::unique(vParsed.begin(), vParsed.end(), [](const SMap &A, const SMap &B) {
 		return str_comp_nocase(A.m_Name.c_str(), B.m_Name.c_str()) == 0;
-	}), vParsed.end());
+	}),
+		vParsed.end());
 	vMaps.swap(vParsed);
 	return true;
 }

@@ -707,6 +707,9 @@ Alpha
 Also apply to dummy
 == 同時應用到分身
 
+Also send the original text when translating outgoing messages
+== 翻譯發出的訊息時同時發送原文
+
 Always show
 == 始終顯示
 
@@ -815,8 +818,8 @@ Appearance
 Appearance and command highlighting of the local console
 == 本機控制台的外觀和命令醒目顯示
 
-Appearance of help bubbles outside settings cards
-== 設定卡片外的說明氣泡外觀
+Appearance of help bubbles
+== 提示氣泡外觀
 
 Append to log file instead of overwriting
 == 追加到日誌文件而不是每次覆蓋
@@ -1307,6 +1310,12 @@ Axiom auto login failed
 Axiom auto login failed, retrying
 == Axiom 自動登錄失敗，正在重試
 
+Axiom auto login skipped: no password
+== Axiom 自動登錄：未填寫密碼，已跳過
+
+Axiom auto login stopped after repeated failures
+== Axiom 自動登錄已停止：多次嘗試未成功
+
 Axiom auto login succeeded
 == Axiom 自動登錄成功
 
@@ -1318,6 +1327,9 @@ Axiom main account password
 
 Axiom score request failed
 == Axiom 分數請求失敗
+
+Axiom website
+== Axiom 官網
 
 Axis
 == 軸
@@ -1975,6 +1987,12 @@ Choose the menu map and background colors
 
 Cinematic camera
 == 電影鏡頭
+
+Cinematic camera smoothness (0=instant, 100=smoothest)
+== 電影鏡頭平滑度（0=瞬時，100=最平滑）
+
+Cinematic smoothness
+== 電影鏡頭平滑度
 
 CJK font
 == 中日韓文字字型
@@ -3116,9 +3134,6 @@ Debug SQL.
 Debug tile layer clipping.
 == 調試圖塊圖層裁剪
 
-Decorative throws
-== 裝飾投擲物
-
 Dedicated WebSocket endpoint (empty uses wss://qmclient.icu/ws)
 == 專用 WebSocket 位址（留空使用 wss://qmclient.icu/ws）
 
@@ -3608,6 +3623,12 @@ Draw on the in game background
 Draw shadow behind emote
 == 在表情後繪製陰影
 
+Draw the favorite star icon with the filled icon font style
+== 以圖示字體的實心樣式繪製收藏星標
+
+Draw the friend heart icon with the filled icon font style
+== 以圖示字體的實心樣式繪製好友愛心
+
 Draw tile layers when using custom background (solid)
 == 使用自定義背景（實體）時是否繪製圖塊圖層
 
@@ -3869,9 +3890,6 @@ Edit touch controls
 Editor
 == 編輯器
 
-Egg
-== 雞蛋
-
 Elastic
 == 彈性
 
@@ -3994,9 +4012,6 @@ Enable controller
 
 Enable custom prediction margin when frozen
 == 凍結時啟用自定義預測邊距
-
-Enable decorative grass, tomato and egg throws
-== 啟用草、番茄和雞蛋裝飾投擲物
 
 Enable Deleting
 == 啟用刪除
@@ -4213,9 +4228,6 @@ Enable skin switch animation
 
 Enable skin transition animation, then choose the type, scope, duration and easing.
 == 開啟皮膚切換動畫，再選擇類型、作用範圍、時長與緩動。
-
-Enable smooth cinematic camera while free spectating
-== 自由觀戰時啟用平滑電影鏡頭
 
 Enable SodaMusic Hook
 == 啟用汽水音樂 Hook
@@ -4460,8 +4472,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == 範例：/map adr3 可以發起 Adrenaline 3 的換圖投票。這表示地圖名必須以 'a' 開頭，並依序包含 'd'、'r'、'3'
 
-Example: name1|name2|name3
-== 示例：名字 1|名字 2|名字 3
+Example: A|B|C,D|E (C: main, D: dummy)
+== 範例：A|B|C,D|E（C 為本體，D 為分身）
 
 Exclude
 == 排除
@@ -4738,6 +4750,9 @@ Filter out servers without friends
 
 Filter out spectators from player count
 == 從玩家號碼中過濾掉觀眾
+
+Filter sensitive words
+== 過濾內建敏感詞
 
 Filtered word console color
 == 被屏蔽詞控制台顏色
@@ -5333,9 +5348,6 @@ Graphics mode: -1=use backend setting, 0=compatibility, 1=performance (default)
 Graphics trace level: 0=off, 1=periodic summary, 2=summary and slow frames, 3=detailed backend trace
 == 圖形追蹤等級：0 = 關閉，1 = 定期摘要，2 = 摘要與慢影格，3 = 詳細後端追蹤
 
-Grass
-== 草
-
 Greek
 == 希臘文
 
@@ -5878,6 +5890,12 @@ Include seconds in local time display
 
 Include skin when saving/loading config preset
 == 保存/加載配置方案時包含皮膚
+
+Include Team 0
+== 包含 Team 0
+
+Include Team 0 in the Gores team drown board
+== 在 Gores 落水榜中包含 Team 0 玩家
 
 Incoming auto-translation mode (0=Only translate when not in target language, 1=Always translate)
 == 收到消息自動翻譯方式（0=僅在非目標語言時翻譯，1=始終翻譯）
@@ -8555,8 +8573,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == 圓盤選單開合效果
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== 餅菜單改名名單（使用 | 分隔，如：璇夢 1|璇夢 2）
+Pie menu rename list (| separates entries; main,dummy renames both)
+== 餅選單改名名單（| 分隔選項；C,D 同時改名，C 為本體，D 為分身）
 
 Ping
 == Ping
@@ -8821,6 +8839,9 @@ Points unavailable
 
 Polished
 == 拋光
+
+Pop wave
+== 放大凸起
 
 Popup & dropdown blur
 == 彈出視窗與下拉清單模糊
@@ -9899,9 +9920,6 @@ Replay list: loading ...
 Replay list: not loaded yet
 == 回放清單：尚未載入
 
-Replay list: up to date
-== 回放清單：已是最新
-
 Replays directory
 == 回放目錄
 
@@ -10517,6 +10535,9 @@ Screenshots
 Screenshots directory
 == 截圖目錄
 
+Scroll mode
+== 捲動模式
+
 Scroll mode: Off
 == 滾動模式：關
 
@@ -10678,6 +10699,9 @@ Send emote when entering freeze
 
 Send emoticon in water
 == 水中發送表情
+
+Send original text with translation
+== 翻譯發送的消息時同時發送原文
 
 Send probability
 == 發送概率
@@ -11768,6 +11792,9 @@ Show teleporter tile outlines
 Show text entities
 == 顯示文本實體
 
+Show the chat scrollbar on the right
+== 在右側顯示聊天捲軸
+
 Show the cursor while free spectating
 == 自由觀戰時顯示光標
 
@@ -12122,6 +12149,9 @@ Smooth Dynamic Camera
 Smooth fade
 == 柔和淡變
 
+Smooth free spectator camera
+== 平滑自由觀戰鏡頭
+
 Smooth other players' predicted movement
 == 平滑其他玩家的預測移動
 
@@ -12130,6 +12160,9 @@ Smooth prediction margin (weakens ping jitter correction, restores old behavior)
 
 Smooth scroll animation duration in menu/editor (ms, 0=off)
 == 菜單/編輯器中平滑滾動動畫的時間（單位：毫秒，0 為關閉）
+
+Smooth the mouse-driven camera in live and demo free spectating
+== 平滑線上觀戰和 Demo 重播中由滑鼠控制的自由視角
 
 Smooth zoom animation time in editor (in ms, 0=off)
 == 編輯器中平滑縮放動畫的時間（毫秒）（0 表示關閉）
@@ -12175,6 +12208,12 @@ Soft glow
 
 Solid
 == 純色
+
+Solid favorite icon
+== 實心收藏圖示
+
+Solid friend icon
+== 實心好友圖示
 
 Solid tile outline opacity
 == 牆體輪廓不透明度
@@ -12512,6 +12551,9 @@ Streamer mode
 Strength icons assets
 == 強弱圖標資源
 
+Strength of the vertical or pop wave. Zero keeps the title still.
+== 調整上下波動或放大凸起的強度，設為零時保持靜止。
+
 Stress system (debug builds only).
 == 壓力系統（僅限調試版本）
 
@@ -12814,6 +12856,18 @@ Team successfully saved by %s. The database connection failed, using generated s
 
 Team tee glow
 == 隊伍 Tee 外發光
+
+Team tee glow halo size
+== 隊伍 Tee 光暈大小
+
+Team tee glow halo size in percent
+== 隊伍 Tee 光暈大小 （百分比）
+
+Team tee glow intensity
+== 隊伍 Tee 發光強度
+
+Team tee glow intensity in percent
+== 隊伍 Tee 發光強度 （百分比）
 
 Team used when leaving solo split mode
 == 退出單刷模式時使用的隊伍
@@ -13214,21 +13268,6 @@ This team was disbanded because there are more players than allowed in the team.
 This tooltip is provided by ui_widget::Tooltip — a thin shim over CTooltips.
 == 這個提示由 ui_widget::Tooltip 提供，它是 CTooltips 上的一層薄封裝。
 
-Throw a decorative grass, tomato or egg projectile
-== 投擲草、番茄或雞蛋裝飾物
-
-Throw egg key
-== 投雞蛋按鍵
-
-Throw grass key
-== 投草按鍵
-
-Throw tomato key
-== 投番茄按鍵
-
-Throwables
-== 投擲物
-
 Tick delay before executing qm_execute_on_join
 == 執行 qm_execute_on_join 前的延遲（tick）
 
@@ -13337,14 +13376,17 @@ Title display
 Title light sweep speed in 1/100 row per second (0 = off)
 == 頭銜掠光速度（每秒 1/100 行，0 = 關閉）
 
+Title motion
+== 頭銜動畫
+
+Title motion: 0 = vertical wave, 1 = pop wave
+== 頭銜動畫：0 = 上下波動，1 = 放大凸起
+
 Title opacity
 == 頭銜不透明度
 
 Title per-character phase per pixel in 1/1000 px (0 = style default, 20 = visible light band)
 == 頭銜逐字元相位（每像素，1/1000 像素；0 = 用風格預設值，20 = 可見光帶）
-
-Title per-character vertical bob amplitude in pixels (0 = off)
-== 頭銜逐字元垂直浮動幅度（像素，0 = 關閉）
 
 Title preview
 == 頭銜成品預覽
@@ -13366,6 +13408,9 @@ Title too long or contains unsupported characters
 
 Title visibility and appearance
 == 頭銜可見性與外觀
+
+Title wave strength (0-3, 0 = off)
+== 頭銜波浪強度（0-3，0 = 關閉）
 
 to check a server setting say /settings and setting's name, setting names are:
 == 輸入 /settings 加設定名即可查看伺服器設定。可用設定的名稱有：
@@ -13501,9 +13546,6 @@ Toggles use of standard eye-emotes on/off, eyeemote s, where s = on for on, off 
 
 Token to register this server to a specific community
 == 用於將此伺服器註冊到特定社區的令牌
-
-Tomato
-== 番茄
 
 Too many configuration files.
 == 配置檔案過多。
@@ -13804,6 +13846,9 @@ UI size percentage
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == 無法刪除 %d 個選中項。第一個失敗項是“%s”。
+
+Unable to delete skin
+== 無法刪除皮膚
 
 Unable to delete the demo '%s'
 == 無法刪除回放文件“%s”
@@ -14189,9 +14234,6 @@ Use Tee icons instead of circles
 Use the mouse wheel on a hovered module to scale it by 5%
 == 將鼠標懸停在 HUD 模塊上並滾動滾輪可按 5% 縮放
 
-Use the passwords registered on Axiom for your main and dummy accounts separately. This option does not register accounts.
-== 請分別填寫主號和分身在 Axiom 服註冊的密碼。此選項不會自動註冊帳號。
-
 Use the scoreboard cursor mode to scroll the list
 == 使用計分板游標模式滾動查看清單
 
@@ -14249,14 +14291,14 @@ Version
 Version performing the analysis
 == 執行分析的版本
 
-Vertical movement of each character. Zero keeps the title still.
-== 調整文字上下起伏的幅度，設為零時保持靜止。
-
 Vertical position
 == 垂直位置
 
 Vertical sync (may cause lag)
 == 垂直同步（可能會導致延遲）
+
+Vertical wave
+== 上下波動
 
 Video Background
 == 視頻背景
@@ -15067,6 +15109,9 @@ You're playing on a local server because no online Tutorial server could be foun
 
 You're the last one!
 == 就你一個啦！
+
+Your account is your in-game name — register it on the Axiom website. Fill in the registered main and dummy passwords. This option does not register accounts.
+== 帳號即遊戲內名字，請先在 Axiom 官網註冊。分別填入主號與分身的註冊密碼；不會自動註冊帳號。
 
 Your current race time is %s
 == 你當前的比賽用時是 %s

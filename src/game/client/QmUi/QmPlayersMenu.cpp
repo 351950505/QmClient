@@ -240,7 +240,7 @@ void CMenus::RenderPlayers(CUIRect MainView)
 		Row.VMargin(4.0f, &Text);
 		Label(Text, pText, 12.0f, TEXTALIGN_MC, !Enabled);
 		GameClient()->m_Tooltips.DoToolTip(&Button, &Row, pText);
-		return Enabled && !Ui()->RenderOnly() && Ui()->DoButtonLogic(&Button, Active, &Row) != 0;
+		return Enabled && !Ui()->RenderOnly() && Ui()->DoButtonLogic(&Button, Active, &Row, BUTTONFLAG_LEFT) != 0;
 	};
 	const auto aSocial = Pair();
 	if(Toggle(s_Friend, Localize("Friends"), Player.m_Friend, true, aSocial[0]))
@@ -253,7 +253,7 @@ void CMenus::RenderPlayers(CUIRect MainView)
 	}
 	const bool Online = Client()->State() == IClient::STATE_ONLINE;
 	const bool Following = GameClient()->m_PieMenu.IsFollowingPlayer(Player.m_aName, Player.m_aClan) ||
-		(m_FriendAutoFollowState.m_Active && str_comp(m_FriendAutoFollowState.m_aName, Player.m_aName) == 0 && str_comp(m_FriendAutoFollowState.m_aClan, Player.m_aClan) == 0);
+			       (m_FriendAutoFollowState.m_Active && str_comp(m_FriendAutoFollowState.m_aName, Player.m_aName) == 0 && str_comp(m_FriendAutoFollowState.m_aClan, Player.m_aClan) == 0);
 	if(Action(s_Follow, Following ? Localize("Stop following") : Localize("Follow server"), aSocial[1], Online && !GameClient()->IsLocalClientId(Id), Following))
 	{
 		StopFriendAutoFollow(m_FriendAutoFollowState);

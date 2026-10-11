@@ -1,6 +1,6 @@
-#include <game/client/components/qmclient/vote_map_library.h>
-
 #include <base/str.h>
+
+#include <game/client/components/qmclient/vote_map_library.h>
 
 #include <gtest/gtest.h>
 

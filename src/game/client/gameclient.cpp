@@ -38,6 +38,7 @@
 #include "components/qmclient/predicted_event_queue.h"
 #include "components/qmclient/qmclient_utils.h"
 #include "components/qmclient/screenshot_manager.h"
+#include "components/qmclient/streamer_word_filter.h"
 #include "components/qmclient/translate/translate_ui_settings.h"
 #include "components/race_demo.h"
 #include "components/scoreboard.h"
@@ -178,6 +179,10 @@ namespace
 	}
 
 	void ConDiscardLegacyHudIslandEdgeMargin(IConsole::IResult *, void *)
+	{
+	}
+
+	void ConDiscardLegacyHookCountdownFlowStyle(IConsole::IResult *, void *)
 	{
 	}
 
@@ -667,7 +672,6 @@ void CGameClient::OnConsoleInit()
 	AddComponent(&m_CustomCommunities, "custom_communities");
 	AddComponent(&m_PlayerPoints, "player_points");
 	AddComponent(&m_Emoticon.m_RenderProjectiles, "emoticon_projectiles");
-	AddComponent(&m_DecorativeProjectiles, "qm_decorative_projectiles");
 	AddComponent(&m_Hud, "hud");
 	AddComponent(&m_Spectator, "spectator");
 	AddComponent(&m_Emoticon, "emoticon");
@@ -730,6 +734,8 @@ void CGameClient::OnConsoleInit()
 	// add basic console commands
 	IConsole *pConsole = m_pConsole;
 	pConsole->Register("qm_hud_island_edge_margin", "?i[value]", CFGFLAG_CLIENT, ConDiscardLegacyHudIslandEdgeMargin, nullptr, "Ignored legacy Dynamic Island edge margin");
+	// 兼容旧配置加载，但不再提供或保存已经移除的无限钩样式选择。
+	pConsole->Register("qm_hook_countdown_flow_style", "?i[value]", CFGFLAG_CLIENT, ConDiscardLegacyHookCountdownFlowStyle, nullptr, "");
 	pConsole->Register("team", "i[team-id]", CFGFLAG_CLIENT, ConTeam, this, "Switch team");
 	pConsole->Register("kill", "", CFGFLAG_CLIENT, ConKill, this, "Kill yourself to restart");
 	pConsole->Register("ready_change", "", CFGFLAG_CLIENT, ConReadyChange7, this, "Change ready state (0.7 only)");
@@ -1177,7 +1183,6 @@ void CGameClient::PrewarmSettingsRuntimeCachesDuringLoading(const char *pLoading
 	LogSettingsLoadingPrewarmEvent(Client(), "startup_text_prewarm_end", State.m_CompletedSteps, 1, 0, State.m_ConsecutiveNoProgressSteps, 0, 0);
 
 	// ESC 菜单的文本 plan/容器依赖打开后的菜单生命周期，不能在加载阶段预热
-	// （详见 docs/superpowers/plans/2026-09-09-Windows图形掉帧撕裂与连接中断调查.md §14/§16）。
 	// ESC 的字形与 plan 现在改由菜单关闭时的空闲帧预热（CMenus::OnUpdate / OnRender）。
 }
 
@@ -2522,6 +2527,7 @@ void CGameClient::FormatStreamerName(int ClientId, char *pBuf, int BufSize) cons
 	{
 		pBuf[0] = '\0';
 	}
+	QmStreamerWordFilter::Filter(pBuf, g_Config.m_QmStreamerFilterWords != 0);
 }
 
 void CGameClient::RenderQmMonitoringHud(float GraphX, float GraphSpacing)
@@ -2552,6 +2558,7 @@ void CGameClient::FormatStreamerClan(int ClientId, char *pBuf, int BufSize) cons
 		str_copy(pBuf, m_aClients[ClientId].m_aClan, BufSize);
 	else
 		pBuf[0] = '\0';
+	QmStreamerWordFilter::Filter(pBuf, g_Config.m_QmStreamerFilterWords != 0);
 }
 
 namespace

@@ -3,9 +3,79 @@
 
 #include <base/color.h>
 #include <base/vmath.h>
+
 #include <engine/shared/protocol.h>
 
 #include <algorithm>
+#include <array>
+#include <cmath>
+
+// 彩虹沿无限符号流动一圈和光晕呼吸一轮的秒数，与游戏钩子计数无关。
+constexpr float QM_HOOK_COUNTDOWN_FLOW_PERIOD_SECONDS = 3.5f;
+constexpr float QM_HOOK_COUNTDOWN_BREATH_PERIOD_SECONDS = 2.5f;
+
+// 彩虹渐变用的色相转 RGB（V=1, S=1 全饱和）；Hue 任意实数，按 1.0 循环。
+inline ColorRGBA QmHueToRgb(float Hue)
+{
+	Hue -= std::floor(Hue);
+	const float H = Hue * 6.0f;
+	const int Sector = static_cast<int>(H) % 6;
+	// 标准 HSV(V=1,S=1) 色环：X 为从纯色滑向下一主色的过渡分量，不随小数部分缩放。
+	const float X = 1.0f - std::abs(std::fmod(H, 2.0f) - 1.0f);
+	switch(Sector)
+	{
+	case 0: return ColorRGBA(1.0f, X, 0.0f, 1.0f);
+	case 1: return ColorRGBA(X, 1.0f, 0.0f, 1.0f);
+	case 2: return ColorRGBA(0.0f, 1.0f, X, 1.0f);
+	case 3: return ColorRGBA(0.0f, X, 1.0f, 1.0f);
+	case 4: return ColorRGBA(X, 0.0f, 1.0f, 1.0f);
+	default: return ColorRGBA(1.0f, 0.0f, X, 1.0f);
+	}
+}
+
+// 色相按沿曲线的距离循环，颜色随相位向前流动；混入浅色减弱饱和色的刺眼感。
+inline ColorRGBA QmHookCountdownFlowColor(float Phase, float PathPosition)
+{
+	const ColorRGBA Color = QmHueToRgb(PathPosition - Phase);
+	return ColorRGBA(0.22f + 0.78f * Color.r, 0.22f + 0.78f * Color.g, 0.22f + 0.78f * Color.b, 1.0f);
+}
+
+inline float QmHookCountdownBreath(float Phase)
+{
+	return 0.5f - 0.5f * std::cos(Phase * 2.0f * pi);
+}
+
+struct SQmHookCountdownInfinityPoint
+{
+	vec2 m_Position;
+	vec2 m_Normal;
+	float m_PathPosition = 0.0f;
+};
+
+// 只在首次使用时计算曲线和法线；每帧复用几何，按弧长推进颜色，交叉处也不中断。
+inline const std::array<SQmHookCountdownInfinityPoint, 97> &QmHookCountdownInfinityPath()
+{
+	static const auto s_aPath = [] {
+		std::array<SQmHookCountdownInfinityPoint, 97> aPath{};
+		float TotalLength = 0.0f;
+		for(size_t i = 0; i < aPath.size(); ++i)
+		{
+			const float Angle = static_cast<float>(i) / static_cast<float>(aPath.size() - 1) * 2.0f * pi;
+			aPath[i].m_Position = vec2(10.5f * std::cos(Angle), 5.0f * std::sin(Angle * 2.0f));
+			const vec2 Tangent(-10.5f * std::sin(Angle), 10.0f * std::cos(Angle * 2.0f));
+			aPath[i].m_Normal = normalize(vec2(-Tangent.y, Tangent.x));
+			if(i != 0)
+				TotalLength += distance(aPath[i - 1].m_Position, aPath[i].m_Position);
+			aPath[i].m_PathPosition = TotalLength;
+		}
+		for(auto &Point : aPath)
+			Point.m_PathPosition /= TotalLength;
+		aPath.back() = aPath.front();
+		aPath.back().m_PathPosition = 1.0f;
+		return aPath;
+	}();
+	return s_aPath;
+}
 
 inline float QmHookCountdownProgress(float HookTick, float HookDurationSeconds, bool EndlessHook)
 {
@@ -61,6 +131,10 @@ struct SQmHookCountdownVisual
 	float m_Alpha = 0.0f;
 	float m_Scale = 0.72f;
 	ColorRGBA m_Color{0.20f, 0.65f, 1.0f, 1.0f};
+	// 无限钩的彩虹流动与呼吸相位（0..1 循环）；普通钩子仍使用倒计时圆环。
+	bool m_EndlessHook = false;
+	float m_FlowPhase = 0.0f;
+	float m_BreathPhase = 0.0f;
 };
 
 class CQmHookCountdown
@@ -95,6 +169,8 @@ public:
 
 	void Update(const SQmHookCountdownInput &Input, float Delta)
 	{
+		// 无效帧时长不能污染动画时间与循环相位。
+		Delta = std::isfinite(Delta) && Delta > 0.0f ? Delta : 0.0f;
 		if(Input.m_ClientId < 0 || Input.m_Connection < 0)
 		{
 			Reset();
@@ -123,6 +199,7 @@ public:
 			m_Visual.m_Position = mix(Input.m_SourcePosition, Input.m_TargetPosition, 0.5f);
 			m_Visual.m_Progress = QmHookCountdownProgress(Input.m_HookTick, Input.m_HookDurationSeconds, Input.m_EndlessHook);
 			m_Visual.m_Color = QmHookCountdownColor(m_Visual.m_Progress);
+			m_Visual.m_EndlessHook = Input.m_EndlessHook;
 		}
 		else if(Tracking)
 		{
@@ -156,6 +233,13 @@ public:
 			m_Visual.m_Alpha = m_FromAlpha * (1.0f - Progress * Progress);
 			if(Progress >= 1.0f)
 				Reset();
+		}
+
+		// 松钩收拢期间仍保持彩虹流动与呼吸，完整退场或切换连接后随 Visual 清零。
+		if(m_Visual.m_EndlessHook && (m_Phase == EPhase::ENTERING || m_Phase == EPhase::ACTIVE || m_Phase == EPhase::EXITING))
+		{
+			m_Visual.m_FlowPhase = std::fmod(m_Visual.m_FlowPhase + std::max(Delta, 0.0f) / QM_HOOK_COUNTDOWN_FLOW_PERIOD_SECONDS, 1.0f);
+			m_Visual.m_BreathPhase = std::fmod(m_Visual.m_BreathPhase + std::max(Delta, 0.0f) / QM_HOOK_COUNTDOWN_BREATH_PERIOD_SECONDS, 1.0f);
 		}
 	}
 };

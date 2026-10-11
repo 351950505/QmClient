@@ -3,8 +3,6 @@
 
 #include "menus.h"
 
-#include <game/client/components/qmclient/media_paths.h>
-
 #include "background.h"
 
 #include <base/color.h>
@@ -40,10 +38,10 @@
 #include <game/client/QmUi/QmTree.h>
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContainers.h>
 #include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/UiForms.h>
-#include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiMotion.h>
 #include <game/client/QmUi/UiNavigation.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -57,6 +55,7 @@
 #include <game/client/components/menu_background.h>
 #include <game/client/components/qmclient/demo_display.h>
 #include <game/client/components/qmclient/demo_ui.h>
+#include <game/client/components/qmclient/media_paths.h>
 #include <game/client/components/qmclient/modes.h>
 #include <game/client/components/qmclient/perf_logging.h>
 #include <game/client/components/sounds.h>
@@ -1788,6 +1787,7 @@ int CMenus::DoSettingsButton_CheckBoxAutoVMarginAndSet(int Page, int Tab, const 
 
 void CMenus::DoSettingsLabel(int Page, int Tab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps, bool Render)
 {
+	pText = Ui()->PrepareCardLabel(pRect, pText, Render && !m_MenuTextPlanCollecting);
 	SLabelProperties EffectiveProps = LabelProps;
 	if(Page == SETTINGS_TCLIENT && Size > 0.0f)
 	{
@@ -1813,6 +1813,7 @@ void CMenus::DoSettingsLabel(int Page, int Tab, const char *pTextId, const CUIRe
 
 void CMenus::DoSettingsMenuLabel(int Page, int Tab, int Subtab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &Props, int MaxWidth)
 {
+	pText = Ui()->PrepareCardLabel(pRect, pText, !m_MenuTextPlanCollecting);
 	SLabelProperties EffectiveProps = Props;
 	if(Page == SETTINGS_TCLIENT && Size > 0.0f)
 	{
@@ -2070,7 +2071,8 @@ bool CMenus::DoLine_RadioMenu(CUIRect &View, const char *pLabel, std::vector<CBu
 
 bool CMenus::DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &View, const char *pLabelTextId, const char *pLabel, std::vector<CButtonContainer> &vButtonContainers, const std::vector<const char *> &vButtonTextIds, const std::vector<const char *> &vLabels, const std::vector<int> &vValues, int &Value, const SSettingsContentMetrics &Metrics, const int *pOverrideSource, const void *pConfigValue, const void *pSecondConfigValue)
 {
-	const void *pBinding = pConfigValue != nullptr ? pConfigValue : pOverrideSource != nullptr ? pOverrideSource : &Value;
+	const void *pBinding = pConfigValue != nullptr ? pConfigValue : pOverrideSource != nullptr ? pOverrideSource :
+												     &Value;
 	dbg_assert(vButtonContainers.size() == vValues.size(), "vButtonContainers and vValues must have the same size");
 	dbg_assert(vButtonContainers.size() == vLabels.size(), "vButtonContainers and vLabels must have the same size");
 	dbg_assert(vButtonContainers.size() == vButtonTextIds.size(), "vButtonContainers and vButtonTextIds must have the same size");
@@ -4369,7 +4371,7 @@ void CMenus::Render()
 
 	{
 		CPerfTimer StageTimer;
-		if(!GameClient()->m_GameConsole.ConsoleSettingsOpen())
+		if(!GameClient()->m_GameConsole.IsActive())
 			Ui()->RenderPopupMenus();
 		LogPerfStage(Client(), "popup_menus", StageTimer.ElapsedMs());
 	}
@@ -6720,9 +6722,11 @@ void CMenus::CountMenuTextImmediateFallback()
 
 void CMenus::DoMenuLabelStreamed(EMenuTextScope Scope, CUIElement &Element, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps, int StrLen, const CTextCursor *pReadCursor, bool Render)
 {
-	(void)Scope;
 	if(pText == nullptr)
 		return;
+	// 缓存预算与最终绘制必须使用同一份短标签，避免逐帧排队重建。
+	if(Scope == MENU_TEXT_SCOPE_SETTINGS && StrLen < 0 && pReadCursor == nullptr)
+		pText = Ui()->PrepareCardLabel(pRect, pText, Render);
 
 	if(m_MenuTextPlanCollecting)
 	{
@@ -7905,7 +7909,7 @@ void CMenus::OnRender()
 	if(!IsActive())
 	{
 		m_SettingsCardDeckDisplayState.LeaveSettings();
-		if(Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE))
+		if(!GameClient()->m_GameConsole.IsActive() && Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE))
 		{
 			if(Client()->State() == IClient::STATE_ONLINE)
 			{
@@ -7917,7 +7921,8 @@ void CMenus::OnRender()
 		}
 		else if(Client()->State() != IClient::STATE_DEMOPLAYBACK && !GameClient()->m_RankGhost.IsViewModeActive())
 		{
-			Ui()->ClearHotkeys();
+			if(!GameClient()->m_GameConsole.IsActive())
+				Ui()->ClearHotkeys();
 			// QmClient: 菜单关闭时的空闲帧预热“最近缺失字形”（每帧少量，约 2ms），
 			// 把下次打开菜单时的字形光栅化成本提前摊掉，不影响渲染完整性。
 			constexpr int GLYPH_IDLE_PREWARM_PER_FRAME = 8;
@@ -7927,18 +7932,23 @@ void CMenus::OnRender()
 	}
 
 	// 在线控制层让出输入时结束拖动，恢复拖动前的播放状态。
-	if(GameClient()->m_RankGhost.IsViewModeActive() && !GameClient()->m_Spectator.PlaybackControlsActive() && Ui()->CheckActiveItem(&m_DemoSeekBarId))
+	if(!GameClient()->m_GameConsole.IsActive() && GameClient()->m_RankGhost.IsViewModeActive() && !GameClient()->m_Spectator.PlaybackControlsActive() && Ui()->CheckActiveItem(&m_DemoSeekBarId))
 	{
 		if(!m_PausedBeforeSeeking)
 			GameClient()->m_RankGhost.ViewPlayer()->Unpause();
 		Ui()->SetActiveItem(nullptr);
 	}
-	Ui()->StartCheck();
+	const bool ConsoleOwnsUi = GameClient()->m_GameConsole.IsActive();
+	if(ConsoleOwnsUi)
+		Ui()->BeginBackgroundRender();
+	else
+		Ui()->StartCheck();
 	UpdateColors();
 
 	{
 		CPerfTimer StageTimer;
-		Ui()->Update();
+		if(!ConsoleOwnsUi)
+			Ui()->Update();
 		LogPerfStage(Client(), "ui_update", StageTimer.ElapsedMs());
 	}
 
@@ -8009,11 +8019,15 @@ void CMenus::OnRender()
 	if(g_Config.m_Debug)
 		Ui()->DebugRender(2.0f, Ui()->Screen()->h - 12.0f);
 
-	if(Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE))
-		SetActive(false);
-
-	Ui()->FinishCheck();
-	Ui()->ClearHotkeys();
+	if(ConsoleOwnsUi)
+		Ui()->EndBackgroundRender();
+	else
+	{
+		if(Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE))
+			SetActive(false);
+		Ui()->FinishCheck();
+		Ui()->ClearHotkeys();
+	}
 
 	char aExtra[96];
 	str_format(aExtra, sizeof(aExtra), "state=%s active=%d", ClientStateName(Client()->State()), IsActive() ? 1 : 0);

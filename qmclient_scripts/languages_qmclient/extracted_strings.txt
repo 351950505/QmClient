@@ -234,6 +234,7 @@ Allow voting to pause players (instead of moving to spectators)
 Allows maps to render with more detail
 Alpha
 Also apply to dummy
+Also send the original text when translating outgoing messages
 Always show
 Always show chat
 Always show local time
@@ -270,7 +271,7 @@ API key
 APP ID
 Appearance
 Appearance and command highlighting of the local console
-Appearance of help bubbles outside settings cards
+Appearance of help bubbles
 Append to log file instead of overwriting
 Applied to %d same-family part(s).
 Applies to single-color and rainbow overrides.
@@ -434,10 +435,13 @@ Avg %.*f   ↓ %.*f   ↑ %.*f
 Axiom API returned an error
 Axiom auto login failed
 Axiom auto login failed, retrying
+Axiom auto login skipped: no password
+Axiom auto login stopped after repeated failures
 Axiom auto login succeeded
 Axiom dummy password
 Axiom main account password
 Axiom score request failed
+Axiom website
 Axis
 Backdrop blur
 Backdrop blur algorithm: 0=Gaussian, 1=Kawase, 2=Dual Kawase
@@ -657,6 +661,8 @@ Choose the menu font and cursor appearance
 Choose the menu font and font weight
 Choose the menu map and background colors
 Cinematic camera
+Cinematic camera smoothness (0=instant, 100=smoothest)
+Cinematic smoothness
 CJK font
 CJK font weight
 CJK font weight:
@@ -1037,7 +1043,6 @@ Debug quad layer clipping.
 Debug quad layer cluster clipping.
 Debug SQL.
 Debug tile layer clipping.
-Decorative throws
 Dedicated WebSocket endpoint (empty uses wss://qmclient.icu/ws)
 Deep freeze color
 Deep freeze opacity
@@ -1201,6 +1206,8 @@ Draw a glow around tees colored by their race team
 Draw lines showing screen/clickbox center
 Draw on the in game background
 Draw shadow behind emote
+Draw the favorite star icon with the filled icon font style
+Draw the friend heart icon with the filled icon font style
 Draw tile layers when using custom background (solid)
 Draw where mouse is
 Draw!
@@ -1288,7 +1295,6 @@ Edit player and dummy identity information
 Edit skin texture
 Edit touch controls
 Editor
-Egg
 Elastic
 Elastic back
 Elevated
@@ -1330,7 +1336,6 @@ Enable coloring and hearts for friends
 Enable connections from vanilla 0.6 clients
 Enable controller
 Enable custom prediction margin when frozen
-Enable decorative grass, tomato and egg throws
 Enable Deleting
 Enable Discord RPC (requires restart)
 Enable DNSBL (DNS-based Blackhole List)
@@ -1403,7 +1408,6 @@ Enable Sixup connection.
 Enable skin queue rotation
 Enable skin switch animation
 Enable skin transition animation, then choose the type, scope, duration and easing.
-Enable smooth cinematic camera while free spectating
 Enable SodaMusic Hook
 Enable SodaMusic hook integration
 Enable sound
@@ -1485,7 +1489,7 @@ Example /help settings will display the help about /settings
 Example of usage
 Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
-Example: name1|name2|name3
+Example: A|B|C,D|E (C: main, D: dummy)
 Exclude
 Execute before connecting
 Execute files on key press/release
@@ -1578,6 +1582,7 @@ Filter out servers that require login
 Filter out servers with player country mismatch (ISO 3166-1 numeric)
 Filter out servers without friends
 Filter out spectators from player count
+Filter sensitive words
 Filtered word console color
 Find / Next
 Find all ban records for the specified IP address
@@ -1776,7 +1781,6 @@ Graphics library texture sampling lod bias multiplied by 1000
 Graphics mode
 Graphics mode: -1=use backend setting, 0=compatibility, 1=performance (default)
 Graphics trace level: 0=off, 1=periodic summary, 2=summary and slow frames, 3=detailed backend trace
-Grass
 Greek
 Greeting text
 Grenade
@@ -1958,6 +1962,8 @@ Include emoticon when saving/loading config preset
 Include name when saving/loading config preset
 Include seconds in local time display
 Include skin when saving/loading config preset
+Include Team 0
+Include Team 0 in the Gores team drown board
 Incoming auto-translation mode (0=Only translate when not in target language, 1=Always translate)
 Incoming language
 Indicate map finish
@@ -2850,7 +2856,7 @@ Pie menu effects
 Pie menu highlight tint
 Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
-Pie menu rename list (separate with |, e.g., name1|name2)
+Pie menu rename list (| separates entries; main,dummy renames both)
 Ping
 Ping the current server
 Pistol
@@ -2939,6 +2945,7 @@ Please wait…
 Points
 Points unavailable
 Polished
+Pop wave
 Popup & dropdown blur
 Popup animation
 Popup blur
@@ -3298,7 +3305,6 @@ Replay feature is disabled!
 Replay list: failed to load, press Refresh to retry
 Replay list: loading ...
 Replay list: not loaded yet
-Replay list: up to date
 Replays directory
 Reply
 Reply content
@@ -3504,6 +3510,7 @@ Screenshot watermark: include map name
 Screenshot watermark: include timestamp
 Screenshots
 Screenshots directory
+Scroll mode
 Scroll mode: Off
 Scroll mode: On
 Search
@@ -3558,6 +3565,7 @@ Send aim data with sub-tick precision
 Send client input to others before correct input (increases server bandwidth)
 Send emote when entering freeze
 Send emoticon in water
+Send original text with translation
 Send probability
 Send Rate
 Send sampling and token limit parameters
@@ -3921,6 +3929,7 @@ Show Tee trail for others
 Show Tees in the Gores team drown board
 Show teleporter tile outlines
 Show text entities
+Show the chat scrollbar on the right
 Show the cursor while free spectating
 Show the Gores team drown board
 Show the number of frozen tees
@@ -4039,9 +4048,11 @@ Smooth and accurate blur with the highest GPU cost.
 Smooth camera switch animation time when spectating (in ms, 0=off)
 Smooth Dynamic Camera
 Smooth fade
+Smooth free spectator camera
 Smooth other players' predicted movement
 Smooth prediction margin (weakens ping jitter correction, restores old behavior)
 Smooth scroll animation duration in menu/editor (ms, 0=off)
+Smooth the mouse-driven camera in live and demo free spectating
 Smooth zoom animation time in editor (in ms, 0=off)
 Smoothness of multi-view zoom (in ms, higher = slower)
 Snap title bob offset to whole pixels (sharper glyphs, choppier motion)
@@ -4057,6 +4068,8 @@ SodaMusic hook heartbeat timeout (milliseconds)
 SodaMusic hook helper path (empty=beside QmClient)
 Soft glow
 Solid
+Solid favorite icon
+Solid friend icon
 Solid tile outline opacity
 Solo
 Solo split
@@ -4169,6 +4182,7 @@ Stop server
 Stop the current demo
 Streamer mode
 Strength icons assets
+Strength of the vertical or pop wave. Zero keeps the title still.
 Stress system (debug builds only).
 Strict game type filter
 Strict gametype filter
@@ -4270,6 +4284,10 @@ Team save in progress. You'll be able to load with '/load %s' if save is success
 Team successfully saved by %s. The database connection failed, using generated save code instead to avoid collisions. Use '/load %s' on %s to continue
 Team successfully saved by %s. The database connection failed, using generated save code instead to avoid collisions. Use '/load %s' to continue
 Team tee glow
+Team tee glow halo size
+Team tee glow halo size in percent
+Team tee glow intensity
+Team tee glow intensity in percent
 Team used when leaving solo split mode
 Team when leaving solo split
 Teammate
@@ -4403,11 +4421,6 @@ This team is locked using /lock. Only members of the team can unlock it using /l
 This team started already
 This team was disbanded because there are more players than allowed in the team.
 This tooltip is provided by ui_widget::Tooltip — a thin shim over CTooltips.
-Throw a decorative grass, tomato or egg projectile
-Throw egg key
-Throw grass key
-Throw tomato key
-Throwables
 Tick delay before executing qm_execute_on_join
 Ticks after freeze before applying max prediction reduction
 tile
@@ -4444,9 +4457,10 @@ Title bob wavelength in pixels
 Title color
 Title display
 Title light sweep speed in 1/100 row per second (0 = off)
+Title motion
+Title motion: 0 = vertical wave, 1 = pop wave
 Title opacity
 Title per-character phase per pixel in 1/1000 px (0 = style default, 20 = visible light band)
-Title per-character vertical bob amplitude in pixels (0 = off)
 Title preview
 Title server does not support chat styles yet
 Title server unavailable; retry
@@ -4454,6 +4468,7 @@ Title spatial effect: 0 = polished, 1 = solid, 2 = classic Calamity, 3 = off
 Title style
 Title too long or contains unsupported characters
 Title visibility and appearance
+Title wave strength (0-3, 0 = off)
 to check a server setting say /settings and setting's name, setting names are:
 To save all players in your team have to be alive and not in '/spec'
 Toast uses UiTokens + QmMotion slide
@@ -4499,7 +4514,6 @@ Toggles spec (if not available behaves as /pause)
 Toggles spec on the currently voted player
 Toggles use of standard eye-emotes on/off, eyeemote s, where s = on for on, off for off, toggle for toggle and nothing to show current status
 Token to register this server to a specific community
-Tomato
 Too many configuration files.
 Too many translation tasks
 Toolbox page
@@ -4600,6 +4614,7 @@ UI scale
 UI server address
 UI size percentage
 Unable to delete %d selected items. The first failing item was '%s'.
+Unable to delete skin
 Unable to delete the demo '%s'
 Unable to delete the folder '%s'. Make sure it's empty first.
 Unable to delete the screenshot '%s'
@@ -4728,7 +4743,6 @@ Use style colors
 Use team colors for name plates
 Use Tee icons instead of circles
 Use the mouse wheel on a hovered module to scale it by 5%
-Use the passwords registered on Axiom for your main and dummy accounts separately. This option does not register accounts.
 Use the scoreboard cursor mode to scroll the list
 Use the selected tee trail style palette
 Use this after `add_favorite` to group favorites. Start with `begin_favorite_group`
@@ -4748,9 +4762,9 @@ Variable custom font weight for Latin text
 Velocity
 Version
 Version performing the analysis
-Vertical movement of each character. Zero keeps the title still.
 Vertical position
 Vertical sync (may cause lag)
+Vertical wave
 Video Background
 Video directory
 Video name
@@ -5021,6 +5035,7 @@ You'll lose unsaved changes after deselecting.
 You're not in a team with /practice turned on. Note that you can't earn a rank with practice enabled.
 You're playing on a local server because no online Tutorial server could be found.\n\nYour record will only be saved locally.
 You're the last one!
+Your account is your in-game name — register it on the Axiom website. Fill in the registered main and dummy passwords. This option does not register accounts.
 Your current race time is %s
 Your current version is outdated. Please update from the QQ group.
 Your favorite map manager
@@ -5320,7 +5335,6 @@ Zoom to current mouse target
 [Editor]	Delete
 [Editor]	Delete command %d
 [Editor]	Delete command %d; Edit command %d
-[Editor]	Delete current envelope point in all channels.
 [Editor]	Delete envelope %d
 [Editor]	Delete group
 [Editor]	Delete group %d
@@ -5332,6 +5346,7 @@ Zoom to current mouse target
 [Editor]	Delete the current sound source.
 [Editor]	Delete the group.
 [Editor]	Delete the layer.
+[Editor]	Delete the selected channel point.
 [Editor]	Delete the selected file.
 [Editor]	Delete the selected folder.
 [Editor]	Delete this command.
@@ -5352,7 +5367,8 @@ Zoom to current mouse target
 [Editor]	Do you want to save your changes before closing this map?\n\nYour changes will be lost if you discard them.
 [Editor]	Done
 [Editor]	DOOR: Combined with LASER LENGTH creates doors. Doesn't allow to go through it (only with NINJA).
-[Editor]	Double click to create a new point. Use shift to change the zoom axis. Press S to scale selected envelope points.
+[Editor]	Drag a rectangle inside the quad to create a cropped quad.
+[Editor]	Drag inside the quad to slice a rectangle. Hold alt to ignore grid. Right click to cancel.
 [Editor]	DRAGGING LASER: Grabs and attracts the closest tee to it. Can reach tees through walls but not through LASER BLOCKER. Medium strength.
 [Editor]	DRAGGING LASER: Grabs and attracts the closest tee to it. Can reach tees through walls but not through LASER BLOCKER. Strong.
 [Editor]	DRAGGING LASER: Grabs and attracts the closest tee to it. Can reach tees through walls but not through LASER BLOCKER. Weak.
@@ -5379,7 +5395,6 @@ Zoom to current mouse target
 [Editor]	Edit command %d
 [Editor]	Edit envelope %d %s
 [Editor]	Edit envelope %d point %d (channel %d) %s
-[Editor]	Edit envelope %d point %d color
 [Editor]	Edit group %d %s property
 [Editor]	Edit layer %d in group %d %s property
 [Editor]	Edit layers group and order (x%d)
@@ -5412,7 +5427,7 @@ Zoom to current mouse target
 [Editor]	ENDLESS HOOK OFF: Deactivates endless hook.
 [Editor]	ENDLESS HOOK: Activates endless hook.
 [Editor]	Enter a room code to join a collaboration room.
-[Editor]	Enter a server setting. Press ctrl+space to show available settings.
+[Editor]	Enter a server setting. Press Ctrl+Space or Ctrl+Shift+Space, or click ... to show available settings. If the IME reserves the shortcut, use ... .
 [Editor]	Enter the room code
 [Editor]	ENTITIES OFF SIGN: Informs people playing with entities about important marks, tips, information or text on the map.
 [Editor]	Entities: %s
@@ -5780,6 +5795,7 @@ Zoom to current mouse target
 [Editor]	Resize the current quad based on the aspect ratio of its image.
 [Editor]	Restart server
 [Editor]	Restarting server
+[Editor]	Right click or double click to add points on active channels. Use shift to change the zoom axis. Press S to scale selected points.
 [Editor]	Room %s is in sync (%d/%d people)
 [Editor]	Room code
 [Editor]	Room code copied
@@ -5862,6 +5878,7 @@ Zoom to current mouse target
 [Editor]	Size: %d × %d
 [Editor]	Size: %zu × %zu
 [Editor]	Slice
+[Editor]	Slice rectangle
 [Editor]	Smooth
 [Editor]	SNOWFLAKE: Works like a FREEZE tile. Freezes tees for 3 seconds by default.
 [Editor]	Softness 

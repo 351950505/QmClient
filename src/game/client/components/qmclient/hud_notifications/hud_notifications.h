@@ -13,6 +13,7 @@
 #include <game/client/component.h>
 #include <game/client/components/hud_editor.h>
 #include <game/client/components/qmclient/colored_parts.h>
+#include <game/client/components/qmclient/streamer_word_filter.h>
 #include <game/client/ui_rect.h>
 #include <game/localization.h>
 
@@ -343,6 +344,7 @@ private:
 		SNotification Notification;
 		Notification.m_Kind = Kind;
 		str_copy(Notification.m_aText, pText);
+		QmStreamerWordFilter::Filter(Notification.m_aText, g_Config.m_QmStreamerFilterWords != 0);
 		str_copy(Notification.m_aCollapseText, pText);
 		Notification.m_StartTime = time_get();
 		Notification.m_RepeatAnimTime = 0;
