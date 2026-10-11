@@ -11,15 +11,16 @@
 #include <set>
 #include <string>
 
-TEST(QmNameplateCards, FourSettingsCardsHaveIndependentCatalogEntries)
+TEST(QmNameplateCards, FiveSettingsCardsIncludeTitleDisplay)
 {
 	const auto &vIds = qm_card_catalog::NameplateCardStableIds();
-	ASSERT_EQ(vIds.size(), 4u);
+	ASSERT_EQ(vIds.size(), 5u);
 	const std::set<std::string> Expected = {
 		"deck:appearance-name-plate-settings",
 		"deck:appearance-name-plate-text",
 		"deck:appearance-name-plate-hook-strength",
 		"deck:appearance-name-plate-key-presses",
+		"deck:qmclient-contributors-title-display",
 	};
 	EXPECT_EQ((std::set<std::string>(vIds.begin(), vIds.end())), Expected);
 	for(const char *pId : vIds)
