@@ -497,6 +497,9 @@ Add Group
 Add Item
 == Öğe Ekle
 
+Add keyframe
+== Anahtar kare ekle
+
 Add latency for antiping (0 to disable)
 == Antiping için gecikme ekle (devre dışı bırakmak için 0)
 
@@ -1726,6 +1729,9 @@ Camera follow cursor factor
 
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == Kamera hareket geçiş miktarı, 0=anlık, 100=yavaş ve pürüzsüz
+
+Camera path
+== Kamera yolu
 
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == Hızlı imleç hareketi sırasında kamera yavaşlaması. Yüksek değerler gecikmeli kamera hareketine neden olabilir
@@ -3305,6 +3311,9 @@ Delete this preset
 Demo
 == Demo
 
+Demo cut saved, but its camera path could not be saved
+== Demo kesiti kaydedildi ancak kamera yolu kaydedilemedi
+
 Demo directory
 == Demo kayıt dizini
 
@@ -3896,6 +3905,9 @@ Edit
 Edit audio pack
 == Ses paketini düzenle
 
+Edit camera
+== Kamerayı düzenle
+
 Edit color
 == Renkleri düzenle
 
@@ -4015,6 +4027,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == Kamera kayma efektini etkinleştir, kameranın hareket hızına göre hafifçe sürüklenmesini sağlar
+
+Enable camera path
+== Kamera yolunu etkinleştir
 
 Enable chat mention sound
 == Sohbet bahsetme sesini etkinleştir
@@ -4637,6 +4652,9 @@ Failed to fetch the replay list
 Failed to load
 == Yüklenemedi
 
+Failed to load camera path
+== Kamera yolu yüklenemedi
+
 Failed to load main asset: %s
 == Ana varlık yüklenemedi: %s
 
@@ -4654,6 +4672,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == Video kaydedilemedi. Ayrıntılar için yerel konsola bakın.
+
+Failed to save camera path
+== Kamera yolu kaydedilemedi
 
 Failed to save demo
 == Demo kaydedilemedi
@@ -5312,6 +5333,9 @@ Go forward one tick
 Go forward the specified duration
 == Belirtilen süre kadar ileri git
 
+Go to keyframe
+== Anahtar kareye git
+
 Gores
 == Gores
 
@@ -5707,6 +5731,9 @@ Hitbox Mode Weapon Interaction Color
 
 HJ assist
 == HJ yardımı
+
+Hold
+== Sabit tut
 
 Hold gun higher like TW 0.6.1 and earlier
 == Silahı TW 0.6.1 ve öncesi gibi daha yukarıda tut
@@ -6403,6 +6430,9 @@ Keyboard focus ring color
 
 Keyboard size
 == Klavye boyutu
+
+Keyframe %d/%d: %s
+== Anahtar kare %d/%d: %s
 
 Keyword reply
 == Anahtar kelime yanıtı
@@ -7514,6 +7544,9 @@ Move player to spectators
 Move right
 == Sağa hareket et
 
+Move the free camera, then add a keyframe at the current demo time.
+== Serbest kamerayı hareket ettirip geçerli demo zamanına anahtar kare ekleyin.
+
 Move to category
 == Kategoriye taşı
 
@@ -7909,6 +7942,9 @@ No buttons match your filter criteria
 
 No callable peer found
 == Aranabilir eş bulunamadı
+
+No camera keyframes
+== Kamera anahtar karesi yok
 
 No candidate file selected.
 == Aday dosya seçilmedi.
@@ -9250,6 +9286,9 @@ Preview laser bodies, outlines, and impacts
 
 Preview loading…
 == Önizleme yükleniyor…
+
+Preview path
+== Yolu önizle
 
 Preview player and dummy appearance
 == Preview player and dummy appearance
@@ -11840,6 +11879,9 @@ Show own nametag (for demo recording)
 Show own player's hook collision line
 == Kendi oyuncunun kanca çarpışma çizgisini göster
 
+Show path
+== Yolu göster
+
 Show pause/play indicator when changing
 == Değişiklik sırasında duraklat/oynat göstergesini göster
 
@@ -12386,6 +12428,9 @@ Smaller tees
 Smart
 == Akıllı
 
+Smooth
+== Yumuşak
+
 Smooth and accurate blur with the highest GPU cost.
 == En yüksek GPU maliyetine sahip, yumuşak ve hassas bulanıklık.
 
@@ -12772,6 +12817,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 
 Stop practice
 == Pratiği durdur
+
+Stop preview
+== Önizlemeyi durdur
 
 Stop preview (P)
 == Önizlemeyi durdur (P)
@@ -14129,6 +14177,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == Ekran görüntüsü dosyası açılamıyor
 
+Unable to record camera keyframe
+== Kamera anahtar karesi kaydedilemedi
+
 Unable to rename the demo
 == Demo yeniden adlandırılamıyor
 
@@ -14302,6 +14353,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == Güncelleme başarısız oldu. Lütfen tekrar deneyin
+
+Update keyframe
+== Anahtar kareyi güncelle
 
 Update notice
 == Bildirimi güncelle

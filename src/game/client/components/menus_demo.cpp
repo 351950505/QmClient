@@ -254,16 +254,14 @@ void CMenus::RenderDemoDisplaySettings(CUIRect View, bool Enabled)
 		View.HSplitTop(2.0f, nullptr, &View);
 		Row.VSplitLeft(std::min(116.0f, Row.w * 0.27f), &Label, &Options);
 		Ui()->DoLabel(&Label, pLabel, 11.0f, TEXTALIGN_ML, {.m_MaxWidth = Label.w - 4.0f});
-		Options.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.16f), IGraphics::CORNER_ALL, 6.0f);
-		const float Width = Options.w / Count;
+		const float Gap = 4.0f;
+		const float Width = (Options.w - Gap * (Count - 1)) / Count;
 		for(int i = 0; i < Count; ++i)
 		{
-			CUIRect Option{Options.x + Width * i, Options.y, Width, Options.h};
-			Option.Margin(2.0f, &Option);
+			CUIRect Option{Options.x + (Width + Gap) * i, Options.y, Width, Options.h};
 			const ColorRGBA Fill = *pValue == i ? ui_token::color::ACCENT_PRIMARY_DIM : ColorRGBA(1.0f, 1.0f, 1.0f, 0.02f);
-			if(DoButton_Menu(&pButtons[i], nullptr, Enabled && Available ? 0 : -1, &Option, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, Fill) && Enabled && Available)
+			if(DoButton_Menu(&pButtons[i], ppLabels[i], Enabled && Available ? static_cast<int>(*pValue == i) : -1, &Option, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, Fill, nullptr, 10.0f) && Enabled && Available)
 				*pValue = i;
-			Ui()->DoLabel(&Option, ppLabels[i], 10.0f, TEXTALIGN_MC, {.m_MaxWidth = Option.w - 4.0f, .m_EllipsisAtEnd = true});
 			GameClient()->m_Tooltips.DoToolTip(&pButtons[i], &Option, ppLabels[i]);
 		}
 	};
@@ -383,6 +381,14 @@ void CMenus::HandleDemoSeeking(float PositionToSeek, float TimeToSeek, int TickT
 			PlaybackPlayer()->Pause();
 		}
 	}
+}
+
+bool CMenus::DemoSeekToTick(int Tick)
+{
+	if(Tick < 0)
+		return false;
+	HandleDemoSeeking(-1.0f, 0.0f, Tick);
+	return PlaybackPlayer()->IsPlaying();
 }
 
 void CMenus::DemoSeekTick(IDemoPlayer::ETickOffset TickOffset)
@@ -697,8 +703,9 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	}
 
 	const bool DisplayExpanded = m_DemoDisplayExpanded;
+	const bool CameraExpanded = !OnlineReplay && GameClient()->m_DemoCamera.PanelOpen();
 	const bool ShowSkipDuration = NumDurationLabels >= 2;
-	const CUIRect PlayerRect = qm_demo_ui::PlayerRect(MainView, DisplayExpanded);
+	const CUIRect PlayerRect = qm_demo_ui::PlayerRect(MainView, DisplayExpanded, CameraExpanded);
 	const float SeekBarHeight = 12.0f;
 	const float ButtonbarHeight = qm_demo_ui::TransportButtonSize(PlayerRect.w, ShowSkipDuration);
 	const float NameBarHeight = 20.0f;
@@ -765,7 +772,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	std::optional<CUiScopedGaussianBlurSuppression> DemoControlsBlurSuppression(std::in_place, Ui());
 	const CUIRect DemoControlsDragRect = DemoControls;
 
-	CUIRect SeekBar, TimeBar, ButtonBar, NameBar, SpeedBar, CutBar, DisplayBar;
+	CUIRect SeekBar, TimeBar, ButtonBar, NameBar, SpeedBar, CutBar, DisplayBar, CameraBar;
 	DemoControls.Margin(8.0f, &DemoControls);
 	DemoControls.HSplitTop(NameBarHeight, &NameBar, &DemoControls);
 	DemoControls.HSplitTop(4.0f, nullptr, &DemoControls);
@@ -774,7 +781,16 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	DemoControls.HSplitTop(22.0f, &ButtonBar, &DemoControls);
 	DemoControls.HSplitTop(8.0f, nullptr, &DemoControls);
 	DemoControls.HSplitTop(CutBarHeight, &CutBar, &DemoControls);
-	DemoControls.HSplitTop(6.0f, nullptr, &DisplayBar);
+	if(DisplayExpanded)
+	{
+		DemoControls.HSplitTop(6.0f, nullptr, &DemoControls);
+		DemoControls.HSplitTop(qm_demo_ui::DISPLAY_HEIGHT, &DisplayBar, &DemoControls);
+	}
+	if(CameraExpanded)
+	{
+		DemoControls.HSplitTop(6.0f, nullptr, &DemoControls);
+		DemoControls.HSplitTop(qm_demo_ui::CAMERA_HEIGHT, &CameraBar, &DemoControls);
+	}
 	ButtonBar.Draw(ColorRGBA(1.0f, 1.0f, 1.0f, 0.045f), IGraphics::CORNER_ALL, 6.0f);
 	ButtonBar.VMargin(std::max(0.0f, (ButtonBar.w - qm_demo_ui::TransportWidth(ButtonbarHeight, ShowSkipDuration)) * 0.5f), &ButtonBar);
 	ButtonBar.HMargin((ButtonBar.h - ButtonbarHeight) * 0.5f, &ButtonBar);
@@ -1319,11 +1335,29 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 
 	NameBar.VSplitRight(Margins, &NameBar, nullptr);
 	NameBar.VSplitRight(80.0f, &NameBar, &Button);
-	if(DoButton_Menu(&m_DemoDisplayButton, Localize("Demo display"), CutControlsEnabled ? 0 : -1, &Button, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 6.0f, 0.0f, DisplayExpanded ? DEMO_ACCENT : ColorRGBA(1.0f, 1.0f, 1.0f, 0.08f), nullptr, 11.0f) && CutControlsEnabled)
+	if(DoButton_Menu(&m_DemoDisplayButton, Localize("Demo display"), CutControlsEnabled ? static_cast<int>(DisplayExpanded) : -1, &Button, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 6.0f, 0.0f, DisplayExpanded ? DEMO_ACCENT : ColorRGBA(1.0f, 1.0f, 1.0f, 0.08f), nullptr, 11.0f) && CutControlsEnabled)
+	{
 		m_DemoDisplayExpanded = !DisplayExpanded;
+		if(m_DemoDisplayExpanded && !OnlineReplay)
+			GameClient()->m_DemoCamera.SetPanelOpen(false);
+	}
 	NameBar.VSplitRight(8.0f, &NameBar, nullptr);
 	if(DisplayExpanded && m_DemoPlayerState == DEMOPLAYER_NONE && m_Popup == POPUP_NONE)
 		RenderDemoDisplaySettings(DisplayBar, CutControlsEnabled);
+
+	if(!OnlineReplay)
+	{
+		NameBar.VSplitRight(90.0f, &NameBar, &Button);
+		if(DoButton_Menu(&m_DemoCameraButton, Localize("Camera path"), CutControlsEnabled ? static_cast<int>(CameraExpanded) : -1, &Button, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 6.0f, 0.0f, CameraExpanded ? DEMO_ACCENT : ColorRGBA(1.0f, 1.0f, 1.0f, 0.08f), nullptr, 11.0f) && CutControlsEnabled)
+		{
+			GameClient()->m_DemoCamera.SetPanelOpen(!CameraExpanded);
+			if(!CameraExpanded)
+				m_DemoDisplayExpanded = false;
+		}
+		NameBar.VSplitRight(8.0f, &NameBar, nullptr);
+		if(CameraExpanded && m_DemoPlayerState == DEMOPLAYER_NONE && m_Popup == POPUP_NONE)
+			RenderDemoCameraPanel(CameraBar, CutControlsEnabled);
+	}
 
 	// demo name
 	char aDemoName[IO_MAX_PATH_LENGTH];
@@ -1669,6 +1703,13 @@ void CMenus::RenderDemoPlayerSliceSavePopup(CUIRect MainView)
 		{
 			s_MessagePopupContext.ErrorColor();
 			str_copy(s_MessagePopupContext.m_aMessage, Localize("Failed to export demo cut"));
+			Ui()->ShowPopupMessage(Ui()->MouseX(), ButtonBar.y - 5.0f, &s_MessagePopupContext);
+			return;
+		}
+		if(!GameClient()->m_RankGhost.IsViewModeActive() && !GameClient()->m_DemoCamera.ExportCut(aPath, vDemoSliceSegments))
+		{
+			s_MessagePopupContext.ErrorColor();
+			str_copy(s_MessagePopupContext.m_aMessage, Localize("Demo cut saved, but its camera path could not be saved"));
 			Ui()->ShowPopupMessage(Ui()->MouseX(), ButtonBar.y - 5.0f, &s_MessagePopupContext);
 			return;
 		}
@@ -3623,6 +3664,7 @@ void CMenus::PopupConfirmPlayDemo()
 	}
 	char aBuf[IO_MAX_PATH_LENGTH];
 	str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, pSelectedDemo->m_aFilename);
+	GameClient()->m_DemoCamera.PrepareSource(aBuf, pSelectedDemo->m_StorageType);
 	const char *pError = Client()->DemoPlayer_Play(aBuf, pSelectedDemo->m_StorageType);
 	m_vDemoCutSegments.clear();
 	m_DemoCutPreview.Reset();

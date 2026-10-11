@@ -3142,6 +3142,7 @@ if(CLIENT)
     )
   endif()
   set_src(GAME_CLIENT GLOB_RECURSE src/game/client
+    QmUi/QmDemoCameraPanel.cpp
     QmUi/QmAnimationBackend.cpp
     QmUi/QmAnimationBackend.h
     QmUi/QmAnim.cpp
@@ -3315,6 +3316,10 @@ if(CLIENT)
     components/binds.h
     components/broadcast.cpp
     components/broadcast.h
+    components/qmclient/demo_camera.cpp
+    components/qmclient/demo_camera.h
+    components/qmclient/demo_camera_path.h
+    components/qmclient/demo_camera_file.h
     components/camera.cpp
     components/camera.h
     components/censor.cpp
@@ -4769,6 +4774,9 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_storage_path_test.cpp
     src/test/unit/qmclient/client/qm_media_paths_test.cpp
     src/test/integration/qmclient/client/qm_media_paths_storage_test.cpp
+    src/test/unit/qmclient/client/qm_demo_camera_path_test.cpp
+    src/test/unit/qmclient/client/qm_demo_camera_file_test.cpp
+    src/test/integration/qmclient/client/qm_demo_camera_storage_test.cpp
     src/test/unit/qmclient/client/qm_camera_effects_test.cpp
     src/test/contract/qmclient/ui/qm_capsule_tab_wiring_contract_test.cpp
     src/test/unit/qmclient/ui/qm_capsule_tab_geometry_test.cpp

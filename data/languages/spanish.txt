@@ -497,6 +497,9 @@ Add Group
 Add Item
 == Añadir Elemento
 
+Add keyframe
+== Añadir fotograma clave
+
 Add latency for antiping (0 to disable)
 == Añadir latencia para antiping (0 para desactivar)
 
@@ -1726,6 +1729,9 @@ Camera follow cursor factor
 
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == Cantidad de transición del movimiento de cámara, 0=instantáneo, 100=lento y suave
+
+Camera path
+== Trayectoria de cámara
 
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == Ralentización de cámara durante movimiento rápido del cursor. Valores altos pueden causar movimiento retrasado
@@ -3305,6 +3311,9 @@ Delete this preset
 Demo
 == Demo
 
+Demo cut saved, but its camera path could not be saved
+== Se guardó el recorte, pero no su trayectoria de cámara
+
 Demo directory
 == Carpeta de demos
 
@@ -3896,6 +3905,9 @@ Edit
 Edit audio pack
 == Editar paquete de audio
 
+Edit camera
+== Editar cámara
+
 Edit color
 == Editar colores
 
@@ -4015,6 +4027,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == Activar efecto de deriva de cámara, que arrastra ligeramente la vista según la velocidad de movimiento
+
+Enable camera path
+== Activar trayectoria
 
 Enable chat mention sound
 == Habilitar sonido de mención en el chat
@@ -4637,6 +4652,9 @@ Failed to fetch the replay list
 Failed to load
 == Error al cargar
 
+Failed to load camera path
+== No se pudo cargar la trayectoria
+
 Failed to load main asset: %s
 == Error al cargar el recurso principal: %s
 
@@ -4654,6 +4672,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == No se pudo grabar el vídeo. Consulta la consola local para más detalles.
+
+Failed to save camera path
+== No se pudo guardar la trayectoria
 
 Failed to save demo
 == No se pudo guardar la demo
@@ -5312,6 +5333,9 @@ Go forward one tick
 Go forward the specified duration
 == Avanzar la duración especificada
 
+Go to keyframe
+== Ir al fotograma clave
+
 Gores
 == Gores
 
@@ -5707,6 +5731,9 @@ Hitbox Mode Weapon Interaction Color
 
 HJ assist
 == Asistencia HJ
+
+Hold
+== Mantener
 
 Hold gun higher like TW 0.6.1 and earlier
 == Sostener el arma más arriba como en TW 0.6.1 y anteriores
@@ -6403,6 +6430,9 @@ Keyboard focus ring color
 
 Keyboard size
 == Tamaño del teclado
+
+Keyframe %d/%d: %s
+== Fotograma clave %d/%d: %s
 
 Keyword reply
 == Respuesta por palabra clave
@@ -7514,6 +7544,9 @@ Move player to spectators
 Move right
 == Mover a la derecha
 
+Move the free camera, then add a keyframe at the current demo time.
+== Mueve la cámara libre y añade un fotograma clave en el momento actual de la demo.
+
 Move to category
 == Mover a categoría
 
@@ -7909,6 +7942,9 @@ No buttons match your filter criteria
 
 No callable peer found
 == No se encontró un par contactable
+
+No camera keyframes
+== No hay fotogramas de cámara
 
 No candidate file selected.
 == No se seleccionó ningún archivo candidato.
@@ -9250,6 +9286,9 @@ Preview laser bodies, outlines, and impacts
 
 Preview loading…
 == Cargando vista previa…
+
+Preview path
+== Previsualizar trayectoria
 
 Preview player and dummy appearance
 == Preview player and dummy appearance
@@ -11840,6 +11879,9 @@ Show own nametag (for demo recording)
 Show own player's hook collision line
 == Mostrar la línea de colisión de gancho propia
 
+Show path
+== Mostrar trayectoria
+
 Show pause/play indicator when changing
 == Mostrar indicador de pausa/reproducción al cambiar
 
@@ -12386,6 +12428,9 @@ Smaller tees
 Smart
 == Inteligente
 
+Smooth
+== Suave
+
 Smooth and accurate blur with the highest GPU cost.
 == Desenfoque suave y preciso con el mayor coste de GPU.
 
@@ -12772,6 +12817,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 
 Stop practice
 == Detener práctica
+
+Stop preview
+== Detener vista previa
 
 Stop preview (P)
 == Detener vista previa (P)
@@ -14129,6 +14177,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == No se pudo abrir el archivo de captura de pantalla
 
+Unable to record camera keyframe
+== No se pudo registrar el fotograma de cámara
+
 Unable to rename the demo
 == No se puede renombrar la demo
 
@@ -14302,6 +14353,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == Error al actualizar. Inténtalo de nuevo
+
+Update keyframe
+== Actualizar fotograma clave
 
 Update notice
 == Actualizar aviso

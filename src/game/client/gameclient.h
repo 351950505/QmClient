@@ -77,6 +77,7 @@
 #include "components/qmclient/chat_emoji.h"
 #include "components/qmclient/collision_hitbox.h"
 #include "components/qmclient/data_version.h"
+#include "components/qmclient/demo_camera.h"
 #include "components/qmclient/dummy_hammer_input.h"
 #include "components/qmclient/hammer_hit_detection.h"
 #include "components/qmclient/hud_notifications/hud_notifications.h"
@@ -237,6 +238,7 @@ public:
 	// all components
 	CInfoMessages m_InfoMessages;
 	CCamera m_Camera;
+	CQmDemoCamera m_DemoCamera;
 	CChat m_Chat;
 	CCensor m_Censor;
 	CMotd m_Motd;

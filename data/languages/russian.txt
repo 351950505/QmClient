@@ -497,6 +497,9 @@ Add Group
 Add Item
 == Добавить элемент
 
+Add keyframe
+== Добавить ключевой кадр
+
 Add latency for antiping (0 to disable)
 == Добавить задержку для антипинга (0 для отключения)
 
@@ -1726,6 +1729,9 @@ Camera follow cursor factor
 
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == Величина перехода движения камеры, 0=мгновенно, 100=медленно и плавно
+
+Camera path
+== Траектория камеры
 
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == Замедление камеры при быстром движении курсора. Высокие значения могут вызывать задержку движения камеры
@@ -3305,6 +3311,9 @@ Delete this preset
 Demo
 == Демо
 
+Demo cut saved, but its camera path could not be saved
+== Отрезок демо сохранён, но траекторию камеры сохранить не удалось
+
 Demo directory
 == Папка демозаписей
 
@@ -3896,6 +3905,9 @@ Edit
 Edit audio pack
 == Редактировать аудиопакет
 
+Edit camera
+== Изменить камеру
+
 Edit color
 == Изменить цвета
 
@@ -4015,6 +4027,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == Включить эффект дрейфа камеры: лёгкое смещение в зависимости от скорости движения
+
+Enable camera path
+== Включить траекторию камеры
 
 Enable chat mention sound
 == Включить звук упоминания в чате
@@ -4637,6 +4652,9 @@ Failed to fetch the replay list
 Failed to load
 == Не удалось загрузить
 
+Failed to load camera path
+== Не удалось загрузить траекторию камеры
+
 Failed to load main asset: %s
 == Не удалось загрузить основной ресурс: %s
 
@@ -4654,6 +4672,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == Не удалось записать видео. Подробности смотрите в локальной консоли.
+
+Failed to save camera path
+== Не удалось сохранить траекторию камеры
 
 Failed to save demo
 == Не удалось сохранить демозапись
@@ -5312,6 +5333,9 @@ Go forward one tick
 Go forward the specified duration
 == Вперёд на указанную длительность
 
+Go to keyframe
+== Перейти к ключевому кадру
+
 Gores
 == Горы
 
@@ -5707,6 +5731,9 @@ Hitbox Mode Weapon Interaction Color
 
 HJ assist
 == Помощь HJ
+
+Hold
+== Удержание
 
 Hold gun higher like TW 0.6.1 and earlier
 == Держать оружие выше, как в TW 0.6.1 и ранее
@@ -6403,6 +6430,9 @@ Keyboard focus ring color
 
 Keyboard size
 == Размер клавиатуры
+
+Keyframe %d/%d: %s
+== Ключевой кадр %d/%d: %s
 
 Keyword reply
 == Ответ по ключевому слову
@@ -7514,6 +7544,9 @@ Move player to spectators
 Move right
 == Двигаться вправо
 
+Move the free camera, then add a keyframe at the current demo time.
+== Переместите свободную камеру и добавьте ключевой кадр в текущий момент демо.
+
 Move to category
 == Переместить в категорию
 
@@ -7909,6 +7942,9 @@ No buttons match your filter criteria
 
 No callable peer found
 == Вызываемый пир не найден
+
+No camera keyframes
+== Нет ключевых кадров камеры
 
 No candidate file selected.
 == Файл-кандидат не выбран.
@@ -9250,6 +9286,9 @@ Preview laser bodies, outlines, and impacts
 
 Preview loading…
 == Загрузка предпросмотра…
+
+Preview path
+== Просмотр траектории
 
 Preview player and dummy appearance
 == Preview player and dummy appearance
@@ -11840,6 +11879,9 @@ Show own nametag (for demo recording)
 Show own player's hook collision line
 == Показывать линию столкновения собственного крюка
 
+Show path
+== Показать траекторию
+
 Show pause/play indicator when changing
 == Показывать индикатор паузы/воспроизведения при изменении
 
@@ -12386,6 +12428,9 @@ Smaller tees
 Smart
 == Умный
 
+Smooth
+== Плавно
+
 Smooth and accurate blur with the highest GPU cost.
 == Плавное и точное размытие с самой высокой нагрузкой на GPU.
 
@@ -12772,6 +12817,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 
 Stop practice
 == Остановить практику
+
+Stop preview
+== Остановить просмотр
 
 Stop preview (P)
 == Остановить просмотр (P)
@@ -14129,6 +14177,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == Не удалось открыть файл скриншота
 
+Unable to record camera keyframe
+== Не удалось записать ключевой кадр камеры
+
 Unable to rename the demo
 == Не удалось переименовать демо
 
@@ -14302,6 +14353,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == Обновление не удалось. Пожалуйста, попробуйте снова
+
+Update keyframe
+== Обновить ключевой кадр
 
 Update notice
 == Обновить уведомление

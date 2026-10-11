@@ -497,6 +497,9 @@ Add Group
 Add Item
 == 아이템 추가
 
+Add keyframe
+== 키프레임 추가
+
 Add latency for antiping (0 to disable)
 == 안티핑 지연 추가 (0은 비활성화)
 
@@ -1726,6 +1729,9 @@ Camera follow cursor factor
 
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == 카메라 이동 전환량, 0=즉시, 100=느리고 부드럽게
+
+Camera path
+== 카메라 경로
 
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == 빠른 커서 이동 중 카메라 감속. 높은 값은 카메라 이동 지연을 유발할 수 있음
@@ -3305,6 +3311,9 @@ Delete this preset
 Demo
 == 데모
 
+Demo cut saved, but its camera path could not be saved
+== 잘라낸 데모는 저장되었지만 카메라 경로를 저장할 수 없습니다
+
 Demo directory
 == 데모 저장 폴더
 
@@ -3896,6 +3905,9 @@ Edit
 Edit audio pack
 == 오디오 팩 편집
 
+Edit camera
+== 카메라 편집
+
 Edit color
 == 색상 편집
 
@@ -4015,6 +4027,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == 카메라 드리프트 효과 활성화, 이동 속도에 따라 카메라가 약간 끌리도록 함
+
+Enable camera path
+== 카메라 경로 활성화
 
 Enable chat mention sound
 == 채팅 멘션 소리 활성화
@@ -4637,6 +4652,9 @@ Failed to fetch the replay list
 Failed to load
 == 로드 실패
 
+Failed to load camera path
+== 카메라 경로를 불러올 수 없습니다
+
 Failed to load main asset: %s
 == 기본 에셋 로드 실패: %s
 
@@ -4654,6 +4672,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == 동영상 녹화에 실패했습니다. 자세한 내용은 로컬 콘솔을 확인하세요.
+
+Failed to save camera path
+== 카메라 경로를 저장할 수 없습니다
 
 Failed to save demo
 == 데모 저장에 실패했습니다
@@ -5312,6 +5333,9 @@ Go forward one tick
 Go forward the specified duration
 == 지정된 시간만큼 앞으로 가기
 
+Go to keyframe
+== 키프레임으로 이동
+
 Gores
 == 고어스
 
@@ -5707,6 +5731,9 @@ Hitbox Mode Weapon Interaction Color
 
 HJ assist
 == HJ 고수 보조
+
+Hold
+== 유지
 
 Hold gun higher like TW 0.6.1 and earlier
 == TW 0.6.1 및 이전 버전처럼 총을 더 높게 들기
@@ -6403,6 +6430,9 @@ Keyboard focus ring color
 
 Keyboard size
 == 키보드 크기
+
+Keyframe %d/%d: %s
+== 키프레임 %d/%d: %s
 
 Keyword reply
 == 키워드 응답
@@ -7514,6 +7544,9 @@ Move player to spectators
 Move right
 == 오른쪽으로 이동
 
+Move the free camera, then add a keyframe at the current demo time.
+== 자유 카메라를 이동한 후 현재 데모 시간에 키프레임을 추가하세요.
+
 Move to category
 == 카테고리로 이동
 
@@ -7909,6 +7942,9 @@ No buttons match your filter criteria
 
 No callable peer found
 == 통화 가능한 상대 없음
+
+No camera keyframes
+== 카메라 키프레임 없음
 
 No candidate file selected.
 == 선택된 후보 파일이 없습니다.
@@ -9250,6 +9286,9 @@ Preview laser bodies, outlines, and impacts
 
 Preview loading…
 == 미리보기 불러오는 중…
+
+Preview path
+== 경로 미리 보기
 
 Preview player and dummy appearance
 == Preview player and dummy appearance
@@ -11840,6 +11879,9 @@ Show own nametag (for demo recording)
 Show own player's hook collision line
 == 자신의 갈고리 충돌선 표시
 
+Show path
+== 경로 표시
+
 Show pause/play indicator when changing
 == 변경 시 일시정지/재생 표시기 표시
 
@@ -12386,6 +12428,9 @@ Smaller tees
 Smart
 == 스마트
 
+Smooth
+== 부드럽게
+
 Smooth and accurate blur with the highest GPU cost.
 == 부드럽고 정확한 블러이지만 GPU 부하가 가장 높습니다.
 
@@ -12772,6 +12817,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 
 Stop practice
 == 연습 중지
+
+Stop preview
+== 미리 보기 중지
 
 Stop preview (P)
 == 미리 보기 중지 (P)
@@ -14129,6 +14177,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == 스크린샷 파일을 열 수 없습니다
 
+Unable to record camera keyframe
+== 카메라 키프레임을 기록할 수 없습니다
+
 Unable to rename the demo
 == 데모 이름을 바꿀 수 없습니다
 
@@ -14302,6 +14353,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == 업데이트 실패. 다시 시도해 주세요
+
+Update keyframe
+== 키프레임 갱신
 
 Update notice
 == 공지 업데이트

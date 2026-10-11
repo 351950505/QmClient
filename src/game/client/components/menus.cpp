@@ -5578,6 +5578,11 @@ void CMenus::RenderPopupLoading(CUIRect Screen)
 #if defined(CONF_VIDEORECORDER)
 void CMenus::PopupConfirmDemoReplaceVideo()
 {
+	if(Client()->State() == IClient::STATE_DEMOPLAYBACK && GameClient()->m_DemoCamera.Dirty() && !GameClient()->m_DemoCamera.Save())
+	{
+		PopupMessage(Localize("Error"), Localize("Failed to save camera path"), Localize("Ok"));
+		return;
+	}
 	char aBuf[IO_MAX_PATH_LENGTH];
 	char aDemoFilename[IO_MAX_PATH_LENGTH];
 	const char *pDemoFolder = m_HasPendingDemoRenderSource ? m_aPendingDemoRenderFolder : m_aCurrentDemoFolder;
@@ -5592,6 +5597,7 @@ void CMenus::PopupConfirmDemoReplaceVideo()
 	const std::string VideoPath = qmclient::media_paths::Resolve(Storage(), g_Config, (std::string("videos/") + aVideoName + ".mp4").c_str());
 	const std::string WholePath = qmclient::media_paths::CompletePath(Storage(), VideoPath);
 	str_copy(m_aDemoRenderedVideoPath, WholePath.c_str());
+	GameClient()->m_DemoCamera.PrepareSource(aBuf, DemoStorageType);
 	const char *pError = Client()->DemoPlayer_Render(aBuf, DemoStorageType, aVideoName, m_Speed, m_StartPaused);
 	m_HasPendingDemoRenderSource = false;
 	m_vDemoCutSegments.clear();
