@@ -1,8 +1,8 @@
 {
   "summary": {
-    "must_i18n": 9731,
-    "business_data": 13809,
-    "test_only": 5319,
+    "must_i18n": 9733,
+    "business_data": 13808,
+    "test_only": 5326,
     "needs_review": 553,
     "violation": 0
   },
@@ -7493,7 +7493,7 @@
     {
       "file": "src/engine/shared/config_variables_qmclient.h",
       "line": 310,
-      "text": "Pie menu rename list (separate with |, e.g., name1|name2)",
+      "text": "Pie menu rename list (| separates entries; main,dummy renames both)",
       "category": "must_i18n",
       "reason": "active source key (indirect)"
     },
@@ -20982,7 +20982,7 @@
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogSearch.cpp",
       "line": 316,
-      "text": "Example: name1|name2|name3",
+      "text": "Example: A|B|C,D|E (C: main, D: dummy)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
@@ -49324,98 +49324,98 @@
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 698,
+      "line": 684,
       "text": "Rename: %s",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 700,
+      "line": 686,
       "text": "Self",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 737,
+      "line": 723,
       "text": "Friends",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 738,
+      "line": 724,
       "text": "Whisper",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 739,
+      "line": 725,
       "text": "Mention",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 740,
+      "line": 726,
       "text": "Copy skin",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 741,
+      "line": 727,
       "text": "Swap",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 742,
+      "line": 728,
       "text": "Spectate",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 743,
+      "line": 729,
       "text": "Invite to team",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 744,
+      "line": 730,
       "text": "Join team",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 745,
+      "line": 731,
       "text": "Follow server",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 745,
+      "line": 731,
       "text": "Stop following",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 746,
+      "line": 732,
       "text": "View points",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 747,
+      "line": 733,
       "text": "Copy name",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -54175,21 +54175,35 @@
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 149,
+      "line": 128,
+      "text": "Dummy",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
+      "line": 132,
+      "text": "Rename: %s",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
+      "line": 156,
       "text": "Removed %s from friends",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 158,
+      "line": 165,
       "text": "Added %s as friend",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 242,
+      "line": 249,
       "text": "Cannot swap: the other player is not in your team",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -54288,14 +54302,14 @@
     {
       "file": "src/game/client/components/qmclient/pie_menu_settings.cpp",
       "line": 103,
-      "text": "Example: name1|name2|name3",
+      "text": "Example: A|B|C,D|E (C: main, D: dummy)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_settings.cpp",
       "line": 104,
-      "text": "Example: name1|name2|name3",
+      "text": "Example: A|B|C,D|E (C: main, D: dummy)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
@@ -78762,7 +78776,7 @@
     {
       "file": "src/game/client/QmUi/cards/QmCardCatalogSearch.cpp",
       "line": 316,
-      "text": "示例：名字 1|名字 2|名字 3",
+      "text": "示例：A|B|C,D|E（C 为本体，D 为分身）",
       "category": "business_data",
       "reason": "settings card registry metadata or search keyword data"
     },
@@ -124331,21 +124345,21 @@
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 700,
+      "line": 686,
       "text": "%s · %s",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 748,
+      "line": 734,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/pie_menu.cpp",
-      "line": 767,
+      "line": 753,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
@@ -124366,21 +124380,21 @@
     },
     {
       "file": "src/game/client/components/pie_menu_logic.h",
-      "line": 112,
+      "line": 167,
       "text": " \"",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/pie_menu_logic.h",
-      "line": 112,
+      "line": 167,
       "text": "\"",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/pie_menu_logic.h",
-      "line": 154,
+      "line": 209,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
@@ -134404,84 +134418,77 @@
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 125,
-      "text": "",
+      "line": 126,
+      "text": "%s, %s",
       "category": "business_data",
-      "reason": "empty or whitespace literal"
+      "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 125,
-      "text": " (分身)",
+      "line": 128,
+      "text": "%s (%s)",
       "category": "business_data",
-      "reason": "command, diagnostic, or payload format template"
+      "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 125,
-      "text": "已切换名字: %s%s",
-      "category": "business_data",
-      "reason": "command, diagnostic, or payload format template"
-    },
-    {
-      "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 145,
+      "line": 152,
       "text": "remove_friend \"%s\" \"%s\"",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 154,
+      "line": 161,
       "text": "add_friend \"%s\" \"%s\"",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 167,
+      "line": 174,
       "text": "/w \"%s\" ",
       "category": "business_data",
       "reason": "chat or console command template"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 176,
+      "line": 183,
       "text": "%s: ",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 229,
+      "line": 236,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 229,
+      "line": 236,
       "text": " (分身)",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 229,
+      "line": 236,
       "text": "已复制 %s 的皮肤%s",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 248,
+      "line": 255,
       "text": "/swap \"%s\"",
       "category": "business_data",
       "reason": "chat or console command template"
     },
     {
       "file": "src/game/client/components/qmclient/pie_menu_actions.cpp",
-      "line": 256,
+      "line": 263,
       "text": "/spec \"%s\"",
       "category": "business_data",
       "reason": "chat or console command template"
@@ -187347,21 +187354,70 @@
     },
     {
       "file": "src/test/unit/client/pie_menu_logic_test.cpp",
-      "line": 94,
+      "line": 47,
+      "text": " | A B |　本体 名字　, 分身 名字　 | E ",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/client/pie_menu_logic_test.cpp",
+      "line": 49,
+      "text": "A B",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/client/pie_menu_logic_test.cpp",
+      "line": 50,
+      "text": "本体 名字",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/client/pie_menu_logic_test.cpp",
+      "line": 51,
+      "text": "分身 名字",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/client/pie_menu_logic_test.cpp",
+      "line": 57,
+      "text": "A|C,|,D| , |B,E|F",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/client/pie_menu_logic_test.cpp",
+      "line": 75,
+      "text": ",分身|E",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/client/pie_menu_logic_test.cpp",
+      "line": 78,
+      "text": "分身",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/unit/client/pie_menu_logic_test.cpp",
+      "line": 165,
       "text": "/invite \"a b\"",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/client/pie_menu_logic_test.cpp",
-      "line": 94,
+      "line": 165,
       "text": "a b",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/client/pie_menu_logic_test.cpp",
-      "line": 95,
+      "line": 166,
       "text": "/invite \"a\\\"b\\\\c\"",
       "category": "test_only",
       "reason": "test fixture or assertion text"

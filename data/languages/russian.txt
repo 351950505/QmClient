@@ -4457,8 +4457,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == Например: /map adr3 вызовет голосование за Adrenaline 3. Название карты должно начинаться с 'a' и содержать символы 'd', 'r' и '3' в этом порядке
 
-Example: name1|name2|name3
-== Пример: имя1|имя2|имя3
+Example: A|B|C,D|E (C: main, D: dummy)
+== Пример: A|B|C,D|E (C: основной, D: дамми)
 
 Exclude
 == Исключить
@@ -8540,8 +8540,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == Эффекты открытия и закрытия кругового меню
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== Список переименований в меню-пироге (разделитель |, напр.: Сюаньмэн1|Сюаньмэн2)
+Pie menu rename list (| separates entries; main,dummy renames both)
+== Список имён кругового меню (| разделяет пункты; основной,дамми меняет оба имени)
 
 Ping
 == Ping

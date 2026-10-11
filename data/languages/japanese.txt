@@ -4457,8 +4457,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == 例: /map adr3 で Adrenaline 3 の投票を開始できます。マップ名が 'a' で始まり、'd'、'r'、'3' をこの順に含む必要があります
 
-Example: name1|name2|name3
-== 例：名前 1|名前 2|名前 3
+Example: A|B|C,D|E (C: main, D: dummy)
+== 例：A|B|C,D|E（C：メイン、D：ダミー）
 
 Exclude
 == 除外
@@ -8540,8 +8540,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == 円形メニューの開閉エフェクト
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== パイメニュー名前変更リスト（| で区切る、例：璇夢1|璇夢2）
+Pie menu rename list (| separates entries; main,dummy renames both)
+== パイメニュー名前変更リスト（| で項目を区切る。メイン名,ダミー名で両方を変更）
 
 Ping
 == Ping

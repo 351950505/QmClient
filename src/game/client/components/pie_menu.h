@@ -41,7 +41,7 @@ private:
 	int64_t m_CloseTime = 0;
 	bool m_WasPressed;
 	vec2 m_SelectorMouse; // Mouse position for selection
-	std::vector<std::string> m_vRenameQueue;
+	std::vector<qm_pie_menu::SRenameOption> m_vRenameQueue;
 	std::array<EMenuOption, qm_pie_menu::OPTION_COUNT> m_vVisibleOptions{};
 	int m_VisibleOptionCount = 0;
 	qm_pie_menu::SFollowState m_FollowState;

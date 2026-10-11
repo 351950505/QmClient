@@ -4457,8 +4457,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == Exemplo: /map adr3 convoca uma votação para Adrenaline 3. O nome do mapa deve começar por 'a' e conter os caracteres 'd', 'r' e '3' nessa ordem
 
-Example: name1|name2|name3
-== Exemplo: nome1|nome2|nome3
+Example: A|B|C,D|E (C: main, D: dummy)
+== Exemplo: A|B|C,D|E (C: principal, D: dummy)
 
 Exclude
 == Excluir
@@ -8540,8 +8540,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == Efeitos de abertura e fecho do menu radial
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== Lista de renomeação do menu de torta (use | para separar, ex.: XuanMeng1|XuanMeng2)
+Pie menu rename list (| separates entries; main,dummy renames both)
+== Lista de nomes do menu radial (| separa entradas; principal,dummy muda ambos os nomes)
 
 Ping
 == Ping
