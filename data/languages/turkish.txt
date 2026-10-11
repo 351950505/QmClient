@@ -4736,6 +4736,9 @@ Filter out servers without friends
 Filter out spectators from player count
 == İzleyicileri oyuncu sayısından filtrele
 
+Filter sensitive words
+== Hassas kelimeleri filtrele
+
 Filtered word console color
 == Engellenen Kelime Konsol Rengi
 

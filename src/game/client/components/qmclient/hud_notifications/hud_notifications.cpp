@@ -43,7 +43,11 @@ int CQmHudNotifications::BuildVisibleNotificationList(bool PreviewContent, const
 	{
 		const int MaxVisible = QmHudNotifications::ClampVisibleCount(g_Config.m_QmHudNotificationsMaxVisible);
 		for(int SourceIndex = (int)m_vNotifications.size() - 1; SourceIndex >= 0 && NumVisible < MaxVisible; --SourceIndex)
-			apVisible[NumVisible++] = &m_vNotifications[SourceIndex];
+		{
+			SNotification &Notification = m_vNotifications[SourceIndex];
+			QmStreamerWordFilter::Filter(Notification.m_aText, g_Config.m_QmStreamerFilterWords != 0);
+			apVisible[NumVisible++] = &Notification;
+		}
 	}
 	return NumVisible;
 }

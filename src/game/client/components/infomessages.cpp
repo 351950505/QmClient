@@ -13,6 +13,7 @@
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/animstate.h>
 #include <game/client/components/qmclient/modes.h>
+#include <game/client/components/qmclient/streamer_word_filter.h>
 #include <game/client/gameclient.h>
 #include <game/client/prediction/entities/character.h>
 #include <game/client/prediction/gameworld.h>
@@ -480,6 +481,10 @@ void CInfoMessages::OnRender()
 			continue;
 		}
 
+		bool FilteredName = QmStreamerWordFilter::Filter(InfoMsg.m_aVictimName, g_Config.m_QmStreamerFilterWords != 0);
+		FilteredName |= QmStreamerWordFilter::Filter(InfoMsg.m_aKillerName, g_Config.m_QmStreamerFilterWords != 0);
+		if(FilteredName)
+			DeleteTextContainers(InfoMsg);
 		CreateTextContainersIfNotCreated(InfoMsg);
 
 		if(InfoMsg.m_Type == EType::TYPE_KILL && g_Config.m_ClShowKillMessages)

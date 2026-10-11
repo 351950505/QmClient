@@ -38,6 +38,7 @@
 #include "components/qmclient/predicted_event_queue.h"
 #include "components/qmclient/qmclient_utils.h"
 #include "components/qmclient/screenshot_manager.h"
+#include "components/qmclient/streamer_word_filter.h"
 #include "components/qmclient/translate/translate_ui_settings.h"
 #include "components/race_demo.h"
 #include "components/scoreboard.h"
@@ -2520,6 +2521,7 @@ void CGameClient::FormatStreamerName(int ClientId, char *pBuf, int BufSize) cons
 	{
 		pBuf[0] = '\0';
 	}
+	QmStreamerWordFilter::Filter(pBuf, g_Config.m_QmStreamerFilterWords != 0);
 }
 
 void CGameClient::RenderQmMonitoringHud(float GraphX, float GraphSpacing)
@@ -2550,6 +2552,7 @@ void CGameClient::FormatStreamerClan(int ClientId, char *pBuf, int BufSize) cons
 		str_copy(pBuf, m_aClients[ClientId].m_aClan, BufSize);
 	else
 		pBuf[0] = '\0';
+	QmStreamerWordFilter::Filter(pBuf, g_Config.m_QmStreamerFilterWords != 0);
 }
 
 namespace

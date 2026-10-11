@@ -4736,6 +4736,9 @@ Filter out servers without friends
 Filter out spectators from player count
 == 플레이어 수에서 관전자 제외
 
+Filter sensitive words
+== 내장 목록으로 민감한 단어 필터링
+
 Filtered word console color
 == 차단된 단어 콘솔 색상
 

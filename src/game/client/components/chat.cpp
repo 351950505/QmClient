@@ -35,6 +35,7 @@
 #include <game/client/components/qmclient/qm_chat_avatar.h>
 #include <game/client/components/qmclient/qm_title_color.h>
 #include <game/client/components/qmclient/qm_title_style.h>
+#include <game/client/components/qmclient/streamer_word_filter.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/components/skins.h>
 #include <game/client/components/sounds.h>
@@ -1709,6 +1710,7 @@ void CChat::SaveChatLogLine(int ClientId, int Team, const char *pLine)
 
 	char aText[MAX_LINE_LENGTH];
 	str_copy(aText, pLine);
+	QmStreamerWordFilter::Filter(aText, g_Config.m_QmStreamerFilterWords != 0);
 	str_sanitize_cc(aText);
 
 	char aFilename[IO_MAX_PATH_LENGTH];
@@ -2052,6 +2054,18 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 		}
 	}
 	pLine = pFilteredLine;
+	// 自定义规则先处理原文；提及与重复合并不受新增的显示遮蔽影响。
+	char aMergeText[MAX_LINE_LENGTH];
+	str_copy(aMergeText, pLine);
+	str_utf8_trim_right(aMergeText);
+	const char *pHighlightLine = pLine;
+	char aStreamerLine[MAX_LINE_LENGTH];
+	if(g_Config.m_QmStreamerFilterWords)
+	{
+		str_copy(aStreamerLine, pLine);
+		QmStreamerWordFilter::Filter(aStreamerLine, true);
+		pLine = aStreamerLine;
+	}
 	const EQmChatEmoji ChatEmoji = QmChatEmojiFromText(pLine);
 	char aChatBubbleText[256];
 	str_copy(aChatBubbleText, pLine);
@@ -2106,7 +2120,7 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 		{
 			for(int LocalId : GameClient()->m_aLocalIds)
 			{
-				Highlighted |= LocalId >= 0 && LineShouldHighlight(pLine, GameClient()->m_aClients[LocalId].m_aName);
+				Highlighted |= LocalId >= 0 && LineShouldHighlight(pHighlightLine, GameClient()->m_aClients[LocalId].m_aName);
 			}
 		}
 	}
@@ -2114,7 +2128,7 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 	{
 		// on demo playback use local id from snap directly,
 		// since m_aLocalIds isn't valid there
-		Highlighted |= GameClient()->m_Snap.m_LocalClientId >= 0 && LineShouldHighlight(pLine, GameClient()->m_aClients[GameClient()->m_Snap.m_LocalClientId].m_aName);
+		Highlighted |= GameClient()->m_Snap.m_LocalClientId >= 0 && LineShouldHighlight(pHighlightLine, GameClient()->m_aClients[GameClient()->m_Snap.m_LocalClientId].m_aName);
 	}
 
 	// 以收到消息时的认证身份为准，之后不按可能复用的玩家编号改变历史消息。
@@ -2129,7 +2143,7 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 		PreviousLine.m_ForceVisible == ForceVisible &&
 		PreviousLine.m_ConsoleSuppressed == BlockWordsConsolePrinted &&
 		PreviousLine.m_ChatEmoji == ChatEmoji &&
-		CanMergePlayerMessages(PreviousLine.m_ClientId, PreviousLine.m_TeamNumber, PreviousLine.m_aText, PreviousLine.m_Time, ClientId, Team, pLine, Now))
+		CanMergePlayerMessages(PreviousLine.m_ClientId, PreviousLine.m_TeamNumber, PreviousLine.m_aMergeText, PreviousLine.m_Time, ClientId, Team, aMergeText, Now))
 	{
 		PreviousLine.m_TimesRepeated++;
 		PreviousLine.m_SponsorChatStyle = QmSponsorChatMergedStyle(PreviousLine.m_SponsorChatStyle, SponsorChatStyle);
@@ -2194,6 +2208,7 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 	CurrentLine.m_Highlighted = Highlighted;
 
 	str_copy(CurrentLine.m_aText, pLine);
+	str_copy(CurrentLine.m_aMergeText, aMergeText);
 	CurrentLine.m_ChatEmoji = ChatEmoji;
 	CurrentLine.m_ServerMessageClass = ResolveLineServerMessageClass(ClientId, CurrentLine.m_aText, KnownServerMessageClass);
 
@@ -2557,6 +2572,15 @@ bool CChat::OnPrepareLines(float y)
 		if(!ColoredParts.Colors().empty() && ColoredParts.Colors()[0].m_Index == 0)
 			Line.m_CustomColor = ColoredParts.Colors()[0].m_Color;
 		pText = ColoredParts.Text();
+		const bool HideTranslatedText = pText != Line.m_aText;
+		char aStreamerText[MAX_LINE_LENGTH];
+		bool FilteredAfterColors = false;
+		if(g_Config.m_QmStreamerFilterWords)
+		{
+			str_copy(aStreamerText, pText);
+			FilteredAfterColors = QmStreamerWordFilter::Filter(aStreamerText, true);
+			pText = aStreamerText;
+		}
 		Line.m_RenderSponsorChatStyle = QmSponsorChatMessageStyle(
 			g_Config.m_QmSponsorChatEffects ? Line.m_SponsorChatStyle : EQmSponsorChatStyle::NONE,
 			Line.m_Highlighted, Line.m_Team, Line.m_Whisper,
@@ -2564,11 +2588,12 @@ bool CChat::OnPrepareLines(float y)
 
 		const char *pTranslatedError = nullptr;
 		const char *pTranslatedText = nullptr;
+		std::string StreamerTranslatedText;
 		const char *pTranslatedLanguage = nullptr;
 		if(Line.m_pTranslateResponse != nullptr && Line.m_pTranslateResponse->m_Text[0])
 		{
 			// If hidden and there is translated text
-			if(pText != Line.m_aText)
+			if(HideTranslatedText)
 			{
 				pTranslatedError = Localize("Translated text hidden due to streamer mode");
 			}
@@ -2579,6 +2604,12 @@ bool CChat::OnPrepareLines(float y)
 			else
 			{
 				pTranslatedText = Line.m_pTranslateResponse->m_Text;
+				if(g_Config.m_QmStreamerFilterWords)
+				{
+					StreamerTranslatedText = pTranslatedText;
+					QmStreamerWordFilter::Filter(StreamerTranslatedText, true);
+					pTranslatedText = StreamerTranslatedText.c_str();
+				}
 				if(Line.m_pTranslateResponse->m_Language[0] != '\0')
 					pTranslatedLanguage = Line.m_pTranslateResponse->m_Language;
 			}
@@ -2866,7 +2897,7 @@ bool CChat::OnPrepareLines(float y)
 			const bool Platinum = Line.m_RenderSponsorChatStyle == EQmSponsorChatStyle::PLATINUM;
 			if(UseGradient && Platinum)
 				QmSponsorChatAddPlatinumSplits(Cursor, pMessage, Color.a);
-			if(UseColoredParts)
+			if(UseColoredParts && !FilteredAfterColors)
 				ColoredParts.AddSplitsToCursor(Cursor);
 			const bool SpatialGradient = UseGradient && !Platinum && Line.m_CustomColor == std::nullopt && ColoredParts.Colors().empty();
 			const auto Gradient = QmChatGradientStyle(g_Config, GradientRole, Color);
@@ -2972,6 +3003,26 @@ bool CChat::OnPrepareLines(float y)
 void CChat::OnRender()
 {
 	m_TranslateButton.m_RectValid = false;
+	if(m_LastStreamerFilterWords != g_Config.m_QmStreamerFilterWords)
+	{
+		m_LastStreamerFilterWords = g_Config.m_QmStreamerFilterWords;
+		if(g_Config.m_QmStreamerFilterWords)
+		{
+			for(auto &Line : m_aLines)
+			{
+				if(!Line.m_Initialized)
+					continue;
+				QmStreamerWordFilter::Filter(Line.m_aText, true);
+				QmStreamerWordFilter::Filter(Line.m_aName, true);
+				for(auto &Author : Line.m_vMergedAuthors)
+				{
+					QmStreamerWordFilter::Filter(Author.m_aName, true);
+					QmStreamerWordFilter::Filter(Author.m_aPlayerName, true);
+				}
+			}
+		}
+		RebuildChat();
+	}
 	FlushPendingConsoleLine(false);
 	if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 	{

@@ -194,6 +194,8 @@ private:
 		char m_aName[MAX_CLIENTS * (MAX_NAME_LENGTH + 1)];
 		char m_aQmTitle[64] = "";
 		char m_aText[MAX_LINE_LENGTH];
+		// 合并比较保留内置显示过滤前的文本，避免不同原文都变成星号后合并。
+		char m_aMergeText[MAX_LINE_LENGTH] = "";
 		EQmChatEmoji m_ChatEmoji = EQmChatEmoji::NONE;
 		bool m_ChatEmojiImageLayout = false;
 		CUIRect m_ChatEmojiRect = {};
@@ -242,6 +244,7 @@ private:
 	bool m_PrevShowChat;
 	std::array<int, 4> m_aPrevTitleVisibility = {};
 	bool m_PrevSponsorChatEffects = true;
+	int m_LastStreamerFilterWords = -1;
 	uint64_t m_PreparedGlyphAtlasRevision = 0;
 	std::array<int, 5> m_aPreparedChatTextSettings = {-1, -1, -1, -1, -1};
 	CQmSponsorChatRenderer m_SponsorChatRenderer;

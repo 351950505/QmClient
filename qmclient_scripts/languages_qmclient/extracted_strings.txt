@@ -1577,6 +1577,7 @@ Filter out servers that require login
 Filter out servers with player country mismatch (ISO 3166-1 numeric)
 Filter out servers without friends
 Filter out spectators from player count
+Filter sensitive words
 Filtered word console color
 Find / Next
 Find all ban records for the specified IP address

@@ -23103,6 +23103,22 @@ turkish = "Değiştirme yöntemi 0=Regex 1=Tam 2=Her İkisi"
 polish = "Tryb zastępowania 0=Regex 1=Pełny 2=Oba"
 
 [[message]]
+key = "Filter sensitive words"
+[message.translations]
+simplified_chinese = "过滤内置敏感词"
+traditional_chinese = "過濾內建敏感詞"
+japanese = "内蔵リストで要注意語をフィルタリング"
+korean = "내장 목록으로 민감한 단어 필터링"
+russian = "Фильтровать чувствительные слова"
+german = "Sensible Wörter filtern"
+spanish = "Filtrar palabras sensibles"
+french = "Filtrer les mots sensibles"
+brazilian_portuguese = "Filtrar palavras sensíveis"
+portuguese = "Filtrar palavras sensíveis"
+turkish = "Hassas kelimeleri filtrele"
+polish = "Filtruj wrażliwe słowa"
+
+[[message]]
 key = "Replace non-friend names with ID"
 [message.translations]
 simplified_chinese = "用 ID 替换非好友名称"

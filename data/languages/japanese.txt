@@ -4736,6 +4736,9 @@ Filter out servers without friends
 Filter out spectators from player count
 == プレイヤー数から観戦者を除外
 
+Filter sensitive words
+== 内蔵リストで要注意語をフィルタリング
+
 Filtered word console color
 == ブロックワードコンソール色
 
