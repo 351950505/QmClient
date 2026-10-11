@@ -252,8 +252,22 @@ jobs:
 
       - name: Verify native Metal client startup and screenshot
         if: runner.os == 'macOS'
+        timeout-minutes: 5
         shell: bash
-        run: python3 qmclient_scripts/integration/startup_presentation_smoke.py build metal_window_presentation
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python3 -m unittest qmclient_scripts.tests.test_process_harness
+          python3 qmclient_scripts/integration/startup_presentation_smoke.py build metal_window_presentation
+
+      - name: Upload Metal startup diagnostics
+        if: failure() && runner.os == 'macOS'
+        uses: actions/upload-artifact@v6
+        with:
+          name: metal-startup-diagnostics
+          path: tmp/startup_capture_font_fix
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Run tests
         if: ${{ env.RELEASE_TAG != '' || !inputs.skip_tests }}

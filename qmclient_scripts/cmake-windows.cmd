@@ -65,6 +65,6 @@ exit /b %errorlevel%
 
 :usage
 echo Usage: qmclient_scripts\cmake-windows.cmd [cmake arguments]
-echo Daily build: qmclient_scripts\cmake-windows.cmd --build cmake-build-release --target game-client -j 14
+echo Daily build: qmclient_scripts\cmake-windows.cmd --build cmake-build-release --target game-client -j 6
 echo First-time configure: qmclient_scripts\cmake-windows.cmd -G Ninja -S . -B cmake-build-release -DCMAKE_BUILD_TYPE=Release
 exit /b 1

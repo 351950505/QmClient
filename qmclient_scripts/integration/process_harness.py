@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import errno
 import os
 from pathlib import Path
 import queue
@@ -89,22 +90,31 @@ class Process:
 	def _open_fifo(self, timeout: float = 10.0) -> None:
 		if self._fifo_path is None:
 			raise RuntimeError(f"{self.name}: command FIFO was not enabled")
-		if os.name != "nt":
-			self._fifo = open(self._fifo_path, "w", buffering=1, encoding="utf-8")
-			return
 		# Windows 命名管道在目标进程创建之前打开会得到 ERROR_FILE_NOT_FOUND。
-		# 进程启动与管道创建之间存在竞态，因此这里做有界重试，而不是假设管道已就绪。
-		pipe_path = rf"\\.\pipe\{self._fifo_path}"
+		# POSIX 写端无读端时不能阻塞 open；客户端也可能删除并重建同名 FIFO。
+		pipe_path = rf"\\.\pipe\{self._fifo_path}" if os.name == "nt" else self._fifo_path
 		deadline = time.monotonic() + timeout
 		while True:
 			try:
-				self._fifo = open(pipe_path, "w", buffering=1, encoding="utf-8")
+				if os.name == "nt":
+					self._fifo = open(pipe_path, "w", buffering=1, encoding="utf-8")
+				else:
+					descriptor = os.open(pipe_path, os.O_WRONLY | os.O_NONBLOCK)
+					try:
+						os.set_blocking(descriptor, True)
+						self._fifo = os.fdopen(descriptor, "w", buffering=1, encoding="utf-8")
+					except BaseException:
+						os.close(descriptor)
+						raise
 				return
-			except FileNotFoundError:
+			except OSError as error:
+				if not isinstance(error, FileNotFoundError) and error.errno != errno.ENXIO:
+					raise
+				output = "\n".join(self._lines)
 				if self._process.poll() is not None:
-					raise RuntimeError(f"{self.name}: exited before the command pipe was created")
+					raise RuntimeError(f"{self.name}: exited before the command pipe was created\n{output}") from error
 				if time.monotonic() >= deadline:
-					raise TimeoutError(f"{self.name}: command pipe {pipe_path} was not created within {timeout}s")
+					raise TimeoutError(f"{self.name}: command pipe {pipe_path} was not ready within {timeout}s\n{output}") from error
 				time.sleep(0.05)
 
 	def command(self, command: str) -> None:

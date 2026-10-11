@@ -139,6 +139,11 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 	auto &ColInputs = ReadOnly ? s_ReadOnlyColInputs : s_ColInputs;
 
 	auto ClearStagedAndCaches = [&]() {
+		// 先解除行输入的全局活动指针，避免缓存销毁后帧末 IME 校验访问旧对象。
+		for(auto &[pVariable, State] : s_IntInputs)
+			State.m_Input.Deactivate();
+		for(auto &[pVariable, State] : s_StrInputs)
+			State.m_Input.Deactivate();
 		s_StagedInts.clear();
 		s_StagedStrs.clear();
 		s_StagedCols.clear();
