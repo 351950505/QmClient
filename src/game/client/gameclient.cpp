@@ -182,6 +182,10 @@ namespace
 	{
 	}
 
+	void ConDiscardLegacyHookCountdownFlowStyle(IConsole::IResult *, void *)
+	{
+	}
+
 	int QmLocalReferenceClientId(const CGameClient *pGameClient)
 	{
 		const int LocalId = pGameClient->m_aLocalIds[g_Config.m_ClDummy];
@@ -730,6 +734,8 @@ void CGameClient::OnConsoleInit()
 	// add basic console commands
 	IConsole *pConsole = m_pConsole;
 	pConsole->Register("qm_hud_island_edge_margin", "?i[value]", CFGFLAG_CLIENT, ConDiscardLegacyHudIslandEdgeMargin, nullptr, "Ignored legacy Dynamic Island edge margin");
+	// 兼容旧配置加载，但不再提供或保存已经移除的无限钩样式选择。
+	pConsole->Register("qm_hook_countdown_flow_style", "?i[value]", CFGFLAG_CLIENT, ConDiscardLegacyHookCountdownFlowStyle, nullptr, "");
 	pConsole->Register("team", "i[team-id]", CFGFLAG_CLIENT, ConTeam, this, "Switch team");
 	pConsole->Register("kill", "", CFGFLAG_CLIENT, ConKill, this, "Kill yourself to restart");
 	pConsole->Register("ready_change", "", CFGFLAG_CLIENT, ConReadyChange7, this, "Change ready state (0.7 only)");

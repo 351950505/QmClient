@@ -1448,7 +1448,6 @@ Enables/disables active moderator mode for the player
 End marker of replay slice
 Endless hook has been activated
 Endless hook has been deactivated
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
 Endpoint
 Endpoint (optional)
 English font:
@@ -1600,7 +1599,6 @@ Fire
 First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 Flip:
-Flow style
 Folder
 Folder Link
 Follow
@@ -4134,7 +4132,6 @@ Start recording a demo
 Start recording a video
 Start skin queue from a random position when entering a map
 Statboard
-Static
 Stats
 Stats notes
 Status

@@ -4349,9 +4349,6 @@ Endless hook has been activated
 Endless hook has been deactivated
 == 무한 갈고리가 비활성화되었습니다
 
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== 무한 훅 링 흐름 스타일(0=단색, 1=무지개, 2=정지)
-
 Endpoint
 == 엔드포인트
 
@@ -4804,9 +4801,6 @@ Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 
 Flip:
 == 뒤집기:
-
-Flow style
-== 흐름 스타일
 
 Folder
 == 폴더
@@ -12406,9 +12400,6 @@ Start skin queue from a random position when entering a map
 
 Statboard
 == 통계판
-
-Static
-== 정지
 
 Stats
 == 통계

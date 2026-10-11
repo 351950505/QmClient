@@ -4349,9 +4349,6 @@ Endless hook has been activated
 Endless hook has been deactivated
 == エンドレスフックが無効化されました
 
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== 無限フックのリングの流れスタイル (0=単色, 1=虹色, 2=静止)
-
 Endpoint
 == エンドポイント
 
@@ -4804,9 +4801,6 @@ Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 
 Flip:
 == 反転：
-
-Flow style
-== フロースタイル
 
 Folder
 == フォルダ
@@ -12406,9 +12400,6 @@ Start skin queue from a random position when entering a map
 
 Statboard
 == 統計ボード
-
-Static
-== 静止
 
 Stats
 == 統計

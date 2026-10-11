@@ -4349,9 +4349,6 @@ Endless hook has been activated
 Endless hook has been deactivated
 == Sonsuz kanca devre dışı bırakıldı
 
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== Sonsuz kanca halkası akış stili (0=tek renk, 1=gökuşağı, 2=sabit)
-
 Endpoint
 == Uç nokta
 
@@ -4804,9 +4801,6 @@ Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 
 Flip:
 == Çevir:
-
-Flow style
-== Akış stili
 
 Folder
 == Klasör
@@ -12406,9 +12400,6 @@ Start skin queue from a random position when entering a map
 
 Statboard
 == İstatistik Tablosu
-
-Static
-== Sabit
 
 Stats
 == İstatistikler

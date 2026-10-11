@@ -24,7 +24,6 @@
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/components/binds.h>
 #include <game/client/components/menus.h>
-#include <game/client/components/qmclient/hook_countdown.h>
 #include <game/client/components/qmclient/perf_logging.h>
 #include <game/client/components/qmclient/qm_music_hook_registry.h>
 #include <game/client/components/qmclient/qmclient_utils.h>
@@ -152,22 +151,8 @@ void CMenus::RenderQmHudDynamicIslandContent(CUIRect &Content, float LineHeight,
 	// 板越透越看得见后面的画面；A=0 时整块板连外圈阴影一起消失。
 	DoLine_AlphaColorPicker(&s_DynamicIslandBgColorId, CurrentSettingsContentMetrics(), &Content, Localize("Background color"), &g_Config.m_QmHudIslandBgColor, &g_Config.m_QmHudIslandBgOpacity, 0x9C460E, 80);
 
-	// 钩子倒计时是独立开关：钩住玩家时在钩链中点显示倒计时环。
+	// 钩住玩家时在钩链中点显示：普通钩用倒计时环，无限钩用彩虹流动的无限符号。
 	RenderQmHudCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmHookCountdown, "Enable hook countdown", Localize("Enable hook countdown"), &g_Config.m_QmHookCountdown);
-
-	// 无限钩流动光圈配色：单色流动 / 彩虹渐变 / 静止满环，点击循环切换。
-	static CButtonContainer s_HookCountdownFlowStyleButton;
-	{
-		CUIRect FlowRow, FlowLabel, FlowButton;
-		Content.HSplitTop(LineHeight, &FlowRow, &Content);
-		FlowRow.VSplitLeft(FlowRow.w * 0.55f, &FlowLabel, &FlowButton);
-		RenderQmHudLabel("qmclient-hook-countdown-flow-style", &FlowLabel, Localize("Flow style"), CurrentSettingsContentMetrics().m_BodySize);
-		const char *const apFlowStyles[] = {Localize("Single color"), Localize("Rainbow"), Localize("Static")};
-		const int Style = std::clamp(g_Config.m_QmHookCountdownFlowStyle, static_cast<int>(EQmHookCountdownFlowStyle::SINGLE_COLOR), static_cast<int>(EQmHookCountdownFlowStyle::STATIC));
-		if(DoSettingsButton_Menu(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_HUD, QMCLIENT_SETTINGS_TAB_HUD, &s_HookCountdownFlowStyleButton, "qmclient-hook-countdown-flow-style-button", apFlowStyles[Style], 0, &FlowButton))
-			g_Config.m_QmHookCountdownFlowStyle = (Style + 1) % 3;
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-	}
 
 	// 开关倒计时：总开关决定是否显示，两个位置开关决定显示在跟随 Tee 的圆环上还是灵动岛里，可同时勾选。
 	const bool CountdownChanged = RenderQmHudCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmSwitchCountdown, "Enable switch countdown", Localize("Enable switch countdown"), &g_Config.m_QmSwitchCountdown);

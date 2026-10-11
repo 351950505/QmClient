@@ -4349,9 +4349,6 @@ Endless hook has been activated
 Endless hook has been deactivated
 == Бесконечный крюк деактивирован
 
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== Стиль переливания кольца бесконечного крюка (0=один цвет, 1=радуга, 2=статично)
-
 Endpoint
 == Конечная точка
 
@@ -4804,9 +4801,6 @@ Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 
 Flip:
 == Отразить:
-
-Flow style
-== Стиль переливания
 
 Folder
 == Папка
@@ -12406,9 +12400,6 @@ Start skin queue from a random position when entering a map
 
 Statboard
 == Статистика
-
-Static
-== Статично
 
 Stats
 == Статистика
