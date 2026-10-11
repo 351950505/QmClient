@@ -22,7 +22,7 @@ namespace ui_widget
 		bool IsUsable() const { return m_TravelWidth > 0.0f && m_Track.h > 0.0f; }
 		float Position(float Normalized) const;
 		CUIRect KnobRect(float Normalized, float Emphasis = 0.0f) const;
-		CUIRect FillRect(float Normalized, float Emphasis = 0.0f) const;
+		CUIRect FillRect(float Normalized) const;
 	};
 
 	struct SDiscreteSliderState

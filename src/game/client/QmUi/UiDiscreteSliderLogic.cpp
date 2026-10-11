@@ -26,11 +26,15 @@ namespace ui_widget
 		return {Position(Normalized) - Size * 0.5f, m_Track.y + (m_Track.h - Size) * 0.5f, Size, Size};
 	}
 
-	CUIRect SDiscreteSliderGeometry::FillRect(float Normalized, float Emphasis) const
+	CUIRect SDiscreteSliderGeometry::FillRect(float Normalized) const
 	{
 		CUIRect Fill = m_Track;
-		// 填充止于当前旋钮前沿，悬停放大后也不从半透明旋钮内透出。
-		Fill.w = std::clamp(KnobRect(Normalized, Emphasis).x - Fill.x, 0.0f, Fill.w);
+		// 去掉可见旋钮后，填充直接到达选中刻度；两端分别为空轨和满轨。
+		const float Progress = std::clamp(Normalized, 0.0f, 1.0f);
+		if(Progress <= 0.0f)
+			Fill.w = 0.0f;
+		else if(Progress < 1.0f)
+			Fill.w = std::clamp(Position(Progress) - Fill.x, 0.0f, Fill.w);
 		return Fill;
 	}
 
