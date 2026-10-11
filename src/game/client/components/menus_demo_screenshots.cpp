@@ -8,6 +8,7 @@
 #include <engine/engine.h>
 
 #include <game/client/QmUi/cards/QmCardCatalog.h>
+#include <game/client/components/qmclient/screenshot_viewer.h>
 #include <game/client/gameclient.h>
 #include <game/client/qm_icon.h>
 #include <game/client/ui_listbox.h>
@@ -85,19 +86,16 @@ namespace
 
 }
 
-void CMenus::RenderDemoScreenshotPreview(CUIRect PreviewRect, const CDemoItem &Item)
+void CMenus::OpenDemoScreenshotViewer(const CDemoItem &Item)
 {
-	PreviewRect.Margin(3.0f, &PreviewRect);
-	PreviewRect.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.28f), IGraphics::CORNER_ALL, 6.0f);
-	PreviewRect.Margin(5.0f, &PreviewRect);
-
-	if(!LoadDemoScreenshotPreviewTexture(Item) || m_DemoScreenshotPreviewWidth <= 0 || m_DemoScreenshotPreviewHeight <= 0)
-	{
-		Ui()->DoLabel(&PreviewRect, Localize("Could not preview this image"), 12.0f, TEXTALIGN_MC);
+	if(!DemoBrowserBrowsingScreenshots() || Item.m_IsDir)
 		return;
-	}
-
-	RenderScreenshotTexture(Graphics(), m_DemoScreenshotPreviewTexture, m_DemoScreenshotPreviewWidth, m_DemoScreenshotPreviewHeight, PreviewRect);
+	char aPath[IO_MAX_PATH_LENGTH];
+	str_format(aPath, sizeof(aPath), "%s/%s", m_aCurrentDemoFolder, Item.m_aFilename);
+	char aFullPath[IO_MAX_PATH_LENGTH];
+	Storage()->GetCompletePath(Item.m_StorageType, aPath, aFullPath, sizeof(aFullPath));
+	if(!OpenQmScreenshotViewer(aFullPath, Localize("Error opening screenshot"), Localize("Unable to open the screenshot file")))
+		PopupMessage(Localize("Error opening screenshot"), Localize("Unable to open the screenshot file"), Localize("Ok"));
 }
 
 void CMenus::RenderDemoScreenshotWatermarkPreview(CUIRect PreviewRect, const CDemoItem &Item)
@@ -380,17 +378,6 @@ void CMenus::RenderDemoScreenshotGallery(CUIRect ListBox, bool &WasListboxItemAc
 	// 可见项已全部登记：本帧只在预算内回收结果并上传缩略图，解码全部发生在后台线程。
 	m_ScreenshotManager.PumpThumbnails(Graphics(), Storage(), Engine(), GameClient()->GpuUploadLimiter());
 
-	for(const CDemoItem *pItem : m_vpFilteredDemos)
-	{
-		if(!IsDemoScreenshotPreviewItem(*pItem))
-			continue;
-		const float PreviewRowHeight = std::clamp(ListBox.w * 0.36f, 140.0f, 260.0f);
-		const CListboxItem PreviewItem = s_GalleryListBox.DoCustomRow(PreviewRowHeight, true);
-		if(PreviewItem.m_Visible)
-			RenderDemoScreenshotPreview(PreviewItem.m_Rect, *pItem);
-		break;
-	}
-
 	if(m_vpFilteredDemos.empty())
 	{
 		const CListboxItem EmptyItem = s_GalleryListBox.DoCustomRow(RowHeight, false);
@@ -425,12 +412,7 @@ void CMenus::RenderDemoScreenshotGallery(CUIRect ListBox, bool &WasListboxItemAc
 	}
 
 	WasListboxItemActivated = s_GalleryListBox.WasItemActivated() && NumSelectedDemos() == 1;
-	if(WasListboxItemActivated && IsValidDemoIndex(m_DemolistSelectedIndex) && !m_vpFilteredDemos[m_DemolistSelectedIndex]->m_IsDir)
-	{
-		ToggleDemoScreenshotPreview(*m_vpFilteredDemos[m_DemolistSelectedIndex]);
-		// 双击文件由网格打开内嵌大图，避免按钮栏再次把它交给系统外部查看器。
-		WasListboxItemActivated = false;
-	}
+	// 双击、Enter 和打开按钮统一由按钮栏分发到独立看图窗口。
 
 	if(g_Config.m_BrDemoSort == SORT_DATE)
 	{

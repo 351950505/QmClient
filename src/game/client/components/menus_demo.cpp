@@ -2317,7 +2317,6 @@ void CMenus::ResetDemoScreenshotPreview()
 {
 	if(m_DemoScreenshotPreviewTexture.IsValid())
 		Graphics()->UnloadTexture(&m_DemoScreenshotPreviewTexture);
-	m_DemoScreenshotPreviewOpen = false;
 	m_DemoScreenshotPreviewLoadFailed = false;
 	m_aDemoScreenshotPreviewFolder[0] = '\0';
 	m_DemoScreenshotPreviewSelection = {};
@@ -2327,35 +2326,14 @@ void CMenus::ResetDemoScreenshotPreview()
 
 bool CMenus::IsDemoScreenshotPreviewItem(const CDemoItem &Item) const
 {
-	return m_DemoScreenshotPreviewOpen &&
-	       str_comp(m_aDemoScreenshotPreviewFolder, m_aCurrentDemoFolder) == 0 &&
+	return str_comp(m_aDemoScreenshotPreviewFolder, m_aCurrentDemoFolder) == 0 &&
 	       m_DemoScreenshotPreviewSelection.m_StorageType == Item.m_StorageType &&
 	       str_comp(m_DemoScreenshotPreviewSelection.m_aFilename, Item.m_aFilename) == 0;
 }
 
-void CMenus::ToggleDemoScreenshotPreview(const CDemoItem &Item)
-{
-	if(!DemoBrowserBrowsingScreenshots() || Item.m_IsDir)
-	{
-		ResetDemoScreenshotPreview();
-		return;
-	}
-
-	if(IsDemoScreenshotPreviewItem(Item))
-	{
-		ResetDemoScreenshotPreview();
-		return;
-	}
-
-	ResetDemoScreenshotPreview();
-	m_DemoScreenshotPreviewOpen = true;
-	str_copy(m_aDemoScreenshotPreviewFolder, m_aCurrentDemoFolder);
-	m_DemoScreenshotPreviewSelection = DemoSelectionEntryFromItem(Item);
-}
-
 void CMenus::SyncDemoScreenshotPreview()
 {
-	if(!m_DemoScreenshotPreviewOpen)
+	if(m_DemoScreenshotPreviewSelection.m_aFilename[0] == '\0')
 		return;
 	if(!DemoBrowserBrowsingScreenshots() || str_comp(m_aDemoScreenshotPreviewFolder, m_aCurrentDemoFolder) != 0)
 	{
@@ -2373,6 +2351,13 @@ void CMenus::SyncDemoScreenshotPreview()
 
 bool CMenus::LoadDemoScreenshotPreviewTexture(const CDemoItem &Item)
 {
+	// 右侧预览按文件身份缓存，单击切换截图也必须切换纹理。
+	if(!IsDemoScreenshotPreviewItem(Item))
+	{
+		ResetDemoScreenshotPreview();
+		str_copy(m_aDemoScreenshotPreviewFolder, m_aCurrentDemoFolder);
+		m_DemoScreenshotPreviewSelection = DemoSelectionEntryFromItem(Item);
+	}
 	if(m_DemoScreenshotPreviewTexture.IsValid())
 		return true;
 	if(m_DemoScreenshotPreviewLoadFailed)
@@ -3473,12 +3458,7 @@ void CMenus::RenderDemoBrowserButtons(CUIRect ButtonsView, bool WasListboxItemAc
 			{
 				if(BrowsingScreenshots)
 				{
-					char aBuf[IO_MAX_PATH_LENGTH];
-					str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, pSelectedItem->m_aFilename);
-					char aFullPath[IO_MAX_PATH_LENGTH];
-					Storage()->GetCompletePath(pSelectedItem->m_StorageType, aBuf, aFullPath, sizeof(aFullPath));
-					if(!Client()->ViewFile(aFullPath))
-						PopupMessage(Localize("Error opening screenshot"), Localize("Unable to open the screenshot file"), Localize("Ok"));
+					OpenDemoScreenshotViewer(*pSelectedItem);
 				}
 				else if(GameClient()->CurrentRaceTime() / 60 >= g_Config.m_ClConfirmDisconnectTime && g_Config.m_ClConfirmDisconnectTime >= 0)
 				{

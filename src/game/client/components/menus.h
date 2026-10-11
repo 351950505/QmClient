@@ -1862,7 +1862,6 @@ protected:
 	int m_DemoSelectionAnchorIndex = -1;
 	std::shared_ptr<CQmScreenshotWatermarkJob> m_pScreenshotWatermarkJob;
 	std::string m_ScreenshotWatermarkFolder;
-	bool m_DemoScreenshotPreviewOpen = false;
 	bool m_DemoScreenshotPreviewLoadFailed = false;
 	char m_aDemoScreenshotPreviewFolder[IO_MAX_PATH_LENGTH] = "";
 	SDemoSelectionEntry m_DemoScreenshotPreviewSelection{};
@@ -1912,10 +1911,9 @@ protected:
 	void PrepareDemoDeleteTargetsFromSelection();
 	void ResetDemoScreenshotPreview();
 	bool IsDemoScreenshotPreviewItem(const CDemoItem &Item) const;
-	void ToggleDemoScreenshotPreview(const CDemoItem &Item);
+	void OpenDemoScreenshotViewer(const CDemoItem &Item);
 	void SyncDemoScreenshotPreview();
 	bool LoadDemoScreenshotPreviewTexture(const CDemoItem &Item);
-	void RenderDemoScreenshotPreview(CUIRect PreviewRect, const CDemoItem &Item);
 	void RenderDemoScreenshotDetails(CUIRect Contents, const CDemoItem &Item, float FontSize);
 	void RenderDemoScreenshotWatermarkPreview(CUIRect PreviewRect, const CDemoItem &Item);
 	bool DoDemoScreenshotWatermarkButton(const CUIRect &Rect);

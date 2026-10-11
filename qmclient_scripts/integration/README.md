@@ -1,5 +1,13 @@
 # QmClient 进程级测试
 
+Windows 独立截图查看器冒烟使用已有构建，不自动编译：
+
+```text
+python qmclient_scripts/integration/screenshot_viewer_smoke.py <build-dir>
+```
+
+检查原图打开、缩放与适应窗口、两个窗口独立关闭、ESC 退出和坏图错误提示。测试图片与日志保留在 `<build-dir>/tmp/tests/screenshot-viewer-*`；不读取玩家配置。测试代码已补充，未执行。
+
 Unix 打开链接的失败回归通过已构建的 `testrunner` 调用生产 `open_link/open_file`：
 
 ```text
