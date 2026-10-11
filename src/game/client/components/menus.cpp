@@ -1978,6 +1978,8 @@ void CMenus::DoLaserPreview(const CUIRect *pRect, const ColorHSLA LaserOutlineCo
 	// TicksBody = 4.0 for less laser width for weapon alignment
 	if(LaserType == LASERTYPE_RIFLE || LaserType == LASERTYPE_SHOTGUN)
 	{
+		// 先画激光，再画武器，让枪身遮住重叠的光束。
+		GameClient()->m_Items.RenderLaser(From, Pos, OuterColor, InnerColor, 4.0f, TicksHead, LaserType, g_Config.m_QmLaserGlowIntensity);
 		switch(LaserType)
 		{
 		case LASERTYPE_RIFLE:
@@ -1997,7 +1999,6 @@ void CMenus::DoLaserPreview(const CUIRect *pRect, const ColorHSLA LaserOutlineCo
 			Graphics()->QuadsEnd();
 			break;
 		}
-		GameClient()->m_Items.RenderLaser(From, Pos, OuterColor, InnerColor, 4.0f, TicksHead, LaserType, g_Config.m_QmLaserGlowIntensity);
 	}
 	else
 	{
