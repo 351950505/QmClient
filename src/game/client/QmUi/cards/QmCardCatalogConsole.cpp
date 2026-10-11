@@ -13,8 +13,9 @@
 
 void CMenus::RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly)
 {
-	// F1 面板、分类页和搜索页共用配置与控件；测量不处理输入，失活父层由弹窗栈阻断交互。
-	if(PrewarmOnly)
+	// F1 面板、分类页和搜索页共用配置与控件；后台帧保留真实控件绘制，只有纯测量帧才进入 RenderOnly。
+	const bool MeasureOnly = PrewarmOnly && !Ui()->BackgroundRender();
+	if(MeasureOnly)
 		Ui()->BeginRenderOnly();
 	struct SControls
 	{
@@ -105,7 +106,7 @@ void CMenus::RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetr
 	TakeRow();
 	if(ui_widget::SecondaryButton(Ctx, &Controls.m_Reset, Localize("Reset console appearance"), Row, Ui()->RenderOnly()))
 		QmConsoleAppearance::Reset(g_Config);
-	if(PrewarmOnly)
+	if(MeasureOnly)
 		Ui()->EndRenderOnly();
 }
 

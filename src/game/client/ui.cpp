@@ -1633,7 +1633,7 @@ bool CUi::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 		if(RenderOptions.m_DrawBackground)
 			DrawRoundedSurface(this, *pRect, ResolveConfiguredInputSurface(), ColorRGBA(), EditBoxRounding, 0.0f, Corners);
 		ClipEnable(pRect);
-		Textbox.x -= pLineInput->GetScrollOffset();
+		Textbox.x -= pLineInput->IsEmpty() ? 0.0f : pLineInput->GetScrollOffset();
 		pLineInput->Render(&Textbox, FontSize, Align, false, -1.0f, 0.0f, vColorSplits);
 		ClipDisable();
 		return false;
@@ -1859,7 +1859,7 @@ bool CUi::DoClearableEditBox(CLineInput *pLineInput, const CUIRect *pRect, float
 
 	bool ReturnValue = DoEditBox(pLineInput, &EditBox, FontSize, Corners & ~IGraphics::CORNER_R, vColorSplits, TEXTALIGN_ML, RenderOptions);
 
-	DrawRoundedSurface(this, ClearButton, ScaleBackgroundAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f * ButtonColorMul(pLineInput->GetClearButtonId()))), ColorRGBA(), EditBoxRounding, 0.0f, Corners & ~IGraphics::CORNER_L);
+	DrawRoundedSurface(this, ClearButton, ScaleControlAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f * ButtonColorMul(pLineInput->GetClearButtonId()))), ColorRGBA(), EditBoxRounding, 0.0f, Corners & ~IGraphics::CORNER_L);
 	TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 	DoLabel(&ClearButton, "×", ClearButton.h * CUi::ms_FontmodHeight * 0.8f, TEXTALIGN_MC);
 	TextRender()->SetRenderFlags(PreviousRenderFlags);
@@ -1870,7 +1870,7 @@ bool CUi::DoClearableEditBox(CLineInput *pLineInput, const CUIRect *pRect, float
 	if(DoButtonLogic(pLineInput->GetClearButtonId(), 0, &ClearButton, BUTTONFLAG_LEFT))
 	{
 		CUiScopedGaussianBlurSuppression GaussianBlurSuppression(this);
-		ClearButton.Draw(ScaleBackgroundAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f * ButtonColorMul(pLineInput->GetClearButtonId()))), Corners & ~IGraphics::CORNER_L, EditBoxRounding);
+		ClearButton.Draw(ScaleControlAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f * ButtonColorMul(pLineInput->GetClearButtonId()))), Corners & ~IGraphics::CORNER_L, EditBoxRounding);
 		TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 		DoLabel(&ClearButton, "×", ClearButton.h * CUi::ms_FontmodHeight * 0.8f, TEXTALIGN_MC);
 		TextRender()->SetRenderFlags(0);
@@ -2433,13 +2433,13 @@ float CUi::DoScrollbarV(const void *pId, const CUIRect *pRect, float Current)
 	if(QmAnimationRuntime() != nullptr)
 	{
 		const auto Style = ResolveUiSliderStyle(QmControlTheme(), CUiScopedSurfaceText::CurrentSurface(), HotItem() == pId, CheckActiveItem(pId));
-		DrawRoundedSurface(this, Rail, ScaleBackgroundAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
+		DrawRoundedSurface(this, Rail, ScaleControlAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
 		ui_widget::DrawScrollbarHandle(ui_widget::ControlContext(this), pId, Handle);
 	}
 	else
 	{
-		DrawRoundedSurface(this, Rail, ScaleBackgroundAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.25f)), ColorRGBA(), Rail.w / 2.0f);
-		DrawRoundedSurface(this, Handle, ScaleBackgroundAlpha(ms_ScrollBarColorFunction.GetColor(CheckActiveItem(pId), HotItem() == pId)), ColorRGBA(), Handle.w / 2.0f);
+		DrawRoundedSurface(this, Rail, ScaleControlAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.25f)), ColorRGBA(), Rail.w / 2.0f);
+		DrawRoundedSurface(this, Handle, ScaleControlAlpha(ms_ScrollBarColorFunction.GetColor(CheckActiveItem(pId), HotItem() == pId)), ColorRGBA(), Handle.w / 2.0f);
 	}
 
 	return ReturnValue;
@@ -2468,17 +2468,17 @@ void CUi::RenderScrollbarH(const void *pId, const CUIRect *pRect, float Current,
 	VisualRail.VMargin(HandleSize * 0.5f, &VisualRail);
 	VisualRail.h = std::clamp(pRect->h * 0.12f, 2.0f, 3.0f);
 	VisualRail.y = pRect->y + (pRect->h - VisualRail.h) * 0.5f;
-	VisualRail.Draw(ScaleBackgroundAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.28f)), IGraphics::CORNER_ALL, VisualRail.h * 0.5f);
+	VisualRail.Draw(ScaleControlAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.28f)), IGraphics::CORNER_ALL, VisualRail.h * 0.5f);
 	if(pColorInner)
 	{
-		Handle.Draw(ScaleBackgroundAlpha(ColorRGBA(0.08f, 0.08f, 0.08f, 0.75f)), IGraphics::CORNER_ALL, HandleSize * 0.5f);
+		Handle.Draw(ScaleControlAlpha(ColorRGBA(0.08f, 0.08f, 0.08f, 0.75f)), IGraphics::CORNER_ALL, HandleSize * 0.5f);
 		CUIRect InnerHandle;
 		Handle.Margin(2.0f, &InnerHandle);
-		InnerHandle.Draw(ScaleBackgroundAlpha(pColorInner->Multiply(HandleColor)), IGraphics::CORNER_ALL, InnerHandle.h * 0.5f);
+		InnerHandle.Draw(ScaleControlAlpha(pColorInner->Multiply(HandleColor)), IGraphics::CORNER_ALL, InnerHandle.h * 0.5f);
 	}
 	else
 	{
-		Handle.Draw(ScaleBackgroundAlpha(HandleColor), IGraphics::CORNER_ALL, HandleSize * 0.5f);
+		Handle.Draw(ScaleControlAlpha(HandleColor), IGraphics::CORNER_ALL, HandleSize * 0.5f);
 	}
 }
 

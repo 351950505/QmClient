@@ -752,7 +752,7 @@ namespace ui_widget
 			return;
 		const auto Layout = ResolveHorizontalSliderLayout(Rect, Current);
 		const auto Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->HotItem() == pId, !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->CheckActiveItem(pId));
-		DrawControlSurface(Ctx, Layout.m_Track, Ctx.m_pUi->ScaleBackgroundAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
+		DrawControlSurface(Ctx, Layout.m_Track, Ctx.m_pUi->ScaleControlAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
 		DrawControlSurface(Ctx, Layout.m_Fill, Style.m_Fill, ColorRGBA(), ui_token::radius::PILL);
 		DrawScrollbarHandle(Ctx, pId, Layout.m_Handle, true, pColorInner);
 	}
