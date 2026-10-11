@@ -10,8 +10,12 @@
 
 namespace qm_card_catalog
 {
+	// 仅接入已经显式声明全部内容行的模块；不拦截任意旧绘制函数来推测布局。
+	void UseDeclaredModuleContent(const SQmCardBuildContext &Ctx, SSettingsCardDefinition &Out);
+	bool VoiceHasPendingInput();
+
 	// 卡片模块文件共享的 definition 装配：标题/描述取自 QmCardRegistry（同一份事实源），
-	// 折叠状态与折叠按钮由页面注入，卡片模块只提供自己的测量、重测版本、预布局输入与内容渲染。
+	// 折叠状态与折叠按钮由页面注入，内容布局由各卡的声明或纯几何 Block 提供。
 	// Render 为 FSettingsCardRenderMeasured（可消费 CUIRect &Content），与各页面既有内容函数签名一致。
 	void MakeModuleCard(
 		const SQmCardBuildContext &Ctx,
@@ -20,9 +24,6 @@ namespace qm_card_catalog
 		const char *pTitle,
 		const char *pSubtitle,
 		const FSettingsCardRenderMeasured &Render,
-		FSettingsCardMeasure Measure,
-		uint64_t MeasureRevision,
-		FSettingsCardPreLayoutInput PreLayoutInput,
 		SSettingsCardDefinition &Out);
 
 	// 皮肤外观与切换动画的独立全局卡片构造入口。

@@ -25,6 +25,7 @@
 #include <game/client/QmUi/QmDropdown.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsFontSelection.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiForms.h>
@@ -75,398 +76,222 @@ using namespace qm_tclient_cards;
 float CMenus::LayoutTClientInputCard(const qm_card_catalog::SQmCardBuildContext &Ctx, CUIRect &Content, bool Render)
 {
 	ApplyTClientContentMetrics(Ctx.m_Metrics);
+	const float StartY = Content.y;
+	std::vector<SSettingsContentRowDeclaration> vRows;
+	std::optional<CSettingsContentLayoutScope> MeasureScope;
+	if(!Render && CSettingsContentLayoutScope::Current() == nullptr)
+		MeasureScope.emplace(vRows);
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Button, Label;
-	const float UiScale = Ctx.m_Metrics.m_UiScale;
-	const SSectionCullContext CullContext{Ctx.m_Page.m_ScrollViewport.y, Ctx.m_Page.m_ScrollViewport.y + Ctx.m_Page.m_ScrollViewport.h, 720.0f};
-	const auto ShouldRenderSection = [&](CUIRect Column, float Padding, float Height) {
-		Column.HSplitTop(Padding, nullptr, &Column);
-		Column.HSplitTop(Height, &Column, nullptr);
-		return IsSectionVisible(Column, CullContext);
-	};
-	const auto LogSettingsStage = [this](const char *pStage, const CPerfTimer &Timer) { LogTClientPerfStage(pStage, Timer.ElapsedMs(), false); };
-	auto LayoutInputSection = [&](CUIRect &CurrentColumn, bool Render) {
-		CUIRect BoxRect;
-		CUIRect TmpButton;
-		CurrentColumn.HSplitTop(MarginBetweenSections, nullptr, &CurrentColumn);
-		BoxRect = CurrentColumn;
-		CurrentColumn.HSplitTop(HeadlineHeight, Render ? &Label : &TmpButton, &CurrentColumn);
-		if(Render)
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Input"), HeadlineFontSize, TEXTALIGN_ML);
-		CurrentColumn.HSplitTop(MarginSmall, nullptr, &CurrentColumn);
-		CTClientSettingsRowAllocator Rows(CurrentColumn);
-		CUIRect Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmFastInput, "tclient-fast-input", Localize("Fast input (reduce visual latency)"), &g_Config.m_QmFastInput, &Row, LineSize);
-		Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmAutoMargin, "qm-auto-margin", Localize("Auto margin"), &g_Config.m_QmAutoMargin, &Row, LineSize);
-		Button = Rows.Next();
-		if(Render)
-			DoSliderWithScaledValue(&g_Config.m_QmFastInputAmount, &g_Config.m_QmFastInputAmount, &Button, Localize("Amount"), 1, 40, 1, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
-		Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmFastInputOthers, "tclient-fast-input-others", Localize("Fast input others"), &g_Config.m_QmFastInputOthers, &Row, LineSize);
-		Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_ClSubTickAiming, "tclient-sub-tick-aiming", Localize("Sub-Tick aiming"), &g_Config.m_ClSubTickAiming, &Row, LineSize);
-		BoxRect.h = CurrentColumn.y - BoxRect.y;
-		return BoxRect;
-	};
-	CUIRect Measured = Content;
-	const CUIRect Box = LayoutInputSection(Measured, false);
-	const float Header = Box.y - Content.y + HeadlineHeight + MarginSmall;
-	const float Height = Measured.y - Content.y - Header;
-	if(Render)
+	CUIRect Row;
+	if(Flow.Control("fast-input", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmFastInput, "tclient-fast-input", Localize("Fast input (reduce visual latency)"), &g_Config.m_QmFastInput, &Row, LineSize);
+	if(Flow.Control("auto-margin", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmAutoMargin, "qm-auto-margin", Localize("Auto margin"), &g_Config.m_QmAutoMargin, &Row, LineSize);
+	if(Flow.Control("input-amount", LineSize, Button, MarginSmall))
+		DoSliderWithScaledValue(&g_Config.m_QmFastInputAmount, &g_Config.m_QmFastInputAmount, &Button, Localize("Amount"), 1, 40, 1, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
+	if(Flow.Control("fast-input-others", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmFastInputOthers, "tclient-fast-input-others", Localize("Fast input others"), &g_Config.m_QmFastInputOthers, &Row, LineSize);
+	if(Flow.Control("sub-tick", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_ClSubTickAiming, "tclient-sub-tick-aiming", Localize("Sub-Tick aiming"), &g_Config.m_ClSubTickAiming, &Row, LineSize);
+	if(MeasureScope)
 	{
-		CUIRect LegacyContent = Content;
-		LegacyContent.y -= Header;
-		LegacyContent.h += Header;
-		const CUIRect Clip = ResolveSettingsFocusSafeClipRect(Content, UiScale);
-		Ui()->ClipEnable(&Clip);
-		LayoutInputSection(LegacyContent, true);
-		Ui()->ClipDisable();
-		Content.y = LegacyContent.y;
+		CSettingsContentLayoutCache Cache;
+		return Cache.Resolve(vRows, Content.w, 0, {})->Height();
 	}
-	return Height;
+	return Content.y - StartY;
 }
 
 float CMenus::LayoutTClientAntiLatencyToolsCard(const qm_card_catalog::SQmCardBuildContext &Ctx, CUIRect &Content, bool Render)
 {
 	ApplyTClientContentMetrics(Ctx.m_Metrics);
+	const float StartY = Content.y;
+	std::vector<SSettingsContentRowDeclaration> vRows;
+	std::optional<CSettingsContentLayoutScope> MeasureScope;
+	if(!Render && CSettingsContentLayoutScope::Current() == nullptr)
+		MeasureScope.emplace(vRows);
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Button, Label;
-	const float UiScale = Ctx.m_Metrics.m_UiScale;
-	const SSectionCullContext CullContext{Ctx.m_Page.m_ScrollViewport.y, Ctx.m_Page.m_ScrollViewport.y + Ctx.m_Page.m_ScrollViewport.h, 720.0f};
-	const auto ShouldRenderSection = [&](CUIRect Column, float Padding, float Height) {
-		Column.HSplitTop(Padding, nullptr, &Column);
-		Column.HSplitTop(Height, &Column, nullptr);
-		return IsSectionVisible(Column, CullContext);
-	};
-	const auto LogSettingsStage = [this](const char *pStage, const CPerfTimer &Timer) { LogTClientPerfStage(pStage, Timer.ElapsedMs(), false); };
-	auto LayoutAntiLatencyToolsSection = [&](CUIRect &CurrentColumn, bool Render) {
-		CUIRect BoxRect;
-		CUIRect TmpButton;
-		CurrentColumn.HSplitTop(MarginBetweenSections, nullptr, &CurrentColumn);
-		BoxRect = CurrentColumn;
-		CurrentColumn.HSplitTop(HeadlineHeight, Render ? &Label : &TmpButton, &CurrentColumn);
-		if(Render)
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Anti Latency Tools"), HeadlineFontSize, TEXTALIGN_ML);
-		CurrentColumn.HSplitTop(MarginSmall, nullptr, &CurrentColumn);
-		CTClientSettingsRowAllocator Rows(CurrentColumn);
-		Button = Rows.Next();
-		if(Render)
-			DoSettingsScrollbarOption(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, "tclient-prediction-margin", &g_Config.m_ClPredictionMargin, &g_Config.m_ClPredictionMargin, &Button, Localize("Base prediction margin"), 10, 75, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
-		CUIRect Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmRemoveAnti, "tclient-remove-anti-freeze", Localize("Reduce prediction while frozen"), &g_Config.m_QmRemoveAnti, &Row, LineSize);
-		if(g_Config.m_QmRemoveAnti)
-		{
-			CUIRect AmountButton = Rows.Next();
-			CUIRect DelayButton = Rows.Next();
-			if(Render)
-			{
-				if(g_Config.m_QmUnfreezeLagDelayTicks < g_Config.m_QmUnfreezeLagTicks)
-					g_Config.m_QmUnfreezeLagDelayTicks = g_Config.m_QmUnfreezeLagTicks;
-				DoSliderWithScaledValue(&g_Config.m_QmUnfreezeLagTicks, &g_Config.m_QmUnfreezeLagTicks, &AmountButton, Localize("Maximum reduction"), 100, 300, 20, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
-				DoSliderWithScaledValue(&g_Config.m_QmUnfreezeLagDelayTicks, &g_Config.m_QmUnfreezeLagDelayTicks, &DelayButton, Localize("Delay before reduction"), 100, 3000, 20, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
-			}
-		}
-		Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmUnpredOthersInFreeze, "tclient-unpred-others-in-freeze", Localize("Dont predict other players if you are frozen"), &g_Config.m_QmUnpredOthersInFreeze, &Row, LineSize);
-		Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmPredMarginInFreeze, "tclient-pred-margin-in-freeze", Localize("Use a fixed prediction margin while frozen"), &g_Config.m_QmPredMarginInFreeze, &Row, LineSize);
-		if(g_Config.m_QmPredMarginInFreeze)
-		{
-			Button = Rows.Next();
-			if(Render)
-				DoSettingsScrollbarOption(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, "tclient-frozen-margin", &g_Config.m_QmPredMarginInFreezeAmount, &g_Config.m_QmPredMarginInFreezeAmount, &Button, Localize("Frozen prediction margin"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "ms");
-		}
-		BoxRect.h = CurrentColumn.y - BoxRect.y;
-		return BoxRect;
-	};
-	CUIRect Measured = Content;
-	const CUIRect Box = LayoutAntiLatencyToolsSection(Measured, false);
-	const float Header = Box.y - Content.y + HeadlineHeight + MarginSmall;
-	const float Height = Measured.y - Content.y - Header;
-	if(Render)
+	if(Flow.Control("prediction-margin", LineSize, Button, MarginSmall))
+		DoSettingsScrollbarOption(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, "tclient-prediction-margin", &g_Config.m_ClPredictionMargin, &g_Config.m_ClPredictionMargin, &Button, Localize("Base prediction margin"), 10, 75, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
+	CUIRect Row;
+	if(Flow.Control("remove-anti", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmRemoveAnti, "tclient-remove-anti-freeze", Localize("Reduce prediction while frozen"), &g_Config.m_QmRemoveAnti, &Row, LineSize);
+	if(g_Config.m_QmRemoveAnti)
 	{
-		CUIRect LegacyContent = Content;
-		LegacyContent.y -= Header;
-		LegacyContent.h += Header;
-		const CUIRect Clip = ResolveSettingsFocusSafeClipRect(Content, UiScale);
-		Ui()->ClipEnable(&Clip);
-		LayoutAntiLatencyToolsSection(LegacyContent, true);
-		Ui()->ClipDisable();
-		Content.y = LegacyContent.y;
+		CUIRect AmountButton, DelayButton;
+		if(Flow.Input() && !Ui()->RenderOnly() && g_Config.m_QmUnfreezeLagDelayTicks < g_Config.m_QmUnfreezeLagTicks)
+			g_Config.m_QmUnfreezeLagDelayTicks = g_Config.m_QmUnfreezeLagTicks;
+		if(Flow.Control("maximum-reduction", LineSize, AmountButton, MarginSmall))
+			DoSliderWithScaledValue(&g_Config.m_QmUnfreezeLagTicks, &g_Config.m_QmUnfreezeLagTicks, &AmountButton, Localize("Maximum reduction"), 100, 300, 20, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
+		if(Flow.Control("reduction-delay", LineSize, DelayButton, MarginSmall))
+			DoSliderWithScaledValue(&g_Config.m_QmUnfreezeLagDelayTicks, &g_Config.m_QmUnfreezeLagDelayTicks, &DelayButton, Localize("Delay before reduction"), 100, 3000, 20, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
 	}
-	return Height;
+	if(Flow.Control("unpred-others", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmUnpredOthersInFreeze, "tclient-unpred-others-in-freeze", Localize("Dont predict other players if you are frozen"), &g_Config.m_QmUnpredOthersInFreeze, &Row, LineSize);
+	if(Flow.Control("frozen-margin-toggle", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmPredMarginInFreeze, "tclient-pred-margin-in-freeze", Localize("Use a fixed prediction margin while frozen"), &g_Config.m_QmPredMarginInFreeze, &Row, LineSize);
+	if(g_Config.m_QmPredMarginInFreeze)
+	{
+		if(Flow.Control("frozen-margin", LineSize, Button, MarginSmall))
+			DoSettingsScrollbarOption(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, "tclient-frozen-margin", &g_Config.m_QmPredMarginInFreezeAmount, &g_Config.m_QmPredMarginInFreezeAmount, &Button, Localize("Frozen prediction margin"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "ms");
+	}
+	if(MeasureScope)
+	{
+		CSettingsContentLayoutCache Cache;
+		return Cache.Resolve(vRows, Content.w, 0, {})->Height();
+	}
+	return Content.y - StartY;
 }
 
 float CMenus::LayoutTClientAntiPingSmoothingCard(const qm_card_catalog::SQmCardBuildContext &Ctx, CUIRect &Content, bool Render)
 {
 	ApplyTClientContentMetrics(Ctx.m_Metrics);
+	const float StartY = Content.y;
+	std::vector<SSettingsContentRowDeclaration> vRows;
+	std::optional<CSettingsContentLayoutScope> MeasureScope;
+	if(!Render && CSettingsContentLayoutScope::Current() == nullptr)
+		MeasureScope.emplace(vRows);
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Button, Label;
-	const float UiScale = Ctx.m_Metrics.m_UiScale;
-	const SSectionCullContext CullContext{Ctx.m_Page.m_ScrollViewport.y, Ctx.m_Page.m_ScrollViewport.y + Ctx.m_Page.m_ScrollViewport.h, 720.0f};
-	const auto ShouldRenderSection = [&](CUIRect Column, float Padding, float Height) {
-		Column.HSplitTop(Padding, nullptr, &Column);
-		Column.HSplitTop(Height, &Column, nullptr);
-		return IsSectionVisible(Column, CullContext);
-	};
-	const auto LogSettingsStage = [this](const char *pStage, const CPerfTimer &Timer) { LogTClientPerfStage(pStage, Timer.ElapsedMs(), false); };
-	auto LayoutAntiPingSmoothingSection = [&](CUIRect &CurrentColumn, bool Render) {
-		CUIRect BoxRect;
-		CUIRect TmpButton;
-		CurrentColumn.HSplitTop(MarginBetweenSections, nullptr, &CurrentColumn);
-		BoxRect = CurrentColumn;
-		CurrentColumn.HSplitTop(HeadlineHeight, Render ? &Label : &TmpButton, &CurrentColumn);
-		if(Render)
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Anti Ping Smoothing"), HeadlineFontSize, TEXTALIGN_ML);
-		CurrentColumn.HSplitTop(MarginSmall, nullptr, &CurrentColumn);
-		CTClientSettingsRowAllocator Rows(CurrentColumn);
-		CUIRect Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmAntiPingImproved, "tclient-antiping-improved", Localize("Use new smoothing algorithm"), &g_Config.m_QmAntiPingImproved, &Row, LineSize);
-		Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmAntiPingStableDirection, "tclient-antiping-stable-direction", Localize("Optimistic prediction along stable direction"), &g_Config.m_QmAntiPingStableDirection, &Row, LineSize);
-		Row = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmAntiPingNegativeBuffer, "tclient-antiping-negative-buffer", Localize("Negative stability buffer (for Gores)"), &g_Config.m_QmAntiPingNegativeBuffer, &Row, LineSize);
-		Button = Rows.Next();
-		if(Render)
-			DoSettingsScrollbarOption(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, "tclient-antiping-uncertainty-scale", &g_Config.m_QmAntiPingUncertaintyScale, &g_Config.m_QmAntiPingUncertaintyScale, &Button, Localize("Uncertainty duration"), 50, 400, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
-		BoxRect.h = CurrentColumn.y - BoxRect.y;
-		return BoxRect;
-	};
-	CUIRect Measured = Content;
-	const CUIRect Box = LayoutAntiPingSmoothingSection(Measured, false);
-	const float Header = Box.y - Content.y + HeadlineHeight + MarginSmall;
-	const float Height = Measured.y - Content.y - Header;
-	if(Render)
+	CUIRect Row;
+	if(Flow.Control("new-smoothing", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmAntiPingImproved, "tclient-antiping-improved", Localize("Use new smoothing algorithm"), &g_Config.m_QmAntiPingImproved, &Row, LineSize);
+	if(Flow.Control("stable-direction", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmAntiPingStableDirection, "tclient-antiping-stable-direction", Localize("Optimistic prediction along stable direction"), &g_Config.m_QmAntiPingStableDirection, &Row, LineSize);
+	if(Flow.Control("negative-buffer", LineSize, Row, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmAntiPingNegativeBuffer, "tclient-antiping-negative-buffer", Localize("Negative stability buffer (for Gores)"), &g_Config.m_QmAntiPingNegativeBuffer, &Row, LineSize);
+	if(Flow.Control("uncertainty", LineSize, Button, MarginSmall))
+		DoSettingsScrollbarOption(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, "tclient-antiping-uncertainty-scale", &g_Config.m_QmAntiPingUncertaintyScale, &g_Config.m_QmAntiPingUncertaintyScale, &Button, Localize("Uncertainty duration"), 50, 400, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "%");
+	if(MeasureScope)
 	{
-		CUIRect LegacyContent = Content;
-		LegacyContent.y -= Header;
-		LegacyContent.h += Header;
-		const CUIRect Clip = ResolveSettingsFocusSafeClipRect(Content, UiScale);
-		Ui()->ClipEnable(&Clip);
-		LayoutAntiPingSmoothingSection(LegacyContent, true);
-		Ui()->ClipDisable();
-		Content.y = LegacyContent.y;
+		CSettingsContentLayoutCache Cache;
+		return Cache.Resolve(vRows, Content.w, 0, {})->Height();
 	}
-	return Height;
+	return Content.y - StartY;
 }
 
 float CMenus::LayoutTClientAutoExecuteCard(const qm_card_catalog::SQmCardBuildContext &Ctx, CUIRect &Content, bool Render)
 {
 	ApplyTClientContentMetrics(Ctx.m_Metrics);
+	const float StartY = Content.y;
+	std::vector<SSettingsContentRowDeclaration> vRows;
+	std::optional<CSettingsContentLayoutScope> MeasureScope;
+	if(!Render && CSettingsContentLayoutScope::Current() == nullptr)
+		MeasureScope.emplace(vRows);
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Button, Label;
-	const float UiScale = Ctx.m_Metrics.m_UiScale;
-	const SSectionCullContext CullContext{Ctx.m_Page.m_ScrollViewport.y, Ctx.m_Page.m_ScrollViewport.y + Ctx.m_Page.m_ScrollViewport.h, 720.0f};
-	const auto ShouldRenderSection = [&](CUIRect Column, float Padding, float Height) {
-		Column.HSplitTop(Padding, nullptr, &Column);
-		Column.HSplitTop(Height, &Column, nullptr);
-		return IsSectionVisible(Column, CullContext);
-	};
-	const auto LogSettingsStage = [this](const char *pStage, const CPerfTimer &Timer) { LogTClientPerfStage(pStage, Timer.ElapsedMs(), false); };
-	auto LayoutAutoExecuteSection = [&](CUIRect &CurrentColumn, bool Render) {
-		CUIRect BoxRect;
-		CUIRect TmpRect;
-		CUIRect Box;
-		IUiContext TClientAutoExecuteTextInputCtx;
-		TClientAutoExecuteTextInputCtx.m_pUi = Ui();
-		TClientAutoExecuteTextInputCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
-		TClientAutoExecuteTextInputCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
-		TClientAutoExecuteTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_auto_execute_text_inputs");
-		TClientAutoExecuteTextInputCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-		CurrentColumn.HSplitTop(MarginBetweenSections, nullptr, &CurrentColumn);
-		BoxRect = CurrentColumn;
-		CurrentColumn.HSplitTop(HeadlineHeight, Render ? &Label : &TmpRect, &CurrentColumn);
-		if(Render)
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Auto execute"), HeadlineFontSize, TEXTALIGN_ML);
-		CurrentColumn.HSplitTop(MarginSmall, nullptr, &CurrentColumn);
-		CTClientSettingsRowAllocator Rows(CurrentColumn);
-
-		const bool RenderBeforeConnectInput = Render && ShouldRenderSection(CurrentColumn, 0.0f, TClientSettingsRowsHeight(3));
-		Box = Rows.Next();
-		if(RenderBeforeConnectInput)
-		{
-			Box.VSplitMid(&Label, &Button);
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Execute before connecting"), FontSize, TEXTALIGN_ML);
-			static CLineInput s_LineInput(g_Config.m_QmExecuteOnConnect, sizeof(g_Config.m_QmExecuteOnConnect));
-			ui_widget::InputField(TClientAutoExecuteTextInputCtx, &s_LineInput, Button, nullptr, EditBoxFontSize);
-		}
-
-		const bool RenderOnConnectInput = RenderBeforeConnectInput;
-		Box = Rows.Next();
-		if(RenderOnConnectInput)
-		{
-			Box.VSplitMid(&Label, &Button);
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Execute on connect"), FontSize, TEXTALIGN_ML);
-			static CLineInput s_LineInput(g_Config.m_QmExecuteOnJoin, sizeof(g_Config.m_QmExecuteOnJoin));
-			ui_widget::InputField(TClientAutoExecuteTextInputCtx, &s_LineInput, Button, nullptr, EditBoxFontSize);
-		}
-
-		const bool RenderDelaySlider = RenderBeforeConnectInput;
-		Button = Rows.Next();
-		if(RenderDelaySlider)
-			DoSliderWithScaledValue(&g_Config.m_QmExecuteOnJoinDelay, &g_Config.m_QmExecuteOnJoinDelay, &Button, Localize("Delay"), 140, 2000, 20, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
-		BoxRect.h = CurrentColumn.y - BoxRect.y;
-		return BoxRect;
-	};
-	CUIRect Measured = Content;
-	const CUIRect Box = LayoutAutoExecuteSection(Measured, false);
-	const float Header = Box.y - Content.y + HeadlineHeight + MarginSmall;
-	const float Height = Measured.y - Content.y - Header;
-	if(Render)
+	CUIRect Box;
+	IUiContext TClientAutoExecuteTextInputCtx;
+	TClientAutoExecuteTextInputCtx.m_pUi = Ui();
+	TClientAutoExecuteTextInputCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
+	TClientAutoExecuteTextInputCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
+	TClientAutoExecuteTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_auto_execute_text_inputs");
+	TClientAutoExecuteTextInputCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
+	if(Flow.Control("before-connect", LineSize, Box, MarginSmall))
 	{
-		CUIRect LegacyContent = Content;
-		LegacyContent.y -= Header;
-		LegacyContent.h += Header;
-		const CUIRect Clip = ResolveSettingsFocusSafeClipRect(Content, UiScale);
-		Ui()->ClipEnable(&Clip);
-		LayoutAutoExecuteSection(LegacyContent, true);
-		Ui()->ClipDisable();
-		Content.y = LegacyContent.y;
+		Box.VSplitMid(&Label, &Button);
+		DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Execute before connecting"), FontSize, TEXTALIGN_ML);
+		static CLineInput s_LineInput(g_Config.m_QmExecuteOnConnect, sizeof(g_Config.m_QmExecuteOnConnect));
+		ui_widget::InputField(TClientAutoExecuteTextInputCtx, &s_LineInput, Button, nullptr, EditBoxFontSize);
 	}
-	return Height;
+	if(Flow.Control("on-connect", LineSize, Box, MarginSmall))
+	{
+		Box.VSplitMid(&Label, &Button);
+		DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Execute on connect"), FontSize, TEXTALIGN_ML);
+		static CLineInput s_LineInput(g_Config.m_QmExecuteOnJoin, sizeof(g_Config.m_QmExecuteOnJoin));
+		ui_widget::InputField(TClientAutoExecuteTextInputCtx, &s_LineInput, Button, nullptr, EditBoxFontSize);
+	}
+	if(Flow.Control("join-delay", LineSize, Button, MarginSmall))
+		DoSliderWithScaledValue(&g_Config.m_QmExecuteOnJoinDelay, &g_Config.m_QmExecuteOnJoinDelay, &Button, Localize("Delay"), 140, 2000, 20, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "ms");
+	if(MeasureScope)
+	{
+		CSettingsContentLayoutCache Cache;
+		return Cache.Resolve(vRows, Content.w, 0, {})->Height();
+	}
+	return Content.y - StartY;
 }
 
 float CMenus::LayoutTClientVotingCard(const qm_card_catalog::SQmCardBuildContext &Ctx, CUIRect &Content, bool Render)
 {
 	ApplyTClientContentMetrics(Ctx.m_Metrics);
+	const float StartY = Content.y;
+	std::vector<SSettingsContentRowDeclaration> vRows;
+	std::optional<CSettingsContentLayoutScope> MeasureScope;
+	if(!Render && CSettingsContentLayoutScope::Current() == nullptr)
+		MeasureScope.emplace(vRows);
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Button, Label;
-	const float UiScale = Ctx.m_Metrics.m_UiScale;
-	const SSectionCullContext CullContext{Ctx.m_Page.m_ScrollViewport.y, Ctx.m_Page.m_ScrollViewport.y + Ctx.m_Page.m_ScrollViewport.h, 720.0f};
-	const auto ShouldRenderSection = [&](CUIRect Column, float Padding, float Height) {
-		Column.HSplitTop(Padding, nullptr, &Column);
-		Column.HSplitTop(Height, &Column, nullptr);
-		return IsSectionVisible(Column, CullContext);
-	};
-	const auto LogSettingsStage = [this](const char *pStage, const CPerfTimer &Timer) { LogTClientPerfStage(pStage, Timer.ElapsedMs(), false); };
-	auto LayoutVotingSection = [&](CUIRect &CurrentColumn, bool Render) {
-		CUIRect BoxRect;
-		CUIRect TmpRect;
-		CUIRect VoteMessage;
-		IUiContext TClientVotingTextInputCtx;
-		TClientVotingTextInputCtx.m_pUi = Ui();
-		TClientVotingTextInputCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
-		TClientVotingTextInputCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
-		TClientVotingTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_voting_text_inputs");
-		TClientVotingTextInputCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-		CurrentColumn.HSplitTop(MarginBetweenSections, nullptr, &CurrentColumn);
-		BoxRect = CurrentColumn;
-		CurrentColumn.HSplitTop(HeadlineHeight, Render ? &Label : &TmpRect, &CurrentColumn);
-		if(Render)
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Voting"), HeadlineFontSize, TEXTALIGN_ML);
-		CurrentColumn.HSplitTop(MarginSmall, nullptr, &CurrentColumn);
-		CTClientSettingsRowAllocator Rows(CurrentColumn);
-		const SSettingsContentMetrics ContentMetrics = Ctx.m_Metrics;
-		const float AutoVoteHeight = ResolveSettingsRadioRowLayout(CurrentColumn, 3, ContentMetrics).m_Height;
-		CUIRect Row = Rows.Next(AutoVoteHeight);
-
-		if(Render)
-		{
-			static std::vector<CButtonContainer> s_vAutoMapVoteButtons = {{}, {}, {}};
-			int AutoMapVote = std::clamp(g_Config.m_QmAutoVoteWhenFar, 0, 2);
-			if(DoSettingsLine_RadioMenu(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, Row, "tclient-auto-map-vote-label", Localize("Auto map vote"), s_vAutoMapVoteButtons, {"tclient-auto-map-vote-off", "tclient-auto-map-vote-agree", "tclient-auto-map-vote-reject"}, {Localize("Off"), Localize("Auto agree vote"), Localize("Auto reject vote")}, {0, 2, 1}, AutoMapVote, ContentMetrics, nullptr, &g_Config.m_QmAutoVoteWhenFar))
-				g_Config.m_QmAutoVoteWhenFar = AutoMapVote;
-		}
-		Button = Rows.Next();
-		if(Render)
-			DoSettingsScrollbarOption(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, "tclient-auto-vote-minimum-time", &g_Config.m_QmAutoVoteWhenFarTime, &g_Config.m_QmAutoVoteWhenFarTime, &Button, Localize("Minimum time"), 1, 20, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, Localize(" min"));
-
-		VoteMessage = Rows.Next();
-		if(Render)
-		{
-			VoteMessage.VSplitMid(&Label, &VoteMessage);
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Message to send in chat:"), FontSize, TEXTALIGN_ML);
-			static CLineInput s_VoteMessage(g_Config.m_QmAutoVoteWhenFarMessage, sizeof(g_Config.m_QmAutoVoteWhenFarMessage));
-			s_VoteMessage.SetEmptyText(Localize("Leave empty to disable"));
-			ui_widget::InputField(TClientVotingTextInputCtx, &s_VoteMessage, VoteMessage, nullptr, EditBoxFontSize);
-		}
-		BoxRect.h = CurrentColumn.y - BoxRect.y;
-		return BoxRect;
-	};
-	CUIRect Measured = Content;
-	const CUIRect Box = LayoutVotingSection(Measured, false);
-	const float Header = Box.y - Content.y + HeadlineHeight + MarginSmall;
-	const float Height = Measured.y - Content.y - Header;
-	if(Render)
+	CUIRect VoteMessage;
+	IUiContext TClientVotingTextInputCtx;
+	TClientVotingTextInputCtx.m_pUi = Ui();
+	TClientVotingTextInputCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
+	TClientVotingTextInputCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
+	TClientVotingTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_voting_text_inputs");
+	TClientVotingTextInputCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
+	const SSettingsContentMetrics ContentMetrics = Ctx.m_Metrics;
+	const float AutoVoteHeight = ResolveSettingsRadioRowLayout(Content, 3, ContentMetrics).m_Height;
+	CUIRect Row;
+	if(Flow.Control("map-vote", AutoVoteHeight, Row, MarginSmall))
 	{
-		CUIRect LegacyContent = Content;
-		LegacyContent.y -= Header;
-		LegacyContent.h += Header;
-		const CUIRect Clip = ResolveSettingsFocusSafeClipRect(Content, UiScale);
-		Ui()->ClipEnable(&Clip);
-		LayoutVotingSection(LegacyContent, true);
-		Ui()->ClipDisable();
-		Content.y = LegacyContent.y;
+		static std::vector<CButtonContainer> s_vAutoMapVoteButtons = {{}, {}, {}};
+		int AutoMapVote = std::clamp(g_Config.m_QmAutoVoteWhenFar, 0, 2);
+		if(DoSettingsLine_RadioMenu(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, Row, "tclient-auto-map-vote-label", Localize("Auto map vote"), s_vAutoMapVoteButtons, {"tclient-auto-map-vote-off", "tclient-auto-map-vote-agree", "tclient-auto-map-vote-reject"}, {Localize("Off"), Localize("Auto agree vote"), Localize("Auto reject vote")}, {0, 2, 1}, AutoMapVote, ContentMetrics, nullptr, &g_Config.m_QmAutoVoteWhenFar))
+			g_Config.m_QmAutoVoteWhenFar = AutoMapVote;
 	}
-	return Height;
+	if(Flow.Control("min-time", LineSize, Button, MarginSmall))
+		DoSettingsScrollbarOption(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, "tclient-auto-vote-minimum-time", &g_Config.m_QmAutoVoteWhenFarTime, &g_Config.m_QmAutoVoteWhenFarTime, &Button, Localize("Minimum time"), 1, 20, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, Localize(" min"));
+
+	if(Flow.Control("vote-message", LineSize, VoteMessage, MarginSmall))
+	{
+		VoteMessage.VSplitMid(&Label, &VoteMessage);
+		DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Message to send in chat:"), FontSize, TEXTALIGN_ML);
+		static CLineInput s_VoteMessage(g_Config.m_QmAutoVoteWhenFarMessage, sizeof(g_Config.m_QmAutoVoteWhenFarMessage));
+		s_VoteMessage.SetEmptyText(Localize("Leave empty to disable"));
+		ui_widget::InputField(TClientVotingTextInputCtx, &s_VoteMessage, VoteMessage, nullptr, EditBoxFontSize);
+	}
+	if(MeasureScope)
+	{
+		CSettingsContentLayoutCache Cache;
+		return Cache.Resolve(vRows, Content.w, 0, {})->Height();
+	}
+	return Content.y - StartY;
 }
 
 float CMenus::LayoutTClientFinishNameCard(const qm_card_catalog::SQmCardBuildContext &Ctx, CUIRect &Content, bool Render)
 {
 	ApplyTClientContentMetrics(Ctx.m_Metrics);
+	const float StartY = Content.y;
+	std::vector<SSettingsContentRowDeclaration> vRows;
+	std::optional<CSettingsContentLayoutScope> MeasureScope;
+	if(!Render && CSettingsContentLayoutScope::Current() == nullptr)
+		MeasureScope.emplace(vRows);
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Button, Label;
-	const float UiScale = Ctx.m_Metrics.m_UiScale;
-	const SSectionCullContext CullContext{Ctx.m_Page.m_ScrollViewport.y, Ctx.m_Page.m_ScrollViewport.y + Ctx.m_Page.m_ScrollViewport.h, 720.0f};
-	const auto ShouldRenderSection = [&](CUIRect Column, float Padding, float Height) {
-		Column.HSplitTop(Padding, nullptr, &Column);
-		Column.HSplitTop(Height, &Column, nullptr);
-		return IsSectionVisible(Column, CullContext);
-	};
-	const auto LogSettingsStage = [this](const char *pStage, const CPerfTimer &Timer) { LogTClientPerfStage(pStage, Timer.ElapsedMs(), false); };
-	auto LayoutFinishNameSection = [&](CUIRect &CurrentColumn, bool Render) {
-		CUIRect BoxRect;
-		CUIRect TmpRect;
-		CUIRect FinishNameBox;
-		IUiContext TClientFinishNameTextInputCtx;
-		TClientFinishNameTextInputCtx.m_pUi = Ui();
-		TClientFinishNameTextInputCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
-		TClientFinishNameTextInputCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
-		TClientFinishNameTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_finish_name_text_inputs");
-		TClientFinishNameTextInputCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-		CurrentColumn.HSplitTop(MarginBetweenSections, nullptr, &CurrentColumn);
-		BoxRect = CurrentColumn;
-		CurrentColumn.HSplitTop(HeadlineHeight, Render ? &Label : &TmpRect, &CurrentColumn);
-		if(Render)
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Finish Name"), HeadlineFontSize, TEXTALIGN_ML);
-		CurrentColumn.HSplitTop(MarginSmall, nullptr, &CurrentColumn);
-		CTClientSettingsRowAllocator Rows(CurrentColumn);
-		CUIRect ToggleRow = Rows.Next();
-		if(Render)
-			DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmChangeNameNearFinish, "tclient-change-name-near-finish", Localize("Attempt to change your name when near finish"), &g_Config.m_QmChangeNameNearFinish, &ToggleRow, LineSize);
-		if(g_Config.m_QmChangeNameNearFinish)
-		{
-			FinishNameBox = Rows.Next();
-			if(Render)
-			{
-				FinishNameBox.VSplitMid(&Label, &Button);
-				DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Finish Name:"), FontSize, TEXTALIGN_ML);
-				static CLineInput s_FinishName(g_Config.m_QmFinishName, sizeof(g_Config.m_QmFinishName));
-				ui_widget::InputField(TClientFinishNameTextInputCtx, &s_FinishName, Button, nullptr, EditBoxFontSize);
-			}
-		}
-		BoxRect.h = CurrentColumn.y - BoxRect.y;
-		return BoxRect;
-	};
-	CUIRect Measured = Content;
-	const CUIRect Box = LayoutFinishNameSection(Measured, false);
-	const float Header = Box.y - Content.y + HeadlineHeight + MarginSmall;
-	const float Height = Measured.y - Content.y - Header;
-	if(Render)
+	CUIRect FinishNameBox;
+	IUiContext TClientFinishNameTextInputCtx;
+	TClientFinishNameTextInputCtx.m_pUi = Ui();
+	TClientFinishNameTextInputCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
+	TClientFinishNameTextInputCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
+	TClientFinishNameTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_finish_name_text_inputs");
+	TClientFinishNameTextInputCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
+	CUIRect ToggleRow;
+	if(Flow.Control("finish-name-toggle", LineSize, ToggleRow, MarginSmall))
+		DoTClientSettingsButton_CheckBoxAutoVMarginAndSet(&g_Config.m_QmChangeNameNearFinish, "tclient-change-name-near-finish", Localize("Attempt to change your name when near finish"), &g_Config.m_QmChangeNameNearFinish, &ToggleRow, LineSize);
+	if(g_Config.m_QmChangeNameNearFinish)
 	{
-		CUIRect LegacyContent = Content;
-		LegacyContent.y -= Header;
-		LegacyContent.h += Header;
-		const CUIRect Clip = ResolveSettingsFocusSafeClipRect(Content, UiScale);
-		Ui()->ClipEnable(&Clip);
-		LayoutFinishNameSection(LegacyContent, true);
-		Ui()->ClipDisable();
-		Content.y = LegacyContent.y;
+		if(Flow.Control("finish-name", LineSize, FinishNameBox, MarginSmall))
+		{
+			FinishNameBox.VSplitMid(&Label, &Button);
+			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Label, Localize("Finish Name:"), FontSize, TEXTALIGN_ML);
+			static CLineInput s_FinishName(g_Config.m_QmFinishName, sizeof(g_Config.m_QmFinishName));
+			ui_widget::InputField(TClientFinishNameTextInputCtx, &s_FinishName, Button, nullptr, EditBoxFontSize);
+		}
 	}
-	return Height;
+	if(MeasureScope)
+	{
+		CSettingsContentLayoutCache Cache;
+		return Cache.Resolve(vRows, Content.w, 0, {})->Height();
+	}
+	return Content.y - StartY;
 }

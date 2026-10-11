@@ -79,16 +79,16 @@ void RenderSettingsCardCollapseButton(const IUiContext &Ctx, const CUIRect &Rect
 	RenderSettingsCardHeaderIcon(Ctx, Rect, Collapsed ? EQmIcon::CHEVRON_DOWN : EQmIcon::CHEVRON_UP, Collapsed ? FontIcons::FONT_ICON_CHEVRON_DOWN : FontIcons::FONT_ICON_CHEVRON_UP, DrawAlpha, pId);
 }
 
-SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const CUIRect &Slot, const SSettingsCardSpec &Spec, const SSettingsCardVisualState &State, const SSettingsCardDeckVisualOptions &VisualOptions, const FSettingsCardMeasure &Measure, const FSettingsCardRender &Render, const FSettingsCardHeaderAction &HeaderAction, const FSettingsCardRenderMeasured &RenderMeasured, bool *pPointerInside)
+SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const CUIRect &Slot, const SSettingsCardSpec &Spec, const SSettingsCardVisualState &State, const SSettingsCardDeckVisualOptions &VisualOptions, const FSettingsCardMeasure &Measure, const FSettingsCardRender &Render, const FSettingsCardHeaderAction &HeaderAction, const FSettingsCardRenderMeasured &RenderMeasured, bool *pPointerInside, float *pObservedContentHeight)
 {
 	const float UiScale = Ctx.m_UiScale > 0.0f ? Ctx.m_UiScale : 1.0f;
 	const float ContentWidth = std::max(0.0f, Slot.w - 2.0f * ui_token::settings::CARD_PADDING * UiScale);
 	const float ContentHeight = Measure ? std::max(0.0f, Measure(ContentWidth)) : 0.0f;
 	const SSettingsCardFrame Frame = BuildSettingsCardFrame(Slot, Spec, ContentHeight, UiScale);
-	return SettingsCard(Ctx, Frame, Spec, State, VisualOptions, Render, HeaderAction, RenderMeasured, pPointerInside);
+	return SettingsCard(Ctx, Frame, Spec, State, VisualOptions, Render, HeaderAction, RenderMeasured, pPointerInside, pObservedContentHeight);
 }
 
-SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame &Frame, const SSettingsCardSpec &Spec, const SSettingsCardVisualState &State, const SSettingsCardDeckVisualOptions &VisualOptions, const FSettingsCardRender &Render, const FSettingsCardHeaderAction &HeaderAction, const FSettingsCardRenderMeasured &RenderMeasured, bool *pPointerInside)
+SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame &Frame, const SSettingsCardSpec &Spec, const SSettingsCardVisualState &State, const SSettingsCardDeckVisualOptions &VisualOptions, const FSettingsCardRender &Render, const FSettingsCardHeaderAction &HeaderAction, const FSettingsCardRenderMeasured &RenderMeasured, bool *pPointerInside, float *pObservedContentHeight)
 {
 	const CQmCardLabelHintScope LabelHints(Ctx.m_pUi);
 	const float UiScale = Ctx.m_UiScale > 0.0f ? Ctx.m_UiScale : 1.0f;
@@ -99,7 +99,6 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	{
 		InfoButton = ResolveSettingsCardInfoRect(DrawFrame);
 		DrawFrame.m_TitleRect.w = std::min(DrawFrame.m_TitleRect.w, std::max(0.0f, InfoButton.x - DrawFrame.m_TitleRect.x - ui_token::spacing::XS));
-		DrawFrame.m_SubtitleRect.w = DrawFrame.m_TitleRect.w;
 	}
 	DrawState.m_PointerInside = Ctx.m_pUi != nullptr && Ctx.m_pUi->MouseHovered(&DrawFrame.m_Rect);
 	if(pPointerInside != nullptr)
@@ -112,11 +111,10 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	// 普通 hover 只触发悬浮说明；重排与拖放反馈只改变边框，卡片背景透明度保持稳定，避免滚动或切页时闪烁。
 	// 完成反馈只属于显式拖放。普通高度/布局变化不得改变卡片 chrome，
 	// 否则半透明卡片在展开、折叠或首次布局时会表现为一次亮闪。
-	const bool InteractionComplete = DrawState.m_DropFeedback;
-	// 普通卡片只是内容容器，指针进入不改变背景。焦点和拖放才需要轮廓反馈，
+	// 普通卡片只是内容容器，指针进入不改变背景。拖放才需要轮廓反馈，
 	// 且不能被“常驻边框”关闭选项一并隐藏。
 	const bool DrawNormalBorder = VisualOptions.m_AlwaysShowBorders;
-	const bool DrawAttentionBorder = DrawState.m_Focused || DrawState.m_Dragged || InteractionComplete;
+	const bool DrawAttentionBorder = SettingsCardInteractionBorderVisible(DrawState);
 	ColorRGBA Border = DrawAttentionBorder ? Theme.m_BorderFocused : VisualOptions.m_BorderColor;
 	Border.a *= DrawState.m_DrawAlpha;
 	ColorRGBA Surface = ResolveSettingsCardSurfaceColor(VisualOptions.m_UseSurfaceColor ? VisualOptions.m_SurfaceColor : Theme.m_Surface, DrawState);
@@ -124,11 +122,18 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	// 绘制和命中、内容使用同一份连续几何，避免滑动时边缘逐像素跳动。
 	const CUIRect &ChromeRect = DrawFrame.m_Rect;
 	const float CardRadius = std::min(ui_token::settings::CARD_RADIUS * UiScale, std::min(ChromeRect.w, ChromeRect.h) * 0.5f);
-	// 焦点与拖放只能改变边框颜色，普通 hover 不参与 chrome；任何状态都不能改变
+	// 拖放只能改变边框颜色，普通 hover 不参与 chrome；任何状态都不能改变
 	// Surface 的几何，否则边框获得焦点时会产生一次内缩跳变并重新触发卡片闪动。
 	const float BorderWidth = ResolveSettingsCardBorderWidth(UiScale, PixelSize);
 	if(DrawCardChrome)
 		DrawRoundedSurface(Ctx, ChromeRect, Surface, Border, CardRadius, DrawNormalBorder || DrawAttentionBorder ? BorderWidth : 0.0f);
+	if(Ctx.m_pUi != nullptr && Ctx.m_pTooltips != nullptr && Spec.m_pStableId != nullptr)
+	{
+		ExecuteSettingsCardSubtitleTooltip(Spec, DrawFrame.m_Rect, DrawState.m_PointerInside, DrawCardChrome, [&](const CUIRect &Anchor, const char *pText) {
+			const uint64_t Key = BuildUiAnimNodeKey(Ctx.m_ScopeHash ^ str_quickhash("card-subtitle-tip"), str_quickhash(Spec.m_pStableId));
+			Ctx.m_pTooltips->DoSmallToolTip(reinterpret_cast<const void *>(static_cast<uintptr_t>(Key)), &Anchor, pText, ResolveSettingsSmallFontSize(UiScale), ResolveSettingsCardInfoWidth(Ctx.m_pUi->Screen()->w, UiScale));
+		});
+	}
 
 	if(Ctx.m_pUi != nullptr && Ctx.m_pTextRender != nullptr)
 	{
@@ -138,6 +143,9 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 		const unsigned PreviousRenderFlags = Ctx.m_pTextRender->GetRenderFlags();
 		const EFontPreset PreviousFontPreset = Ctx.m_pTextRender->GetFontPreset();
 		CUiScopedSurfaceText HeaderSurfaceText(Ctx.m_pTextRender, Surface);
+		// 卡片标题不按普通设置标签规则拆括号。
+		const CQmCardLabelHintScope HeaderLabelHints(Ctx.m_pUi, false);
+		Ctx.m_pTextRender->SetFontPreset(EFontPreset::DEFAULT_FONT);
 		ColorRGBA TitleColor = ResolveConfiguredTextColor(Surface);
 		// 彩虹标题由「彩虹卡片标题」独立开关控制，优先于全局文本颜色模式；
 		// 文本颜色模式只约束普通文本，不得覆盖卡片标题的彩虹流动效果。
@@ -153,14 +161,6 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 		TitleProps.m_MaxWidth = DrawFrame.m_TitleRect.w;
 		TitleProps.m_EllipsisAtEnd = true;
 		RenderSettingsCardLabel(Ctx, Spec, false, DrawFrame.m_TitleRect, Spec.m_pTitle != nullptr ? Spec.m_pTitle : "", ui_token::font::TITLE * UiScale, TitleProps);
-		if(DrawCardChrome && Ctx.m_pTooltips != nullptr && Spec.m_pStableId != nullptr && Ctx.m_pUi->MouseHovered(&DrawFrame.m_TitleRect))
-		{
-			CUIRect TitleAnchor = DrawFrame.m_TitleRect;
-			TitleAnchor.w = std::min(TitleAnchor.w, Ctx.m_pTextRender->TextWidth(ui_token::font::TITLE * UiScale, Spec.m_pTitle != nullptr ? Spec.m_pTitle : ""));
-			const uint64_t Key = BuildUiAnimNodeKey(Ctx.m_ScopeHash ^ str_quickhash("card-title-tip"), str_quickhash(Spec.m_pStableId));
-			const std::string Help = SettingsCardTooltipText(Spec);
-			Ctx.m_pTooltips->DoSmallToolTip(reinterpret_cast<const void *>(static_cast<uintptr_t>(Key)), &TitleAnchor, Help.c_str(), ResolveSettingsSmallFontSize(UiScale), ResolveSettingsCardInfoWidth(Ctx.m_pUi->Screen()->w, UiScale));
-		}
 		// 标题只影响本卡片，不能把调用方的文本状态写死为默认白色。
 		Ctx.m_pTextRender->SetRenderFlags(PreviousRenderFlags);
 		Ctx.m_pTextRender->SetFontPreset(PreviousFontPreset);
@@ -176,7 +176,8 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 
 	if(HeaderAction && DrawCardChrome)
 		HeaderAction(DrawFrame, DrawState.m_Collapsed);
-	const bool ClipContent = DrawState.m_ClipContent && Ctx.m_pUi != nullptr && DrawFrame.m_ContentRect.w > 0.0f && DrawFrame.m_ContentRect.h > 0.0f;
+	// 空内容变为非空的首帧也裁剪；随后消费高度反馈使 Deck 自动扩高。
+	const bool ClipContent = DrawState.m_ClipContent && Ctx.m_pUi != nullptr && DrawFrame.m_ContentRect.w > 0.0f;
 	if(ClipContent)
 	{
 		const CUIRect ClipRect = ResolveSettingsCardContentClipRect(DrawFrame.m_ContentRect, DrawFrame.m_Rect, UiScale);
@@ -187,7 +188,9 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	if(RenderMeasured)
 	{
 		CUIRect ContentRect = DrawFrame.m_ContentRect;
-		RenderMeasured(ContentRect);
+		const float ObservedHeight = RenderSettingsCardObservedContent(RenderMeasured, ContentRect);
+		if(pObservedContentHeight != nullptr)
+			*pObservedContentHeight = ObservedHeight;
 	}
 	else if(Render)
 		Render(DrawFrame.m_ContentRect);

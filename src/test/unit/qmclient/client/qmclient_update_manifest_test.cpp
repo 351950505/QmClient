@@ -9,6 +9,25 @@
 
 #include <utility>
 
+TEST(QmClientUpdateAction, MetadataWithoutNewVersionOnlyOffersCheck)
+{
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, true, false, false), EQmClientUpdateAction::CHECK);
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, false, false, true), EQmClientUpdateAction::CHECK);
+}
+
+TEST(QmClientUpdateAction, CompatibleNewVersionOffersDownloadBeforeInstall)
+{
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, true, false, true), EQmClientUpdateAction::DOWNLOAD);
+	EXPECT_EQ(ResolveQmClientUpdateAction(true, false, true, false, true), EQmClientUpdateAction::CANCEL);
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, true, true, false, true), EQmClientUpdateAction::INSTALL);
+}
+
+TEST(QmClientUpdateAction, FailureOffersRetryAndRecoveredMetadataOffersDownload)
+{
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, true, true, true), EQmClientUpdateAction::RETRY);
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, true, false, true), EQmClientUpdateAction::DOWNLOAD);
+}
+
 namespace
 {
 	void WriteRelease(CJsonWriter &Writer, const char *pTag, bool Prerelease, bool Draft = false, bool Complete = true)

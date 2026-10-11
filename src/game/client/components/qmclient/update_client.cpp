@@ -40,7 +40,10 @@ void CTClient::InitUpdateLifecycle()
 {
 	m_UpdateAutoEnabled = g_Config.m_QmAutoUpdate != 0;
 	if(g_Config.m_QmAutoUpdate)
+	{
+		m_QmClientAutoUpdateAfterCheck = true;
 		FetchQmClientUpdateInfo();
+	}
 }
 
 void CTClient::ShutdownUpdateLifecycle()
@@ -168,10 +171,30 @@ bool CTClient::NeedQmClientUpdate()
 
 void CTClient::RequestQmClientUpdateCheckAndUpdate()
 {
+	RequestQmClientUpdateCheck(true);
+}
+
+bool CTClient::CanDownloadQmClientUpdate() const
+{
+	return m_FetchedQmClientUpdateInfo && m_UpdateRelease.m_NewVersion && (m_UpdateRelease.m_PackageAvailable || m_UpdateUseSetup);
+}
+
+void CTClient::RequestQmClientUpdateDownload()
+{
+	if(IsUpdateChecking() || IsUpdateDownloading() || m_UpdateReady || m_UpdateInstallerStarted || !CanDownloadQmClientUpdate())
+		return;
+	m_UpdateCheckFailed = false;
+	m_UpdateNetworkError = false;
+	m_aUpdateError[0] = '\0';
+	StartUpdateSourceSurvey();
+}
+
+void CTClient::RequestQmClientUpdateCheck(const bool UpdateAfterCheck)
+{
 	if(IsUpdateChecking() || IsUpdateDownloading() || m_UpdateReady || m_UpdateInstallerStarted)
 		return;
 
-	m_QmClientAutoUpdateAfterCheck = true;
+	m_QmClientAutoUpdateAfterCheck = UpdateAfterCheck;
 	m_FetchedQmClientUpdateInfo = false;
 	m_UpdateCheckFailed = false;
 	FetchQmClientUpdateInfo();
@@ -551,7 +574,7 @@ void CTClient::FinishQmClientUpdateInfo()
 	m_UpdateNetworkError = false;
 	++m_UpdateInfoRevision;
 	log_info("qm-update", "release_info version=%s newer=%d package_available=%d", Release.m_aVersion, Release.m_NewVersion, Release.m_PackageAvailable);
-	if(Release.m_NewVersion)
+	if(Release.m_NewVersion && m_QmClientAutoUpdateAfterCheck)
 		StartUpdateSourceSurvey();
 }
 
@@ -561,7 +584,10 @@ void CTClient::StartUpdateCheckIfDue()
 	if(!g_Config.m_QmAutoUpdate || m_UpdateShutdownRequested || m_UpdateReady || IsUpdateChecking() || IsUpdateDownloading())
 		return;
 	if(m_UpdateNextCheck == 0 || time_get() >= m_UpdateNextCheck)
+	{
+		m_QmClientAutoUpdateAfterCheck = true;
 		FetchQmClientUpdateInfo();
+	}
 #endif
 }
 

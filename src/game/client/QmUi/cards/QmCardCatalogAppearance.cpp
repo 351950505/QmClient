@@ -22,6 +22,8 @@
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsIconOptions.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiContext.h>
@@ -30,6 +32,7 @@
 #include <game/client/QmUi/UiSurface.h>
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/QmUi/cards/QmCardCatalog.h>
+#include <game/client/QmUi/cards/QmCardCatalogInternal.h>
 #include <game/client/QmUi/cards/QmCardCatalogTeeMetrics.h>
 #include <game/client/animstate.h>
 #include <game/client/components/chat.h>
@@ -98,8 +101,10 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 
 	CUIRect ContentView = MainView;
 	auto DoAppearanceHeading = [this, AppearanceTab](CUIRect &View, const char *pTextId, const char *pText, float FontSize, float LineHeight) {
+		CSettingsContentLayoutFlow Flow(View);
 		CUIRect Heading;
-		View.HSplitTop(LineHeight, &Heading, &View);
+		if(!Flow.Control(pTextId, LineHeight, Heading))
+			return;
 		CUIElement &HeadingElement = SettingsTextElement(SETTINGS_APPEARANCE, AppearanceTab, pTextId);
 		DoSettingsLabelStreamed(HeadingElement, &Heading, pText, FontSize, TEXTALIGN_ML);
 	};
@@ -186,21 +191,42 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 	const uint64_t NamePlatePreviewMeasureRevision = AppearanceTab == APPEARANCE_TAB_NAME_PLATE ? ResolveNamePlatePreviewMeasureRevision() : 0;
 	const auto BuildDefinitions = [=, this](std::vector<SSettingsCardDefinition> &vCards) {
 		vCards.reserve(std::size(aAppearanceIds));
-		const auto AddCard = [&vCards, &CardSpec](size_t Index, float ContentHeight, FSettingsCardRender Render) {
+		const auto DeclareDefinition = [&Ctx](SSettingsCardDefinition &Definition) {
+			const auto Render = Definition.m_Render;
+			Definition.m_RenderMeasured = [Render](CUIRect &Rect) { Render(Rect); };
+			qm_card_catalog::UseDeclaredModuleContent(Ctx, Definition);
+		};
+		const auto DeclaredCheckbox = [this](int Page, int Tab, const void *pId, const char *pTextId, const char *pText, int *pValue, CUIRect *pView, float Height, float Spacing, float FontSize) {
+			CSettingsContentLayoutFlow Flow(*pView);
+			CUIRect Row;
+			const bool Changed = Flow.Control(pTextId, Height, Row) && DoSettingsButton_CheckBoxAutoVMarginAndSet(Page, Tab, pId, pTextId, pText, pValue, &Row, Height, 0.0f, FontSize);
+			Flow.Space(Spacing);
+			return Changed;
+		};
+		const auto AddCard = [&vCards, &CardSpec, &DeclareDefinition](size_t Index, float ContentHeight, FSettingsCardRender Render) {
 			const SSettingsCardSpec Spec = CardSpec(Index);
 			SSettingsCardDefinition Definition;
 			Definition.m_Spec = Spec;
-			Definition.m_Measure = [ContentHeight](float) { return maximum(0.0f, ContentHeight); };
-			Definition.m_Render = std::move(Render);
-			Definition.m_MeasureRevision = static_cast<uint64_t>(maximum(0.0f, ContentHeight) * 1000.0f);
+			if(Index == 8 || Index == 12)
+			{
+				const std::string Id = std::string(Spec.m_pStableId) + ":preview";
+				Definition.m_Render = [Render = std::move(Render), Id, ContentHeight](CUIRect Rect) {
+					CSettingsContentLayoutFlow Flow(Rect);
+					CUIRect Block;
+					if(Flow.Control(Id.c_str(), ContentHeight, Block))
+						Render(Block);
+				};
+			}
+			else
+				Definition.m_Render = std::move(Render);
+			DeclareDefinition(Definition);
 			vCards.push_back(std::move(Definition));
 		};
-		const auto AddMeasuredCard = [&vCards, &CardSpec](size_t Index, FSettingsCardMeasure Measure, FSettingsCardRender Render, uint64_t MeasureRevision) {
+		const auto AddMeasuredCard = [&vCards, &CardSpec, &Ctx](size_t Index, FSettingsCardMeasure Measure, FSettingsCardRender Render) {
 			SSettingsCardDefinition Definition;
 			Definition.m_Spec = CardSpec(Index);
-			Definition.m_Measure = std::move(Measure);
 			Definition.m_Render = std::move(Render);
-			Definition.m_MeasureRevision = MeasureRevision;
+			qm_settings_content::UseDeclaredBlockContent(Definition, Ctx.m_UiContext.m_pUi, qm_card_catalog::QmCardRenderHook::TextRenderer(Ctx.m_pMenus), std::move(Measure));
 			vCards.push_back(std::move(Definition));
 		};
 
@@ -209,130 +235,117 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 			CPerfTimer HudShellTimer;
 			LogPerfStage(Client(), "appearance_hud_text_cache", HudShellTimer.ElapsedMs(), false, "page=appearance tab=hud section=text_cache");
 			LogPerfStage(Client(), "appearance_hud_tab_shell", HudShellTimer.ElapsedMs(), false, "page=appearance tab=hud");
-			const float HudLeftMinCardHeight = ResolveSettingsRowsHeight(6, LineSize, MarginSmall) + MarginSmall + MarginBetweenViews + HeadlineHeight + MarginSmall + ColorPickerRowHeight * 4.0f;
-			const auto ResolveHudRightMinCardHeight = [LineSize, MarginSmall]() {
-				const int HudRightCheckboxRowCount = 8 + (g_Config.m_ClShowhudDDRace ? 2 : 0);
-				return ResolveSettingsRowsHeight(HudRightCheckboxRowCount, LineSize, MarginSmall) + MarginSmall * 3.0f + (g_Config.m_ClShowFreezeBars ? LineSize : 0.0f);
-			};
-			AddCard(0, HudLeftMinCardHeight, [=, this](CUIRect ContentRect) mutable {
+			AddCard(0, 0.0f, [=, this](CUIRect ContentRect) mutable {
 				CUIRect LeftView = ContentRect;
+				CSettingsContentLayoutFlow Flow(LeftView);
 				CPerfTimer HudCoreTimer;
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhud, "appearance-show-ingame-hud", Localize("Show ingame HUD"), &g_Config.m_ClShowhud, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudHealthAmmo, "appearance-show-health-shields-ammo", Localize("Show health, shields and ammo"), &g_Config.m_ClShowhudHealthAmmo, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudScore, "appearance-show-score", Localize("Show score"), &g_Config.m_ClShowhudScore, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowLocalTimeAlways, "appearance-show-local-time-always", Localize("Show local time always"), &g_Config.m_ClShowLocalTimeAlways, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClSpecCursor, "appearance-show-spectator-cursor", Localize("Show spectator cursor"), &g_Config.m_ClSpecCursor, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowVotesAfterVoting, "appearance-show-votes-after-voting", Localize("Show votes window after voting"), &g_Config.m_ClShowVotesAfterVoting, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
-				LeftView.HSplitTop(MarginBetweenViews, nullptr, &LeftView);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhud, "appearance-show-ingame-hud", Localize("Show ingame HUD"), &g_Config.m_ClShowhud, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudHealthAmmo, "appearance-show-health-shields-ammo", Localize("Show health, shields and ammo"), &g_Config.m_ClShowhudHealthAmmo, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudScore, "appearance-show-score", Localize("Show score"), &g_Config.m_ClShowhudScore, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowLocalTimeAlways, "appearance-show-local-time-always", Localize("Show local time always"), &g_Config.m_ClShowLocalTimeAlways, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClSpecCursor, "appearance-show-spectator-cursor", Localize("Show spectator cursor"), &g_Config.m_ClSpecCursor, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowVotesAfterVoting, "appearance-show-votes-after-voting", Localize("Show votes window after voting"), &g_Config.m_ClShowVotesAfterVoting, &LeftView, LineSize, MarginSmall, AppearanceBodySize);
+				Flow.Space(MarginBetweenViews);
 				CUIRect ScoreboardTitle;
-				LeftView.HSplitTop(HeadlineHeight, &ScoreboardTitle, &LeftView);
-				CUIElement &ScoreboardTitleText = SettingsTextElement(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, "appearance-scoreboard-title");
-				DoSettingsLabelStreamed(ScoreboardTitleText, &ScoreboardTitle, Localize("Scoreboard"), HeadlineFontSize, TEXTALIGN_ML);
-				LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
+				if(Flow.Control("appearance-scoreboard-title", HeadlineHeight, ScoreboardTitle))
+				{
+					CUIElement &ScoreboardTitleText = SettingsTextElement(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, "appearance-scoreboard-title");
+					DoSettingsLabelStreamed(ScoreboardTitleText, &ScoreboardTitle, Localize("Scoreboard"), HeadlineFontSize, TEXTALIGN_ML);
+				}
+				Flow.Space(MarginSmall);
 				ColorRGBA GreenDefault(0.78f, 1.0f, 0.8f, 1.0f);
 				static CButtonContainer s_AuthedColor, s_SameClanColor, s_FriendsListFriendColor, s_FriendsListClanColor;
-				DoLine_ColorPicker(&s_AuthedColor, AppearanceMetrics, &LeftView, Localize("Authed name color in scoreboard"), &g_Config.m_ClAuthedPlayerColor, GreenDefault, false);
-				DoLine_ColorPicker(&s_SameClanColor, AppearanceMetrics, &LeftView, Localize("Same clan color in scoreboard"), &g_Config.m_ClSameClanColor, GreenDefault, false);
-				DoLine_ColorPicker(&s_FriendsListFriendColor, AppearanceMetrics, &LeftView, Localize("Friend color in friends list"), &g_Config.m_ClFriendsListFriendColor, ColorRGBA(0.949f, 0.806f, 0.368f), false);
-				DoLine_ColorPicker(&s_FriendsListClanColor, AppearanceMetrics, &LeftView, Localize("Clan color in friends list"), &g_Config.m_ClFriendsListClanColor, ColorRGBA(0.336f, 0.231f, 0.867f), false);
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClAuthedPlayerColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_AuthedColor, AppearanceMetrics, &ColorRow, Localize("Authed name color in scoreboard"), &g_Config.m_ClAuthedPlayerColor, GreenDefault, false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClSameClanColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_SameClanColor, AppearanceMetrics, &ColorRow, Localize("Same clan color in scoreboard"), &g_Config.m_ClSameClanColor, GreenDefault, false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClFriendsListFriendColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_FriendsListFriendColor, AppearanceMetrics, &ColorRow, Localize("Friend color in friends list"), &g_Config.m_ClFriendsListFriendColor, ColorRGBA(0.949f, 0.806f, 0.368f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClFriendsListClanColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_FriendsListClanColor, AppearanceMetrics, &ColorRow, Localize("Clan color in friends list"), &g_Config.m_ClFriendsListClanColor, ColorRGBA(0.336f, 0.231f, 0.867f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
 				LogPerfStage(Client(), "appearance_hud_core_section", HudCoreTimer.ElapsedMs(), false, "page=appearance tab=hud section=core");
 			});
-			AddCard(1, ResolveHudRightMinCardHeight(), [=, this](CUIRect ContentRect) mutable {
+			AddCard(1, 0.0f, [=, this](CUIRect ContentRect) mutable {
 				CUIRect RightView = ContentRect;
+				CSettingsContentLayoutFlow Flow(RightView);
 				CPerfTimer HudDdraceTimer;
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowIds, "appearance-show-client-ids", Localize("Show client IDs (scoreboard, chat, spectating)"), &g_Config.m_ClShowIds, &RightView, LineSize, MarginSmall, AppearanceBodySize);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudDDRace, "appearance-show-ddrace-hud", Localize("Show DDRace HUD"), &g_Config.m_ClShowhudDDRace, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowIds, "appearance-show-client-ids", Localize("Show client IDs (scoreboard, chat, spectating)"), &g_Config.m_ClShowIds, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudDDRace, "appearance-show-ddrace-hud", Localize("Show DDRace HUD"), &g_Config.m_ClShowhudDDRace, &RightView, LineSize, MarginSmall, AppearanceBodySize);
 				if(g_Config.m_ClShowhudDDRace)
 				{
-					DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClHudRainbowColors, "appearance-hud-rainbow-colors", Localize("HUD rainbow colors"), &g_Config.m_ClHudRainbowColors, &RightView, LineSize, MarginSmall, AppearanceBodySize);
-					DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudJumpsIndicator, "appearance-show-jumps-indicator", Localize("Show jumps indicator"), &g_Config.m_ClShowhudJumpsIndicator, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+					DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClHudRainbowColors, "appearance-hud-rainbow-colors", Localize("HUD rainbow colors"), &g_Config.m_ClHudRainbowColors, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+					DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudJumpsIndicator, "appearance-show-jumps-indicator", Localize("Show jumps indicator"), &g_Config.m_ClShowhudJumpsIndicator, &RightView, LineSize, MarginSmall, AppearanceBodySize);
 				}
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudSpectatorCount, "appearance-show-spectator-count", Localize("Show number of spectators"), &g_Config.m_ClShowhudSpectatorCount, &RightView, LineSize, MarginSmall, AppearanceBodySize);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudDummyActions, "appearance-show-dummy-actions", Localize("Show dummy actions"), &g_Config.m_ClShowhudDummyActions, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudSpectatorCount, "appearance-show-spectator-count", Localize("Show number of spectators"), &g_Config.m_ClShowhudSpectatorCount, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudDummyActions, "appearance-show-dummy-actions", Localize("Show dummy actions"), &g_Config.m_ClShowhudDummyActions, &RightView, LineSize, MarginSmall, AppearanceBodySize);
 				// 卡键/锤子/分身控制/分身同步四个状态开关与自定义 bind 状态列表已迁移到 QmClient → HUD → DDRace HUD Pro 卡片
-				RightView.HSplitTop(MarginSmall, nullptr, &RightView);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudPlayerPosition, "appearance-show-player-position", Localize("Show player position"), &g_Config.m_ClShowhudPlayerPosition, &RightView, LineSize, MarginSmall, AppearanceBodySize);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudPlayerSpeed, "appearance-show-player-speed", Localize("Show player speed"), &g_Config.m_ClShowhudPlayerSpeed, &RightView, LineSize, MarginSmall, AppearanceBodySize);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudPlayerAngle, "appearance-show-player-target-angle", Localize("Show player target angle"), &g_Config.m_ClShowhudPlayerAngle, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+				Flow.Space(MarginSmall);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudPlayerPosition, "appearance-show-player-position", Localize("Show player position"), &g_Config.m_ClShowhudPlayerPosition, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudPlayerSpeed, "appearance-show-player-speed", Localize("Show player speed"), &g_Config.m_ClShowhudPlayerSpeed, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowhudPlayerAngle, "appearance-show-player-target-angle", Localize("Show player target angle"), &g_Config.m_ClShowhudPlayerAngle, &RightView, LineSize, MarginSmall, AppearanceBodySize);
 				LogPerfStage(Client(), "appearance_hud_ddrace_section", HudDdraceTimer.ElapsedMs(), false, "page=appearance tab=hud section=ddrace");
 				CPerfTimer HudFreezeBarsTimer;
-				RightView.HSplitTop(MarginSmall, nullptr, &RightView);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowFreezeBars, "appearance-show-freeze-bars", Localize("Show freeze bars"), &g_Config.m_ClShowFreezeBars, &RightView, LineSize, MarginSmall, AppearanceBodySize);
+				Flow.Space(MarginSmall);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HUD, &g_Config.m_ClShowFreezeBars, "appearance-show-freeze-bars", Localize("Show freeze bars"), &g_Config.m_ClShowFreezeBars, &RightView, LineSize, MarginSmall, AppearanceBodySize);
 				if(g_Config.m_ClShowFreezeBars)
 				{
-					RightView.HSplitTop(LineSize, &Button, &RightView);
-					DoAppearanceNumericField(APPEARANCE_TAB_HUD, "appearance-freeze-bars-alpha-inside-freeze", &g_Config.m_ClFreezeBarsAlphaInsideFreeze, &g_Config.m_ClFreezeBarsAlphaInsideFreeze, Button, Localize("Opacity of freeze bars inside freeze"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+					if(Flow.Control("appearance-freeze-bars-alpha-inside-freeze", LineSize, Button))
+					{
+						DoAppearanceNumericField(APPEARANCE_TAB_HUD, "appearance-freeze-bars-alpha-inside-freeze", &g_Config.m_ClFreezeBarsAlphaInsideFreeze, &g_Config.m_ClFreezeBarsAlphaInsideFreeze, Button, Localize("Opacity of freeze bars inside freeze"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+					}
+					Flow.Space(MarginSmall);
 				}
 				LogPerfStage(Client(), "appearance_hud_freeze_bars_section", HudFreezeBarsTimer.ElapsedMs(), false, "page=appearance tab=hud section=freeze_bars");
 			});
-			vCards.back().m_Measure = [ResolveHudRightMinCardHeight](float) { return ResolveHudRightMinCardHeight(); };
-			vCards.back().m_MeasureRevision = static_cast<uint64_t>(g_Config.m_ClShowhudDDRace != 0) | (static_cast<uint64_t>(g_Config.m_ClShowFreezeBars != 0) << 1);
-			vCards.back().m_PreLayoutInput = [this, LineSize, MarginSmall](CUIRect Content) {
-				if(m_MenuTextPlanCollecting)
-					return false;
-				CUIRect RightView = Content;
-				CUIRect Row;
-				const auto NextRow = [&]() {
-					RightView.HSplitTop(LineSize, &Row, &RightView);
-					RightView.HSplitTop(MarginSmall, nullptr, &RightView);
-					return Row;
-				};
-				const auto ProcessToggle = [this](CUIRect ToggleRow, int *pValue) {
-					if(!Ui()->DoButtonLogic(pValue, 0, &ToggleRow, BUTTONFLAG_LEFT))
-						return false;
-					*pValue ^= 1;
-					return true;
-				};
-				NextRow();
-				bool Changed = ProcessToggle(NextRow(), &g_Config.m_ClShowhudDDRace);
-				if(g_Config.m_ClShowhudDDRace)
-				{
-					NextRow();
-					NextRow();
-				}
-				for(int RowIndex = 0; RowIndex < 2; ++RowIndex)
-					NextRow();
-				RightView.HSplitTop(MarginSmall, nullptr, &RightView);
-				for(int RowIndex = 0; RowIndex < 3; ++RowIndex)
-					NextRow();
-				RightView.HSplitTop(MarginSmall, nullptr, &RightView);
-				Changed = ProcessToggle(NextRow(), &g_Config.m_ClShowFreezeBars) || Changed;
-				return Changed;
-			};
 		}
 		else if(AppearanceTab == APPEARANCE_TAB_CHAT)
 		{
 			CChat *pChat = &GameClient()->m_Chat;
 			static int s_AppearanceAlwaysShowChat = 0;
 			// ***** Chat ***** //
-			const auto ResolveChatSettingsMinCardHeight = [LineSize, MarginSmall, ColorPickerRowHeight]() {
-				const int ChatSettingsRowCount = 10 + (g_Config.m_ClShowChat != 0 ? 1 : 0) + (g_Config.m_QmChatLogAutoSave != 0 ? 1 : 0);
-				return ResolveSettingsRowsHeight(ChatSettingsRowCount, LineSize, MarginSmall) + MarginSmall + ColorPickerRowHeight;
-			};
 			SSettingsCardDefinition ChatSettingsDefinition;
 			ChatSettingsDefinition.m_Spec = CardSpec(2);
-			ChatSettingsDefinition.m_Measure = [ResolveChatSettingsMinCardHeight](float) { return ResolveChatSettingsMinCardHeight(); };
 			ChatSettingsDefinition.m_Render = [=, this](CUIRect ContentRect) mutable {
 				CUIRect LeftView = ContentRect;
-				const auto NextChatRow = [&](CUIRect &Row) {
-					LeftView.HSplitTop(LineSize, &Row, &LeftView);
-					LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
-				};
+				CSettingsContentLayoutFlow Flow(LeftView);
 				const auto DoChatCheckBox = [&](const void *pId, const char *pTextId, const char *pText, int *pValue) {
-					DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, pId, pTextId, pText, pValue, &LeftView, LineSize, 0.0f, AppearanceBodySize);
-					LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
+					DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, pId, pTextId, pText, pValue, &LeftView, LineSize, 0.0f, AppearanceBodySize);
+					Flow.Space(MarginSmall);
 				};
 				// General chat settings
-				NextChatRow(Button);
-				if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, &g_Config.m_ClShowChat, "appearance-show-chat", Localize("Show chat"), g_Config.m_ClShowChat, &Button))
+				if(Flow.Control("appearance-show-chat", LineSize, Button))
 				{
-					g_Config.m_ClShowChat = g_Config.m_ClShowChat ? 0 : 1;
+					if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, &g_Config.m_ClShowChat, "appearance-show-chat", Localize("Show chat"), g_Config.m_ClShowChat, &Button))
+					{
+						g_Config.m_ClShowChat = g_Config.m_ClShowChat ? 0 : 1;
+					}
 				}
+				Flow.Space(MarginSmall);
+
 				if(g_Config.m_ClShowChat)
 				{
-					NextChatRow(Button);
-					if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, &s_AppearanceAlwaysShowChat, "appearance-always-show-chat", Localize("Always show chat"), g_Config.m_ClShowChat == 2, &Button))
-						g_Config.m_ClShowChat = g_Config.m_ClShowChat != 2 ? 2 : 1;
+					if(Flow.Control("appearance-always-show-chat", LineSize, Button))
+					{
+						if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, &s_AppearanceAlwaysShowChat, "appearance-always-show-chat", Localize("Always show chat"), g_Config.m_ClShowChat == 2, &Button))
+							g_Config.m_ClShowChat = g_Config.m_ClShowChat != 2 ? 2 : 1;
+					}
+					Flow.Space(MarginSmall);
 				}
 
 				DoChatCheckBox(&g_Config.m_ClChatTeamColors, "appearance-chat-team-colors", Localize("Show names in chat in team colors"), &g_Config.m_ClChatTeamColors);
@@ -343,71 +356,59 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 				DoChatCheckBox(&g_Config.m_QmChatLogAutoSave, "appearance-chat-log-auto-save", Localize("Auto save chat log"), &g_Config.m_QmChatLogAutoSave);
 				if(g_Config.m_QmChatLogAutoSave)
 				{
-					NextChatRow(Button);
-					DoAppearanceNumericField(APPEARANCE_TAB_CHAT, "appearance-chat-log-keep-days", &g_Config.m_QmChatLogKeepDays, &g_Config.m_QmChatLogKeepDays, Button, Localize("Chat log retention days"), 0, 3650, &CUi::ms_LinearScrollbarScale, 0, "", Localize("Days"));
+					if(Flow.Control("appearance-chat-log-keep-days", LineSize, Button))
+					{
+						DoAppearanceNumericField(APPEARANCE_TAB_CHAT, "appearance-chat-log-keep-days", &g_Config.m_QmChatLogKeepDays, &g_Config.m_QmChatLogKeepDays, Button, Localize("Chat log retention days"), 0, 3650, &CUi::ms_LinearScrollbarScale, 0, "", Localize("Days"));
+					}
+					Flow.Space(MarginSmall);
 				}
 
-				if(DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, &g_Config.m_ClChatOld, "appearance-use-old-chat-style", Localize("Use old chat style"), &g_Config.m_ClChatOld, &LeftView, LineSize, 0.0f, AppearanceBodySize))
+				if(DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, &g_Config.m_ClChatOld, "appearance-use-old-chat-style", Localize("Use old chat style"), &g_Config.m_ClChatOld, &LeftView, LineSize, 0.0f, AppearanceBodySize))
 					GameClient()->m_Chat.RebuildChat();
-				LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
+				Flow.Space(MarginSmall);
 
 				// Profanity censor checkbox intentionally stays disabled here.
 
-				NextChatRow(Button);
-				if(DoAppearanceNumericField(APPEARANCE_TAB_CHAT, "appearance-chat-font-size", &g_Config.m_ClChatFontSize, &g_Config.m_ClChatFontSize, Button, Localize("Chat font size"), 10, 100))
+				if(Flow.Control("appearance-chat-font-size", LineSize, Button))
 				{
-					pChat->EnsureCoherentWidth();
-					pChat->RebuildChat();
+					if(DoAppearanceNumericField(APPEARANCE_TAB_CHAT, "appearance-chat-font-size", &g_Config.m_ClChatFontSize, &g_Config.m_ClChatFontSize, Button, Localize("Chat font size"), 10, 100))
+					{
+						pChat->EnsureCoherentWidth();
+						pChat->RebuildChat();
+					}
 				}
+				Flow.Space(MarginSmall);
 
-				NextChatRow(Button);
-				if(DoAppearanceNumericField(APPEARANCE_TAB_CHAT, "appearance-chat-width", &g_Config.m_ClChatWidth, &g_Config.m_ClChatWidth, Button, Localize("Chat width"), 120, 400))
+				if(Flow.Control("appearance-chat-width", LineSize, Button))
 				{
-					pChat->EnsureCoherentFontSize();
-					pChat->RebuildChat();
+					if(DoAppearanceNumericField(APPEARANCE_TAB_CHAT, "appearance-chat-width", &g_Config.m_ClChatWidth, &g_Config.m_ClChatWidth, Button, Localize("Chat width"), 120, 400))
+					{
+						pChat->EnsureCoherentFontSize();
+						pChat->RebuildChat();
+					}
 				}
+				Flow.Space(MarginSmall);
 
 				static CButtonContainer s_BackgroundColor;
-				DoLine_ColorPicker(&s_BackgroundColor, AppearanceMetrics, &LeftView, Localize("Chat background color"), &g_Config.m_ClChatBackgroundColor, color_cast<ColorRGBA>(ColorHSLA(DefaultConfig::ClChatBackgroundColor, true)), false, nullptr, true);
-			};
-			ChatSettingsDefinition.m_MeasureRevision =
-				(static_cast<uint64_t>(g_Config.m_ClShowChat != 0) << 0) |
-				(static_cast<uint64_t>(g_Config.m_QmChatLogAutoSave != 0) << 1);
-			ChatSettingsDefinition.m_PreLayoutInput = [this, LineSize, MarginSmall](CUIRect ContentRect) {
-				if(m_MenuTextPlanCollecting)
-					return false;
-				auto NextRow = [LineSize, MarginSmall](CUIRect &Content, CUIRect &Row) {
-					Content.HSplitTop(LineSize, &Row, &Content);
-					Content.HSplitTop(MarginSmall, nullptr, &Content);
-				};
-				CUIRect Row;
-				NextRow(ContentRect, Row);
-				if(Ui()->DoButtonLogic(&g_Config.m_ClShowChat, 0, &Row, BUTTONFLAG_LEFT))
 				{
-					g_Config.m_ClShowChat = g_Config.m_ClShowChat ? 0 : 1;
-					return true;
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClChatBackgroundColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_BackgroundColor, AppearanceMetrics, &ColorRow, Localize("Chat background color"), &g_Config.m_ClChatBackgroundColor, color_cast<ColorRGBA>(ColorHSLA(DefaultConfig::ClChatBackgroundColor, true)), false, nullptr, true);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
 				}
-				if(g_Config.m_ClShowChat)
-					NextRow(ContentRect, Row);
-				for(int i = 0; i < 4; ++i)
-					NextRow(ContentRect, Row);
-				NextRow(ContentRect, Row);
-				if(!Ui()->DoButtonLogic(&g_Config.m_QmChatLogAutoSave, 0, &Row, BUTTONFLAG_LEFT))
-					return false;
-				g_Config.m_QmChatLogAutoSave ^= 1;
-				return true;
 			};
+			DeclareDefinition(ChatSettingsDefinition);
 			vCards.push_back(std::move(ChatSettingsDefinition));
-			const float ChatMessagesMinCardHeight = ResolveAppearanceChatMessagesHeight(AppearanceMetrics);
-			AddCard(3, ChatMessagesMinCardHeight, [=, this](CUIRect ContentRect) mutable {
+			AddCard(3, 0.0f, [=, this](CUIRect ContentRect) mutable {
 				char aBuf[128];
 				CUIRect RightView = ContentRect;
+				CSettingsContentLayoutFlow Flow(RightView);
 				// ***** Messages ***** //
 				// Message Colors and extra settings
 				static CButtonContainer s_SystemMessageReset, s_SystemMessageAdd, s_SystemMessageRemove;
 				static unsigned s_aSystemMessageColorValues[CMessageGradient::MAX_COLORS];
 				DoMessageGradientLine(*pChat, &RightView, APPEARANCE_TAB_CHAT, "appearance-chat-system-message", Localize("System message"), &g_Config.m_ClMessageSystemColor, g_Config.m_ClMessageSystemGradient, sizeof(g_Config.m_ClMessageSystemGradient), ColorRGBA(1.0f, 1.0f, 0.5f), &s_SystemMessageReset, &s_SystemMessageAdd, &s_SystemMessageRemove, s_aSystemMessageColorValues, EQmChatGradientRole::SYSTEM, true, &g_Config.m_ClShowChatSystem, LineSize, MarginSmall, AppearanceBodySize, AppearanceMetrics.m_ButtonHeight);
-				if(DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, &g_Config.m_QmChatHideSystemPrefix, "appearance-chat-hide-system-prefix", Localize("Hide system message prefix"), &g_Config.m_QmChatHideSystemPrefix, &RightView, LineSize, MarginSmall, AppearanceBodySize))
+				if(DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_CHAT, &g_Config.m_QmChatHideSystemPrefix, "appearance-chat-hide-system-prefix", Localize("Hide system message prefix"), &g_Config.m_QmChatHideSystemPrefix, &RightView, LineSize, MarginSmall, AppearanceBodySize))
 				{
 					pChat->RebuildChat();
 					ConfigManager()->Save();
@@ -437,7 +438,12 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 
 				static CButtonContainer s_FriendMessageHeartReset;
 				const unsigned OldFriendMessageHeartColor = g_Config.m_ClMessageFriendHeartColor;
-				DoLine_ColorPicker(&s_FriendMessageHeartReset, AppearanceMetrics, &RightView, Localize("Friend heart"), &g_Config.m_ClMessageFriendHeartColor, ColorRGBA(1.0f, 0.0f, 0.0f), true);
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClMessageFriendHeartColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_FriendMessageHeartReset, AppearanceMetrics, &ColorRow, Localize("Friend heart"), &g_Config.m_ClMessageFriendHeartColor, ColorRGBA(1.0f, 0.0f, 0.0f), true);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
 				if(g_Config.m_ClMessageFriendHeartColor != OldFriendMessageHeartColor)
 				{
 					pChat->RebuildChat();
@@ -485,16 +491,9 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 					AddPreviewLine(CChat::ClientMessageNamePrefix(g_Config.m_QmChatHideSystemPrefix != 0), "Echo command executed", false);
 				return maximum(Height, 2.0f * MarginSmall + RealFontSize + RealMsgPaddingY);
 			};
-			const uint64_t ChatPreviewMeasureRevision =
-				(static_cast<uint64_t>(g_Config.m_ClChatOld != 0) << 0) |
-				(static_cast<uint64_t>(g_Config.m_ClShowChatSystem != 0) << 1) |
-				(static_cast<uint64_t>(g_Config.m_ClShowChatFriends != 0) << 2) |
-				(static_cast<uint64_t>(g_Config.m_ClShowChatTeamMembersOnly != 0) << 3) |
-				(static_cast<uint64_t>(g_Config.m_QmShowChatClient != 0) << 4) |
-				(static_cast<uint64_t>(g_Config.m_QmChatHideSystemPrefix != 0) << 5) |
-				(static_cast<uint64_t>(std::clamp(g_Config.m_ClChatFontSize, 0, 255)) << 8) |
-				(static_cast<uint64_t>(std::clamp(g_Config.m_ClChatWidth, 0, 1023)) << 16);
 			AddMeasuredCard(4, MeasureChatPreview, [=, this](CUIRect ContentRect) mutable {
+			if(Ui()->DrawingSuppressed())
+				return;
 			char aBuf[128];
 			CUIRect PreviewView = ContentRect;
 			// ***** Chat Preview ***** //
@@ -804,7 +803,7 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 			const CUIRect Handle = QmChatScrollbarHandle(Rail, HandleHeight, 1.0f);
 			QmDrawChatScrollbar(Ui(), Rail, Handle.y, Handle.h, false);
 					TextRender()->TextColor(TextRender()->DefaultTextColor());
-					PreviewView.y = maximum(PreviewView.y, Y + MarginSmall); }, ChatPreviewMeasureRevision);
+					PreviewView.y = maximum(PreviewView.y, Y + MarginSmall); });
 		}
 		else if(AppearanceTab == APPEARANCE_TAB_NAME_PLATE)
 		{
@@ -828,7 +827,7 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 				PreviewArea.HSplitBottom(MarginSmall, &PreviewArea, nullptr);
 				PreviewArea.Draw(ui_token::color::SURFACE_OVERLAY, IGraphics::CORNER_ALL, ui_token::radius::CARD);
 				const auto NextPreviewControl = [&](CUIRect &Row) {
-					Controls.HSplitTop(LineSize, &Row, &Controls);
+					ConsumeSettingsMeasuredRow(Controls, LineSize, &Row);
 					if(Controls.h > 0.0f)
 						Controls.HSplitTop(MarginSmall, nullptr, &Controls);
 				};
@@ -865,63 +864,74 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 					g_Config.m_QmNameplateNameOffsetY = 0;
 				}
 				int Dummy = g_Config.m_ClDummy != (m_DummyNamePlatePreview ? 1 : 0);
-				GameClient()->m_NamePlates.RenderNamePlatePreview(PreviewArea, Dummy); }, NamePlatePreviewMeasureRevision);
+				GameClient()->m_NamePlates.RenderNamePlatePreview(PreviewArea, Dummy); });
 		}
 		else if(AppearanceTab == APPEARANCE_TAB_HOOK_COLLISION)
 		{
 			static int s_AppearanceAlwaysShowHookCollOwn = 0;
 			static int s_AppearanceAlwaysShowHookCollOther = 0;
-			const auto ResolveHookCollisionLeftMinCardHeight = [LineSize, MarginSmall, HeadlineHeight, ColorPickerRowHeight]() {
-				const int RowCount = 5 + (g_Config.m_ClShowHookCollOwn != 0 ? 1 : 0) + (g_Config.m_ClShowHookCollOther != 0 ? 1 : 0);
-				return ResolveSettingsRowsHeight(RowCount, LineSize, MarginSmall) + MarginSmall + HeadlineHeight + ColorPickerRowHeight * 4.0f;
-			};
 			const float HookCollisionRightMinCardHeight =
 				(50.0f + 4.0f * MarginSmall) * 5.0f + LineSize;
-			AddCard(7, ResolveHookCollisionLeftMinCardHeight(), [=, this](CUIRect ContentRect) mutable {
+			AddCard(7, 0.0f, [=, this](CUIRect ContentRect) mutable {
 				CUIRect LeftView = ContentRect;
-				int RowsRemaining = 5 + (g_Config.m_ClShowHookCollOwn != 0 ? 1 : 0) + (g_Config.m_ClShowHookCollOther != 0 ? 1 : 0);
-				const auto NextRow = [&]() {
-					CUIRect Row;
-					LeftView.HSplitTop(LineSize, &Row, &LeftView);
-					if(--RowsRemaining > 0)
-						LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
-					return Row;
-				};
+				CSettingsContentLayoutFlow Flow(LeftView);
 
 				// General hookline settings
-				Button = NextRow();
-				if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HOOK_COLLISION, &g_Config.m_ClShowHookCollOwn, "appearance-show-own-hook-collision", Localize("Show own player's hook collision line"), g_Config.m_ClShowHookCollOwn, &Button))
+				if(Flow.Control("appearance-show-own-hook-collision", LineSize, Button))
 				{
-					g_Config.m_ClShowHookCollOwn = g_Config.m_ClShowHookCollOwn ? 0 : 1;
+					if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HOOK_COLLISION, &g_Config.m_ClShowHookCollOwn, "appearance-show-own-hook-collision", Localize("Show own player's hook collision line"), g_Config.m_ClShowHookCollOwn, &Button))
+					{
+						g_Config.m_ClShowHookCollOwn = g_Config.m_ClShowHookCollOwn ? 0 : 1;
+					}
 				}
-				Button = NextRow();
+				Flow.Space(MarginSmall);
+
 				if(g_Config.m_ClShowHookCollOwn)
 				{
-					if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HOOK_COLLISION, &s_AppearanceAlwaysShowHookCollOwn, "appearance-always-show-own-hook-collision", Localize("Always show own player's hook collision line"), g_Config.m_ClShowHookCollOwn == 2, &Button))
-						g_Config.m_ClShowHookCollOwn = g_Config.m_ClShowHookCollOwn != 2 ? 2 : 1;
+					if(Flow.Control("appearance-always-show-own-hook-collision", LineSize, Button))
+					{
+						if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HOOK_COLLISION, &s_AppearanceAlwaysShowHookCollOwn, "appearance-always-show-own-hook-collision", Localize("Always show own player's hook collision line"), g_Config.m_ClShowHookCollOwn == 2, &Button))
+							g_Config.m_ClShowHookCollOwn = g_Config.m_ClShowHookCollOwn != 2 ? 2 : 1;
+					}
+					Flow.Space(MarginSmall);
 				}
 
-				Button = NextRow();
-				if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HOOK_COLLISION, &g_Config.m_ClShowHookCollOther, "appearance-show-other-hook-collision", Localize("Show other players' hook collision lines"), g_Config.m_ClShowHookCollOther, &Button))
+				if(Flow.Control("appearance-show-other-hook-collision", LineSize, Button))
 				{
-					g_Config.m_ClShowHookCollOther = g_Config.m_ClShowHookCollOther >= 1 ? 0 : 1;
+					if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HOOK_COLLISION, &g_Config.m_ClShowHookCollOther, "appearance-show-other-hook-collision", Localize("Show other players' hook collision lines"), g_Config.m_ClShowHookCollOther, &Button))
+					{
+						g_Config.m_ClShowHookCollOther = g_Config.m_ClShowHookCollOther >= 1 ? 0 : 1;
+					}
 				}
-				Button = NextRow();
+				Flow.Space(MarginSmall);
+
 				if(g_Config.m_ClShowHookCollOther)
 				{
-					if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HOOK_COLLISION, &s_AppearanceAlwaysShowHookCollOther, "appearance-always-show-other-hook-collision", Localize("Always show other players' hook collision lines"), g_Config.m_ClShowHookCollOther == 2, &Button))
-						g_Config.m_ClShowHookCollOther = g_Config.m_ClShowHookCollOther != 2 ? 2 : 1;
+					if(Flow.Control("appearance-always-show-other-hook-collision", LineSize, Button))
+					{
+						if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_HOOK_COLLISION, &s_AppearanceAlwaysShowHookCollOther, "appearance-always-show-other-hook-collision", Localize("Always show other players' hook collision lines"), g_Config.m_ClShowHookCollOther == 2, &Button))
+							g_Config.m_ClShowHookCollOther = g_Config.m_ClShowHookCollOther != 2 ? 2 : 1;
+					}
+					Flow.Space(MarginSmall);
 				}
 
-				Button = NextRow();
-				DoAppearanceNumericField(APPEARANCE_TAB_HOOK_COLLISION, "appearance-hook-collision-own-width", &g_Config.m_ClHookCollSize, &g_Config.m_ClHookCollSize, Button, Localize("Width of your own hook collision line"), 0, 20, &CUi::ms_LinearScrollbarScale);
+				if(Flow.Control("appearance-hook-collision-own-width", LineSize, Button))
+				{
+					DoAppearanceNumericField(APPEARANCE_TAB_HOOK_COLLISION, "appearance-hook-collision-own-width", &g_Config.m_ClHookCollSize, &g_Config.m_ClHookCollSize, Button, Localize("Width of your own hook collision line"), 0, 20, &CUi::ms_LinearScrollbarScale);
+				}
+				Flow.Space(MarginSmall);
 
-				Button = NextRow();
-				DoAppearanceNumericField(APPEARANCE_TAB_HOOK_COLLISION, "appearance-hook-collision-other-width", &g_Config.m_ClHookCollSizeOther, &g_Config.m_ClHookCollSizeOther, Button, Localize("Width of others' hook collision line"), 0, 20, &CUi::ms_LinearScrollbarScale);
+				if(Flow.Control("appearance-hook-collision-other-width", LineSize, Button))
+				{
+					DoAppearanceNumericField(APPEARANCE_TAB_HOOK_COLLISION, "appearance-hook-collision-other-width", &g_Config.m_ClHookCollSizeOther, &g_Config.m_ClHookCollSizeOther, Button, Localize("Width of others' hook collision line"), 0, 20, &CUi::ms_LinearScrollbarScale);
+				}
+				Flow.Space(MarginSmall);
 
-				Button = NextRow();
-				DoAppearanceNumericField(APPEARANCE_TAB_HOOK_COLLISION, "appearance-hook-collision-opacity", &g_Config.m_ClHookCollAlpha, &g_Config.m_ClHookCollAlpha, Button, Localize("Hook collision line opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
-				LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
+				if(Flow.Control("appearance-hook-collision-opacity", LineSize, Button))
+				{
+					DoAppearanceNumericField(APPEARANCE_TAB_HOOK_COLLISION, "appearance-hook-collision-opacity", &g_Config.m_ClHookCollAlpha, &g_Config.m_ClHookCollAlpha, Button, Localize("Hook collision line opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+				}
+				Flow.Space(MarginSmall);
 
 				static CButtonContainer s_HookCollNoCollResetId, s_HookCollHookableCollResetId, s_HookCollTeeCollResetId, s_HookCollTipColorResetId;
 				static int s_HookCollToolTip;
@@ -930,61 +940,31 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 
 				Ui()->RegisterPassiveHotItem(&s_HookCollToolTip, &LeftView);
 				GameClient()->m_Tooltips.DoToolTip(&s_HookCollToolTip, &LeftView, Localize("Your movements are not taken into account when calculating the line colors"));
-				DoLine_ColorPicker(&s_HookCollNoCollResetId, AppearanceMetrics, &LeftView, Localize("Nothing hookable"), &g_Config.m_ClHookCollColorNoColl, ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f), false);
-				DoLine_ColorPicker(&s_HookCollHookableCollResetId, AppearanceMetrics, &LeftView, Localize("Something hookable"), &g_Config.m_ClHookCollColorHookableColl, ColorRGBA(130.0f / 255.0f, 232.0f / 255.0f, 160.0f / 255.0f, 1.0f), false);
-				DoLine_ColorPicker(&s_HookCollTeeCollResetId, AppearanceMetrics, &LeftView, Localize("A Tee"), &g_Config.m_ClHookCollColorTeeColl, ColorRGBA(1.0f, 1.0f, 0.0f, 1.0f), false);
-				DoLine_ColorPicker(&s_HookCollTipColorResetId, AppearanceMetrics, &LeftView, Localize("Hook line tip"), &g_Config.m_ClHookCollTipColor, ColorRGBA(1.0f, 1.0f, 0.0f, 0.5f), false, nullptr, true);
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClHookCollColorNoColl", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_HookCollNoCollResetId, AppearanceMetrics, &ColorRow, Localize("Nothing hookable"), &g_Config.m_ClHookCollColorNoColl, ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClHookCollColorHookableColl", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_HookCollHookableCollResetId, AppearanceMetrics, &ColorRow, Localize("Something hookable"), &g_Config.m_ClHookCollColorHookableColl, ColorRGBA(130.0f / 255.0f, 232.0f / 255.0f, 160.0f / 255.0f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClHookCollColorTeeColl", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_HookCollTeeCollResetId, AppearanceMetrics, &ColorRow, Localize("A Tee"), &g_Config.m_ClHookCollColorTeeColl, ColorRGBA(1.0f, 1.0f, 0.0f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClHookCollTipColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_HookCollTipColorResetId, AppearanceMetrics, &ColorRow, Localize("Hook line tip"), &g_Config.m_ClHookCollTipColor, ColorRGBA(1.0f, 1.0f, 0.0f, 0.5f), false, nullptr, true);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
 			});
-			vCards.back().m_Measure = [ResolveHookCollisionLeftMinCardHeight](float) { return ResolveHookCollisionLeftMinCardHeight(); };
-			vCards.back().m_MeasureRevision = static_cast<uint64_t>(g_Config.m_ClShowHookCollOwn != 0) | (static_cast<uint64_t>(g_Config.m_ClShowHookCollOther != 0) << 1);
-			vCards.back().m_PreLayoutInput = [this, LineSize, MarginSmall](CUIRect Content) {
-				if(m_MenuTextPlanCollecting)
-					return false;
-				CUIRect LeftView = Content;
-				int RowsRemaining = 5 + (g_Config.m_ClShowHookCollOwn != 0 ? 1 : 0) + (g_Config.m_ClShowHookCollOther != 0 ? 1 : 0);
-				const auto NextRow = [&]() {
-					CUIRect Row;
-					LeftView.HSplitTop(LineSize, &Row, &LeftView);
-					if(--RowsRemaining > 0)
-						LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
-					return Row;
-				};
-				bool Changed = false;
-				CUIRect OwnToggleRow = NextRow();
-				if(Ui()->DoButtonLogic(&g_Config.m_ClShowHookCollOwn, g_Config.m_ClShowHookCollOwn != 0, &OwnToggleRow, BUTTONFLAG_LEFT))
-				{
-					g_Config.m_ClShowHookCollOwn = g_Config.m_ClShowHookCollOwn != 0 ? 0 : 1;
-					Changed = true;
-				}
-				if(g_Config.m_ClShowHookCollOwn)
-				{
-					CUIRect AlwaysShowRow = NextRow();
-					if(Ui()->DoButtonLogic(&s_AppearanceAlwaysShowHookCollOwn, g_Config.m_ClShowHookCollOwn == 2, &AlwaysShowRow, BUTTONFLAG_LEFT))
-					{
-						g_Config.m_ClShowHookCollOwn = g_Config.m_ClShowHookCollOwn != 2 ? 2 : 1;
-						Changed = true;
-					}
-				}
-				CUIRect OtherToggleRow = NextRow();
-				if(Ui()->DoButtonLogic(&g_Config.m_ClShowHookCollOther, g_Config.m_ClShowHookCollOther != 0, &OtherToggleRow, BUTTONFLAG_LEFT))
-				{
-					g_Config.m_ClShowHookCollOther = g_Config.m_ClShowHookCollOther != 0 ? 0 : 1;
-					Changed = true;
-				}
-				if(g_Config.m_ClShowHookCollOther)
-				{
-					CUIRect AlwaysShowRow = NextRow();
-					if(Ui()->DoButtonLogic(&s_AppearanceAlwaysShowHookCollOther, g_Config.m_ClShowHookCollOther == 2, &AlwaysShowRow, BUTTONFLAG_LEFT))
-					{
-						g_Config.m_ClShowHookCollOther = g_Config.m_ClShowHookCollOther != 2 ? 2 : 1;
-						Changed = true;
-					}
-				}
-				NextRow();
-				NextRow();
-				NextRow();
-				return Changed;
-			};
 			AddCard(8, HookCollisionRightMinCardHeight, [=, this](CUIRect ContentRect) mutable {
 				CUIRect RightView = ContentRect;
 				// ***** Hook collisions preview ***** //
@@ -1147,143 +1127,203 @@ uint64_t CMenus::BuildAppearanceSettingsCards(const qm_card_catalog::SQmCardBuil
 		}
 		else if(AppearanceTab == APPEARANCE_TAB_INFO_MESSAGES)
 		{
-			const float InfoMessagesMinCardHeight = ResolveSettingsRowsHeight(2, LineSize, MarginSmall) + MarginSmall + ColorPickerRowHeight * 2.0f;
-			AddCard(9, InfoMessagesMinCardHeight, [=, this](CUIRect ContentRect) mutable {
+			AddCard(9, 0.0f, [=, this](CUIRect ContentRect) mutable {
 				CUIRect LeftView = ContentRect;
-				int RowsRemaining = 2;
-				const auto NextRow = [&]() {
-					CUIRect Row;
-					LeftView.HSplitTop(LineSize, &Row, &LeftView);
-					if(--RowsRemaining > 0)
-						LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
-					return Row;
-				};
+				CSettingsContentLayoutFlow Flow(LeftView);
 
 				// General info messages settings
-				Button = NextRow();
-				if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_INFO_MESSAGES, &g_Config.m_ClShowKillMessages, "appearance-show-kill-messages", Localize("Show kill messages"), g_Config.m_ClShowKillMessages, &Button))
+				if(Flow.Control("appearance-show-kill-messages", LineSize, Button))
 				{
-					g_Config.m_ClShowKillMessages ^= 1;
+					if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_INFO_MESSAGES, &g_Config.m_ClShowKillMessages, "appearance-show-kill-messages", Localize("Show kill messages"), g_Config.m_ClShowKillMessages, &Button))
+					{
+						g_Config.m_ClShowKillMessages ^= 1;
+					}
 				}
+				Flow.Space(MarginSmall);
 
-				Button = NextRow();
-				if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_INFO_MESSAGES, &g_Config.m_ClShowFinishMessages, "appearance-show-finish-messages", Localize("Show finish messages"), g_Config.m_ClShowFinishMessages, &Button))
+				if(Flow.Control("appearance-show-finish-messages", LineSize, Button))
 				{
-					g_Config.m_ClShowFinishMessages ^= 1;
+					if(DoSettingsButton_CheckBox(SETTINGS_APPEARANCE, APPEARANCE_TAB_INFO_MESSAGES, &g_Config.m_ClShowFinishMessages, "appearance-show-finish-messages", Localize("Show finish messages"), g_Config.m_ClShowFinishMessages, &Button))
+					{
+						g_Config.m_ClShowFinishMessages ^= 1;
+					}
 				}
-				LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
+				Flow.Space(MarginSmall);
 
 				static CButtonContainer s_KillMessageNormalColorId, s_KillMessageHighlightColorId;
-				DoLine_ColorPicker(&s_KillMessageNormalColorId, AppearanceMetrics, &LeftView, Localize("Normal Color"), &g_Config.m_ClKillMessageNormalColor, ColorRGBA(1.0f, 1.0f, 1.0f), false);
-				DoLine_ColorPicker(&s_KillMessageHighlightColorId, AppearanceMetrics, &LeftView, Localize("Highlight Color"), &g_Config.m_ClKillMessageHighlightColor, ColorRGBA(1.0f, 1.0f, 1.0f), false);
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClKillMessageNormalColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_KillMessageNormalColorId, AppearanceMetrics, &ColorRow, Localize("Normal Color"), &g_Config.m_ClKillMessageNormalColor, ColorRGBA(1.0f, 1.0f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClKillMessageHighlightColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_KillMessageHighlightColorId, AppearanceMetrics, &ColorRow, Localize("Highlight Color"), &g_Config.m_ClKillMessageHighlightColor, ColorRGBA(1.0f, 1.0f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
 			});
 		}
 		else if(AppearanceTab == APPEARANCE_TAB_LASER)
 		{
 			const float LaserPreviewHeight = std::clamp(56.0f * AppearanceUiScale, 40.0f, 56.0f);
-			const auto ResolveLaserEnhancedMinCardHeight = [AppearanceMetrics]() {
-				return ResolveAppearanceLaserEnhancedHeight(AppearanceMetrics, g_Config.m_QmLaserEnhanced != 0);
-			};
-			const float LaserColorMinCardHeight = ResolveAppearanceLaserColorsHeight(AppearanceMetrics);
 			const float LaserPreviewMinCardHeight = (LaserPreviewHeight + 2.0f * MarginSmall) * 5.0f;
-			AddCard(10, ResolveLaserEnhancedMinCardHeight(), [=, this](CUIRect ContentRect) mutable {
+			AddCard(10, 0.0f, [=, this](CUIRect ContentRect) mutable {
 				CUIRect EnhancedCardContent = ContentRect;
+				CSettingsContentLayoutFlow Flow(EnhancedCardContent);
 
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_LASER, &g_Config.m_QmLaserEnhanced, "appearance-laser-effect-enhancement", Localize("Laser effect enhancement"), &g_Config.m_QmLaserEnhanced, &EnhancedCardContent, LineSize, 0.0f, AppearanceBodySize);
-				EnhancedCardContent.HSplitTop(MarginSmall, nullptr, &EnhancedCardContent);
-				EnhancedCardContent.HSplitTop(LineSize, &Button, &EnhancedCardContent);
-				DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-glow-intensity", &g_Config.m_QmLaserGlowIntensity, &g_Config.m_QmLaserGlowIntensity, Button, Localize("Glow intensity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
-				EnhancedCardContent.HSplitTop(MarginSmall, nullptr, &EnhancedCardContent);
-				EnhancedCardContent.HSplitTop(LineSize, &Button, &EnhancedCardContent);
-				DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-size", &g_Config.m_QmLaserSize, &g_Config.m_QmLaserSize, Button, Localize("Laser size"), 50, 200, &CUi::ms_LinearScrollbarScale, 0, "%");
-				EnhancedCardContent.HSplitTop(MarginSmall, nullptr, &EnhancedCardContent);
-				EnhancedCardContent.HSplitTop(LineSize, &Button, &EnhancedCardContent);
-				DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-opacity", &g_Config.m_QmLaserAlpha, &g_Config.m_QmLaserAlpha, Button, Localize("Opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
-				EnhancedCardContent.HSplitTop(MarginSmall, nullptr, &EnhancedCardContent);
-				DoSettingsButton_CheckBoxAutoVMarginAndSet(SETTINGS_APPEARANCE, APPEARANCE_TAB_LASER, &g_Config.m_QmLaserRoundCaps, "appearance-laser-rounded-caps", Localize("Rounded caps"), &g_Config.m_QmLaserRoundCaps, &EnhancedCardContent, LineSize, 0.0f, AppearanceBodySize);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_LASER, &g_Config.m_QmLaserEnhanced, "appearance-laser-effect-enhancement", Localize("Laser effect enhancement"), &g_Config.m_QmLaserEnhanced, &EnhancedCardContent, LineSize, 0.0f, AppearanceBodySize);
+				Flow.Space(MarginSmall);
+				if(Flow.Control("appearance-laser-glow-intensity", LineSize, Button))
+				{
+					DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-glow-intensity", &g_Config.m_QmLaserGlowIntensity, &g_Config.m_QmLaserGlowIntensity, Button, Localize("Glow intensity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+				}
+				Flow.Space(MarginSmall);
+				if(Flow.Control("appearance-laser-size", LineSize, Button))
+				{
+					DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-size", &g_Config.m_QmLaserSize, &g_Config.m_QmLaserSize, Button, Localize("Laser size"), 50, 200, &CUi::ms_LinearScrollbarScale, 0, "%");
+				}
+				Flow.Space(MarginSmall);
+				if(Flow.Control("appearance-laser-opacity", LineSize, Button))
+				{
+					DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-opacity", &g_Config.m_QmLaserAlpha, &g_Config.m_QmLaserAlpha, Button, Localize("Opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+				}
+				Flow.Space(MarginSmall);
+				DeclaredCheckbox(SETTINGS_APPEARANCE, APPEARANCE_TAB_LASER, &g_Config.m_QmLaserRoundCaps, "appearance-laser-rounded-caps", Localize("Rounded caps"), &g_Config.m_QmLaserRoundCaps, &EnhancedCardContent, LineSize, 0.0f, AppearanceBodySize);
 				if(g_Config.m_QmLaserEnhanced)
 				{
-					EnhancedCardContent.HSplitTop(MarginSmall, nullptr, &EnhancedCardContent);
-					EnhancedCardContent.HSplitTop(LineSize, &Button, &EnhancedCardContent);
-					DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-pulse-speed", &g_Config.m_QmLaserPulseSpeed, &g_Config.m_QmLaserPulseSpeed, Button, Localize("Pulse speed"), 10, 500);
-					EnhancedCardContent.HSplitTop(MarginSmall, nullptr, &EnhancedCardContent);
-					EnhancedCardContent.HSplitTop(LineSize, &Button, &EnhancedCardContent);
-					DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-pulse-amplitude", &g_Config.m_QmLaserPulseAmplitude, &g_Config.m_QmLaserPulseAmplitude, Button, Localize("Pulse amplitude"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+					Flow.Space(MarginSmall);
+					if(Flow.Control("appearance-laser-pulse-speed", LineSize, Button))
+					{
+						DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-pulse-speed", &g_Config.m_QmLaserPulseSpeed, &g_Config.m_QmLaserPulseSpeed, Button, Localize("Pulse speed"), 10, 500);
+					}
+					Flow.Space(MarginSmall);
+					if(Flow.Control("appearance-laser-pulse-amplitude", LineSize, Button))
+					{
+						DoAppearanceNumericField(APPEARANCE_TAB_LASER, "appearance-laser-pulse-amplitude", &g_Config.m_QmLaserPulseAmplitude, &g_Config.m_QmLaserPulseAmplitude, Button, Localize("Pulse amplitude"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+					}
+					Flow.Space(MarginSmall);
 				}
 			});
-			vCards.back().m_Measure = [ResolveLaserEnhancedMinCardHeight](float) { return ResolveLaserEnhancedMinCardHeight(); };
-			vCards.back().m_MeasureRevision = static_cast<uint64_t>(g_Config.m_QmLaserEnhanced != 0);
-			vCards.back().m_PreLayoutInput = [this, LineSize](CUIRect Content) {
-				if(m_MenuTextPlanCollecting)
-					return false;
-				CUIRect ToggleRow;
-				Content.HSplitTop(LineSize, &ToggleRow, &Content);
-				if(!Ui()->DoButtonLogic(&g_Config.m_QmLaserEnhanced, 0, &ToggleRow, BUTTONFLAG_LEFT))
-					return false;
-				g_Config.m_QmLaserEnhanced ^= 1;
-				return true;
-			};
-			AddCard(11, LaserColorMinCardHeight, [=, this](CUIRect ContentRect) mutable {
+			AddCard(11, 0.0f, [=, this](CUIRect ContentRect) mutable {
 				CUIRect ColorCardContent = ContentRect;
+				CSettingsContentLayoutFlow Flow(ColorCardContent);
 				// ***** Weapons ***** //
 				DoAppearanceHeading(ColorCardContent, "appearance-weapons-title", Localize("Weapons"), HeadlineFontSize, HeadlineHeight);
-				ColorCardContent.HSplitTop(MarginSmall, nullptr, &ColorCardContent);
+				Flow.Space(MarginSmall);
 
 				// General weapon laser settings
 				static CButtonContainer s_LaserRifleOutResetId, s_LaserRifleInResetId, s_LaserShotgunOutResetId, s_LaserShotgunInResetId;
 
-				ColorHSLA LaserRifleOutlineColor = DoLine_ColorPicker(&s_LaserRifleOutResetId, AppearanceMetrics, &ColorCardContent, Localize("Rifle Laser Outline Color"), &g_Config.m_ClLaserRifleOutlineColor, ColorRGBA(0.074402f, 0.074402f, 0.247166f, 1.0f), false);
-				ColorHSLA LaserRifleInnerColor = DoLine_ColorPicker(&s_LaserRifleInResetId, AppearanceMetrics, &ColorCardContent, Localize("Rifle Laser Inner Color"), &g_Config.m_ClLaserRifleInnerColor, ColorRGBA(0.498039f, 0.498039f, 1.0f, 1.0f), false);
-				ColorHSLA LaserShotgunOutlineColor = DoLine_ColorPicker(&s_LaserShotgunOutResetId, AppearanceMetrics, &ColorCardContent, Localize("Shotgun Laser Outline Color"), &g_Config.m_ClLaserShotgunOutlineColor, ColorRGBA(0.125490f, 0.098039f, 0.043137f, 1.0f), false);
-				ColorHSLA LaserShotgunInnerColor = DoLine_ColorPicker(&s_LaserShotgunInResetId, AppearanceMetrics, &ColorCardContent, Localize("Shotgun Laser Inner Color"), &g_Config.m_ClLaserShotgunInnerColor, ColorRGBA(0.570588f, 0.417647f, 0.252941f, 1.0f), false);
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserRifleOutlineColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserRifleOutResetId, AppearanceMetrics, &ColorRow, Localize("Rifle Laser Outline Color"), &g_Config.m_ClLaserRifleOutlineColor, ColorRGBA(0.074402f, 0.074402f, 0.247166f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserRifleInnerColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserRifleInResetId, AppearanceMetrics, &ColorRow, Localize("Rifle Laser Inner Color"), &g_Config.m_ClLaserRifleInnerColor, ColorRGBA(0.498039f, 0.498039f, 1.0f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserShotgunOutlineColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserShotgunOutResetId, AppearanceMetrics, &ColorRow, Localize("Shotgun Laser Outline Color"), &g_Config.m_ClLaserShotgunOutlineColor, ColorRGBA(0.125490f, 0.098039f, 0.043137f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserShotgunInnerColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserShotgunInResetId, AppearanceMetrics, &ColorRow, Localize("Shotgun Laser Inner Color"), &g_Config.m_ClLaserShotgunInnerColor, ColorRGBA(0.570588f, 0.417647f, 0.252941f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
 
 				// ***** Entities ***** //
-				ColorCardContent.HSplitTop(10.0f, nullptr, &ColorCardContent);
+				Flow.Space(10.0f);
 				DoAppearanceHeading(ColorCardContent, "appearance-entities-title", Localize("Entities"), HeadlineFontSize, HeadlineHeight);
-				ColorCardContent.HSplitTop(MarginSmall, nullptr, &ColorCardContent);
+				Flow.Space(MarginSmall);
 
 				// General entity laser settings
 				static CButtonContainer s_LaserDoorOutResetId, s_LaserDoorInResetId, s_LaserFreezeOutResetId, s_LaserFreezeInResetId, s_LaserDraggerOutResetId, s_LaserDraggerInResetId;
 
-				ColorHSLA LaserDoorOutlineColor = DoLine_ColorPicker(&s_LaserDoorOutResetId, AppearanceMetrics, &ColorCardContent, Localize("Door Laser Outline Color"), &g_Config.m_ClLaserDoorOutlineColor, ColorRGBA(0.0f, 0.131372f, 0.096078f, 1.0f), false);
-				ColorHSLA LaserDoorInnerColor = DoLine_ColorPicker(&s_LaserDoorInResetId, AppearanceMetrics, &ColorCardContent, Localize("Door Laser Inner Color"), &g_Config.m_ClLaserDoorInnerColor, ColorRGBA(0.262745f, 0.760784f, 0.639215f, 1.0f), false);
-				ColorHSLA LaserFreezeOutlineColor = DoLine_ColorPicker(&s_LaserFreezeOutResetId, AppearanceMetrics, &ColorCardContent, Localize("Freeze Laser Outline Color"), &g_Config.m_ClLaserFreezeOutlineColor, ColorRGBA(0.131372f, 0.123529f, 0.182352f, 1.0f), false);
-				ColorHSLA LaserFreezeInnerColor = DoLine_ColorPicker(&s_LaserFreezeInResetId, AppearanceMetrics, &ColorCardContent, Localize("Freeze Laser Inner Color"), &g_Config.m_ClLaserFreezeInnerColor, ColorRGBA(0.482352f, 0.443137f, 0.564705f, 1.0f), false);
-				ColorHSLA LaserDraggerOutlineColor = DoLine_ColorPicker(&s_LaserDraggerOutResetId, AppearanceMetrics, &ColorCardContent, Localize("Dragger Outline Color"), &g_Config.m_ClLaserDraggerOutlineColor, ColorRGBA(0.1640625f, 0.015625f, 0.015625f, 1.0f), false);
-				ColorHSLA LaserDraggerInnerColor = DoLine_ColorPicker(&s_LaserDraggerInResetId, AppearanceMetrics, &ColorCardContent, Localize("Dragger Inner Color"), &g_Config.m_ClLaserDraggerInnerColor, ColorRGBA(.8666666f, .3725490f, .3725490f, 1.0f), false);
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserDoorOutlineColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserDoorOutResetId, AppearanceMetrics, &ColorRow, Localize("Door Laser Outline Color"), &g_Config.m_ClLaserDoorOutlineColor, ColorRGBA(0.0f, 0.131372f, 0.096078f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserDoorInnerColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserDoorInResetId, AppearanceMetrics, &ColorRow, Localize("Door Laser Inner Color"), &g_Config.m_ClLaserDoorInnerColor, ColorRGBA(0.262745f, 0.760784f, 0.639215f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserFreezeOutlineColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserFreezeOutResetId, AppearanceMetrics, &ColorRow, Localize("Freeze Laser Outline Color"), &g_Config.m_ClLaserFreezeOutlineColor, ColorRGBA(0.131372f, 0.123529f, 0.182352f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserFreezeInnerColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserFreezeInResetId, AppearanceMetrics, &ColorRow, Localize("Freeze Laser Inner Color"), &g_Config.m_ClLaserFreezeInnerColor, ColorRGBA(0.482352f, 0.443137f, 0.564705f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserDraggerOutlineColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserDraggerOutResetId, AppearanceMetrics, &ColorRow, Localize("Dragger Outline Color"), &g_Config.m_ClLaserDraggerOutlineColor, ColorRGBA(0.1640625f, 0.015625f, 0.015625f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
+				{
+					CUIRect ColorRow;
+					if(Flow.Control("appearance-color-ClLaserDraggerInnerColor", AppearanceMetrics.m_ButtonHeight, ColorRow))
+						DoLine_ColorPicker(&s_LaserDraggerInResetId, AppearanceMetrics, &ColorRow, Localize("Dragger Inner Color"), &g_Config.m_ClLaserDraggerInnerColor, ColorRGBA(.8666666f, .3725490f, .3725490f, 1.0f), false);
+					Flow.Space(AppearanceMetrics.m_LineSpacing);
+				}
 
 				static CButtonContainer s_AllToRifleResetId, s_AllToDefaultResetId;
 
-				ColorCardContent.HSplitTop(4 * MarginSmall, nullptr, &ColorCardContent);
-				ColorCardContent.HSplitTop(AppearanceMetrics.m_ButtonHeight, &Button, &ColorCardContent);
-				if(DoSettingsButton_Menu(SETTINGS_APPEARANCE, APPEARANCE_TAB_LASER, APPEARANCE_TAB_LASER, &s_AllToRifleResetId, "appearance-laser-set-all-to-rifle", Localize("Set all to Rifle"), 0, &Button))
+				Flow.Space(4 * MarginSmall);
+				if(Flow.Control("appearance-laser-set-all-to-rifle", AppearanceMetrics.m_ButtonHeight, Button))
 				{
-					g_Config.m_ClLaserShotgunOutlineColor = g_Config.m_ClLaserRifleOutlineColor;
-					g_Config.m_ClLaserShotgunInnerColor = g_Config.m_ClLaserRifleInnerColor;
-					g_Config.m_ClLaserDoorOutlineColor = g_Config.m_ClLaserRifleOutlineColor;
-					g_Config.m_ClLaserDoorInnerColor = g_Config.m_ClLaserRifleInnerColor;
-					g_Config.m_ClLaserFreezeOutlineColor = g_Config.m_ClLaserRifleOutlineColor;
-					g_Config.m_ClLaserFreezeInnerColor = g_Config.m_ClLaserRifleInnerColor;
-					g_Config.m_ClLaserDraggerOutlineColor = g_Config.m_ClLaserRifleOutlineColor;
-					g_Config.m_ClLaserDraggerInnerColor = g_Config.m_ClLaserRifleInnerColor;
+					if(DoSettingsButton_Menu(SETTINGS_APPEARANCE, APPEARANCE_TAB_LASER, APPEARANCE_TAB_LASER, &s_AllToRifleResetId, "appearance-laser-set-all-to-rifle", Localize("Set all to Rifle"), 0, &Button))
+					{
+						g_Config.m_ClLaserShotgunOutlineColor = g_Config.m_ClLaserRifleOutlineColor;
+						g_Config.m_ClLaserShotgunInnerColor = g_Config.m_ClLaserRifleInnerColor;
+						g_Config.m_ClLaserDoorOutlineColor = g_Config.m_ClLaserRifleOutlineColor;
+						g_Config.m_ClLaserDoorInnerColor = g_Config.m_ClLaserRifleInnerColor;
+						g_Config.m_ClLaserFreezeOutlineColor = g_Config.m_ClLaserRifleOutlineColor;
+						g_Config.m_ClLaserFreezeInnerColor = g_Config.m_ClLaserRifleInnerColor;
+						g_Config.m_ClLaserDraggerOutlineColor = g_Config.m_ClLaserRifleOutlineColor;
+						g_Config.m_ClLaserDraggerInnerColor = g_Config.m_ClLaserRifleInnerColor;
+					}
 				}
+				Flow.Space(MarginSmall);
 
 				// values taken from the CL commands
-				ColorCardContent.HSplitTop(2 * MarginSmall, nullptr, &ColorCardContent);
-				ColorCardContent.HSplitTop(AppearanceMetrics.m_ButtonHeight, &Button, &ColorCardContent);
-				if(DoSettingsButton_Menu(SETTINGS_APPEARANCE, APPEARANCE_TAB_LASER, APPEARANCE_TAB_LASER, &s_AllToDefaultResetId, "appearance-laser-reset-defaults", Localize("Reset to defaults"), 0, &Button))
+				Flow.Space(2 * MarginSmall);
+				if(Flow.Control("appearance-laser-reset-defaults", AppearanceMetrics.m_ButtonHeight, Button))
 				{
-					g_Config.m_ClLaserRifleOutlineColor = 11176233;
-					g_Config.m_ClLaserRifleInnerColor = 11206591;
-					g_Config.m_ClLaserShotgunOutlineColor = 1866773;
-					g_Config.m_ClLaserShotgunInnerColor = 1467241;
-					g_Config.m_ClLaserDoorOutlineColor = 7667473;
-					g_Config.m_ClLaserDoorInnerColor = 7701379;
-					g_Config.m_ClLaserFreezeOutlineColor = 11613223;
-					g_Config.m_ClLaserFreezeInnerColor = 12001153;
-					g_Config.m_ClLaserDraggerOutlineColor = 57618;
-					g_Config.m_ClLaserDraggerInnerColor = 42398;
+					if(DoSettingsButton_Menu(SETTINGS_APPEARANCE, APPEARANCE_TAB_LASER, APPEARANCE_TAB_LASER, &s_AllToDefaultResetId, "appearance-laser-reset-defaults", Localize("Reset to defaults"), 0, &Button))
+					{
+						g_Config.m_ClLaserRifleOutlineColor = 11176233;
+						g_Config.m_ClLaserRifleInnerColor = 11206591;
+						g_Config.m_ClLaserShotgunOutlineColor = 1866773;
+						g_Config.m_ClLaserShotgunInnerColor = 1467241;
+						g_Config.m_ClLaserDoorOutlineColor = 7667473;
+						g_Config.m_ClLaserDoorInnerColor = 7701379;
+						g_Config.m_ClLaserFreezeOutlineColor = 11613223;
+						g_Config.m_ClLaserFreezeInnerColor = 12001153;
+						g_Config.m_ClLaserDraggerOutlineColor = 57618;
+						g_Config.m_ClLaserDraggerInnerColor = 42398;
+					}
 				}
+				Flow.Space(MarginSmall);
 			});
 			AddCard(12, LaserPreviewMinCardHeight, [=, this](CUIRect ContentRect) mutable {
 				CUIRect PreviewCardContent = ContentRect;

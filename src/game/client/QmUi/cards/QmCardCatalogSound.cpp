@@ -22,8 +22,10 @@
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
 #include <game/client/QmUi/SettingsIconOptions.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
@@ -482,6 +484,8 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 
 	CUIRect WorkRect;
 	EditorRect.Margin(8.0f, &WorkRect);
+	SSettingsContentMetrics EditorRowMetrics = ResolveSettingsContentMetrics(WorkRect.w);
+	EditorRowMetrics.m_BodySize = EditorFontSize;
 
 	CUIRect TopPanel, TopBarRow1, TopBarRow2, ContentRow, StatusRow;
 	WorkRect.HSplitTop(EditorLineSize * 2.0f + EditorMarginSmall + 8.0f, &TopPanel, &ContentRow);
@@ -503,19 +507,17 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 		const float Cut = minimum(Wanted, Source.w);
 		Source.VSplitLeft(Cut, pLeft, pRight);
 	};
-	auto SplitRightSafe = [](CUIRect &Source, float Wanted, CUIRect *pLeft, CUIRect *pRight) {
-		const float Cut = minimum(Wanted, Source.w);
-		Source.VSplitRight(Cut, pLeft, pRight);
-	};
 
 	CUIRect CloseButton, PackRow, TitleRow, RefreshButton;
 	SplitLeftSafe(TopBarRow1, 28.0f, &CloseButton, &TopBarRow1);
 	SplitLeftSafe(TopBarRow1, EditorMarginSmall, nullptr, &TopBarRow1);
 	PackRow = TopBarRow1;
 
-	constexpr float TopButtonPadding = 18.0f;
-	const float RefreshW = minimum(122.0f, maximum(74.0f, TextRender()->TextWidth(EditorFontSize, Localize("Reload"), -1, -1.0f) + TopButtonPadding));
-	SplitRightSafe(TopBarRow2, RefreshW, &TitleRow, &RefreshButton);
+	CUIRect RefreshControls;
+	SplitSettingsControlRow(TopBarRow2, EditorRowMetrics, &TitleRow, &RefreshControls);
+	static ui_widget::SSettingsActionGroupState s_EditorRefreshWidths;
+	const char *apRefreshLabels[] = {Localize("Reload")};
+	RefreshButton = ui_widget::PrepareSettingsActionGroup(*Ui(), s_EditorRefreshWidths, RefreshControls, apRefreshLabels, 1, EditorRowMetrics).m_aButtons[0];
 
 	if(Ui()->DoButton_QmIcon(&s_AudioPackEditorCloseButton, EQmIcon::CLOSE, FONT_ICON_XMARK, 0, &CloseButton, IGraphics::CORNER_ALL))
 	{
@@ -524,7 +526,7 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 	}
 
 	CUIRect PackLabel, PackInput;
-	PackRow.VSplitLeft(90.0f, &PackLabel, &PackInput);
+	SplitSettingsControlRow(PackRow, EditorRowMetrics, &PackLabel, &PackInput);
 	DoSettingsMenuLabel(SETTINGS_SOUND, -1, -1, "audio_pack_name_label", &PackLabel, Localize("Pack name"), EditorFontSize, TEXTALIGN_ML);
 	if(ui_widget::InputField(AudioPackEditorTextInputCtx, &m_AudioPackEditorState.m_PackNameInput, PackInput, Localize("Pack name"), EditorFontSize))
 		AudioPackEditorRefreshCandidates();
@@ -546,9 +548,9 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 	SlotColumn.HSplitTop(EditorLineSize, &SlotSearchRow, &SlotColumn);
 	SlotColumn.HSplitTop(EditorMarginSmall, nullptr, &SlotColumn);
 	SlotListRow = SlotColumn;
-	DoSettingsMenuLabel(SETTINGS_SOUND, -1, -1, "audio_pack_slot_search_label", &SlotSearchRow, Localize("Search"), EditorFontSize, TEXTALIGN_ML);
-	CUIRect SlotSearchInput;
-	SlotSearchRow.VSplitLeft(80.0f, nullptr, &SlotSearchInput);
+	CUIRect SlotSearchInput, SlotSearchLabel;
+	SplitSettingsControlRow(SlotSearchRow, EditorRowMetrics, &SlotSearchLabel, &SlotSearchInput);
+	DoSettingsMenuLabel(SETTINGS_SOUND, -1, -1, "audio_pack_slot_search_label", &SlotSearchLabel, Localize("Search"), EditorFontSize, TEXTALIGN_ML);
 	ui_widget::InputField(AudioPackSlotSearchCtx, &m_AudioPackEditorState.m_FilterInput, SlotSearchInput, EditorFontSize, !Ui()->IsPopupOpen() && !GameClient()->m_GameConsole.IsActive());
 
 	std::vector<int> vVisibleSlotIndices;
@@ -615,9 +617,9 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 	CandidateColumn.HSplitTop(EditorLineSize, &CandidateSearchRow, &CandidateColumn);
 	CandidateColumn.HSplitTop(EditorMarginSmall, nullptr, &CandidateColumn);
 	CandidateListRow = CandidateColumn;
-	DoSettingsMenuLabel(SETTINGS_SOUND, -1, -1, "audio_pack_candidate_search_label", &CandidateSearchRow, Localize("Search"), EditorFontSize, TEXTALIGN_ML);
-	CUIRect CandidateSearchInput;
-	CandidateSearchRow.VSplitLeft(80.0f, nullptr, &CandidateSearchInput);
+	CUIRect CandidateSearchInput, CandidateSearchLabel;
+	SplitSettingsControlRow(CandidateSearchRow, EditorRowMetrics, &CandidateSearchLabel, &CandidateSearchInput);
+	DoSettingsMenuLabel(SETTINGS_SOUND, -1, -1, "audio_pack_candidate_search_label", &CandidateSearchLabel, Localize("Search"), EditorFontSize, TEXTALIGN_ML);
 	ui_widget::InputField(AudioPackCandidateSearchCtx, &m_AudioPackEditorState.m_CandidateFilterInput, CandidateSearchInput, EditorFontSize, !Ui()->IsPopupOpen() && !GameClient()->m_GameConsole.IsActive());
 
 	std::vector<int> vVisibleCandidateIndices;
@@ -720,9 +722,9 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 	DetailColumn.HSplitTop(EditorMarginSmall * 2.0f, nullptr, &DetailColumn);
 	CUIRect ManualRow;
 	DetailColumn.HSplitTop(EditorLineSize, &ManualRow, &DetailColumn);
-	DoSettingsMenuLabel(SETTINGS_SOUND, -1, -1, "audio_manual_source_label", &ManualRow, Localize("Manual source file"), EditorFontSize, TEXTALIGN_ML);
-	CUIRect ManualInput;
-	ManualRow.VSplitLeft(120.0f, nullptr, &ManualInput);
+	CUIRect ManualInput, ManualLabel;
+	SplitSettingsControlRow(ManualRow, EditorRowMetrics, &ManualLabel, &ManualInput);
+	DoSettingsMenuLabel(SETTINGS_SOUND, -1, -1, "audio_manual_source_label", &ManualLabel, Localize("Manual source file"), EditorFontSize, TEXTALIGN_ML);
 	ui_widget::InputField(AudioPackEditorTextInputCtx, &m_AudioPackEditorState.m_SourcePathInput, ManualInput, Localize("Manual source file"), EditorFontSize);
 
 	DetailColumn.HSplitTop(EditorMarginSmall, nullptr, &DetailColumn);
@@ -731,10 +733,14 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 	DetailColumn.HSplitTop(EditorMarginSmall, nullptr, &DetailColumn);
 	DetailColumn.HSplitTop(EditorLineSize, &ActionRowBottom, &DetailColumn);
 	CUIRect PreviewButton, ImportPreviewButton, ExportButton;
-	ActionRowTop.VSplitMid(&PreviewButton, &ImportPreviewButton, 8.0f);
+	static ui_widget::SSettingsActionGroupState s_EditorPreviewWidths;
+	const char *apPreviewLabels[] = {Localize("Preview selected file"), Localize("Preview import file")};
+	const auto PreviewActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_EditorPreviewWidths, ActionRowTop, apPreviewLabels, 2, EditorRowMetrics);
+	PreviewButton = PreviewActions.m_aButtons[0];
+	ImportPreviewButton = PreviewActions.m_aButtons[1];
 	ExportButton = ActionRowBottom;
 
-	if(DoSettingsButton_Menu(SETTINGS_SOUND, -1, -1, &s_AudioPackEditorPreviewButton, "sound-audio-pack-editor-preview-selected", Localize("Preview selected file"), 0, &PreviewButton))
+	if(DoSettingsButton_Menu(SETTINGS_SOUND, -1, -1, &s_AudioPackEditorPreviewButton, "sound-audio-pack-editor-preview-selected", apPreviewLabels[0], 0, &PreviewButton))
 	{
 		if(pSelectedCandidatePath[0] == '\0')
 		{
@@ -750,7 +756,7 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 		}
 	}
 
-	if(DoSettingsButton_Menu(SETTINGS_SOUND, -1, -1, &s_AudioPackEditorImportPreviewButton, "sound-audio-pack-editor-preview-import", Localize("Preview import file"), 0, &ImportPreviewButton))
+	if(DoSettingsButton_Menu(SETTINGS_SOUND, -1, -1, &s_AudioPackEditorImportPreviewButton, "sound-audio-pack-editor-preview-import", apPreviewLabels[1], 0, &ImportPreviewButton))
 	{
 		const char *pManualPath = m_AudioPackEditorState.m_SourcePathInput.GetString();
 		const std::string PreviewPath = ResolveAudioPackPreviewPath("", pManualPath);
@@ -838,8 +844,6 @@ AudioPackExportDone:
 
 uint64_t CMenus::BuildSoundSettingsCards(const qm_card_catalog::SQmCardBuildContext &Ctx, std::vector<SSettingsCardDefinition> *pCards)
 {
-	const CUIRect MainView = Ctx.m_Page.m_ContentViewport;
-
 	static bool s_SndPackInit = false;
 	static char s_aSndPack[sizeof(g_Config.m_SndPack)] = "";
 
@@ -850,7 +854,6 @@ uint64_t CMenus::BuildSoundSettingsCards(const qm_card_catalog::SQmCardBuildCont
 	}
 
 	const SSettingsContentMetrics SoundMetrics = Ctx.m_Metrics;
-	const float UiScale = SoundMetrics.m_UiScale;
 	const float BodySize = SoundMetrics.m_BodySize;
 	const float LineHeight = SoundMetrics.m_LineHeight;
 	const float LineSpacing = SoundMetrics.m_LineSpacing;
@@ -873,144 +876,142 @@ uint64_t CMenus::BuildSoundSettingsCards(const qm_card_catalog::SQmCardBuildCont
 	if(pToggleDefault == nullptr || pVolumeDefault == nullptr || pAudioPackDefault == nullptr)
 		return 0;
 
-	const float CardChromeHeight = BuildSettingsCardFrame({0.0f, 0.0f, 1.0f, 0.0f}, {nullptr, nullptr, "subtitle"}, 0.0f, UiScale).m_Rect.h;
-	const float ToggleChromeHeight = CardChromeHeight;
-	const float VolumeChromeHeight = CardChromeHeight;
-	const float AudioPackChromeHeight = CardChromeHeight;
-	EnsureSharedAudioPacks(Storage());
-	const int ToggleRowCount = g_Config.m_SndEnable ? 10 : 1;
-	const float SoundToggleCardHeight = ToggleChromeHeight + LineHeight * ToggleRowCount + LineSpacing * maximum(0, ToggleRowCount - 1);
-	const float SoundVolumeCardHeight = VolumeChromeHeight + LineHeight * 5.0f + LineSpacing * 4.0f;
-	const int AudioPackCount = (int)gs_vAudioPacks.size();
-	const SSettingsListCardGeometry SoundAudioPackGeometry = ResolveSettingsSoundAudioPackGeometry(AudioPackCount, SoundMetrics);
-	const float SoundAudioPackContentHeight = SoundAudioPackGeometry.m_ContentHeight;
-	const float SoundAudioPackCardHeight = AudioPackChromeHeight + SoundAudioPackContentHeight;
 	const bool RenderOnly = Ctx.m_ReadOnly;
-	const auto BuildDefinitions = [this, pToggleDefault, pVolumeDefault, pAudioPackDefault, SoundToggleCardHeight, ToggleChromeHeight, SoundVolumeCardHeight, VolumeChromeHeight, SoundAudioPackCardHeight, AudioPackChromeHeight, SoundMetrics, LineHeight, LineSpacing, BodySize, DoSoundNumericField](std::vector<SSettingsCardDefinition> &vCards) {
+	const auto BuildDefinitions = [=, this](std::vector<SSettingsCardDefinition> &vCards) {
 		vCards.reserve(3);
 		const SSettingsCardSpec ToggleSpec{pToggleDefault->m_pStableId, Localize(pToggleDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pToggleDefault)};
 		const SSettingsCardSpec VolumeSpec{pVolumeDefault->m_pStableId, Localize(pVolumeDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pVolumeDefault)};
 		const SSettingsCardSpec AudioPackSpec{pAudioPackDefault->m_pStableId, Localize(pAudioPackDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pAudioPackDefault)};
-		const auto AddCard = [&vCards](const SSettingsCardSpec &Spec, float TotalHeight, float ChromeHeight, FSettingsCardRender Render, std::function<bool()> IsVisible = {}, bool VisibilityController = false, FSettingsCardPreLayoutInput PreLayoutInput = {}, uint64_t MeasureRevision = 0) {
+		const auto AddCard = [this, &vCards, RenderOnly](const SSettingsCardSpec &Spec, FSettingsCardRenderMeasured Render, std::function<bool()> IsVisible = {}, bool VisibilityController = false) {
 			SSettingsCardDefinition Definition;
 			Definition.m_Spec = Spec;
-			Definition.m_Measure = [TotalHeight, ChromeHeight](float) {
-				return maximum(0.0f, TotalHeight - ChromeHeight);
-			};
-			Definition.m_Render = std::move(Render);
-			Definition.m_PreLayoutInput = std::move(PreLayoutInput);
+			Definition.m_RenderMeasured = std::move(Render);
 			Definition.m_IsVisible = std::move(IsVisible);
 			Definition.m_VisibilityController = VisibilityController;
-			Definition.m_MeasureRevision = MeasureRevision;
+			qm_settings_content::UseDeclaredContent(Definition, Ui(), TextRender());
+			if(RenderOnly)
+				Definition.m_ContentLayoutInput = {};
 			vCards.push_back(std::move(Definition));
 		};
-		const auto ProcessSoundToggleInput = [this, LineHeight](CUIRect ContentRect) {
-			if(m_MenuTextPlanCollecting)
-				return false;
-			CUIRect MainView = ContentRect;
+		AddCard(ToggleSpec, [this, LineHeight, LineSpacing, RenderOnly](CUIRect &ContentRect) {
+			CSettingsContentLayoutFlow Flow(ContentRect);
+			const bool CanCommit = Flow.Input() && !RenderOnly && !Ui()->RenderOnly();
 			CUIRect Button;
-			MainView.HSplitTop(LineHeight, &Button, &MainView);
-			if(Ui()->DoButtonLogic(&g_Config.m_SndEnable, 0, &Button, BUTTONFLAG_LEFT))
+			if(Flow.Control("sound-enabled", LineHeight, Button))
 			{
-				g_Config.m_SndEnable ^= 1;
-				UpdateMusicState();
-				return true;
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, -1, &g_Config.m_SndEnable, "Use sounds", Localize("Use sounds"), g_Config.m_SndEnable, &Button, SLabelProperties{}, CanCommit) && CanCommit)
+				{
+					g_Config.m_SndEnable ^= 1;
+					UpdateMusicState();
+				}
 			}
-			return false;
-		};
-		AddCard(ToggleSpec, SoundToggleCardHeight, ToggleChromeHeight, [this, LineHeight, LineSpacing](CUIRect ContentRect) {
-		CUIRect MainView = ContentRect;
-		CUIRect Button;
-
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, -1, &g_Config.m_SndEnable, "Use sounds", Localize("Use sounds"), g_Config.m_SndEnable, &Button, SLabelProperties{}, false);
-
-		m_NeedRestartSound = g_Config.m_SndEnable && !Sound()->IsSoundEnabled();
-		if(!g_Config.m_SndEnable)
-		{
-			const bool PackChanged = str_comp(g_Config.m_SndPack, s_aSndPack) != 0;
-			m_NeedRestartSound = m_NeedRestartSound || PackChanged;
-			return;
-		}
-
-		MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndMusic, "Play background music", Localize("Play background music"), g_Config.m_SndMusic, &Button))
-		{
-			g_Config.m_SndMusic ^= 1;
-			UpdateMusicState();
-		}
-
-		MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndNonactiveMute, "Mute when not active", Localize("Mute when not active"), g_Config.m_SndNonactiveMute, &Button))
-			g_Config.m_SndNonactiveMute ^= 1;
-
-		MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndGame, "Enable game sounds", Localize("Enable game sounds"), g_Config.m_SndGame, &Button))
-			g_Config.m_SndGame ^= 1;
-
-		MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndGun, "Enable gun sound", Localize("Enable gun sound"), g_Config.m_SndGun, &Button))
-			g_Config.m_SndGun ^= 1;
-
-		MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndLongPain, "Enable shout when holding fire while in water", Localize("Enable shout when holding fire while in water"), g_Config.m_SndLongPain, &Button))
-			g_Config.m_SndLongPain ^= 1;
-
-		MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndServerMessage, "Enable server message sound", Localize("Enable server message sound"), g_Config.m_SndServerMessage, &Button))
-			g_Config.m_SndServerMessage ^= 1;
-
-		MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndChat, "Enable regular chat sound", Localize("Enable regular chat sound"), g_Config.m_SndChat, &Button))
-			g_Config.m_SndChat ^= 1;
-
-		MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndTeamChat, "Enable team chat sound", Localize("Enable team chat sound"), g_Config.m_SndTeamChat, &Button))
-			g_Config.m_SndTeamChat ^= 1;
-
-		MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-		MainView.HSplitTop(LineHeight, &Button, &MainView);
-		if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndHighlight, "Enable highlighted chat sound", Localize("Enable highlighted chat sound"), g_Config.m_SndHighlight, &Button))
-			g_Config.m_SndHighlight ^= 1; }, {}, true, ProcessSoundToggleInput, g_Config.m_SndEnable);
-		vCards.back().m_Measure = [LineHeight, LineSpacing](float) {
-			const int RowCount = g_Config.m_SndEnable ? 10 : 1;
-			return LineHeight * RowCount + LineSpacing * maximum(0, RowCount - 1);
-		};
-
-		AddCard(VolumeSpec, SoundVolumeCardHeight, VolumeChromeHeight, [DoSoundNumericField, LineHeight, LineSpacing](CUIRect ContentRect) {
-			CUIRect MainView = ContentRect;
+			if(CanCommit)
+				m_NeedRestartSound = (g_Config.m_SndEnable && !Sound()->IsSoundEnabled()) || str_comp(g_Config.m_SndPack, s_aSndPack) != 0;
+			if(!g_Config.m_SndEnable)
+				return;
+			Flow.Space(LineSpacing);
+			if(Flow.Control("SndMusic", LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndMusic, "Play background music", Localize("Play background music"), g_Config.m_SndMusic, &Button) && CanCommit)
+				{
+					g_Config.m_SndMusic ^= 1;
+					UpdateMusicState();
+				}
+			}
+			Flow.Space(LineSpacing);
+			if(Flow.Control("SndNonactiveMute", LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndNonactiveMute, "Mute when not active", Localize("Mute when not active"), g_Config.m_SndNonactiveMute, &Button) && CanCommit)
+				{
+					g_Config.m_SndNonactiveMute ^= 1;
+				}
+			}
+			Flow.Space(LineSpacing);
+			if(Flow.Control("SndGame", LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndGame, "Enable game sounds", Localize("Enable game sounds"), g_Config.m_SndGame, &Button) && CanCommit)
+				{
+					g_Config.m_SndGame ^= 1;
+				}
+			}
+			Flow.Space(LineSpacing);
+			if(Flow.Control("SndGun", LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndGun, "Enable gun sound", Localize("Enable gun sound"), g_Config.m_SndGun, &Button) && CanCommit)
+				{
+					g_Config.m_SndGun ^= 1;
+				}
+			}
+			Flow.Space(LineSpacing);
+			if(Flow.Control("SndLongPain", LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndLongPain, "Enable shout when holding fire while in water", Localize("Enable shout when holding fire while in water"), g_Config.m_SndLongPain, &Button) && CanCommit)
+				{
+					g_Config.m_SndLongPain ^= 1;
+				}
+			}
+			Flow.Space(LineSpacing);
+			if(Flow.Control("SndServerMessage", LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndServerMessage, "Enable server message sound", Localize("Enable server message sound"), g_Config.m_SndServerMessage, &Button) && CanCommit)
+				{
+					g_Config.m_SndServerMessage ^= 1;
+				}
+			}
+			Flow.Space(LineSpacing);
+			if(Flow.Control("SndChat", LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndChat, "Enable regular chat sound", Localize("Enable regular chat sound"), g_Config.m_SndChat, &Button) && CanCommit)
+				{
+					g_Config.m_SndChat ^= 1;
+				}
+			}
+			Flow.Space(LineSpacing);
+			if(Flow.Control("SndTeamChat", LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndTeamChat, "Enable team chat sound", Localize("Enable team chat sound"), g_Config.m_SndTeamChat, &Button) && CanCommit)
+				{
+					g_Config.m_SndTeamChat ^= 1;
+				}
+			}
+			Flow.Space(LineSpacing);
+			if(Flow.Control("SndHighlight", LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_SOUND, -1, &g_Config.m_SndHighlight, "Enable highlighted chat sound", Localize("Enable highlighted chat sound"), g_Config.m_SndHighlight, &Button) && CanCommit)
+				{
+					g_Config.m_SndHighlight ^= 1;
+				}
+			} }, {}, true);
+		AddCard(VolumeSpec, [DoSoundNumericField, LineHeight, LineSpacing](CUIRect &ContentRect) {
+			CSettingsContentLayoutFlow Flow(ContentRect);
 			CUIRect VolumeButton;
-			MainView.HSplitTop(LineHeight, &VolumeButton, &MainView);
-			DoSoundNumericField("sound-volume", &g_Config.m_SndVolume, &g_Config.m_SndVolume, VolumeButton, Localize("Sound volume"));
-			MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-			MainView.HSplitTop(LineHeight, &VolumeButton, &MainView);
-			DoSoundNumericField("sound-game-volume", &g_Config.m_SndGameVolume, &g_Config.m_SndGameVolume, VolumeButton, Localize("Game sound volume"));
-			MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-			MainView.HSplitTop(LineHeight, &VolumeButton, &MainView);
-			DoSoundNumericField("sound-chat-volume", &g_Config.m_SndChatVolume, &g_Config.m_SndChatVolume, VolumeButton, Localize("Chat sound volume"));
-			MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-			MainView.HSplitTop(LineHeight, &VolumeButton, &MainView);
-			DoSoundNumericField("sound-map-volume", &g_Config.m_SndMapVolume, &g_Config.m_SndMapVolume, VolumeButton, Localize("Map sound volume"));
-			MainView.HSplitTop(LineSpacing, nullptr, &MainView);
-			MainView.HSplitTop(LineHeight, &VolumeButton, &MainView);
-			DoSoundNumericField("sound-background-music-volume", &g_Config.m_SndBackgroundMusicVolume, &g_Config.m_SndBackgroundMusicVolume, VolumeButton, Localize("Background music volume")); }, []() { return g_Config.m_SndEnable != 0; });
-		AddCard(AudioPackSpec, SoundAudioPackCardHeight, AudioPackChromeHeight, [this, SoundMetrics, LineHeight, LineSpacing, BodySize](CUIRect ContentRect) {
-			CUIRect AudioPackView = ContentRect;
+			if(Flow.Control("sound-volume", LineHeight, VolumeButton))
+				DoSoundNumericField("sound-volume", &g_Config.m_SndVolume, &g_Config.m_SndVolume, VolumeButton, Localize("Sound volume"));
+			Flow.Space(LineSpacing);
+			if(Flow.Control("sound-game-volume", LineHeight, VolumeButton))
+				DoSoundNumericField("sound-game-volume", &g_Config.m_SndGameVolume, &g_Config.m_SndGameVolume, VolumeButton, Localize("Game sound volume"));
+			Flow.Space(LineSpacing);
+			if(Flow.Control("sound-chat-volume", LineHeight, VolumeButton))
+				DoSoundNumericField("sound-chat-volume", &g_Config.m_SndChatVolume, &g_Config.m_SndChatVolume, VolumeButton, Localize("Chat sound volume"));
+			Flow.Space(LineSpacing);
+			if(Flow.Control("sound-map-volume", LineHeight, VolumeButton))
+				DoSoundNumericField("sound-map-volume", &g_Config.m_SndMapVolume, &g_Config.m_SndMapVolume, VolumeButton, Localize("Map sound volume"));
+			Flow.Space(LineSpacing);
+			if(Flow.Control("sound-background-music-volume", LineHeight, VolumeButton))
+				DoSoundNumericField("sound-background-music-volume", &g_Config.m_SndBackgroundMusicVolume, &g_Config.m_SndBackgroundMusicVolume, VolumeButton, Localize("Background music volume")); }, [] { return g_Config.m_SndEnable != 0; });
+		AddCard(AudioPackSpec, [this, SoundMetrics, LineHeight, LineSpacing, BodySize, RenderOnly](CUIRect &ContentRect) {
+			CSettingsContentLayoutFlow Flow(ContentRect);
+			const bool CanCommit = Flow.Input() && !RenderOnly && !Ui()->RenderOnly();
 			static CButtonContainer s_AudioPackRefreshButton;
 			static CButtonContainer s_AudioPackEditorButton;
 			static CButtonContainer s_AudioPackDirectoryButton;
 			static CListBox s_AudioPackListBox;
-			EnsureSharedAudioPacks(Storage());
+			if(CanCommit)
+				EnsureSharedAudioPacks(Storage());
 
 			auto RefreshAudioPackState = [&]() {
+				if(!CanCommit)
+					return;
 				RefreshSharedAudioPacks(Storage());
 				if(g_Config.m_SndPack[0] == '\0')
 					str_copy(g_Config.m_SndPack, "default", sizeof(g_Config.m_SndPack));
@@ -1018,59 +1019,61 @@ uint64_t CMenus::BuildSoundSettingsCards(const qm_card_catalog::SQmCardBuildCont
 					m_AudioPackEditorState.m_PackNameInput.Set(g_Config.m_SndPack);
 			};
 
-			if(g_Config.m_SndPack[0] == '\0')
+			if(CanCommit && g_Config.m_SndPack[0] == '\0')
 				str_copy(g_Config.m_SndPack, "default", sizeof(g_Config.m_SndPack));
 
 			auto FindSelectedPackIndex = [&]() {
 				int Result = FindAudioPackIndexByName(gs_vAudioPacks, g_Config.m_SndPack);
-				if(Result < 0)
+				if(CanCommit && Result < 0)
 				{
 					RefreshSharedAudioPacks(Storage());
 					Result = FindAudioPackIndexByName(gs_vAudioPacks, g_Config.m_SndPack);
 				}
-				if(Result < 0)
+				if(CanCommit && Result < 0)
 				{
 					str_copy(g_Config.m_SndPack, "default", sizeof(g_Config.m_SndPack));
 					Result = 0;
 				}
-				return Result;
+				return std::max(0, Result);
 			};
 			int SelectedPack = FindSelectedPackIndex();
 
-			CUIRect AudioPackContent;
-			AudioPackView.Margin(2.0f, &AudioPackContent);
+			const auto Geometry = ResolveSettingsSoundAudioPackGeometry(gs_vAudioPacks.size(), SoundMetrics);
 			CUIRect HeaderRow, ListRow;
-			AudioPackContent.HSplitTop(LineHeight, &HeaderRow, &AudioPackContent);
-			AudioPackContent.HSplitTop(LineSpacing, nullptr, &AudioPackContent);
-			ListRow = AudioPackContent;
-
-			const float RefreshButtonW = LineHeight + LineSpacing;
-			const float EditButtonW = minimum(168.0f, maximum(114.0f, TextRender()->TextWidth(BodySize, Localize("Edit audio pack"), -1, -1.0f) + 22.0f));
-			const float DirectoryButtonW = minimum(176.0f, maximum(122.0f, TextRender()->TextWidth(BodySize, Localize("Audio pack directory"), -1, -1.0f) + 22.0f));
-			CUIRect EditButton;
-			CUIRect DirectoryButton;
-			CUIRect RefreshButton;
-			HeaderRow.VSplitRight(RefreshButtonW, &HeaderRow, &RefreshButton);
-			RefreshButton.VMargin(2.0f, &RefreshButton);
-			if(Ui()->DoButton_QmIcon(&s_AudioPackRefreshButton, EQmIcon::ARROW_ROTATE_RIGHT, FONT_ICON_ARROW_ROTATE_RIGHT, 0, &RefreshButton, BUTTONFLAG_LEFT))
+			const bool HasHeader = Flow.Control("audio-pack-actions", LineHeight + 2.0f, HeaderRow);
+			Flow.Space(LineSpacing);
+			const bool HasList = Flow.Control("audio-pack-list", Geometry.m_ListViewportHeight + 14.0f, ListRow);
+			if(HasHeader)
 			{
-				RefreshAudioPackState();
-				SelectedPack = FindSelectedPackIndex();
-			}
-			HeaderRow.VSplitLeft(EditButtonW, &EditButton, &HeaderRow);
-			EditButton.VMargin(2.0f, &EditButton);
-			if(DoSettingsButton_Menu(SETTINGS_SOUND, -1, -1, &s_AudioPackEditorButton, "sound-edit-audio-pack", Localize("Edit audio pack"), 0, &EditButton))
-				AudioPackEditorOpen(g_Config.m_SndPack);
-			HeaderRow.VSplitLeft(6.0f, nullptr, &HeaderRow);
-			HeaderRow.VSplitLeft(DirectoryButtonW, &DirectoryButton, &HeaderRow);
-			DirectoryButton.VMargin(2.0f, &DirectoryButton);
-			if(DoSettingsButton_Menu(SETTINGS_SOUND, -1, -1, &s_AudioPackDirectoryButton, "sound-audio-pack-directory", Localize("Audio pack directory"), 0, &DirectoryButton))
-			{
-				char aBuf[IO_MAX_PATH_LENGTH];
-				Storage()->GetCompletePath(IStorage::TYPE_SAVE, "audio", aBuf, sizeof(aBuf));
-				Client()->ViewFile(aBuf);
-			}
+				HeaderRow.HSplitTop(2.0f, nullptr, &HeaderRow);
+				HeaderRow.VMargin(2.0f, &HeaderRow);
 
+				const auto HeaderActions = ResolveSettingsInputActionsLayout(HeaderRow, 1, SoundMetrics);
+				CUIRect RefreshButton = HeaderActions.m_Actions.m_aButtons[0];
+				HeaderRow = HeaderActions.m_Input;
+				static ui_widget::SSettingsActionGroupState s_AudioPackActions;
+				const char *apActionLabels[] = {Localize("Edit audio pack"), Localize("Audio pack directory")};
+				const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_AudioPackActions, HeaderRow, apActionLabels, 2, SoundMetrics);
+				CUIRect EditButton = Actions.m_aButtons[0];
+				CUIRect DirectoryButton = Actions.m_aButtons[1];
+				if(Ui()->DoButton_QmIcon(&s_AudioPackRefreshButton, EQmIcon::ARROW_ROTATE_RIGHT, FONT_ICON_ARROW_ROTATE_RIGHT, 0, &RefreshButton, BUTTONFLAG_LEFT) && CanCommit)
+				{
+					RefreshAudioPackState();
+					SelectedPack = FindSelectedPackIndex();
+				}
+				if(DoSettingsButton_Menu(SETTINGS_SOUND, -1, -1, &s_AudioPackEditorButton, "sound-edit-audio-pack", apActionLabels[0], 0, &EditButton, SoundMetrics) && CanCommit)
+					AudioPackEditorOpen(g_Config.m_SndPack);
+				if(DoSettingsButton_Menu(SETTINGS_SOUND, -1, -1, &s_AudioPackDirectoryButton, "sound-audio-pack-directory", apActionLabels[1], 0, &DirectoryButton, SoundMetrics) && CanCommit)
+				{
+					char aBuf[IO_MAX_PATH_LENGTH];
+					Storage()->GetCompletePath(IStorage::TYPE_SAVE, "audio", aBuf, sizeof(aBuf));
+					Client()->ViewFile(aBuf);
+				}
+			}
+			if(!HasList)
+				return;
+			ListRow.VMargin(2.0f, &ListRow);
+			ListRow.h -= 2.0f;
 			DrawRoundedSurface(Ui(), ListRow, ColorRGBA(0.0f, 0.0f, 0.0f, 0.12f), ColorRGBA(), 6.0f);
 			ListRow.Margin(6.0f, &ListRow);
 
@@ -1116,7 +1119,7 @@ uint64_t CMenus::BuildSoundSettingsCards(const qm_card_catalog::SQmCardBuildCont
 			}
 
 			SelectedPack = s_AudioPackListBox.DoEnd();
-			if(SelectedPack != OldSelectedPack && SelectedPack >= 0 && SelectedPack < (int)gs_vAudioPacks.size())
+			if(CanCommit && SelectedPack != OldSelectedPack && SelectedPack >= 0 && SelectedPack < (int)gs_vAudioPacks.size())
 			{
 				str_copy(g_Config.m_SndPack, gs_vAudioPacks[SelectedPack].m_aName, sizeof(g_Config.m_SndPack));
 				if(GameClient()->m_Sounds.Reload())
@@ -1128,11 +1131,12 @@ uint64_t CMenus::BuildSoundSettingsCards(const qm_card_catalog::SQmCardBuildCont
 					m_AudioPackEditorState.m_PackNameInput.Set(g_Config.m_SndPack);
 			} }, []() { return g_Config.m_SndEnable != 0; });
 	};
-	const uint64_t SoundLayoutRevision = ResolveSettingsSoundLayoutRevision(RenderOnly, g_Config.m_SndEnable != 0, AudioPackCount);
+	const uint64_t SoundLayoutRevision = RenderOnly;
 	if(pCards != nullptr)
 	{
 		BuildDefinitions(*pCards);
 	}
-	m_NeedRestartSound = m_NeedRestartSound || str_comp(g_Config.m_SndPack, s_aSndPack) != 0;
+	if(!RenderOnly)
+		m_NeedRestartSound = m_NeedRestartSound || str_comp(g_Config.m_SndPack, s_aSndPack) != 0;
 	return SoundLayoutRevision;
 }

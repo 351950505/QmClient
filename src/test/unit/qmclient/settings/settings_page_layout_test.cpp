@@ -20,6 +20,14 @@
 #include <unordered_map>
 #include <unordered_set>
 
+TEST(SettingsCardDeckScroll, BackgroundKeepsTheLiveOffsetWhileMeasurementStartsAtOrigin)
+{
+	EXPECT_FLOAT_EQ(ResolveSettingsCardDeckPassiveScrollOffset(true, true, -180.0f), -180.0f);
+	EXPECT_FLOAT_EQ(ResolveSettingsCardDeckPassiveScrollOffset(false, true, -180.0f), 0.0f);
+	EXPECT_FLOAT_EQ(ResolveSettingsCardDeckPassiveScrollOffset(true, false, -180.0f), 0.0f);
+	EXPECT_FLOAT_EQ(ResolveSettingsCardDeckPassiveScrollOffset(true, true, -40.0f), -40.0f);
+}
+
 TEST(SettingsPageLayout, ReleaseViewportMatrixKeepsCardsAndNavigationInsideTheWindow)
 {
 	constexpr std::array<std::array<int, 2>, 9> aResolutions = {{{1280, 720}, {1366, 768}, {1920, 1080}, {2560, 1440}, {3840, 2160}, {1280, 1024}, {1600, 1200}, {1920, 1200}, {2560, 1080}}};
@@ -103,11 +111,11 @@ TEST(SettingsPageLayout, SegmentedControlsKeepReadableSizeInNarrowAndWideContent
 		const CUIRect View{10.0f, 20.0f, Width, 100.0f};
 		const SSettingsRadioRowLayout Row = ResolveSettingsRadioRowLayout(View, 4, Metrics);
 		EXPECT_GE(ResolveSettingsRadioFontSize(Metrics), 12.0f);
-		EXPECT_GE(Row.m_ButtonsRect.h, 24.0f);
+		EXPECT_FLOAT_EQ(Row.m_ButtonsRect.h, Metrics.m_ButtonHeight);
 		EXPECT_LE(Row.m_ButtonsRect.y + Row.m_ButtonsRect.h, View.y + Row.m_Height);
 		EXPECT_LE(Row.m_ButtonsRect.x + Row.m_ButtonsRect.w, View.x + View.w);
-		if(Row.m_Stacked)
-			EXPECT_GE(Row.m_ButtonsRect.y, Row.m_LabelRect.y + Row.m_LabelRect.h + Metrics.m_LineSpacing);
+		EXPECT_FLOAT_EQ(Row.m_ButtonsRect.y, Row.m_LabelRect.y);
+		EXPECT_FLOAT_EQ(Row.m_Height, Metrics.m_LineHeight);
 		const SSettingsNestedRadioRowLayout Nested = ResolveSettingsNestedRadioRowLayout(View, Metrics);
 		EXPECT_EQ(Nested.m_ContainerRect.h, Row.m_ButtonsRect.h);
 		EXPECT_FLOAT_EQ(Nested.m_ContainerRect.y + Nested.m_ContainerRect.h, View.y + Nested.m_Height);
@@ -414,5 +422,23 @@ TEST(SettingsPageLayout, LegacyRnnoiseModeDoesNotReserveFallbackRows)
 		EXPECT_FLOAT_EQ(ResolveQmHudVoiceHeight(Metrics, true, true, true, -1, true, true), DisabledHeight);
 		EXPECT_FLOAT_EQ(ResolveQmHudVoiceHeight(Metrics, true, true, true, 99, true, true), DisabledHeight);
 		EXPECT_GT(ResolveQmHudVoiceHeight(Metrics, true, true, true, 1, true, true), DisabledHeight);
+	}
+}
+
+TEST(SettingsPageLayout, PairedControlsPreservePrimarySpaceAndSupportInPlaceSplitting)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(1000);
+	for(const float Width : {0.0f, 1.0f, 24.0f, 150.0f, 500.0f})
+	{
+		SCOPED_TRACE(Width);
+		CUIRect Primary{40, 60, Width, Metrics.m_LineHeight};
+		CUIRect Secondary;
+		SplitSettingsPairedControls(Primary, Metrics, &Primary, &Secondary);
+		EXPECT_GE(Primary.w, Width * 0.4f);
+		EXPECT_GE(Secondary.w, 0.0f);
+		EXPECT_GE(Secondary.x, Primary.x + Primary.w);
+		EXPECT_NEAR(Secondary.x + Secondary.w, 40.0f + Width, 0.0001f);
+		EXPECT_FLOAT_EQ(Primary.h, Metrics.m_LineHeight);
+		EXPECT_FLOAT_EQ(Secondary.h, Primary.h);
 	}
 }

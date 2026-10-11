@@ -20,6 +20,11 @@ void CTooltips::DoSettingsToolTipForConfig(const void *, const CUIRect *, const 
 {
 }
 
+// 独立 UI 目标不创建提示组件；左右按钮仍通过真实公共入口独立登记。
+void CTooltips::DoToolTipForRect(const void *, const CUIRect *, const char *, float)
+{
+}
+
 // 本目标不启用菜单卡片说明作用域；括号标签解析由生产策略单元测试覆盖。
 const char *CTooltips::PrepareCardLabel(const CUIRect *, const char *pText, bool)
 {

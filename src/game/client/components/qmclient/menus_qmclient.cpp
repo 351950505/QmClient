@@ -27,7 +27,10 @@
 #include <game/client/QmUi/QmModuleLayoutAdapter.h>
 #include <game/client/QmUi/QmModuleTypes.h>
 #include <game/client/QmUi/QmScroll.h>
+#include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCardCollapseState.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContext.h>
@@ -36,6 +39,7 @@
 #include <game/client/QmUi/UiNavigation.h>
 #include <game/client/QmUi/UiOverlays.h>
 #include <game/client/QmUi/UiSurface.h>
+#include <game/client/QmUi/UiSurfaceText.h>
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/QmUi/cards/QmCardCatalogFunctionMetrics.h>
 #include <game/client/QmUi/cards/QmCardCatalogInternal.h>
@@ -438,8 +442,12 @@ bool CMenus::RenderQmFunctionCheckbox(const void *pId, const char *pTextId, cons
 
 bool CMenus::RenderQmVisualCheckbox(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue)
 {
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Row;
-	Content.HSplitTop(LineHeight, &Row, &Content);
+	const bool HasRow = Flow.Control(pTextId, LineHeight, Row);
+	Flow.Space(LineSpacing);
+	if(!HasRow)
+		return false;
 	const char *pOverrideTooltip = TemporaryOverrideTooltip(pValue);
 	Ui()->DoConfigTooltip(pId, &Row, pValue);
 	SLabelProperties LabelProps;
@@ -456,7 +464,6 @@ bool CMenus::RenderQmVisualCheckbox(CUIRect &Content, float LineHeight, float Li
 	const bool Changed = DoSettingsButton_CheckBox(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, pId, pTextId, pText, *pValue, &Row, LabelProps, pOverrideTooltip == nullptr) != 0;
 	if(Changed)
 		*pValue ^= 1;
-	Content.HSplitTop(LineSpacing, nullptr, &Content);
 	return Changed;
 }
 
@@ -749,7 +756,8 @@ void CMenus::RenderSettingsQmClientFunctionDeck(CUIRect MainView, bool PrewarmOn
 	}
 	qm_card_order::CModel &CardOrderModel = Ui()->MeasurementOnly() ? s_FunctionPrewarmOrderModel : SettingsCardOrderModel();
 	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_FunctionPrewarmDeck : m_SettingsCardDeck;
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "function", DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	const uint64_t MeasurementEnvironmentRevision = ResolveSettingsCardDefinitionsRevision(m_SettingsCardDeckDisplayCycle, m_MenuTextPoolGeneration, MainView.w, 0);
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "function", DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions(), MeasurementEnvironmentRevision);
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }
@@ -946,7 +954,6 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (Client()->IsSixup() ? 1u : 0u);
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (ReadOnly ? 1u : 0u);
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::MeasureModuleCardsRevision(s_GlobalSearchFunctionCardLayout);
-	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ TranslationTestLayoutRevision();
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::MeasureContentRevision(g_Localization.Languages().size(), GameClient()->m_MenuBackground.GetThemes().size());
 	if(std::any_of(SearchVisibleGlobalCards.begin(), SearchVisibleGlobalCards.end(), [](const SQmGlobalSearchCard &Card) { return str_startswith(Card.m_pStableId, "deck:controls-") != nullptr; }))
 		CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::QmCardRenderHook::PrepareControlsCards(this, MainView.w, ReadOnly, Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion);
@@ -976,18 +983,21 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 
 	const bool HasSearchQuery = pModuleSearch != nullptr && pModuleSearch[0] != '\0';
 	// s_GlobalSearchCardBuild 是函数内静态对象，直接引用即可，无需附加捕获。
-	const auto BuildDefinitions = [this, UiScale, BodySize, SmallSize, LineHeight, LineSpacing, SearchMatchedGlobalCardCount, HasSearchQuery, ReadOnly, SearchCtx, &SearchVisibleGlobalCards](std::vector<SSettingsCardDefinition> &vCards) {
+	const auto BuildDefinitions = [this, UiScale, BodySize, SmallSize, LineHeight, LineSpacing, Metrics, SearchMatchedGlobalCardCount, HasSearchQuery, ReadOnly, SearchCtx, &SearchVisibleGlobalCards](std::vector<SSettingsCardDefinition> &vCards) {
 		vCards.reserve(SearchMatchedGlobalCardCount + 1);
 		// 搜索输入卡片已脱离卡组，在 RenderCached 之前手动绘制并定位。
 
 		SSettingsCardDefinition EmptyCard;
 		EmptyCard.m_Spec = {"deck:global-search-empty", Localize("Search"), qm_card_registry::ResolveLocalizedDescription("deck:global-search-results")};
-		EmptyCard.m_Measure = [LineHeight](float) { return LineHeight; };
-		EmptyCard.m_Render = [this, SmallSize, LineHeight](CUIRect Content) {
-			CUIRect Row;
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			DoSettingsMenuLabel(SETTINGS_SEARCH, -1, -1, "qmclient-search-no-matching-features", &Row, Localize("No matching features found. Try other keywords"), SmallSize, TEXTALIGN_ML, {}, (int)Row.w);
+		EmptyCard.m_RenderMeasured = [this, SmallSize, LineHeight](CUIRect &Content) {
+			CSettingsContentLayoutFlow Flow(Content);
+			Flow.Text("search-empty", Localize("No matching features found. Try other keywords"), 0, SmallSize, 0, {}, [this, SmallSize](const CUIRect &Row, const char *pText) {
+				SLabelProperties Props;
+				Props.m_MaxWidth = Row.w;
+				Props.m_EnableWidthCheck = false;
+				Ui()->DoLabel(&Row, pText, SmallSize, TEXTALIGN_ML, Props); }, LineHeight);
 		};
+		qm_settings_content::UseDeclaredContent(EmptyCard, Ui(), TextRender());
 		EmptyCard.m_IsVisible = [HasSearchQuery, SearchMatchedGlobalCardCount] { return HasSearchQuery && SearchMatchedGlobalCardCount == 0; };
 		vCards.push_back(std::move(EmptyCard));
 
@@ -1000,22 +1010,20 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 				Definition.m_Spec = {Card.m_pStableId, pDefault != nullptr && pDefault->m_pTitle != nullptr ? Localize(pDefault->m_pTitle) : Localize("Global card"), qm_card_registry::ResolveLocalizedDescription(Card.m_pStableId)};
 				// 兜底卡无法复用原页面的卡片构建器（构建闭包绑定在各自页面），
 				// 退化为「描述 + 定位按钮」的导航卡，而不是只有一行定位。
-				Definition.m_Measure = [LineHeight, LineSpacing](float) { return LineHeight + LineSpacing * 0.65f + LineHeight; };
 				CButtonContainer *pOpenButton = &s_GlobalSearchActionButtons[std::string("open:") + Card.m_pStableId];
-				Definition.m_Render = [this, Description = Card.m_Description, Target = Card.m_Target, pOpenButton, ReadOnly, LineHeight, LineSpacing, SmallSize](CUIRect Content) {
+				Definition.m_RenderMeasured = [this, Description = Card.m_Description, Target = Card.m_Target, pOpenButton, ReadOnly, LineHeight, LineSpacing, SmallSize, Metrics](CUIRect &Content) {
+					CSettingsContentLayoutFlow Flow(Content);
 					CUIRect Row;
-					Content.HSplitTop(LineHeight, &Row, &Content);
-					SLabelProperties DescProps;
-					DescProps.m_MaxWidth = Row.w;
-					DescProps.m_EllipsisAtEnd = true;
-					TextRender()->TextColor(ColorRGBA(0.9f, 0.9f, 0.9f, 0.82f));
-					Ui()->DoLabel(&Row, Description.c_str(), SmallSize, TEXTALIGN_ML, DescProps);
-					TextRender()->TextColor(TextRender()->DefaultTextColor());
-					Content.HSplitTop(LineSpacing * 0.65f, nullptr, &Content);
-					Content.HSplitTop(LineHeight, &Row, &Content);
+					Flow.Text("search-description", Description.c_str(), 0, SmallSize, LineSpacing * 0.65f, {}, [this, SmallSize](const CUIRect &DescriptionRow, const char *pText) {
+						SLabelProperties Props;
+						Props.m_MaxWidth = DescriptionRow.w;
+						Props.m_EnableWidthCheck = false;
+						Ui()->DoLabel(&DescriptionRow, pText, SmallSize, TEXTALIGN_ML, Props); }, LineHeight);
+					if(!Flow.Control("search-locate", LineHeight, Row))
+						return;
 					const char *pLabel = Localize("Locate");
 					const float TextWidth = TextRender()->TextWidth(SmallSize, pLabel);
-					CUIRect LocateButton = {Row.x, Row.y, std::min(Row.w, TextWidth + 16.0f), Row.h};
+					const CUIRect LocateButton = ResolveSettingsActionGroupLayout(Row, 1, Metrics, TextWidth + 2.0f * ui_token::spacing::MD).m_aButtons[0];
 					if(LocateButton.w <= 0.0f)
 						return;
 					if(!ReadOnly && Ui()->DoButtonLogic(pOpenButton, 0, &LocateButton, BUTTONFLAG_LEFT))
@@ -1026,11 +1034,10 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 						return;
 					}
 					// 完整按钮组件：圆角底 + 居中文本，而非纯文本。
-					const bool Hovered = !ReadOnly && Ui()->MouseHovered(&LocateButton);
-					const ColorRGBA ChromeColor(1.0f, 1.0f, 1.0f, Hovered ? 0.28f : 0.18f);
-					DrawRoundedSurface(Ui(), LocateButton, ChromeColor, ChromeColor, 5.0f);
+					ui_widget::DrawButtonSurface(ui_widget::ControlContext(Ui()), pOpenButton, LocateButton);
 					Ui()->DoLabel(&LocateButton, pLabel, SmallSize, TEXTALIGN_MC);
 				};
+				qm_settings_content::UseDeclaredContent(Definition, Ui(), TextRender());
 				vCards.push_back(std::move(Definition));
 				continue;
 			}
@@ -1161,7 +1168,8 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	InputState.m_AllowHeaderDrag = false;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
 	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
-	CardDeck.RenderCached(SearchCtx, DeckPage, "global-search", DefinitionsRevision, BuildDefinitions, DeckOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion, InputState, Motion, SettingsCardDeckVisualOptions());
+	const uint64_t MeasurementEnvironmentRevision = ResolveSettingsCardDefinitionsRevision(m_SettingsCardDeckDisplayCycle, m_MenuTextPoolGeneration, MainView.w, 0);
+	CardDeck.RenderCached(SearchCtx, DeckPage, "global-search", DefinitionsRevision, BuildDefinitions, DeckOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion, InputState, Motion, SettingsCardDeckVisualOptions(), MeasurementEnvironmentRevision);
 }
 
 void CMenus::RenderSettingsQmClientContent(CUIRect MainView, bool PrewarmOnly)
@@ -1489,49 +1497,37 @@ namespace
 
 void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 {
-	const IUiContext Ctx = SettingsUiContext("qm_new_features_popup");
+	const SUiTheme PanelTheme = ResolveConfiguredSecondaryPanelTheme();
+	IUiContext Ctx = SettingsUiContext("qm_new_features_popup");
+	Ctx.m_pTheme = &PanelTheme;
+	CUiScopedSurfaceText PanelText(TextRender(), PanelTheme.m_Surface);
+	const ColorRGBA PanelForeground = ResolveConfiguredTextColor(PanelText.Surface());
 	const float UiScale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
-	const float TitleSize = ui_token::font::TITLE * UiScale;
 	const float HeadlineSize = ui_token::font::HEADLINE * UiScale;
 	const float BodySize = ui_token::font::BODY * UiScale;
 	const float TipSize = ui_token::font::TIP * UiScale;
-	const float Padding = ui_token::spacing::LG * UiScale;
 	const float Gap = ui_token::spacing::MD * UiScale;
-	const float ButtonH = 26.0f * UiScale;
+	const float ButtonH = ui_token::secondary_panel::NEWS_ACTION_HEIGHT * UiScale;
 	const float JumpButtonW = 110.0f * UiScale;
 
-	// 遮罩：弹窗期间抢占启动菜单的绘制，先压暗整屏再画面板。
-	Screen.Draw(ui_token::color::SURFACE_OVERLAY, IGraphics::CORNER_NONE, 0.0f);
-
-	CUIRect Panel;
-	// 小窗口下先夹住上限，避免 std::clamp 出现 lo > hi。
-	const float MaxPanelW = std::max(160.0f, Screen.w - 2.0f * ui_token::spacing::LG);
-	const float MaxPanelH = std::max(200.0f, Screen.h - 2.0f * ui_token::spacing::LG);
-	Panel.w = std::clamp(820.0f * UiScale, 160.0f, MaxPanelW);
-	Panel.h = std::clamp(Screen.h - 4.0f * ui_token::spacing::LG, 200.0f, MaxPanelH);
-	Panel.x = Screen.x + (Screen.w - Panel.w) * 0.5f;
-	Panel.y = Screen.y + (Screen.h - Panel.h) * 0.5f;
-
-	CUIRect ShadowRect = Panel;
-	ShadowRect.x += ui_token::elevation::SHADOW_X_HIGH;
-	ShadowRect.y += ui_token::elevation::SHADOW_Y_HIGH;
-	DrawRoundedSurface(Ctx, ShadowRect, ui_token::color::SURFACE_SHADOW, ColorRGBA(), ui_token::radius::CARD);
-	DrawRoundedSurface(Ctx, Panel, ui_token::color::SURFACE_ELEVATED, ui_token::color::BORDER_SUBTLE, ui_token::radius::CARD);
-
-	CUIRect Inner;
-	Panel.Margin(Padding, &Inner);
-
-	const char *pTitle = Localize("New features");
+	const CUIRect Panel = Screen;
+	static ui_widget::SSecondaryPanelLabel s_Title;
+	static CButtonContainer s_HeaderClose;
+	ui_widget::CSecondaryPanel PanelHeader(Ctx, Panel, !Ui()->RenderOnly(), ui_widget::ResolveSecondaryPanelMetrics(std::max(0.0f, Ui()->Screen()->w - 16.0f), ESettingsSecondaryPanelKind::NEWS, UiScale), {});
+	if(PanelHeader.Header(s_Title, s_HeaderClose, Localize("New features")))
+	{
+		m_Popup = POPUP_NONE;
+		return;
+	}
+	CUIRect Inner = PanelHeader.ContentRect();
 	char aVersion[64];
 	str_format(aVersion, sizeof(aVersion), "%s %s", CLIENT_NAME, CLIENT_RELEASE_VERSION);
 
-	CUIRect TitleRow, SubTitleRow;
-	Inner.HSplitTop(TitleSize * 1.3f, &TitleRow, &Inner);
-	Ui()->DoLabel(&TitleRow, pTitle, TitleSize, TEXTALIGN_ML);
+	CUIRect SubTitleRow;
 	Inner.HSplitTop(TipSize * 1.6f, &SubTitleRow, &Inner);
-	TextRender()->TextColor(ui_token::color::TEXT_TIP);
+	TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.65f));
 	Ui()->DoLabel(&SubTitleRow, aVersion, TipSize, TEXTALIGN_ML);
-	TextRender()->TextColor(TextRender()->DefaultTextColor());
+	TextRender()->TextColor(PanelForeground);
 	Inner.HSplitTop(Gap, nullptr, &Inner);
 
 	CQmClient &QmClient = GameClient()->m_QmClient;
@@ -1548,12 +1544,14 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 		CUIRect DevRow, ReloadDraftRect, PublishRect, OpenFolderRect, DevStatus;
 		Inner.HSplitBottom(ButtonH, &Inner, &DevRow);
 		Inner.HSplitBottom(Gap, &Inner, nullptr);
-		const float DevButtonW = std::min(DevRow.w * 0.28f, 150.0f * UiScale);
-		DevRow.VSplitLeft(DevButtonW, &ReloadDraftRect, &DevRow);
-		DevRow.VSplitLeft(Gap, nullptr, &DevRow);
-		DevRow.VSplitLeft(DevButtonW, &PublishRect, &DevRow);
-		DevRow.VSplitLeft(Gap, nullptr, &DevRow);
-		DevRow.VSplitLeft(DevButtonW, &OpenFolderRect, &DevStatus);
+		static ui_widget::SSettingsActionGroupState s_DevActionWidths;
+		const char *apDevActions[] = {Localize("Reload"), Localize("Publish"), Localize("Open folder")};
+		const auto DevActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_DevActionWidths, DevRow, apDevActions, 3, ResolveSettingsContentMetrics(DevRow.w));
+		ReloadDraftRect = DevActions.m_aButtons[0];
+		PublishRect = DevActions.m_aButtons[1];
+		OpenFolderRect = DevActions.m_aButtons[2];
+		const float ActionsRight = OpenFolderRect.x + OpenFolderRect.w;
+		DevStatus = {ActionsRight, DevRow.y, std::max(0.0f, DevRow.x + DevRow.w - ActionsRight), DevRow.h};
 		DevStatus.VSplitLeft(Gap, nullptr, &DevStatus);
 
 		static CButtonContainer s_ReloadDraftButton, s_PublishButton, s_OpenFolderButton;
@@ -1583,16 +1581,16 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 		}
 		if(pDevStatus != nullptr)
 		{
-			TextRender()->TextColor(ui_token::color::TEXT_TIP);
+			TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.65f));
 			Ui()->DoLabel(&DevStatus, pDevStatus, TipSize, TEXTALIGN_ML);
-			TextRender()->TextColor(TextRender()->DefaultTextColor());
+			TextRender()->TextColor(PanelForeground);
 		}
 	}
 	CloseButtonRect = ButtonRow;
 	CloseButtonRect.w = std::min(ButtonRow.w, 200.0f * UiScale);
 	CloseButtonRect.x = ButtonRow.x + (ButtonRow.w - CloseButtonRect.w) * 0.5f;
 	static CButtonContainer s_CloseButton;
-	if(ui_widget::PrimaryButton(Ctx, &s_CloseButton, Localize("Close"), CloseButtonRect) || Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE))
+	if(ui_widget::PrimaryButton(Ctx, &s_CloseButton, Localize("Close"), CloseButtonRect))
 	{
 		m_Popup = POPUP_NONE;
 		return;
@@ -1665,7 +1663,7 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 				if(s_ScrollRegion.AddRect(Separator))
 				{
 					Separator.h = 1.0f;
-					DrawRoundedSurface(Ctx, Separator, ui_token::color::BORDER_SUBTLE, ColorRGBA(), 0.0f);
+					DrawRoundedSurface(Ctx, Separator, PanelTheme.m_Border, ColorRGBA(), 0.0f);
 				}
 				continue;
 			}
@@ -1696,9 +1694,9 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 					str_format(aMarker, sizeof(aMarker), "%d.", Block.m_Number);
 				CUIRect Marker;
 				TextRect.VSplitLeft(Indent, &Marker, &TextRect);
-				TextRender()->TextColor(ui_token::color::TEXT_TIP);
+				TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.65f));
 				Ui()->DoLabel(&Marker, aMarker, BodySize, TEXTALIGN_TL);
-				TextRender()->TextColor(TextRender()->DefaultTextColor());
+				TextRender()->TextColor(PanelForeground);
 			}
 			if(Block.m_Kind == qm_md::EBlockKind::QUOTE)
 			{
@@ -1707,9 +1705,9 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 				DrawRoundedSurface(Ctx, Bar, ui_token::color::ACCENT_PRIMARY_DIM, ColorRGBA(), 0.0f);
 				TextRect.VSplitLeft(10.0f * UiScale, nullptr, &TextRect);
 			}
-			TextRender()->TextColor(Block.m_Kind == qm_md::EBlockKind::HEADING1 || Block.m_Kind == qm_md::EBlockKind::HEADING2 || Block.m_Kind == qm_md::EBlockKind::HEADING3 ? ui_token::color::TEXT_PRIMARY : ui_token::color::TEXT_SECONDARY);
+			TextRender()->TextColor(Block.m_Kind == qm_md::EBlockKind::HEADING1 || Block.m_Kind == qm_md::EBlockKind::HEADING2 || Block.m_Kind == qm_md::EBlockKind::HEADING3 ? PanelForeground : PanelForeground.WithMultipliedAlpha(0.72f));
 			Ui()->DoLabel(&TextRect, Text.c_str(), FontSize, TEXTALIGN_TL, {.m_MaxWidth = TextRect.w});
-			TextRender()->TextColor(TextRender()->DefaultTextColor());
+			TextRender()->TextColor(PanelForeground);
 			for(const qm_md::SSpan &Span : Block.m_vSpans)
 			{
 				if(Span.m_Link.empty() || BroadcastLinkButtonIndex >= (int)std::size(s_aBroadcastLinkButtons))
@@ -1760,13 +1758,13 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 			Separator.w = EntryRect.w;
 			Separator.h = 1.0f;
 			Separator.y = EntryRect.y - Gap * 0.5f;
-			DrawRoundedSurface(Ctx, Separator, ui_token::color::BORDER_SUBTLE, ColorRGBA(), 0.0f);
+			DrawRoundedSurface(Ctx, Separator, PanelTheme.m_Border, ColorRGBA(), 0.0f);
 		}
 
 		CUIRect TitleRect = JumpRow;
-		TextRender()->TextColor(ui_token::color::TEXT_PRIMARY);
+		TextRender()->TextColor(PanelForeground);
 		Ui()->DoLabel(&TitleRect, Localize(Entry.m_pName), HeadlineSize, TEXTALIGN_ML);
-		TextRender()->TextColor(TextRender()->DefaultTextColor());
+		TextRender()->TextColor(PanelForeground);
 
 		if(Entry.m_pCardTab != nullptr && Entry.m_pCardStableId != nullptr)
 		{
@@ -1789,18 +1787,18 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 
 		CUIRect SummaryRow, UsageRow, EntryRow;
 		EntryContent.HSplitTop(SummaryLines * BodySize * 1.5f, &SummaryRow, &EntryContent);
-		TextRender()->TextColor(ui_token::color::TEXT_SECONDARY);
+		TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.72f));
 		Ui()->DoLabel(&SummaryRow, Localize(Entry.m_pSummary), BodySize, TEXTALIGN_TL, {.m_MaxWidth = TextWidth});
-		TextRender()->TextColor(TextRender()->DefaultTextColor());
+		TextRender()->TextColor(PanelForeground);
 
 		EntryContent.HSplitTop(UsageLines * TipSize * 1.6f, &UsageRow, &EntryContent);
 		EntryContent.HSplitTop(EntryLines * TipSize * 1.6f, &EntryRow, &EntryContent);
-		TextRender()->TextColor(ui_token::color::TEXT_TIP);
+		TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.65f));
 		char aUsage[512];
 		str_format(aUsage, sizeof(aUsage), Localize("Usage: %s"), Localize(Entry.m_pUsage));
 		Ui()->DoLabel(&UsageRow, aUsage, TipSize, TEXTALIGN_TL, {.m_MaxWidth = TextWidth});
 		Ui()->DoLabel(&EntryRow, aEntryLine, TipSize, TEXTALIGN_TL, {.m_MaxWidth = TextWidth});
-		TextRender()->TextColor(TextRender()->DefaultTextColor());
+		TextRender()->TextColor(PanelForeground);
 	}
 	s_ScrollRegion.End();
 }
@@ -1826,26 +1824,28 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		m_QmUpdatePopupState = State;
 		log_info("qm-update", "popup_state=%d", State);
 	}
-	const IUiContext Ctx = SettingsUiContext("qm_update_popup");
+	const SUiTheme PanelTheme = ResolveConfiguredSecondaryPanelTheme();
+	IUiContext Ctx = SettingsUiContext("qm_update_popup");
+	Ctx.m_pTheme = &PanelTheme;
+	CUiScopedSurfaceText PanelText(TextRender(), PanelTheme.m_Surface);
 	const float Scale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
-	const float Padding = std::min(ui_token::spacing::LG * Scale, Screen.w * 0.04f);
-	const float Gap = std::min(ui_token::spacing::MD * Scale, Screen.w * 0.02f);
+	const float ViewportWidth = std::max(0.0f, Ui()->Screen()->w - 16.0f);
+	const float Gap = std::min(ui_token::spacing::MD * Scale, ViewportWidth * 0.02f);
 	const float BodySize = ui_token::font::BODY * Scale;
-	const float TitleSize = ui_token::font::TITLE * Scale;
-	Screen.Draw(ui_token::color::SURFACE_OVERLAY, IGraphics::CORNER_NONE, 0.0f);
-	CUIRect Panel = Screen;
-	Panel.w = std::min(600.0f * Scale, std::max(0.0f, Screen.w - 2 * Padding));
-	Panel.h = std::min(350.0f * Scale, std::max(0.0f, Screen.h - 2 * Padding));
-	Panel.x += (Screen.w - Panel.w) * 0.5f;
-	Panel.y += (Screen.h - Panel.h) * 0.5f;
-	DrawRoundedSurface(Ctx, Panel, ui_token::color::SURFACE_ELEVATED, ui_token::color::BORDER_SUBTLE, ui_token::radius::CARD);
-	CUIRect Content;
-	Panel.Margin(Padding, &Content);
+	const CUIRect Panel = Screen;
+	static ui_widget::SSecondaryPanelLabel s_Title;
+	static CButtonContainer s_HeaderClose;
+	ui_widget::CSecondaryPanel PanelHeader(Ctx, Panel, !Ui()->RenderOnly(), ui_widget::ResolveSecondaryPanelMetrics(ViewportWidth, ESettingsSecondaryPanelKind::UPDATE, Scale), {});
+	if(PanelHeader.Header(s_Title, s_HeaderClose, Localize("Update")))
+	{
+		Update.m_UpdatePopupRequested = false;
+		m_Popup = POPUP_NONE;
+		return;
+	}
+	CUIRect Content = PanelHeader.ContentRect();
 	CUIRect Row;
-	Content.HSplitTop(TitleSize * 1.5f, &Row, &Content);
-	Ui()->DoLabel(&Row, Localize("Update"), TitleSize, TEXTALIGN_ML);
 	CUIRect Buttons;
-	Content.HSplitBottom(BodySize * 2.4f, &Content, &Buttons);
+	Content.HSplitBottom(BodySize * ui_token::secondary_panel::UPDATE_ACTION_LINE_FACTOR, &Content, &Buttons);
 	Content.HSplitBottom(Gap, &Content, nullptr);
 	// 下载能力固定在操作区上方，说明可独立滚动，缺包提示不会被长说明挤掉。
 #if defined(CONF_QMCLIENT_PORTABLE)
@@ -1853,7 +1853,7 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 #else
 	constexpr bool QmUpdatePortableBuild = false;
 #endif
-	if(Update.m_FetchedQmClientUpdateInfo)
+	if(Update.m_FetchedQmClientUpdateInfo && Update.m_UpdateRelease.m_NewVersion)
 	{
 		const bool PackageAvailable = Update.m_UpdateRelease.m_PackageAvailable || Update.m_UpdateUseSetup;
 		const char *pPackage = PackageAvailable      ? Localize("Update package available") :
@@ -1862,6 +1862,7 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		CUIRect Availability;
 		Content.HSplitBottom(QmWrappedLineCount(TextRender(), BodySize, pPackage, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Content, &Availability);
 		Ui()->DoLabel(&Availability, pPackage, BodySize, TEXTALIGN_TL, {.m_MaxWidth = Availability.w});
+		Content.HSplitBottom(Gap, &Content, nullptr);
 	}
 	static CScrollRegion s_ScrollRegion;
 	if(m_QmUpdateScrollReset)
@@ -1935,8 +1936,11 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		struct SNoteParagraph
 		{
 			std::string m_Text;
+			std::string m_Marker;
+			qm_md::EBlockKind m_Kind = qm_md::EBlockKind::PARAGRAPH;
 			float m_FontScale = 1;
 			float m_Height = 0;
+			float m_Indent = 0;
 		};
 		static std::vector<SNoteParagraph> s_vNotes;
 		static uint64_t s_NotesRevision = UINT64_MAX, s_FontRevision = UINT64_MAX;
@@ -1947,10 +1951,11 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 			for(const auto &Block : qm_md::Parse(Update.m_UpdateRelease.m_Notes.c_str()))
 			{
 				SNoteParagraph Paragraph;
+				Paragraph.m_Kind = Block.m_Kind;
 				if(Block.m_Kind == qm_md::EBlockKind::BULLET)
-					Paragraph.m_Text = "• ";
+					Paragraph.m_Marker = "•";
 				else if(Block.m_Kind == qm_md::EBlockKind::NUMBERED)
-					Paragraph.m_Text = std::to_string(Block.m_Number) + ". ";
+					Paragraph.m_Marker = std::to_string(Block.m_Number) + ".";
 				for(const auto &Span : Block.m_vSpans)
 					Paragraph.m_Text += Span.m_Text;
 				// 发布说明中的链接与设置标记仅作文本，不执行第三方动作。
@@ -1958,7 +1963,9 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 					Paragraph.m_Text = Block.m_SettingsLabel;
 				if(Block.m_Kind == qm_md::EBlockKind::HEADING1 || Block.m_Kind == qm_md::EBlockKind::HEADING2 || Block.m_Kind == qm_md::EBlockKind::HEADING3)
 					Paragraph.m_FontScale = 1.15f;
-				if(!Paragraph.m_Text.empty())
+				if(Block.m_Kind == qm_md::EBlockKind::QUOTE)
+					Paragraph.m_FontScale = ui_token::font::TIP / ui_token::font::BODY;
+				if(!Paragraph.m_Text.empty() || Block.m_Kind == qm_md::EBlockKind::SEPARATOR)
 					s_vNotes.push_back(std::move(Paragraph));
 			}
 			s_NotesRevision = Update.m_UpdateInfoRevision;
@@ -1976,7 +1983,9 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 				for(auto &Paragraph : s_vNotes)
 				{
 					const float Size = BodySize * Paragraph.m_FontScale;
-					Paragraph.m_Height = QmWrappedLineCount(TextRender(), Size, Paragraph.m_Text.c_str(), std::max(1.0f, Content.w)) * Size * 1.6f + Gap * 0.5f;
+					Paragraph.m_Indent = Paragraph.m_Marker.empty() ? 0.0f : std::min(Content.w * 0.25f, TextRender()->TextWidth(Size, Paragraph.m_Marker.c_str()) + Gap);
+					Paragraph.m_Height = Paragraph.m_Kind == qm_md::EBlockKind::SEPARATOR ? 1.0f + Gap * 0.5f :
+														QmWrappedLineCount(TextRender(), Size, Paragraph.m_Text.c_str(), std::max(1.0f, Content.w - Paragraph.m_Indent)) * Size * 1.6f + Gap * 0.5f;
 				}
 				s_NotesWidth = Content.w;
 				s_NotesSize = BodySize;
@@ -1985,46 +1994,66 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 			for(const auto &Paragraph : s_vNotes)
 			{
 				Content.HSplitTop(Paragraph.m_Height, &Row, &Content);
+				if(Paragraph.m_Kind == qm_md::EBlockKind::SEPARATOR)
+				{
+					if(s_ScrollRegion.AddRect(Row))
+					{
+						Row.h = 1.0f;
+						DrawRoundedSurface(Ctx, Row, PanelTheme.m_Border, ColorRGBA(), 0.0f);
+					}
+					continue;
+				}
+				if(Paragraph.m_Indent > 0.0f)
+				{
+					CUIRect Marker;
+					Row.VSplitLeft(Paragraph.m_Indent, &Marker, &Row);
+					Label(Marker, Paragraph.m_Marker.c_str(), BodySize * Paragraph.m_FontScale, TEXTALIGN_TL);
+				}
+				const ColorRGBA TextColor = TextRender()->GetTextColor();
+				if(Paragraph.m_Kind == qm_md::EBlockKind::QUOTE)
+					TextRender()->TextColor(TextColor.WithMultipliedAlpha(0.65f));
 				Label(Row, Paragraph.m_Text.c_str(), BodySize * Paragraph.m_FontScale, TEXTALIGN_TL);
+				TextRender()->TextColor(TextColor);
 			}
 		}
 	}
 	s_ScrollRegion.End();
 	// 按可用宽度均分按钮；长译文由共享按钮的文本适配处理。
 	CUIRect Action, Manual, Close;
-	const float ButtonWidth = std::max(0.0f, (Buttons.w - 2 * Gap) / 3);
-	Buttons.VSplitLeft(ButtonWidth, &Action, &Buttons);
-	Buttons.VSplitLeft(Gap, nullptr, &Buttons);
-	Buttons.VSplitLeft(ButtonWidth, &Manual, &Buttons);
-	Buttons.VSplitLeft(Gap, nullptr, &Close);
 	static CButtonContainer s_Action, s_Manual, s_Close;
 	const bool Busy = Update.IsUpdateChecking() || Update.IsUpdateDownloading();
 	// 缺包时仍可重新检查发布者后补的附件；下载能力由生产包选择器阻断。
-	const char *pAction = Busy ? Localize("Cancel") : Update.m_UpdateReady                                      ? Localize("Quit") :
-						  Update.m_FetchedQmClientUpdateInfo && !Update.m_UpdateCheckFailed ? Localize("Check for updates") :
-														      Localize("Retry");
+	const EQmClientUpdateAction UpdateAction = ResolveQmClientUpdateAction(Busy, Update.m_UpdateReady, Update.m_FetchedQmClientUpdateInfo, Update.m_UpdateCheckFailed, Update.CanDownloadQmClientUpdate());
+	const char *pAction = UpdateAction == EQmClientUpdateAction::CANCEL   ? Localize("Cancel") :
+			      UpdateAction == EQmClientUpdateAction::INSTALL  ? Localize("Quit") :
+			      UpdateAction == EQmClientUpdateAction::DOWNLOAD ? Localize("Download") :
+			      UpdateAction == EQmClientUpdateAction::RETRY    ? Localize("Retry") :
+										Localize("Check for updates");
+	static ui_widget::SSettingsActionGroupState s_UpdateActionWidths;
+	const char *apActions[] = {pAction, "GitHub", Localize("Close")};
+	const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_UpdateActionWidths, Buttons, apActions, 3, ResolveSettingsContentMetrics(Buttons.w));
+	Action = ActionLayout.m_aButtons[0];
+	Manual = ActionLayout.m_aButtons[1];
+	Close = ActionLayout.m_aButtons[2];
 	if(ui_widget::PrimaryButton(Ctx, &s_Action, pAction, Action))
 	{
-		if(Busy)
+		if(UpdateAction == EQmClientUpdateAction::CANCEL)
 		{
 			Update.CancelQmClientUpdate();
 			m_Popup = POPUP_NONE;
 		}
-		else if(Update.m_UpdateReady)
+		else if(UpdateAction == EQmClientUpdateAction::INSTALL)
 			Client()->Quit();
+		else if(UpdateAction == EQmClientUpdateAction::DOWNLOAD)
+			Update.RequestQmClientUpdateDownload();
 		else
-			Update.RequestQmClientUpdateCheckAndUpdate();
+			Update.RequestQmClientUpdateCheck();
 	}
 	if(ui_widget::SecondaryButton(Ctx, &s_Manual, "GitHub", Manual))
 		Client()->ViewLink(qm_update::MANUAL_DOWNLOAD_URL);
-	if(ui_widget::SecondaryButton(Ctx, &s_Close, Localize("Close"), Close) || Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE))
+	if(ui_widget::SecondaryButton(Ctx, &s_Close, Localize("Close"), Close))
 	{
 		Update.m_UpdatePopupRequested = false;
 		m_Popup = POPUP_NONE;
 	}
-}
-
-uint64_t CMenus::TranslationTestLayoutRevision() const
-{
-	return static_cast<uint64_t>(m_TranslateProbe.Pending()) | (static_cast<uint64_t>(m_TranslateProbe.HasResult()) << 1) | (static_cast<uint64_t>(m_TranslateProbeDiagnostics != 0) << 2) | (static_cast<uint64_t>(m_TranslateProbe.Response().m_Notice) << 3) | (static_cast<uint64_t>(str_length(m_TranslateProbe.Response().m_Text)) << 8) | (static_cast<uint64_t>(GameClient()->m_Translate.LastDiagnostic().m_Notice) << 24);
 }

@@ -45,7 +45,7 @@ bool DrawRoundedSurface(IGraphics *pGraphics, const CUIRect &Rect, const ColorRG
 
 bool DrawRoundedSurface(CUi *pUi, const CUIRect &Rect, const ColorRGBA &Fill, const ColorRGBA &Border, const float Radius, const float BorderWidth, const int Corners)
 {
-	if(pUi == nullptr)
+	if(pUi == nullptr || pUi->DrawingSuppressed())
 		return false;
 	SRoundedSurfaceParams Params;
 	Params.m_Radius = Radius;

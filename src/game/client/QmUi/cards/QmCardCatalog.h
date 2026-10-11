@@ -143,9 +143,6 @@ namespace qm_card_catalog
 		static bool BuildNameplateCard(const SQmCardBuildContext &Ctx, const char *pStableId, SSettingsCardDefinition &Out);
 		static bool BuildTitleCard(const SQmCardBuildContext &Ctx, const char *pStableId, SSettingsCardDefinition &Out);
 		static bool BuildTeeCard(const SQmCardBuildContext &Ctx, const char *pStableId, SSettingsCardDefinition &Out);
-		// 在 render-only UI scope 内运行内容回调，量出它实际消费的内容高度。
-		// Deck 的测量阶段不处于正式绘制帧，因此必须由桥接层隔离输入和配置提交。
-		static float MeasureContent(CMenus *pMenus, const FSettingsCardRenderMeasured &Render, float ContentWidth);
 		static bool RenderQmFunctionCheckbox(CMenus *pMenus, const void *pId, const char *pTextId, const char *pText, int *pValue, CUIRect *pRect, bool PrewarmOnly);
 		static bool RenderQmFunctionCheckboxRow(CMenus *pMenus, CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue, bool PrewarmOnly, const char *pTooltip = nullptr);
 		static bool RenderQmVisualCheckbox(CMenus *pMenus, CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue);

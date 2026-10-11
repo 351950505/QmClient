@@ -13,6 +13,15 @@
 
 namespace ui_widget
 {
+	SSettingsActionGroupLayout PrepareSettingsActionGroup(CUi &Ui, SSettingsActionGroupState &State, const CUIRect &Row, const char *const *ppLabels, int Count, const SSettingsContentMetrics &Metrics)
+	{
+		if(ppLabels == nullptr || Count <= 0 || Count > SSettingsChoiceLayout::MAX_SEGMENTS)
+			return {};
+		const uint64_t FontRevision = Ui.TextRender()->GlyphAtlasRevision() * 31 + (uint64_t)Ui.TextRender()->GetFontPreset();
+		const float Width = State.m_Widths.Resolve(ppLabels, Count, Metrics.m_BodySize, FontRevision, [&Ui](const char *pText, float Size) { return Ui.TextRender()->TextWidth(Size, pText); });
+		return ResolveSettingsActionGroupLayout(Row, Count, Metrics, Width + 2.0f * ui_token::spacing::MD);
+	}
+
 	IUiContext ControlContext(CUi *pUi)
 	{
 		IUiContext Ctx;
@@ -33,13 +42,13 @@ namespace ui_widget
 		SUiButtonState State;
 		State.m_Enabled = Options.m_Enabled;
 		State.m_Selected = Options.m_Selected;
-		State.m_Hovered = pId != nullptr && Options.m_Enabled && pUi->Enabled() && !pUi->RenderOnly() && pUi->MouseHovered(Options.m_pHitRect != nullptr ? Options.m_pHitRect : &Rect);
+		State.m_Hovered = pId != nullptr && Options.m_Enabled && pUi->Enabled() && pUi->VisualMouseHovered(Options.m_pHitRect != nullptr ? Options.m_pHitRect : &Rect);
 		State.m_Pressed = State.m_Hovered && pUi->CheckActiveItem(pId) && (pUi->MouseButton(0) || pUi->MouseButton(1) || pUi->MouseButton(2));
 		const ColorRGBA Base = Options.m_Color.value_or(Options.m_TransparentInactive ? ColorRGBA() : ResolveConfiguredControlSurface());
 		auto Style = ResolveUiButtonStyle(Options.m_Role, Base, Backdrop, Theme, State);
 		if(Options.m_TransparentInactive && !State.m_Hovered)
 			Style.m_Border = ColorRGBA();
-		if(pUi->MeasurementOnly())
+		if(pUi->DrawingSuppressed())
 			return Style.m_Fill;
 
 		CUiScopedGaussianBlurSuppression GaussianBlurSuppression(pUi);
@@ -57,10 +66,12 @@ namespace ui_widget
 
 	int DoIconButton(const IUiContext &Ctx, const void *pId, EQmIcon Icon, const char *pFallbackIcon, int Checked, const CUIRect &Rect, unsigned Flags, int Corners, bool Enabled, std::optional<ColorRGBA> Color, bool ShowSlash, bool TransparentInactive)
 	{
-		if(Ctx.m_pUi == nullptr || pId == nullptr || Ctx.m_pUi->MeasurementOnly())
+		if(Ctx.m_pUi == nullptr || pId == nullptr || (Ctx.m_pUi->DrawingSuppressed() && !Ctx.m_pUi->PreLayoutInput()))
 			return 0;
 		CUi *pUi = Ctx.m_pUi;
 		const CUIRect ButtonRect = QmUiSquareIconButtonRect(Rect);
+		if(pUi->PreLayoutInput())
+			return Enabled && Checked >= 0 ? pUi->DoButtonLogic(pId, Checked, &ButtonRect, Flags) : 0;
 		SButtonSurfaceOptions Options;
 		Options.m_Role = EUiButtonRole::ICON;
 		Options.m_Enabled = Enabled && Checked >= 0;
@@ -101,14 +112,19 @@ namespace ui_widget
 
 	namespace
 	{
-		bool DoStyledButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled, EUiButtonRole Role)
+		bool DoStyledButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled, EUiButtonRole Role, const int Corners = IGraphics::CORNER_ALL, const bool DrawBorder = true, const EUiButtonGeometry Geometry = EUiButtonGeometry::CONTROL, const CUIRect *pSurfaceRect = nullptr)
 		{
 			if(Ctx.m_pUi == nullptr || pBtn == nullptr)
 				return false;
 			SButtonSurfaceOptions Options;
 			Options.m_Role = Role;
+			Options.m_Radius = ResolveUiTextButtonRadius(Geometry);
+			if(!DrawBorder)
+				Options.m_BorderWidth = 0.0f;
+			Options.m_Corners = Corners;
 			Options.m_Enabled = !Disabled;
-			const ColorRGBA Fill = DrawButtonSurface(Ctx, pBtn, Rect, Options);
+			Options.m_pHitRect = &Rect;
+			const ColorRGBA Fill = DrawButtonSurface(Ctx, pBtn, pSurfaceRect != nullptr ? *pSurfaceRect : Rect, Options);
 			CUiScopedSurfaceText SurfaceText(Ctx.m_pUi->TextRender(), Fill);
 			if(Disabled)
 				Ctx.m_pUi->TextRender()->TextColor(Ctx.m_pUi->TextRender()->GetTextColor().WithMultipliedAlpha(0.65f));
@@ -117,18 +133,60 @@ namespace ui_widget
 			Props.m_MinimumFontSize = ui_token::font::SMALL;
 			Props.m_EllipsisAtEnd = true;
 			Ctx.m_pUi->DoLabel(&Rect, pText, ui_token::font::BODY, TEXTALIGN_MC, Props);
-			return !Disabled && !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->DoButtonLogic(pBtn, 0, &Rect, BUTTONFLAG_LEFT) != 0;
+			if(Disabled && !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->CheckActiveItem(pBtn))
+				Ctx.m_pUi->SetActiveItem(nullptr);
+			const bool Clicked = !Disabled && !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->DoButtonLogic(pBtn, 0, &Rect, BUTTONFLAG_LEFT) != 0;
+			if(Clicked)
+				Ctx.m_pUi->SetKeyboardFocus(pBtn);
+			return Clicked;
 		}
 	}
 
-	bool PrimaryButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled)
+	bool PrimaryButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled, EUiButtonGeometry Geometry)
 	{
-		return DoStyledButton(Ctx, pBtn, pText, Rect, Disabled, EUiButtonRole::PRIMARY);
+		return DoStyledButton(Ctx, pBtn, pText, Rect, Disabled, EUiButtonRole::PRIMARY, IGraphics::CORNER_ALL, true, Geometry);
 	}
 
-	bool SecondaryButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled)
+	bool SecondaryButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled, EUiButtonGeometry Geometry)
 	{
-		return DoStyledButton(Ctx, pBtn, pText, Rect, Disabled, EUiButtonRole::SECONDARY);
+		return DoStyledButton(Ctx, pBtn, pText, Rect, Disabled, EUiButtonRole::SECONDARY, IGraphics::CORNER_ALL, true, Geometry);
+	}
+
+	int SplitActionButton(const IUiContext &Ctx, CButtonContainer *pLeft, const char *pLeftText, CButtonContainer *pRight, const char *pRightText, const CUIRect &Rect, bool LeftDisabled, bool RightDisabled, EUiButtonGeometry Geometry, const char *pLeftTooltip, const char *pRightTooltip)
+	{
+		if(Ctx.m_pUi == nullptr || Rect.w <= 0.0f || Rect.h <= 0.0f)
+			return -1;
+		CUIRect Left, Right;
+		Rect.VSplitMid(&Left, &Right);
+		const void *apIds[] = {pLeft, pRight};
+		const bool aEnabled[] = {!LeftDisabled, !RightDisabled};
+		const int KeyboardAction = Ctx.m_pUi->DoButtonGroupKeyboard(apIds, aEnabled, 2);
+		// 两半裁剪同一完整按钮表面，外框与普通按钮一致，中心没有重复描边。
+		Ctx.m_pUi->ClipEnable(&Left);
+		const bool LeftClicked = DoStyledButton(Ctx, pLeft, pLeftText, Left, LeftDisabled, EUiButtonRole::SECONDARY, IGraphics::CORNER_ALL, true, Geometry, &Rect);
+		Ctx.m_pUi->ClipDisable();
+		Ctx.m_pUi->ClipEnable(&Right);
+		const bool RightClicked = DoStyledButton(Ctx, pRight, pRightText, Right, RightDisabled, EUiButtonRole::SECONDARY, IGraphics::CORNER_ALL, true, Geometry, &Rect);
+		Ctx.m_pUi->ClipDisable();
+		const float Inset = std::min(ui_token::spacing::XS, Rect.h * 0.25f);
+		const CUIRect Divider{Right.x - 0.5f, Rect.y + Inset, 1.0f, std::max(0.0f, Rect.h - 2.0f * Inset)};
+		if(!Ctx.m_pUi->DrawingSuppressed())
+			Divider.Draw(Ctx.m_pUi->ScaleBackgroundAlpha(ui_token::color::BORDER_SUBTLE), IGraphics::CORNER_NONE, 0.0f);
+		Ctx.m_pUi->DoButtonTooltip(pLeft, &Left, pLeftTooltip);
+		Ctx.m_pUi->DoButtonTooltip(pRight, &Right, pRightTooltip);
+		if(!Ctx.m_pUi->DrawingSuppressed())
+		{
+			const void *pFocus = Ctx.m_pUi->KeyboardFocusItem();
+			if((pFocus == pLeft && !LeftDisabled) || (pFocus == pRight && !RightDisabled))
+			{
+				CUIRect FocusRect = pFocus == pLeft ? Left : Right;
+				FocusRect.Margin(std::min(2.0f, std::min(FocusRect.w, FocusRect.h) * 0.25f), &FocusRect);
+				const SUiTheme &Theme = Ctx.m_pTheme != nullptr ? *Ctx.m_pTheme : Ctx.m_pUi->QmControlTheme();
+				DrawRoundedSurface(Ctx, FocusRect, ColorRGBA(), Theme.m_FocusRing, ResolveUiTextButtonRadius(Geometry), ui_token::feedback::ICON_BORDER_WIDTH);
+			}
+		}
+		return LeftClicked ? 0 : RightClicked ? 1 :
+							KeyboardAction;
 	}
 
 	bool IconButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pIcon, const CUIRect &Rect, bool Disabled)

@@ -15,6 +15,7 @@
 #include <generated/protocol.h>
 
 #include <game/client/QmUi/QmCardRegistry.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
 #include <game/client/QmUi/SettingsCardDeck.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiContext.h>
@@ -51,8 +52,8 @@ uint64_t CMenus::BuildTee7SettingsCards(const qm_card_catalog::SQmCardBuildConte
 	{
 		SSettingsCardDefinition Card;
 		Card.m_Spec = {pDefault->m_pStableId, Localize(pDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pDefault)};
-		Card.m_Measure = [ContentHeight](float) { return ContentHeight; };
 		Card.m_Render = [this, Metrics = Ctx.m_Metrics](CUIRect Content) { RenderSettingsTee7Content(Content, Metrics); };
+		qm_settings_content::UseDeclaredBlockContent(Card, Ui(), TextRender(), [ContentHeight](float) { return ContentHeight; });
 		pCards->push_back(std::move(Card));
 	}
 	return Revision;

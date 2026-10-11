@@ -3,6 +3,18 @@
 
 #include "UiTheme.h"
 
+enum class EUiButtonGeometry
+{
+	CONTROL,
+	START_MENU,
+};
+
+// 按用途复用既有圆角；轨道分割不改变所属按钮的数值。
+inline float ResolveUiTextButtonRadius(EUiButtonGeometry Geometry = EUiButtonGeometry::CONTROL)
+{
+	return Geometry == EUiButtonGeometry::START_MENU ? ui_token::radius::MENU : ui_token::radius::BASE;
+}
+
 struct SUiSecondaryButtonStyle
 {
 	ColorRGBA m_Fill;

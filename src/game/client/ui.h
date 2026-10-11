@@ -521,6 +521,11 @@ struct SPopupMenuProperties
 	bool m_BlockUnderlyingScroll = false;
 	bool m_BlockUnderlyingPointerInput = false;
 	bool m_RequireSourceRefresh = false;
+	// 二级面板关闭后仅在来源控件重新参与渲染时恢复焦点。
+	bool m_ReturnFocus = false;
+	bool m_IgnoreOpeningClick = false;
+	float m_ContentInset = -1.0f;
+	std::function<void()> m_OnClosed;
 	// 使用 CUi::PopupSourceFrame()，主循环 PerfFrame 不代表实际 UI 更新次数。
 	uint64_t m_SourceFrame = 0;
 	CUIRect m_Viewport{};
@@ -708,6 +713,7 @@ private:
 	bool m_Enabled;
 	int m_RenderOnlyDepth = 0;
 	int m_BackgroundRenderDepth = 0;
+	int m_ContentDrawDepth = 0;
 	int m_PreLayoutInputDepth = 0;
 	float m_DropDownFontSize = -1.0f;
 	// 仅客户端绑定；地图编辑器保留自己的控件样式。
@@ -745,6 +751,18 @@ private:
 	CLineInput *m_pTrackedTextInput = nullptr;
 	const SPopupMenuId *m_pTrackedTextPopupId = nullptr;
 	CQmUiInteractionSource m_TextInputSource;
+	struct SPopupFocus
+	{
+		const void *m_pItem = nullptr;
+		CLineInput *m_pTextInput = nullptr;
+		const SPopupMenuId *m_pPopupId = nullptr;
+		CQmUiInteractionSource m_Source;
+		uint64_t m_Frame = 0;
+	};
+	SPopupFocus m_KeyboardFocus;
+	SPopupFocus m_PendingPopupFocus;
+	void RestorePopupFocus(const void *pId, CLineInput *pLineInput = nullptr);
+	void QueuePopupFocusRestore(const SPopupFocus &Focus);
 	void TrackActiveTextInput(CLineInput *pLineInput);
 	void ReleaseTrackedTextInput();
 	void PruneInteractionSources(bool AllowPreviousFrame);
@@ -831,6 +849,8 @@ private:
 		const SPopupMenuId *m_pId;
 		SPopupMenuProperties m_Props;
 		CQmUiInteractionSource m_Source;
+		SPopupFocus m_ReturnFocus;
+		uint64_t m_OpenedFrame = 0;
 		CUIRect m_Rect;
 		void *m_pContext;
 		FPopupMenuFunction m_pfnFunc;
@@ -842,10 +862,13 @@ private:
 		float m_CloseStart = 0.0f;
 	};
 	std::vector<SPopupMenu> m_vPopupMenus;
+	std::vector<std::weak_ptr<SQmUiSelectionCommit>> m_vPendingSelections;
+	void RegisterSelectionCommit(std::shared_ptr<SQmUiSelectionCommit> &pCommit);
 	CQmPopupSourceClock m_PopupSourceClock;
 	FPopupMenuClosedCallback m_pfnPopupMenuClosedCallback = nullptr;
 	int m_PopupInputDepth = 0;
 	bool UnderlyingPointerInputBlocked() const;
+	bool WheelInputBlocked(const void *pOwnerId) const;
 
 	static CUi::EPopupMenuFunctionResult PopupMessage(void *pContext, CUIRect View, bool Active);
 	static CUi::EPopupMenuFunctionResult PopupConfirm(void *pContext, CUIRect View, bool Active);
@@ -895,6 +918,7 @@ public:
 	uint64_t PopupSourceFrame() const { return m_PopupSourceClock.Frame(); }
 	void RefreshInteractionSource(const void *pContext, const char *pCardId);
 	void CloseInteractionSource(const void *pContext, const char *pCardId);
+	bool HasPendingInteractionSelection() const;
 	bool ConsumeMenuUiFirstWheelPerf()
 	{
 		const bool Result = m_MenuUiFirstWheelPerf;
@@ -969,16 +993,30 @@ public:
 	bool Enabled() const { return m_Enabled; }
 	void BeginRenderOnly();
 	void EndRenderOnly();
-	void BeginBackgroundRender() { ++m_BackgroundRenderDepth; }
-	void EndBackgroundRender()
+	void BeginBackgroundRender(bool ContentDraw = false)
+	{
+		++m_BackgroundRenderDepth;
+		if(ContentDraw)
+			++m_ContentDrawDepth;
+	}
+	void EndBackgroundRender(bool ContentDraw = false)
 	{
 		if(m_BackgroundRenderDepth > 0)
 			--m_BackgroundRenderDepth;
+		if(ContentDraw && m_ContentDrawDepth > 0)
+			--m_ContentDrawDepth;
 	}
 	// 文本预热不绘制外观；后台绘制保留外观，但同样禁止交互。
 	bool MeasurementOnly() const { return m_RenderOnlyDepth > 0; }
 	bool BackgroundRender() const { return m_BackgroundRenderDepth > 0; }
+	// 预布局允许输入和测量，但不能重复提交半透明控件。
+	bool DrawingSuppressed() const { return m_RenderOnlyDepth > 0 || PreLayoutInput(); }
 	bool RenderOnly() const { return m_RenderOnlyDepth > 0 || m_BackgroundRenderDepth > 0; }
+	// 内容 DRAW 保留控件反馈；真正的下层菜单、测量和活动弹层仍屏蔽反馈。
+	bool VisualMouseHovered(const CUIRect *pRect) const
+	{
+		return m_RenderOnlyDepth == 0 && m_ContentDrawDepth == m_BackgroundRenderDepth && !UnderlyingPointerInputBlocked() && MouseInside(pRect) && MouseInsideClip();
+	}
 	void BeginPreLayoutInput() { ++m_PreLayoutInputDepth; }
 	void EndPreLayoutInput()
 	{
@@ -994,6 +1032,10 @@ public:
 	void SetCardLabelHintsEnabled(bool Enabled) { m_CardLabelHintsEnabled = Enabled; }
 	const char *PrepareCardLabel(const CUIRect *pRect, const char *pText, bool Render = true) const;
 	void DoConfigTooltip(const void *pId, const CUIRect *pRect, const void *pValue, const void *pSecondValue = nullptr);
+	void DoButtonTooltip(const void *pId, const CUIRect *pRect, const char *pText);
+	void SetKeyboardFocus(const void *pId);
+	const void *KeyboardFocusItem() const { return m_KeyboardFocus.m_pItem; }
+	int DoButtonGroupKeyboard(const void *const *ppIds, const bool *pEnabled, int Count);
 	const SUiTheme &QmControlTheme();
 	float DropDownFontSize() const { return m_DropDownFontSize; }
 	void Update();
@@ -1068,6 +1110,8 @@ public:
 	bool IsActiveItem(const void *pId) const { return m_pActiveItem == pId; }
 	void SetHotScrollRegion(CScrollRegion *pId, EUiWheelOwnerPriority Priority = EUiWheelOwnerPriority::PAGE)
 	{
+		if(RenderOnly())
+			return;
 		if(pId == nullptr)
 		{
 			m_pBecomingHotScrollRegion = nullptr;
@@ -1145,6 +1189,8 @@ public:
 	void DoSmoothScrollLogic(float *pScrollOffset, float *pScrollOffsetChange, float ViewPortSize, float TotalSize, bool SmoothClamp = false, float ScrollSpeed = 10.0f) const;
 	static vec2 CalcAlignedCursorPos(const CUIRect *pRect, vec2 TextSize, int Align, const float *pBiggestCharHeight = nullptr);
 
+	// 定位文字与控件共用绘制隔离；保留后台预览的原始坐标。
+	void DoText(float X, float Y, float Size, const char *pText, float LineWidth = -1.0f) const;
 	CLabelResult DoLabel(const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps = {}) const;
 	CLabelResult DoLabel_AutoLineSize(const char *pText, float FontSize, int Align, CUIRect *pRect, float LineSize, const SLabelProperties &LabelProps = {}) const;
 	int GetLabelFlagsForProperties(const SLabelProperties &LabelProps, const CTextCursor *pReadCursor = nullptr) const;
@@ -1289,13 +1335,14 @@ public:
 
 	// 弹窗实现位于 ui_popups.cpp
 	static constexpr float PopupMenuContentInset() { return (SPopupMenu::POPUP_BORDER + SPopupMenu::POPUP_MARGIN) * 2.0f; }
+	static SPopupMenuProperties SecondaryPanelProperties();
 	void DoPopupMenu(const SPopupMenuId *pId, float X, float Y, float Width, float Height, void *pContext, FPopupMenuFunction pfnFunc, const SPopupMenuProperties &Props = {});
 	void RenderPopupMenus();
-	void ClosePopupMenu(const SPopupMenuId *pId, bool IncludeDescendants = false);
+	void ClosePopupMenu(const SPopupMenuId *pId, bool IncludeDescendants = false, bool RestoreFocus = true);
 	void RefreshPopupMenuSource(const SPopupMenuId *pId, bool RequireRefresh, uint64_t Frame);
 	// 输入阶段关闭最上层，避免所属组件延迟绘制前 Escape 泄漏给菜单。
 	bool CloseTopPopupMenu();
-	void ClosePopupMenus();
+	void ClosePopupMenus(bool RestoreFocus = true);
 	bool IsPopupOpen() const;
 	bool IsPopupOpen(const SPopupMenuId *pId) const;
 	// 包含退场中的弹层，供独立绘制入口延续公共动画生命周期。
@@ -1349,6 +1396,7 @@ public:
 
 	struct SSelectionPopupContext : public SPopupMenuId
 	{
+		std::shared_ptr<SQmUiSelectionCommit> m_pCommit;
 		CUi *m_pUI; // set by CUi when popup is shown
 		CScrollRegion *m_pScrollRegion;
 		SPopupMenuProperties m_Props;
@@ -1482,6 +1530,18 @@ public:
 	}
 	CUiScopedMeasurement(const CUiScopedMeasurement &) = delete;
 	CUiScopedMeasurement &operator=(const CUiScopedMeasurement &) = delete;
+};
+
+class CUiScopedBackgroundRender
+{
+	CUi *m_pUi;
+	bool m_ContentDraw;
+
+public:
+	explicit CUiScopedBackgroundRender(CUi *pUi, bool ContentDraw = false) : m_pUi(pUi), m_ContentDraw(ContentDraw) { m_pUi->BeginBackgroundRender(m_ContentDraw); }
+	~CUiScopedBackgroundRender() { m_pUi->EndBackgroundRender(m_ContentDraw); }
+	CUiScopedBackgroundRender(const CUiScopedBackgroundRender &) = delete;
+	CUiScopedBackgroundRender &operator=(const CUiScopedBackgroundRender &) = delete;
 };
 
 class CUiScopedInteractionOwner

@@ -4743,6 +4743,9 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/settings/settings_font_selection_test.cpp
     src/test/unit/qmclient/settings/settings_icon_options_test.cpp
     src/test/unit/qmclient/settings/settings_page_layout_test.cpp
+    src/test/unit/qmclient/settings/settings_content_metrics_test.cpp
+    src/test/unit/qmclient/settings/settings_label_metadata_test.cpp
+    src/test/unit/qmclient/settings/settings_content_layout_test.cpp
     src/test/unit/qmclient/settings/qm_general_card_layout_test.cpp
     src/test/unit/qmclient/settings/settings_tee_emote_slider_test.cpp
     src/test/unit/qmclient/settings/settings_tee_layout_test.cpp
@@ -5288,6 +5291,11 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/test/integration/qmclient/ui/qm_background_controls_test.cpp
       src/test/integration/qmclient/ui/qm_editor_text_input_test.cpp
       src/test/integration/qmclient/ui/qm_tooltip_text_layout_test.cpp
+      src/test/integration/qmclient/ui/qm_card_summary_layout_test.cpp
+      src/test/integration/qmclient/ui/qm_secondary_panel_actions_test.cpp
+      src/test/integration/qmclient/ui/qm_settings_action_group_test.cpp
+      src/test/integration/qmclient/ui/qm_settings_text_columns_test.cpp
+      src/test/integration/qmclient/ui/qm_adaptive_choice_test.cpp
       src/test/integration/qmclient/ui/qm_console_button_text_layout_test.cpp
       src/test/integration/qmclient/ui/qm_icon_text_test.cpp
       src/engine/client/text.cpp
@@ -5296,6 +5304,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/game/client/ui_rect.cpp
       src/game/client/ui_scrollregion.cpp
       src/game/client/lineinput.cpp
+      src/game/client/QmUi/SettingsCardGeometry.cpp
       src/game/client/QmUi/QmLineInputMotion.cpp
       src/game/client/QmUi/UiButtons.cpp
       src/game/client/QmUi/UiSurface.cpp

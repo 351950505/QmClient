@@ -24,7 +24,7 @@ inline SQmPieOptionControlsResult QmDrawPieOptionControls(const IUiContext &Ctx,
 	const CUIRect Toggle{Cell.x + (Cell.w - GroupWidth) * 0.5f, Cell.y, ToggleWidth, LineHeight};
 	const CUIRect Swatch{Toggle.x + ToggleWidth + Gap, Cell.y, SwatchSize, LineHeight};
 	SQmPieOptionControlsResult Result{Enabled, false, false, Swatch};
-	if(Ctx.m_pUi == nullptr || Ctx.m_pUi->MeasurementOnly())
+	if(Ctx.m_pUi == nullptr || (Ctx.m_pUi->DrawingSuppressed() && !Ctx.m_pUi->PreLayoutInput()))
 		return Result;
 	Result.m_EnabledChanged = ui_widget::Toggle(Ctx, pToggleId, &Result.m_Enabled, Toggle, ProcessInput);
 	DrawRoundedSurface(Ctx, Swatch, Color, ColorRGBA(), CornerRadius);

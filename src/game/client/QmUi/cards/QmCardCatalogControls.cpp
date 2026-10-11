@@ -12,7 +12,9 @@
 #include <game/client/QmUi/QmCardRegistry.h>
 #include <game/client/QmUi/QmScroll.h>
 #include <game/client/QmUi/SettingsCardCollapseState.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
 #include <game/client/QmUi/SettingsCardDeck.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -95,22 +97,9 @@ bool CMenusSettingsControls::DoSettingsControlsNumericField(const char *pTextId,
 	return ui_widget::NumericField(Context, GameClient()->m_Menus.GetSettingsNumericFieldState(pId), pId, pOption, Min, Max, Rect, Options);
 }
 
-float CMenusSettingsControls::MeasureSettingsBindsHeight(EBindOptionGroup Group) const
-{
-	float Height = 0.0f;
-	for(const CBindOption &BindOption : m_vBindOptions)
-	{
-		if(BindOption.m_Group != Group)
-		{
-			continue;
-		}
-		Height += m_CardMetrics.m_LineHeight * BindOption.m_vCurrentBinds.size() + m_CardMetrics.m_LineSpacing * (BindOption.m_vCurrentBinds.size() - 1) + 4.0f + m_CardMetrics.m_LineSpacing;
-	}
-	return Height;
-}
-
 void CMenusSettingsControls::RenderSettingsBinds(EBindOptionGroup Group, CUIRect View, bool ReadOnly)
 {
+	CSettingsContentLayoutFlow Flow(View);
 	for(CBindOption &BindOption : m_vBindOptions)
 	{
 		if(BindOption.m_Group != Group)
@@ -119,8 +108,14 @@ void CMenusSettingsControls::RenderSettingsBinds(EBindOptionGroup Group, CUIRect
 		}
 
 		CUIRect KeyReaders;
-		View.HSplitTop(m_CardMetrics.m_LineHeight * BindOption.m_vCurrentBinds.size() + m_CardMetrics.m_LineSpacing * (BindOption.m_vCurrentBinds.size() - 1) + 4.0f, &KeyReaders, &View);
-		View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
+		const size_t Count = BindOption.m_vCurrentBinds.size();
+		const float Height = m_CardMetrics.m_LineHeight * Count + m_CardMetrics.m_LineSpacing * (Count > 0 ? Count - 1 : 0) + 4.0f;
+		char aRowId[64];
+		str_format(aRowId, sizeof(aRowId), "controls-bind-%d", (int)(&BindOption - m_vBindOptions.data()));
+		const bool HasRow = Flow.Control(aRowId, Height, KeyReaders);
+		Flow.Space(m_CardMetrics.m_LineSpacing);
+		if(!HasRow)
+			continue;
 		if(!ReadOnly && m_pCardScrollRegion != nullptr && !m_pCardScrollRegion->AddRect(KeyReaders) && !m_SearchMatchReveal)
 		{
 			continue;
@@ -208,45 +203,34 @@ void CMenusSettingsControls::RenderSettingsBinds(EBindOptionGroup Group, CUIRect
 	}
 }
 
-float CMenusSettingsControls::MeasureSettingsMouseHeight() const
-{
-	// 灵敏度（游戏内）、最小/最大光标距离、灵敏度（界面）共 4 行
-	return 4.0f * m_CardMetrics.m_LineHeight + 3.0f * m_CardMetrics.m_LineSpacing;
-}
-
 void CMenusSettingsControls::RenderSettingsMouse(CUIRect View)
 {
+	CSettingsContentLayoutFlow Flow(View);
 	CUIRect Button;
-	View.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &View);
-	DoSettingsControlsNumericField("controls-ingame-mouse-sens-label", &g_Config.m_InpMousesens, &g_Config.m_InpMousesens, Button, Localize("Ingame mouse sens."), 1, 500, &CUi::ms_LogarithmicScrollbarScale);
+	if(Flow.Control("controls-ingame-mouse-sens-label", m_CardMetrics.m_LineHeight, Button))
+		DoSettingsControlsNumericField("controls-ingame-mouse-sens-label", &g_Config.m_InpMousesens, &g_Config.m_InpMousesens, Button, Localize("Ingame mouse sens."), 1, 500, &CUi::ms_LogarithmicScrollbarScale);
 
-	View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-	View.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &View);
-	DoSettingsControlsNumericField("controls-ingame-mouse-min-distance-label", &g_Config.m_ClMouseMinDistance, &g_Config.m_ClMouseMinDistance, Button, Localize("Minimum cursor distance"), 0, 5000);
+	Flow.Space(m_CardMetrics.m_LineSpacing);
+	if(Flow.Control("controls-ingame-mouse-min-distance-label", m_CardMetrics.m_LineHeight, Button))
+		DoSettingsControlsNumericField("controls-ingame-mouse-min-distance-label", &g_Config.m_ClMouseMinDistance, &g_Config.m_ClMouseMinDistance, Button, Localize("Minimum cursor distance"), 0, 5000);
 
-	View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-	View.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &View);
-	DoSettingsControlsNumericField("controls-ingame-mouse-max-distance-label", &g_Config.m_ClMouseMaxDistance, &g_Config.m_ClMouseMaxDistance, Button, Localize("Maximum cursor distance"), 0, 5000);
+	Flow.Space(m_CardMetrics.m_LineSpacing);
+	if(Flow.Control("controls-ingame-mouse-max-distance-label", m_CardMetrics.m_LineHeight, Button))
+		DoSettingsControlsNumericField("controls-ingame-mouse-max-distance-label", &g_Config.m_ClMouseMaxDistance, &g_Config.m_ClMouseMaxDistance, Button, Localize("Maximum cursor distance"), 0, 5000);
 
-	View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-	View.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &View);
-	DoSettingsControlsNumericField("controls-ui-mouse-sens-label", &g_Config.m_UiMousesens, &g_Config.m_UiMousesens, Button, Localize("UI mouse sens."), 1, 500, &CUi::ms_LogarithmicScrollbarScale);
-}
-
-float CMenusSettingsControls::MeasureSettingsJoystickHeight(const float ContentWidth) const
-{
-	const bool HasJoystick = Input()->NumJoysticks() > 0 && Input()->GetActiveJoystick() != nullptr;
-	const int AxisCount = HasJoystick ? Input()->GetActiveJoystick()->GetNumAxes() : 0;
-	return ResolveSettingsControllerContentHeight(ContentWidth, g_Config.m_InpControllerEnable != 0, HasJoystick, g_Config.m_InpControllerAbsolute != 0, AxisCount, NUM_JOYSTICK_AXES, m_CardMetrics.m_LineHeight, m_CardMetrics.m_LineSpacing);
+	Flow.Space(m_CardMetrics.m_LineSpacing);
+	if(Flow.Control("controls-ui-mouse-sens-label", m_CardMetrics.m_LineHeight, Button))
+		DoSettingsControlsNumericField("controls-ui-mouse-sens-label", &g_Config.m_UiMousesens, &g_Config.m_UiMousesens, Button, Localize("UI mouse sens."), 1, 500, &CUi::ms_LogarithmicScrollbarScale);
 }
 
 void CMenusSettingsControls::RenderSettingsJoystick(CUIRect View, bool ReadOnly)
 {
+	CSettingsContentLayoutFlow Flow(View);
 	CUIRect Button;
-	View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-	View.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &View);
+	Flow.Space(m_CardMetrics.m_LineSpacing);
+	const bool HasToggle = Flow.Control("controls-enable-controller", m_CardMetrics.m_LineHeight, Button);
 	const bool WasJoystickEnabled = g_Config.m_InpControllerEnable;
-	if(DoSettingsControlsCheckBox(&g_Config.m_InpControllerEnable, "controls-enable-controller", Localize("Enable controller"), g_Config.m_InpControllerEnable, &Button))
+	if(HasToggle && DoSettingsControlsCheckBox(&g_Config.m_InpControllerEnable, "controls-enable-controller", Localize("Enable controller"), g_Config.m_InpControllerEnable, &Button))
 	{
 		g_Config.m_InpControllerEnable ^= 1;
 	}
@@ -256,84 +240,87 @@ void CMenusSettingsControls::RenderSettingsJoystick(CUIRect View, bool ReadOnly)
 	}
 
 	const int NumJoysticks = Input()->NumJoysticks();
-	if(NumJoysticks > 0)
+	if(NumJoysticks > 0 && Input()->GetActiveJoystick() != nullptr)
 	{
 		// show joystick device selection if more than one available or just the joystick name if there is only one
 		{
 			CUIRect JoystickDropDown;
-			View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-			View.HSplitTop(m_CardMetrics.m_LineHeight, &JoystickDropDown, &View);
-			if(NumJoysticks > 1)
+			Flow.Space(m_CardMetrics.m_LineSpacing);
+			if(Flow.Control("controls-device", m_CardMetrics.m_LineHeight, JoystickDropDown))
 			{
-				std::vector<std::string> vJoystickNames;
-				std::vector<const char *> vpJoystickNames;
-				vJoystickNames.resize(NumJoysticks);
-				vpJoystickNames.resize(NumJoysticks);
-
-				for(int i = 0; i < NumJoysticks; ++i)
+				if(NumJoysticks > 1)
 				{
-					char aJoystickName[256];
-					str_format(aJoystickName, sizeof(aJoystickName), "%s %d: %s", Localize("Controller"), i, Input()->GetJoystick(i)->GetName());
-					vJoystickNames[i] = aJoystickName;
-					vpJoystickNames[i] = vJoystickNames[i].c_str();
-				}
+					std::vector<std::string> vJoystickNames;
+					std::vector<const char *> vpJoystickNames;
+					vJoystickNames.resize(NumJoysticks);
+					vpJoystickNames.resize(NumJoysticks);
 
-				const int CurrentJoystick = Input()->GetActiveJoystick()->GetIndex();
-				CUi::SDropDownProperties JoystickDropDownProps;
-				JoystickDropDownProps.m_pPopupViewport = Ui()->OutermostClipArea();
-				const int NewJoystick = GameClient()->m_Menus.DoSettingsDropDown(&JoystickDropDown, CurrentJoystick, vpJoystickNames.data(), vpJoystickNames.size(), m_JoystickDropDownState, JoystickDropDownProps, g_Config.m_InpControllerGUID);
-				if(NewJoystick != CurrentJoystick)
-				{
-					Input()->SetActiveJoystick(NewJoystick);
+					for(int i = 0; i < NumJoysticks; ++i)
+					{
+						char aJoystickName[256];
+						str_format(aJoystickName, sizeof(aJoystickName), "%s %d: %s", Localize("Controller"), i, Input()->GetJoystick(i)->GetName());
+						vJoystickNames[i] = aJoystickName;
+						vpJoystickNames[i] = vJoystickNames[i].c_str();
+					}
+
+					const int CurrentJoystick = Input()->GetActiveJoystick()->GetIndex();
+					CUi::SDropDownProperties JoystickDropDownProps;
+					JoystickDropDownProps.m_pPopupViewport = Ui()->OutermostClipArea();
+					const int NewJoystick = GameClient()->m_Menus.DoSettingsDropDown(&JoystickDropDown, CurrentJoystick, vpJoystickNames.data(), vpJoystickNames.size(), m_JoystickDropDownState, JoystickDropDownProps, g_Config.m_InpControllerGUID);
+					if(NewJoystick != CurrentJoystick)
+					{
+						Input()->SetActiveJoystick(NewJoystick);
+					}
 				}
-			}
-			else
-			{
-				char aBuf[256];
-				str_format(aBuf, sizeof(aBuf), "%s 0: %s", Localize("Controller"), Input()->GetJoystick(0)->GetName());
-				DoSettingsControlsLabel("controls-controller-device-label", &JoystickDropDown, aBuf, m_CardMetrics.m_BodySize, TEXTALIGN_ML);
+				else
+				{
+					char aBuf[256];
+					str_format(aBuf, sizeof(aBuf), "%s 0: %s", Localize("Controller"), Input()->GetJoystick(0)->GetName());
+					DoSettingsControlsLabel("controls-controller-device-label", &JoystickDropDown, aBuf, m_CardMetrics.m_BodySize, TEXTALIGN_ML);
+				}
 			}
 		}
 
 		const bool WasAbsolute = g_Config.m_InpControllerAbsolute;
-		GameClient()->m_Menus.DoSettingsLine_RadioMenu(CMenus::SETTINGS_CONTROLS, -1, -1, View, "controls-ingame-controller-mode-label", Localize("Ingame controller mode"),
-			m_vJoystickIngameModeButtonContainers,
-			{"controls-ingame-controller-mode-relative", "controls-ingame-controller-mode-absolute"},
-			{Localize("Relative", "Ingame controller mode"), Localize("Absolute", "Ingame controller mode")},
-			{0, 1},
-			g_Config.m_InpControllerAbsolute,
-			ResolveSettingsContentMetrics(View.w));
+		CUIRect ModeRow;
+		Flow.Space(m_CardMetrics.m_LineSpacing);
+		if(Flow.Control("controls-mode", m_CardMetrics.m_LineHeight, ModeRow))
+			GameClient()->m_Menus.DoSettingsLine_RadioMenu(CMenus::SETTINGS_CONTROLS, -1, -1, ModeRow, "controls-ingame-controller-mode-label", Localize("Ingame controller mode"),
+				m_vJoystickIngameModeButtonContainers,
+				{"controls-ingame-controller-mode-relative", "controls-ingame-controller-mode-absolute"},
+				{Localize("Relative", "Ingame controller mode"), Localize("Absolute", "Ingame controller mode")},
+				{0, 1},
+				g_Config.m_InpControllerAbsolute,
+				ResolveSettingsContentMetrics(View.w));
 
 		if(!WasAbsolute) // Use old value because this was used to allocate the available height
 		{
-			View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-			View.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &View);
-			DoSettingsControlsNumericField("controls-ingame-controller-sens-label", &g_Config.m_InpControllerSens, &g_Config.m_InpControllerSens, Button, Localize("Ingame controller sens."), 1, 500,
-				&CUi::ms_LogarithmicScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+			Flow.Space(m_CardMetrics.m_LineSpacing);
+			if(Flow.Control("controls-ingame-controller-sens-label", m_CardMetrics.m_LineHeight, Button))
+				DoSettingsControlsNumericField("controls-ingame-controller-sens-label", &g_Config.m_InpControllerSens, &g_Config.m_InpControllerSens, Button, Localize("Ingame controller sens."), 1, 500,
+					&CUi::ms_LogarithmicScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
 		}
 
-		View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-		View.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &View);
-		DoSettingsControlsNumericField("controls-ui-controller-sens-label", &g_Config.m_UiControllerSens, &g_Config.m_UiControllerSens, Button, Localize("UI controller sens."), 1, 500,
-			&CUi::ms_LogarithmicScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+		Flow.Space(m_CardMetrics.m_LineSpacing);
+		if(Flow.Control("controls-ui-controller-sens-label", m_CardMetrics.m_LineHeight, Button))
+			DoSettingsControlsNumericField("controls-ui-controller-sens-label", &g_Config.m_UiControllerSens, &g_Config.m_UiControllerSens, Button, Localize("UI controller sens."), 1, 500,
+				&CUi::ms_LogarithmicScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
 
-		View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-		View.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &View);
-		DoSettingsControlsNumericField("controls-controller-jitter-tolerance-label", &g_Config.m_InpControllerTolerance, &g_Config.m_InpControllerTolerance, Button, Localize("Controller jitter tolerance"), 0, 50);
+		Flow.Space(m_CardMetrics.m_LineSpacing);
+		if(Flow.Control("controls-controller-jitter-tolerance-label", m_CardMetrics.m_LineHeight, Button))
+			DoSettingsControlsNumericField("controls-controller-jitter-tolerance-label", &g_Config.m_InpControllerTolerance, &g_Config.m_InpControllerTolerance, Button, Localize("Controller jitter tolerance"), 0, 50);
 
-		View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-		View.h = minimum(View.h, ResolveSettingsControllerAxisPickerHeight(Input()->GetActiveJoystick()->GetNumAxes(), NUM_JOYSTICK_AXES, m_CardMetrics.m_LineHeight, m_CardMetrics.m_LineSpacing));
-		if(ReadOnly || m_pCardScrollRegion == nullptr || m_pCardScrollRegion->AddRect(View))
+		Flow.Space(m_CardMetrics.m_LineSpacing);
+		CUIRect AxisPicker;
+		if(Flow.Control("controls-axis-picker", ResolveSettingsControllerAxisPickerHeight(Input()->GetActiveJoystick()->GetNumAxes(), NUM_JOYSTICK_AXES, m_CardMetrics.m_LineHeight, m_CardMetrics.m_LineSpacing), AxisPicker) && (ReadOnly || m_pCardScrollRegion == nullptr || m_pCardScrollRegion->AddRect(AxisPicker)))
 		{
-			DrawRoundedSurface(Ui(), View, ColorRGBA(0.0f, 0.0f, 0.0f, 0.1f), ColorRGBA(), 5.0f);
-			RenderJoystickAxisPicker(View, ReadOnly);
+			DrawRoundedSurface(Ui(), AxisPicker, ColorRGBA(0.0f, 0.0f, 0.0f, 0.1f), ColorRGBA(), 5.0f);
+			RenderJoystickAxisPicker(AxisPicker, ReadOnly);
 		}
 	}
 	else
 	{
-		View.HSplitTop(View.h - m_CardMetrics.m_LineHeight, nullptr, &View);
-		View.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &View);
-		DoSettingsControlsLabel("controls-no-controller-label", &Button, Localize("No controller found. Plug in a controller."), m_CardMetrics.m_BodySize, TEXTALIGN_ML);
+		Flow.Text("controls-no-controller", Localize("No controller found. Plug in a controller."), 0.0f, m_CardMetrics.m_BodySize, 0.0f, [this](const char *pText, float Width, float FontSize) { return TextRender()->TextBoundingBox(FontSize, pText, -1, Width).m_H + FontSize * 0.25f; }, [this](const CUIRect &Row, const char *pText) { CUIRect Button = Row; DoSettingsControlsLabel("controls-no-controller-label", &Button, pText, m_CardMetrics.m_BodySize, TEXTALIGN_ML); }, m_CardMetrics.m_LineHeight);
 	}
 }
 
@@ -346,7 +333,7 @@ void CMenusSettingsControls::RenderJoystickAxisPicker(CUIRect View, bool ReadOnl
 
 	CUIRect Row, Axis, Status, AimBind;
 	View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-	View.HSplitTop(m_CardMetrics.m_LineHeight, &Row, &View);
+	ConsumeSettingsControlRow(View, m_CardMetrics, &Row);
 	Row.VSplitLeft(AxisWidth, &Axis, &Row);
 	Row.VSplitLeft(SpacingV, nullptr, &Row);
 	Row.VSplitLeft(StatusWidth, &Status, &Row);
@@ -361,7 +348,7 @@ void CMenusSettingsControls::RenderJoystickAxisPicker(CUIRect View, bool ReadOnl
 	for(int i = 0; i < std::min<int>(pJoystick->GetNumAxes(), NUM_JOYSTICK_AXES); i++)
 	{
 		View.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &View);
-		View.HSplitTop(m_CardMetrics.m_LineHeight, &Row, &View);
+		ConsumeSettingsControlRow(View, m_CardMetrics, &Row);
 		if(!ReadOnly && m_pCardScrollRegion != nullptr && !m_pCardScrollRegion->AddRect(Row))
 		{
 			continue;
@@ -482,63 +469,22 @@ bool CMenusSettingsControls::BuildSettingsCard(const qm_card_catalog::SQmCardBui
 	Out = {};
 	Out.m_Spec = {pDefault->m_pStableId, Localize(pDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pDefault)};
 	Out.m_MeasureRevision = SettingsCardsRevision(ReadOnly);
+	const auto UseDeclared = [&] {
+		const auto Render = Out.m_Render;
+		Out.m_RenderMeasured = [Render](CUIRect &Rect) { Render(Rect); };
+		qm_settings_content::UseDeclaredContent(Out, Ui(), TextRender());
+	};
 	if(str_comp(pStableId, "deck:controls-mouse") == 0)
 	{
-		Out.m_Measure = [this](float) { return MeasureSettingsMouseHeight(); };
 		Out.m_Render = [this](CUIRect Rect) { RenderSettingsMouse(Rect); };
+		UseDeclared();
 		return true;
 	}
 	if(str_comp(pStableId, "deck:controls-controller") == 0)
 	{
-		Out.m_Measure = [this](float Width) { return MeasureSettingsJoystickHeight(Width); };
 		Out.m_Render = [this, ReadOnly](CUIRect Rect) { RenderSettingsJoystick(Rect, ReadOnly); };
-		Out.m_PreLayoutInput = [this](CUIRect Content) {
-			bool Changed = false;
-			CUIRect Button;
-			Content.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &Content);
-			Content.HSplitTop(m_CardMetrics.m_LineHeight, &Button, &Content);
-			const bool WasJoystickEnabled = g_Config.m_InpControllerEnable != 0;
-			if(Ui()->DoButtonLogic(&g_Config.m_InpControllerEnable, 0, &Button, BUTTONFLAG_LEFT))
-			{
-				g_Config.m_InpControllerEnable ^= 1;
-				Changed = true;
-			}
-			if(!WasJoystickEnabled)
-				return Changed;
-
-			const IInput::IJoystick *pActiveJoystick = Input()->GetActiveJoystick();
-			if(Input()->NumJoysticks() <= 0 || pActiveJoystick == nullptr)
-				return Changed;
-			Content.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &Content);
-			Content.HSplitTop(m_CardMetrics.m_LineHeight, nullptr, &Content);
-
-			const SSettingsContentMetrics Metrics = ResolveSettingsContentMetrics(Content.w);
-			const bool WasAbsolute = g_Config.m_InpControllerAbsolute != 0;
-			const SSettingsRadioRowLayout ModeLayout = ResolveSettingsRadioRowLayout(Content, 2, Metrics);
-			CUIRect ModeButtons = ModeLayout.m_ButtonsRect;
-			Content.HSplitTop(ModeLayout.m_Height, nullptr, &Content);
-			const float ButtonWidth = ModeButtons.w / (float)m_vJoystickIngameModeButtonContainers.size();
-			for(size_t Index = 0; Index < m_vJoystickIngameModeButtonContainers.size(); ++Index)
-			{
-				CUIRect ModeButton;
-				ModeButtons.VSplitLeft(ButtonWidth, &ModeButton, &ModeButtons);
-				if(Ui()->DoButtonLogic(&m_vJoystickIngameModeButtonContainers[Index], Index == (size_t)g_Config.m_InpControllerAbsolute, &ModeButton, BUTTONFLAG_LEFT))
-				{
-					g_Config.m_InpControllerAbsolute = (int)Index;
-					Changed = true;
-				}
-			}
-			if(!WasAbsolute)
-			{
-				Content.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &Content);
-				Content.HSplitTop(m_CardMetrics.m_LineHeight, nullptr, &Content);
-			}
-			Content.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &Content);
-			Content.HSplitTop(m_CardMetrics.m_LineHeight, nullptr, &Content);
-			Content.HSplitTop(m_CardMetrics.m_LineSpacing, nullptr, &Content);
-			Content.HSplitTop(m_CardMetrics.m_LineHeight, nullptr, &Content);
-			return Changed;
-		};
+		Out.m_HasPendingPreLayoutInput = [this] { return m_JoystickDropDownState.m_SelectionPopupContext.m_SelectionIndex >= 0; };
+		UseDeclared();
 		return true;
 	}
 	const std::pair<EBindOptionGroup, const char *> aBindCards[] = {
@@ -549,7 +495,7 @@ bool CMenusSettingsControls::BuildSettingsCard(const qm_card_catalog::SQmCardBui
 	{
 		if(str_comp(pStableId, pId) != 0)
 			continue;
-		Out.m_Measure = [this, Group](float) { return m_aBindGroupExpanded[(int)Group] ? MeasureSettingsBindsHeight(Group) : 0.0f; };
+
 		Out.m_Render = [this, Group, ReadOnly](CUIRect Rect) { RenderSettingsBinds(Group, Rect, ReadOnly); };
 		Out.m_RenderWhenClipped = true;
 		Out.m_IsCollapsed = [this, Group] { return !m_aBindGroupExpanded[(int)Group]; };
@@ -565,6 +511,7 @@ bool CMenusSettingsControls::BuildSettingsCard(const qm_card_catalog::SQmCardBui
 			return true;
 		};
 		Out.m_HeaderAction = [CardCtx = Ctx.m_UiContext](const SSettingsCardFrame &Frame, bool Collapsed) { RenderSettingsCardCollapseButton(CardCtx, Frame.m_HandleRect, Collapsed); };
+		UseDeclared();
 		return true;
 	}
 	return false;

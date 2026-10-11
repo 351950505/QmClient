@@ -36247,7 +36247,6 @@ portuguese = "Introduza separadamente as palavras-passe registadas no Axiom para
 turkish = "Ana hesap ve dummy için Axiom'da kayıtlı parolaları ayrı ayrı girin. Bu seçenek hesap oluşturmaz."
 polish = "Wpisz osobno hasła zarejestrowane na Axiom dla głównego konta i dummy. Ta opcja nie tworzy kont."
 
-
 [[message]]
 key = "Demo directory"
 [message.translations]
@@ -36264,7 +36263,6 @@ portuguese = "Pasta de demos"
 turkish = "Demo kayıt dizini"
 polish = "Katalog nagrań demo"
 
-
 [[message]]
 key = "Screenshot directory"
 [message.translations]
@@ -36280,7 +36278,6 @@ brazilian_portuguese = "Pasta de capturas de tela"
 portuguese = "Pasta de capturas de ecrã"
 turkish = "Ekran görüntüsü dizini"
 polish = "Katalog zrzutów ekranu"
-
 
 [[message]]
 key = "Video directory"
@@ -36361,6 +36358,230 @@ brazilian_portuguese = "Suavizar a câmera controlada pelo mouse ao assistir liv
 portuguese = "Suavizar a câmara controlada pelo rato ao observar livremente em partidas e demos"
 turkish = "Oyunda ve demolarda serbest izleme sırasında fareyle kontrol edilen kamerayı yumuşat"
 polish = "Wygładź ruch kamery sterowanej myszą podczas swobodnej obserwacji w grze i demach"
+
+[[message]]
+key = "Tee collision"
+[message.translations]
+simplified_chinese = "Tee 碰撞"
+traditional_chinese = "Tee 碰撞"
+japanese = "Tee の衝突"
+korean = "Tee 충돌"
+russian = "Столкновение Tee"
+german = "Tee-Kollision"
+spanish = "Colisión de Tee"
+french = "Collision des Tee"
+brazilian_portuguese = "Colisão de Tee"
+portuguese = "Colisão de Tee"
+turkish = "Tee çarpışması"
+polish = "Kolizja Tee"
+
+[[message]]
+key = "Tee to Tee"
+[message.translations]
+simplified_chinese = "Tee 与 Tee"
+traditional_chinese = "Tee 與 Tee"
+japanese = "Tee 対 Tee"
+korean = "Tee 대 Tee"
+russian = "Tee с Tee"
+german = "Tee gegen Tee"
+spanish = "Tee contra Tee"
+french = "Tee contre Tee"
+brazilian_portuguese = "Tee contra Tee"
+portuguese = "Tee contra Tee"
+turkish = "Tee ile Tee"
+polish = "Tee z Tee"
+
+[[message]]
+key = "Tee freeze probe"
+[message.translations]
+simplified_chinese = "Tee 冻结探针"
+traditional_chinese = "Tee 凍結探針"
+japanese = "Tee のフリーズ判定"
+korean = "Tee 프리즈 탐지"
+russian = "Проверка заморозки Tee"
+german = "Tee-Freeze-Prüfung"
+spanish = "Detección de Freeze del Tee"
+french = "Détection du gel du Tee"
+brazilian_portuguese = "Detecção de Freeze do Tee"
+portuguese = "Deteção de Freeze do Tee"
+turkish = "Tee dondurma algısı"
+polish = "Wykrywanie zamrożenia Tee"
+
+[[message]]
+key = "Tee to Freeze"
+[message.translations]
+simplified_chinese = "Tee 与 Freeze"
+traditional_chinese = "Tee 與 Freeze"
+japanese = "Tee 対 Freeze"
+korean = "Tee 대 Freeze"
+russian = "Tee с Freeze"
+german = "Tee gegen Freeze"
+spanish = "Tee contra Freeze"
+french = "Tee contre Freeze"
+brazilian_portuguese = "Tee contra Freeze"
+portuguese = "Tee contra Freeze"
+turkish = "Tee ile Freeze"
+polish = "Tee z Freeze"
+
+[[message]]
+key = "Enable FTAPI auto-translate"
+[message.translations]
+simplified_chinese = "启用 FTAPI 自动翻译"
+traditional_chinese = "啟用 FTAPI 自動翻譯"
+japanese = "FTAPI 自動翻訳を有効化"
+korean = "FTAPI 자동 번역 활성화"
+russian = "Включить автоперевод FTAPI"
+german = "FTAPI-Auto-Übersetzung aktivieren"
+spanish = "Activar traducción automática de FTAPI"
+french = "Activer la traduction automatique FTAPI"
+brazilian_portuguese = "Ativar tradução automática FTAPI"
+portuguese = "Ativar tradução automática FTAPI"
+turkish = "FTAPI otomatik çeviriyi etkinleştir"
+polish = "Włącz automatyczne tłumaczenie FTAPI"
+
+[[message]]
+key = "May overload the service"
+[message.translations]
+simplified_chinese = "可能导致服务过载"
+traditional_chinese = "可能導致服務過載"
+japanese = "サービスに過負荷がかかる可能性あり"
+korean = "서비스에 과부하가 걸릴 수 있음"
+russian = "может перегрузить сервис"
+german = "kann den Dienst überlasten"
+spanish = "puede sobrecargar el servicio"
+french = "peut surcharger le service"
+brazilian_portuguese = "pode sobrecarregar o serviço"
+portuguese = "pode sobrecarregar o serviço"
+turkish = "hizmeti aşırı yükleyebilir"
+polish = "może przeciążyć usługę"
+
+[[message]]
+key = "Concurrency"
+[message.translations]
+simplified_chinese = "并发数"
+traditional_chinese = "併發數"
+japanese = "同時実行数"
+korean = "동시 실행 수"
+russian = "Конкурентность"
+german = "Parallelität"
+spanish = "Concurrencia"
+french = "Concurrence"
+brazilian_portuguese = "Concorrência"
+portuguese = "Concorrência"
+turkish = "Eşzamanlılık"
+polish = "Współbieżność"
+
+[[message]]
+key = "0 = auto"
+[message.translations]
+simplified_chinese = "0 = 自动"
+traditional_chinese = "0 = 自動"
+japanese = "0 = 自動"
+korean = "0 = 자동"
+russian = "0 = авто"
+german = "0 = automatisch"
+spanish = "0 = automático"
+french = "0 = automatique"
+brazilian_portuguese = "0 = automático"
+portuguese = "0 = automático"
+turkish = "0 = otomatik"
+polish = "0 = automatycznie"
+
+[[message]]
+key = "Enable thinking mode"
+[message.translations]
+simplified_chinese = "启用思考模式"
+traditional_chinese = "啟用思考模式"
+japanese = "思考モードを有効にする"
+korean = "사고 모드 활성화"
+russian = "Включить режим размышления"
+german = "Denkmodus aktivieren"
+spanish = "Activar modo de pensamiento"
+french = "Activer le mode de réflexion"
+brazilian_portuguese = "Ativar modo de pensamento"
+portuguese = "Ativar modo de pensamento"
+turkish = "Düşünme modunu etkinleştir"
+polish = "Włącz tryb myślenia"
+
+[[message]]
+key = "Slower"
+[message.translations]
+simplified_chinese = "较慢"
+traditional_chinese = "較慢"
+japanese = "低速"
+korean = "느림"
+russian = "медленнее"
+german = "langsamer"
+spanish = "más lento"
+french = "plus lent"
+brazilian_portuguese = "mais lento"
+portuguese = "mais lento"
+turkish = "daha yavaş"
+polish = "wolniejszy"
+
+[[message]]
+key = "Auto gain control for mic"
+[message.translations]
+simplified_chinese = "自动平衡麦克风音量"
+traditional_chinese = "自動平衡麥克風音量"
+japanese = "マイクの自動ゲイン制御"
+korean = "마이크 자동 게인 제어"
+russian = "Авторегулировка усиления микрофона"
+german = "Automatische Mikrofonverstärkung"
+spanish = "Control automático de ganancia para el micrófono"
+french = "Contrôle automatique du gain pour le micro"
+brazilian_portuguese = "Controle automático de ganho para microfone"
+portuguese = "Controlo automático de ganho para o microfone"
+turkish = "Mikrofon için otomatik kazanç kontrolü"
+polish = "Automatyczna regulacja wzmocnienia mikrofonu"
+
+[[message]]
+key = "AGC, experimental"
+[message.translations]
+simplified_chinese = "AGC，实验性"
+traditional_chinese = "AGC，實驗性"
+japanese = "AGC、実験的"
+korean = "AGC, 실험적"
+russian = "AGC, экспериментально"
+german = "AGC, experimentell"
+spanish = "AGC, experimental"
+french = "CAG, expérimental"
+brazilian_portuguese = "AGC, experimental"
+portuguese = "AGC, experimental"
+turkish = "AGC, deneysel"
+polish = "AGC, eksperymentalne"
+
+[[message]]
+key = "Steam client path"
+[message.translations]
+simplified_chinese = "Steam 客户端路径"
+traditional_chinese = "Steam 用戶端路徑"
+japanese = "Steam クライアントのパス"
+korean = "Steam 클라이언트 경로"
+russian = "Путь к клиенту Steam"
+german = "Steam-Clientpfad"
+spanish = "Ruta del cliente de Steam"
+french = "Chemin du client Steam"
+brazilian_portuguese = "Caminho do cliente Steam"
+portuguese = "Caminho do cliente Steam"
+turkish = "Steam istemci yolu"
+polish = "Ścieżka klienta Steam"
+
+[[message]]
+key = "Leave empty to detect automatically"
+[message.translations]
+simplified_chinese = "留空自动检测"
+traditional_chinese = "留空自動偵測"
+japanese = "空欄で自動検出"
+korean = "비워두면 자동 감지"
+russian = "пусто — автоопределение"
+german = "leer für automatische Erkennung"
+spanish = "vacía para detectar automáticamente"
+french = "vide pour la détection automatique"
+brazilian_portuguese = "vazio para detectar automaticamente"
+portuguese = "vazio para deteção automática"
+turkish = "otomatik algılama için boş bırakın"
+polish = "pusta oznacza automatyczne wykrywanie"
 
 [[message]]
 key = "Show original text below outgoing translation"

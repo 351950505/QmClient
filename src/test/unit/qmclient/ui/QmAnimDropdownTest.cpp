@@ -776,7 +776,8 @@ TEST(UiV2PopupPointer, BlockingPopupClosesOnOutsidePressWithoutCapture)
 {
 	SQmPopupPointerInput Input;
 	Input.m_Active = true;
-	Input.m_BlockUnderlying = ui_widget::SecondaryPanelProperties().m_BlockUnderlyingPointerInput;
+	// 单元层验证指针状态机的阻断输入；公共面板属性与关闭行为由真实 UI 集成测试验证。
+	Input.m_BlockUnderlying = true;
 	Input.m_Pressed = true;
 	Input.m_Held = true;
 	EXPECT_EQ(QmResolvePopupPointerAction(Input), EQmPopupPointerAction::CLOSE);

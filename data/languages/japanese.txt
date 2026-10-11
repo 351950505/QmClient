@@ -241,6 +241,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - 無効、1-9999 分
 
+0 = auto
+== 0 = 自動
+
 0 disables timed rotation; skins only switch on random start events
 == 0 で時間によるローテーションを無効化。ランダム開始時のみスキンを切り替えます
 
@@ -608,6 +611,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == 残像ポップ
 
+AGC, experimental
+== AGC、実験的
+
 Agree
 == 同意
 
@@ -778,6 +784,9 @@ Anti Ping Smoothing
 
 Anti-spoof specific rate limit (0 = unlimited).
 == アンチスプーフ固有のレート制限（0 = 無制限）
+
+AntiPing
+== AntiPing
 
 AntiPing (latency compensation)
 == AntiPing（レイテンシ補正）
@@ -1048,6 +1057,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == リフレッシュ時にリプレイ情報を自動取得
+
+Auto gain control for mic
+== マイクの自動ゲイン制御
 
 Auto gain control for mic (AGC, experimental)
 == マイクの自動ゲイン制御（AGC、実験的）
@@ -2308,6 +2320,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == コンプレッサーのしきい値（パーセント）
+
+Concurrency
+== 同時実行数
 
 Concurrency (0 = auto)
 == 同時実行数（0 = 自動）
@@ -4055,6 +4070,9 @@ Enable freeze call sound
 Enable frosted glass blur behind secondary popups and dropdowns
 == サブウィンドウとドロップダウンの背景ぼかしを有効にする
 
+Enable FTAPI auto-translate
+== FTAPI 自動翻訳を有効化
+
 Enable FTAPI auto-translate (may overload the service)
 == FTAPI 自動翻訳を有効化（サービスに過負荷がかかる可能性あり）
 
@@ -4267,6 +4285,9 @@ Enable Tee trail
 
 Enable tee trails
 == Tee の軌跡を有効化
+
+Enable thinking mode
+== 思考モードを有効にする
 
 Enable thinking mode (slower)
 == 思考モードを有効にする（低速）
@@ -4499,6 +4520,9 @@ Expanded dropdown background color
 Expanded dropdown background opacity percentage
 == 展開リスト背景 — 不透明度（パーセント）
 
+Experimental
+== 実験的
+
 Export
 == エクスポート
 
@@ -4630,6 +4654,9 @@ Fake CTF flags
 
 Fallback simple noise reduction strength
 == フォールバック簡易ノイズ低減強度
+
+Fast input
+== 高速入力
 
 Fast input (reduce visual latency)
 == Fast input（視覚的な遅延を低減）
@@ -4837,6 +4864,9 @@ Font store:
 
 Font weight:
 == フォントの太さ：
+
+For Gores
+== Gores 用
 
 For more info: /cmdlist
 == 詳細は /cmdlist を参照
@@ -5563,6 +5593,9 @@ High Detail
 
 High to low
 == 高い順
+
+Higher input latency
+== 入力遅延増加
 
 Higher values make the wave move faster. Zero stops the movement.
 == 値が大きいほど波が速く動きます。ゼロで動きが止まります。
@@ -6446,6 +6479,9 @@ Last viewed client release notes
 Latency
 == レイテンシ
 
+Latency compensation
+== レイテンシ補正
+
 Latency Jitter
 == レイテンシジッター
 
@@ -6478,6 +6514,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == チュートリアル Wiki
+
+Leave empty to detect automatically
+== 空欄で自動検出
 
 Leave empty to disable
 == 空欄にして無効化
@@ -7154,6 +7193,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == 遅延が発生する可能性があります
 
+May overload the service
+== サービスに過負荷がかかる可能性あり
+
 Memory
 == メモリ
 
@@ -7249,6 +7291,9 @@ Milliseconds to apply quick input early
 
 Min size
 == 最小サイズ
+
+Mini debug
+== ミニデバッグ
 
 Mini features
 == ミニ機能
@@ -7642,6 +7687,9 @@ Native scale (1.0)
 
 Need to have started the map to swap with a player.
 == プレイヤーと入れ替えるにはマップを開始する必要があります。
+
+Negative stability buffer
+== 負の安定性バッファ
 
 Negative stability buffer (for Gores)
 == 負の安定性バッファ（Gores 用）
@@ -8363,6 +8411,9 @@ Overwrite clan even if empty
 Own hook line width
 == 自分のフックラインの幅
 
+Own team only
+== 自チームのみ
+
 p = Ping latency
 == p = Ping レイテンシ
 
@@ -8869,6 +8920,9 @@ Predict client movement
 
 Predict dummy movement
 == ダミーの移動を予測
+
+Predict events
+== イベント予測
 
 Predict events (experimental)
 == イベント予測（実験的）
@@ -9523,6 +9577,9 @@ Reduce antiping and player prediction when frozen
 
 Reduce prediction while frozen
 == 凍結中に予測量を減らす
+
+Reduce visual latency
+== 視覚的な遅延を低減
 
 Reduced
 == 縮小
@@ -10313,6 +10370,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == リプレイにプレイヤー名を保存
 
+Save power by lowering update rate
+== 更新レートを下げて省電力
+
 Save power by lowering update rate (higher input latency)
 == 更新レートを下げて省電力（入力遅延増加）
 
@@ -10441,6 +10501,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == スコアボード透明度
+
+Scoreboard, chat, spectating
+== スコアボード、チャット、観戦
 
 Scores are private on this server
 == このサーバーではスコアは非公開です
@@ -11008,6 +11071,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == ネームタグの別の行にクライアント ID を表示
+
+Show client IDs
+== クライアント ID を表示
 
 Show client IDs (scoreboard, chat, spectating)
 == クライアント ID を表示（スコアボード、チャット、観戦）
@@ -11591,6 +11657,9 @@ Show player Tee
 Show players' key presses
 == プレイヤーのキー入力を表示
 
+Show position and angle
+== 位置と角度を表示
+
 Show position and angle (mini debug)
 == 位置と角度を表示（ミニデバッグ）
 
@@ -12083,6 +12152,9 @@ Slide left
 Slow down the demo
 == デモの速度を下げる
 
+Slower
+== 低速
+
 Small Tee size
 == 小さな Tee のサイズ
 
@@ -12442,6 +12514,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == ステータススキーム：
+
+Steam client path
+== Steam クライアントのパス
 
 Steam client path (leave empty to detect automatically)
 == Steam クライアントのパス（空欄で自動検出）
@@ -12863,6 +12938,9 @@ Tee 0.7
 Tee appearance
 == Tee 外観
 
+Tee collision
+== Tee の衝突
+
 Tee collision (Tee to Tee)
 == Tee の衝突（Tee 対 Tee）
 
@@ -12871,6 +12949,9 @@ Tee color
 
 Tee death probe
 == Tee のデス判定
+
+Tee freeze probe
+== Tee のフリーズ判定
 
 Tee freeze probe (Tee to Freeze)
 == Tee のフリーズ判定（Tee 対 Freeze）
@@ -12886,6 +12967,12 @@ Tee size
 
 Tee status bar
 == Tee ステータスバー
+
+Tee to Freeze
+== Tee 対 Freeze
+
+Tee to Tee
+== Tee 対 Tee
 
 Tee trail color
 == Tee トレイルの色

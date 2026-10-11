@@ -357,6 +357,166 @@ namespace
 	};
 }
 
+TEST_F(QmBackgroundControlsIntegration, PreLayoutMenuCommitsClickWithoutSubmittingCachedText)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	CUIElement Element;
+	Element.Init(&m_Ui, 1);
+	SMenuButtonProperties Props;
+	const auto Label = [] { return "Cached menu"; };
+	m_Ui.DoButton_Menu(Element, &m_Button, Label, &m_Rect, Props);
+	ASSERT_TRUE(Element.Rect(0)->m_UITextContainer.Valid());
+	ASSERT_FALSE(m_Recording.m_vQuads.empty());
+	const vec2 Pixels = m_Rect.Center() * vec2(m_Recording.WindowWidth(), m_Recording.WindowHeight()) / m_Ui.Screen()->Size();
+	const vec2 Delta = Pixels - m_Ui.UpdatedMousePos();
+	m_Ui.OnCursorMove(Delta.x, Delta.y);
+	const auto Frame = [&](bool Pressed) {
+		m_Input.m_HeldKey = Pressed ? KEY_MOUSE_1 : 0;
+		m_Client.AdvanceFrame();
+		m_Ui.Update();
+		m_Recording.m_vQuads.clear();
+		m_Recording.m_vSurfaces.clear();
+		m_Ui.BeginPreLayoutInput();
+		const int Result = m_Ui.DoButton_Menu(Element, &m_Button, Label, &m_Rect, Props);
+		m_Ui.EndPreLayoutInput();
+		EXPECT_TRUE(m_Recording.m_vQuads.empty());
+		EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
+		return Result;
+	};
+	EXPECT_EQ(Frame(false), 0);
+	EXPECT_EQ(Frame(true), 0);
+	EXPECT_EQ(Frame(false), 1);
+	m_Ui.BeginBackgroundRender();
+	EXPECT_EQ(m_Ui.DoButton_Menu(Element, &m_Button, Label, &m_Rect, Props), 0);
+	m_Ui.EndBackgroundRender();
+	EXPECT_FALSE(m_Recording.m_vQuads.empty());
+}
+
+TEST_F(QmBackgroundControlsIntegration, PreLayoutFieldsConsumeEditsAndKeepCaretWithoutDrawing)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	for(const auto Mode : {ui_widget::EInputFieldMode::TEXT, ui_widget::EInputFieldMode::MULTILINE})
+	{
+		SCOPED_TRACE(static_cast<int>(Mode));
+		ui_widget::SInputFieldOptions Options;
+		Options.m_Mode = Mode;
+		m_Text.Set("edit");
+		m_Text.SetCursorOffset(m_Text.GetLength());
+		m_Ui.SetActiveItem(&m_Text);
+		m_Text.Activate(EInputPriority::UI);
+		m_Text.WasChanged();
+		IInput::CEvent Event{};
+		Event.m_Flags = IInput::FLAG_TEXT;
+		str_copy(Event.m_aText, "!");
+		ASSERT_TRUE(m_Ui.OnInput(Event));
+		m_Recording.m_vQuads.clear();
+		m_Recording.m_vSurfaces.clear();
+		m_Ui.BeginPreLayoutInput();
+		const auto Result = ui_widget::InputField(Ctx, &m_Text, m_Rect, Options);
+		m_Ui.EndPreLayoutInput();
+		EXPECT_TRUE(Result.m_Changed);
+		EXPECT_STREQ(m_Text.GetString(), "edit!");
+		EXPECT_EQ(m_Text.GetCursorOffset(), 5u);
+		EXPECT_GT(m_Text.GetCaretPosition().x, m_Rect.x);
+		EXPECT_TRUE(m_Recording.m_vQuads.empty());
+		EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
+		m_Ui.BeginBackgroundRender(true);
+		EXPECT_FALSE(ui_widget::InputField(Ctx, &m_Text, m_Rect, Options).m_Changed);
+		m_Ui.EndBackgroundRender(true);
+		EXPECT_FALSE(m_Recording.m_vQuads.empty());
+		EXPECT_FALSE(m_Recording.m_vSurfaces.empty());
+		m_Recording.m_vQuads.clear();
+		m_Recording.m_vSurfaces.clear();
+		Options.m_ProcessInput = false;
+		m_Ui.BeginPreLayoutInput();
+		EXPECT_FALSE(ui_widget::InputField(Ctx, &m_Text, m_Rect, Options).m_Changed);
+		m_Ui.EndPreLayoutInput();
+		EXPECT_TRUE(m_Recording.m_vQuads.empty());
+		EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
+		m_Ui.ReleaseActiveTextInput(&m_Text);
+	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, GeometryOnlyLineInputResolvesDragSelectionAndMatchesDrawLayout)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	m_Text.Set("alpha beta");
+	m_Text.SetCursorOffset(0);
+	m_Text.Activate(EInputPriority::UI);
+	auto *pSelection = m_Text.GetMouseSelection();
+	pSelection->m_Selecting = true;
+	pSelection->m_PressMouse = vec2(m_Rect.x - 10.0f, m_Rect.Center().y);
+	pSelection->m_ReleaseMouse = vec2(m_Rect.x + m_Rect.w + 10.0f, m_Rect.Center().y);
+	const auto Geometry = m_Text.Render(&m_Rect, 12.0f, TEXTALIGN_ML, true, -1.0f, 0.0f, {}, CLineInput::ERenderMode::GEOMETRY);
+	EXPECT_EQ(m_Text.GetSelectionStart(), 0u);
+	EXPECT_EQ(m_Text.GetSelectionEnd(), m_Text.GetLength());
+	EXPECT_TRUE(m_Recording.m_vQuads.empty());
+	const vec2 Caret = m_Text.GetCaretPosition();
+	pSelection->m_Selecting = false;
+	const auto Draw = m_Text.Render(&m_Rect, 12.0f, TEXTALIGN_ML, true, -1.0f, 0.0f);
+	EXPECT_FLOAT_EQ(Geometry.m_W, Draw.m_W);
+	EXPECT_FLOAT_EQ(Geometry.m_H, Draw.m_H);
+	EXPECT_FLOAT_EQ(Caret.x, m_Text.GetCaretPosition().x);
+	EXPECT_FLOAT_EQ(Caret.y, m_Text.GetCaretPosition().y);
+	EXPECT_FALSE(m_Recording.m_vQuads.empty());
+}
+
+TEST_F(QmBackgroundControlsIntegration, MeasurementFieldsAndLabelsSubmitNoTextAndPreservePendingState)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	CUIElement Label;
+	Label.Init(&m_Ui, 1);
+	m_Ui.DoLabelStreamed(*Label.Rect(0), &m_Rect, "Cached label", 12.0f, TEXTALIGN_ML);
+	m_Text.Activate(EInputPriority::UI);
+	m_Text.WasChanged();
+	m_Text.Append(" pending");
+	const auto Cursor = m_Text.GetCursorOffset();
+	const auto SelectionStart = m_Text.GetSelectionStart();
+	const auto SelectionEnd = m_Text.GetSelectionEnd();
+	m_Recording.m_vQuads.clear();
+	m_Recording.m_vSurfaces.clear();
+	m_Ui.BeginBackgroundRender();
+	m_Ui.BeginRenderOnly();
+	EXPECT_FALSE(m_Ui.DoEditBox(&m_Text, &m_Rect, 12.0f));
+	EXPECT_FALSE(m_Ui.DoEditBoxMultiLine(&m_Text, &m_Rect, 12.0f, 0.0f));
+	m_Ui.DoLabel(&m_Rect, "Immediate label", 12.0f, TEXTALIGN_ML);
+	m_Ui.DoLabelStreamed(*Label.Rect(0), &m_Rect, "Cached label", 12.0f, TEXTALIGN_ML);
+	m_Ui.RenderLabelTextContainerAligned(*Label.Rect(0), &m_Rect, TEXTALIGN_ML);
+	m_Ui.EndRenderOnly();
+	EXPECT_TRUE(m_Recording.m_vQuads.empty());
+	EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
+	EXPECT_TRUE(m_Text.WasChanged());
+	EXPECT_EQ(m_Text.GetCursorOffset(), Cursor);
+	EXPECT_EQ(m_Text.GetSelectionStart(), SelectionStart);
+	EXPECT_EQ(m_Text.GetSelectionEnd(), SelectionEnd);
+	m_Ui.DoLabelStreamed(*Label.Rect(0), &m_Rect, "Cached label", 12.0f, TEXTALIGN_ML);
+	EXPECT_FALSE(m_Recording.m_vQuads.empty());
+	m_Ui.EndBackgroundRender();
+}
+
+TEST_F(QmBackgroundControlsIntegration, PositionedPreviewTextSuppressesInputAndMeasurementAndRestoresBackground)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	m_Ui.BeginPreLayoutInput();
+	m_Ui.DoText(m_Rect.x, m_Rect.y, 12.0f, "Font preview");
+	m_Ui.EndPreLayoutInput();
+	EXPECT_TRUE(m_Recording.m_vQuads.empty());
+	m_Ui.BeginBackgroundRender();
+	m_Ui.BeginRenderOnly();
+	m_Ui.DoText(m_Rect.x, m_Rect.y, 12.0f, "Font preview");
+	m_Ui.EndRenderOnly();
+	EXPECT_TRUE(m_Recording.m_vQuads.empty());
+	m_Ui.DoText(m_Rect.x, m_Rect.y, 12.0f, "Font preview");
+	m_Ui.EndBackgroundRender();
+	EXPECT_FALSE(m_Recording.m_vQuads.empty());
+}
+
 TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayKeepsPlaceholderGlyphPositionAndColor)
 {
 	UseRecordingTextEngine();
@@ -771,6 +931,39 @@ TEST_F(QmBackgroundControlsIntegration, PieOptionPointerInputResumesOnlyAfterCon
 	EXPECT_TRUE(Frame(Initial.m_Swatch.Center(), false, false).m_ColorClicked);
 }
 
+TEST_F(QmBackgroundControlsIntegration, PieOptionPreLayoutInputCommitsWithoutDrawing)
+{
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	const ColorRGBA Color(0.8f, 0.2f, 0.3f, 0.75f);
+	const CUIRect Cell{20, 20, 100, 24};
+	const auto Initial = QmDrawPieOptionControls(Ctx, &m_Toggle, &m_Button, true, Color, Cell, 24.0f, 4.0f, 6.0f, true);
+	const auto Frame = [&](vec2 Position, bool Pressed) {
+		const vec2 Pixels = Position * vec2(m_Recording.WindowWidth(), m_Recording.WindowHeight()) / m_Ui.Screen()->Size();
+		const vec2 Delta = Pixels - m_Ui.UpdatedMousePos();
+		m_Ui.OnCursorMove(Delta.x, Delta.y);
+		m_Input.m_HeldKey = Pressed ? KEY_MOUSE_1 : 0;
+		m_Client.AdvanceFrame();
+		m_Ui.Update();
+		m_Recording.m_vSurfaces.clear();
+		m_Recording.m_vQuads.clear();
+		m_Ui.BeginPreLayoutInput();
+		const auto Result = QmDrawPieOptionControls(Ctx, &m_Toggle, &m_Button, true, Color, Cell, 24.0f, 4.0f, 6.0f, true);
+		m_Ui.EndPreLayoutInput();
+		EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
+		EXPECT_TRUE(m_Recording.m_vQuads.empty());
+		return Result;
+	};
+	const vec2 ToggleCenter(Initial.m_Swatch.x - 4.0f - 24.0f, Cell.y + Cell.h * 0.5f);
+	Frame(ToggleCenter, false);
+	Frame(ToggleCenter, true);
+	const auto Toggled = Frame(ToggleCenter, false);
+	EXPECT_TRUE(Toggled.m_EnabledChanged);
+	EXPECT_FALSE(Toggled.m_Enabled);
+	Frame(Initial.m_Swatch.Center(), false);
+	Frame(Initial.m_Swatch.Center(), true);
+	EXPECT_TRUE(Frame(Initial.m_Swatch.Center(), false).m_ColorClicked);
+}
+
 TEST_F(QmBackgroundControlsIntegration, BackgroundActionIconsRemainVisibleWithoutClicks)
 {
 	UseRecordingTextEngine();
@@ -1167,9 +1360,8 @@ TEST_F(QmBackgroundControlsIntegration, BackgroundMeasurementConsumesRowsAndRest
 	EXPECT_FLOAT_EQ(m_Recording.m_PixelClip.y, OriginalPixelClip.y);
 	EXPECT_FLOAT_EQ(m_Recording.m_PixelClip.w, OriginalPixelClip.w);
 	EXPECT_FLOAT_EQ(m_Recording.m_PixelClip.h, OriginalPixelClip.h);
-	ASSERT_FALSE(m_Recording.m_vQuads.empty());
-	for(const auto &Quad : m_Recording.m_vQuads)
-		EXPECT_FALSE(Quad.m_Visible);
+	// 测量直接抑制提交，不能仅靠零面积裁剪隐藏已经绘制的文字。
+	EXPECT_TRUE(m_Recording.m_vQuads.empty());
 	EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
 	m_Recording.m_vQuads.clear();
 	EXPECT_FALSE(ui_widget::PrimaryButton(ui_widget::ControlContext(&m_Ui), &m_Button, "Visible again", m_Rect));

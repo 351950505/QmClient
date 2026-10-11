@@ -1,17 +1,8 @@
 #include "QmCardCatalog.h"
 
-#include <game/client/QmUi/SettingsCardMeasure.h>
 #include <game/client/components/menus.h>
 #include <game/client/gameclient.h>
 #include <game/client/ui.h>
-
-float qm_card_catalog::QmCardRenderHook::MeasureContent(CMenus *pMenus, const FSettingsCardRenderMeasured &Render, const float ContentWidth)
-{
-	if(pMenus == nullptr || !Render)
-		return 0.0f;
-
-	return MeasureSettingsCardContent(pMenus->Ui(), Render, ContentWidth);
-}
 
 namespace
 {

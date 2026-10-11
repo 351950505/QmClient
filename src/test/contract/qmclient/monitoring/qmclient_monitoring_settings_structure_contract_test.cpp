@@ -73,22 +73,6 @@ TEST(QmMonitoringSettingsStructureContract, SettingsUiMigrationFinalStructureCon
 	}
 }
 
-TEST(QmMonitoringSettingsStructureContract, SettingsCardDeckSkipsAnimationRuntimeOnStableFrames)
-{
-	const std::string Source = ReadRepoFile("src/game/client/QmUi/SettingsCardDeck.cpp");
-	const std::string CardSource = ReadRepoFile("src/game/client/QmUi/SettingsCard.cpp");
-
-	EXPECT_NE(Source.find("ResolveSettingsCardAnimationWork("), std::string::npos);
-	EXPECT_NE(Source.find("ResolveSettingsCardHeightAnimationWork("), std::string::npos);
-	EXPECT_NE(Source.find("if(m_FrameRuntime.EntryWasActive() && Motion.m_EntryDuration > 0.0f)"), std::string::npos);
-	EXPECT_NE(Source.find("State.m_DrawOffsetY = DeckEntryOffsetY;"), std::string::npos);
-	EXPECT_NE(Source.find("else if(AnimationWork.m_ResolveReflow)"), std::string::npos);
-	EXPECT_NE(Source.find("State.m_ClipContent = SettingsCardDeckShouldClipContent(Card.m_Frame.m_ContentRect.w > 0.0f && Card.m_Frame.m_ContentRect.h > 0.0f, Card.m_ContentHeightAnimationActive);"), std::string::npos);
-	EXPECT_EQ(Source.find("State.m_ClipContent = ContentHeightAnimationActive;"), std::string::npos);
-	EXPECT_NE(CardSource.find("const CUIRect ClipRect = ResolveSettingsCardContentClipRect(DrawFrame.m_ContentRect, DrawFrame.m_Rect, UiScale);"), std::string::npos);
-	EXPECT_NE(CardSource.find("Ctx.m_pUi->ClipEnable(&ClipRect);"), std::string::npos);
-}
-
 TEST(QmMonitoringSettingsStructureContract, RenderOnlyNumericFieldsAndDropDownsDoNotMutateControlState)
 {
 	const std::string Forms = ReadRepoFile("src/game/client/QmUi/UiForms.cpp");

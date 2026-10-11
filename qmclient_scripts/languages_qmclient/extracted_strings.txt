@@ -79,6 +79,7 @@
 /times needs 0, 1 or 2 parameter. 1. = name, 2. = start number
 /top5team needs 0, 1 or 2 parameter. 1. = name, 2. = start number
 0 - Disabled, 1-9999 minutes
+0 = auto
 0 disables timed rotation; skins only switch on random start events
 1 star
 1% low
@@ -201,6 +202,7 @@ After hammer fly, whether dummy switches back to previous weapon
 After Load
 After uploading again, use: reload or hot_reload
 Afterimage pop
+AGC, experimental
 Agree
 Aim
 Aim bind
@@ -258,6 +260,7 @@ Anti Latency Tools
 Anti latency tools
 Anti Ping Smoothing
 Anti-spoof specific rate limit (0 = unlimited).
+AntiPing
 AntiPing (latency compensation)
 Antiping prediction offset, ignored when using antiping limit
 AntiPing: predict grenade path
@@ -348,6 +351,7 @@ Auto enable in Gores mode
 Auto enable/disable IME on text focus
 Auto execute
 Auto fetch replay info on refresh
+Auto gain control for mic
 Auto gain control for mic (AGC, experimental)
 Auto greet friend on map join
 Auto greet friend text
@@ -768,6 +772,7 @@ Compressor makeup gain (percent)
 Compressor ratio (x10)
 Compressor release time (ms)
 Compressor threshold (percent)
+Concurrency
 Concurrency (0 = auto)
 Concurrent requests when refreshing server browser
 Config
@@ -1350,6 +1355,7 @@ Enable fast map download
 Enable fat skin
 Enable freeze call sound
 Enable frosted glass blur behind secondary popups and dropdowns
+Enable FTAPI auto-translate
 Enable FTAPI auto-translate (may overload the service)
 Enable game sounds
 Enable ghost
@@ -1421,6 +1427,7 @@ Enable team chat message sound
 Enable team chat sound
 Enable Tee trail
 Enable tee trails
+Enable thinking mode
 Enable thinking mode (slower)
 Enable tile outlines
 Enable UDP KCP transport negotiation (old clients keep legacy UDP, hot-switch fallback)
@@ -1498,6 +1505,7 @@ Exit replay view
 Expand console
 Expanded dropdown background color
 Expanded dropdown background opacity percentage
+Experimental
 Export
 Export configuration package
 Export cut as a separate demo
@@ -1542,6 +1550,7 @@ Failed to save video
 Failed to write PNG export.
 Fake CTF flags
 Fallback simple noise reduction strength
+Fast input
 Fast input (reduce visual latency)
 Fast input others
 Fast practice
@@ -1611,6 +1620,7 @@ Font size
 Font store
 Font store:
 Font weight:
+For Gores
 For more info: /cmdlist
 Force a vote to yes/no
 Force a voting option
@@ -1853,6 +1863,7 @@ Hide weapon fire effects in Zen Mode
 Hide weapon muzzle flashes
 High Detail
 High to low
+Higher input latency
 Higher values make the wave move faster. Zero stops the movement.
 Highlight Color
 Highlight console commands
@@ -2147,6 +2158,7 @@ Last viewed announcement content revision
 Last viewed announcement version
 Last viewed client release notes
 Latency
+Latency compensation
 Latency Jitter
 Latin font
 Latin font weight
@@ -2158,6 +2170,7 @@ Layout
 Leak IP
 Leaks your IP address to all servers by pinging each of them, also acquiring the latency in the process
 Learn
+Leave empty to detect automatically
 Leave empty to disable
 Leave empty to join public room
 Leave empty to show everyone
@@ -2383,6 +2396,7 @@ Maximum rows
 Maximum team size.
 Maximum undo steps in editor history (editor, envelope editor, and server settings editor are independent)
 may cause delay
+May overload the service
 Memory
 Mention
 Mention option color
@@ -2415,6 +2429,7 @@ Microphone volume
 Microphone volume (percent)
 Milliseconds to apply quick input early
 Min size
+Mini debug
 Mini features
 Mini voting UI
 Minimize the client
@@ -2546,6 +2561,7 @@ Nameplate X alignment hint with local player
 Nameplates
 Native scale (1.0)
 Need to have started the map to swap with a player.
+Negative stability buffer
 Negative stability buffer (for Gores)
 Net
 Netease hook heartbeat timeout (milliseconds)
@@ -2786,6 +2802,7 @@ Override Selected
 Overview
 Overwrite clan even if empty
 Own hook line width
+Own team only
 p = Ping latency
 Pack name
 Panel opacity
@@ -2955,6 +2972,7 @@ Practice mode is disabled
 Pre-warm settings page on startup and menu idle
 Predict client movement
 Predict dummy movement
+Predict events
 Predict events (experimental)
 Predict events (sounds, particles)
 Predict fire and show predicted weapon physics (requires cl_antiping_grenade 1 and cl_antiping_weapons 1)
@@ -3173,6 +3191,7 @@ Redeem your code and customize your title
 Redeem your sponsor code to unlock a custom title, shown in chat and on your nameplate.
 Reduce antiping and player prediction when frozen
 Reduce prediction while frozen
+Reduce visual latency
 Reduced
 Reduced: uses shorter transitions and disables presentation animations
 Reflected gradient
@@ -3436,6 +3455,7 @@ Save last %d min
 Save loaded; local record removed.
 Save loaded; the local record could not be removed.
 Save player names in replay
+Save power by lowering update rate
 Save power by lowering update rate (higher input latency)
 Save replay of best time per game
 Save restore dismissed.
@@ -3479,6 +3499,7 @@ Scoreboard sort mode (0=Score, 1=Points)
 Scoreboard surface
 Scoreboard surface color
 Scoreboard transparency
+Scoreboard, chat, spectating
 Scores are private on this server
 Scores are public on this server
 Screen
@@ -3668,6 +3689,7 @@ Show clan on nameplates for enemies
 Show client ID
 Show client ID in scoreboard, chat and spectator menu
 Show client ID on a separate line in nametag
+Show client IDs
 Show client IDs (scoreboard, chat, spectating)
 Show client IDs in name plates
 Show client IDs on a separate line
@@ -3862,6 +3884,7 @@ Show player stats HUD
 Show player target angle
 Show player Tee
 Show players' key presses
+Show position and angle
 Show position and angle (mini debug)
 Show position and angle debug info
 Show predicted position as ghost, original as unpredictable player
@@ -4026,6 +4049,7 @@ Skip the weapon switch animation for hammer switches in Gores mode
 Skip Tutorial
 Slide left
 Slow down the demo
+Slower
 Small Tee size
 Smaller tees
 Smart
@@ -4146,6 +4170,7 @@ Status bar text color
 Status bar text opacity
 Status normal, check details below if still experiencing issues
 Status Scheme:
+Steam client path
 Steam client path (leave empty to detect automatically)
 Steam integration
 Steam is installed
@@ -4286,14 +4311,18 @@ Teams are not available on this server; if the team is locked, any team member d
 Tee
 Tee 0.7
 Tee appearance
+Tee collision
 Tee collision (Tee to Tee)
 Tee color
 Tee death probe
+Tee freeze probe
 Tee freeze probe (Tee to Freeze)
 Tee hitbox color
 Tee icon size in frozen Tee HUD (default 15)
 Tee size
 Tee status bar
+Tee to Freeze
+Tee to Tee
 Tee trail color
 Tee trail color mode (1=Solid, 2=Current Tee color, 3=Rainbow, 4=Tee speed, 5=Random)
 Tee trail style (0=Original, 1=Manga, 2=Magic, 3=Pixel, 4=Legacy manga, 5=Legacy magic)

@@ -498,7 +498,10 @@ public:
 	void FinishQmClientUpdateInfo();
 	void ResetQmClientUpdateInfoTask();
 	bool NeedQmClientUpdate();
+	void RequestQmClientUpdateCheck(bool UpdateAfterCheck = false);
 	void RequestQmClientUpdateCheckAndUpdate();
+	bool CanDownloadQmClientUpdate() const;
+	void RequestQmClientUpdateDownload();
 	void CancelQmClientUpdate();
 	bool IsUpdateChecking() const { return m_pQmClientUpdateInfoTask != nullptr; }
 	bool IsUpdateDownloading() const

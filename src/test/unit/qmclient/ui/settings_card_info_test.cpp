@@ -68,7 +68,7 @@ TEST(SettingsCardInfoLayout, LeadingActionStaysLeftOfInfoWidthAndCollapse)
 		EXPECT_LE(Width.x + Width.w, Frame.m_HandleRect.x);
 		EXPECT_FLOAT_EQ(Locate.y, Frame.m_HandleRect.y);
 		EXPECT_FLOAT_EQ(Locate.h, Frame.m_HandleRect.h);
-		EXPECT_FLOAT_EQ(Frame.m_SubtitleRect.w, Frame.m_TitleRect.w);
+		EXPECT_FLOAT_EQ(Frame.m_SubtitleRect.w, Frame.m_HeaderRect.w);
 	}
 }
 
@@ -229,7 +229,7 @@ TEST(SettingsCardHelpText, DuplicateOrMissingDescriptionsDoNotProduceEmptyLines)
 	EXPECT_TRUE(SettingsCardTooltipText({"example", "Title", nullptr, nullptr}).empty());
 }
 
-TEST(SettingsCardInfoLayout, DescriptionLengthDoesNotReserveSpaceInTheCard)
+TEST(SettingsCardInfoLayout, HoverOverviewKeepsCardGeometryAndContentHeight)
 {
 	for(const float Scale : {0.78f, 1.0f, 1.5f})
 	{

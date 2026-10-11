@@ -1,5 +1,5 @@
 // 头衔卡片独立于页面，贡献者页和全局搜索共用同一份控件与预览。
-#include "QmCardCatalog.h"
+#include "QmCardCatalogInternal.h"
 
 #include <base/math.h>
 #include <base/str.h>
@@ -10,6 +10,9 @@
 #include <engine/textrender.h>
 
 #include <game/client/QmUi/QmCardRegistry.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -342,17 +345,6 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 
 	Out = {};
 	Out.m_Spec = {pDefault->m_pStableId, Localize(pDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pDefault)};
-	// 高度只做常数次算术；直接读取展开状态，普通页和搜索页无需维护各自的布局版本。
-	Out.m_MeasureEachFrame = DisplayCard;
-	Out.m_Measure = [=](float) {
-		const int Rows = DisplayCard ? (g_Config.m_QmTitleAdvanced ? 20 : 10) : 8;
-		float Height = Rows * (LineHeight + LineSpacing) + PreviewHeight;
-		if(!DisplayCard)
-			Height += LineSpacing;
-		if(DisplayCard && s_TitleStyleExpanded)
-			Height += LineSpacing + ResolveQmTitleStylePanelHeight(std::min(QmTitleStyleCount() + 1, MAX_VISIBLE_STYLE_ITEMS));
-		return Height;
-	};
 
 	FSettingsCardRenderMeasured Render = [=](CUIRect &Content) {
 		const bool ReadOnly = Ctx.m_ReadOnly || pMenus->Ui()->RenderOnly() || pMenus->m_MenuTextPlanCollecting;
@@ -369,17 +361,18 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 		Draft.m_Title.SetEmptyText(Localize("Custom title"));
 		Draft.m_Name.SetEmptyText(Localize("Exact bound nickname"));
 		IUiContext TitleCtx = pMenus->SettingsUiContext("settings_sponsor_title", UiScale);
-		if(ReadOnly)
+		if(pMenus->Ui()->DrawingSuppressed())
 		{
 			TitleCtx.m_pAnim = nullptr;
 			TitleCtx.m_pTree = nullptr;
 		}
 		const bool Enabled = !ReadOnly && !Auth.TitleBusy() && !pMenus->Ui()->IsPopupOpen() && !pMenus->GameClient()->m_GameConsole.IsActive();
-		const auto NextRow = [&]() {
+		CSettingsContentLayoutFlow Flow(Content);
+		const auto RowAction = [&](const char *pId, const auto &Action) {
 			CUIRect Row;
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-			return Row;
+			if(Flow.Control(pId, LineHeight, Row))
+				Action(Row);
+			Flow.Space(LineSpacing);
 		};
 		const auto Hint = [pMenus, ReadOnly, TipSize](const void *pId, const CUIRect &Rect, const char *pText) {
 			if(ReadOnly || pMenus->Ui()->RenderOnly() || pMenus->Ui()->IsPopupOpen())
@@ -392,84 +385,103 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 		};
 		if(!DisplayCard)
 		{
-			CUIRect Row = NextRow();
-			pMenus->Ui()->DoLabel(&Row, Localize(Auth.TitleStatus()), TipSize, TEXTALIGN_ML);
-			Hint(&Draft.m_Revision, Row, Localize("Permanent access; up to 4 online IP addresses"));
-			Row = NextRow();
 			CUIRect Button;
-			Row.VSplitRight(Row.w * 0.3f, &Row, &Button);
-			ui_widget::InputField(TitleCtx, &Draft.m_Code, Row, Draft.m_Code.GetEmptyText(), BodySize, nullptr, true);
-			Hint(&Draft.m_Code, Row, Localize("Redeem your sponsor code to unlock a custom title, shown in chat and on your nameplate."));
-			if(pMenus->DoButton_Menu(&s_RedeemButton, Localize("Redeem"), 0, &Button) && Enabled && !Auth.TitleAuthenticated())
-				Auth.RedeemTitleCode(Draft.m_Code.GetString());
-			Row = NextRow();
-			pMenus->Ui()->DoLabel(&Row, Localize("Custom title"), TipSize, TEXTALIGN_ML);
-			Row = NextRow();
-			ui_widget::InputField(TitleCtx, &Draft.m_Title, Row, Draft.m_Title.GetEmptyText(), BodySize, nullptr, true);
-			Hint(&Draft.m_Title, Row, Localize("Up to 6 Chinese or 12 ASCII characters"));
-			Row = NextRow();
-			if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &Draft.m_BindName, "qm-title-bind-name", Localize("Only show with this nickname"), Draft.m_BindName, &Row) && Enabled && Auth.TitleAuthenticated())
-				Draft.m_BindName ^= 1;
-			Hint(&Draft.m_BindName, Row, Localize("Limit the title to the exact nickname below."));
-			Row = NextRow();
-			ui_widget::InputField(TitleCtx, &Draft.m_Name, Row, Draft.m_Name.GetEmptyText(), BodySize, nullptr, true);
-			Row = NextRow();
-			CUIRect ChatStyleLabel, ChatStyleControl;
-			Row.VSplitLeft(Row.w * 0.5f, &ChatStyleLabel, &ChatStyleControl);
-			pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-sponsor-chat-style", &ChatStyleLabel, Localize("Chat message style"), BodySize, TEXTALIGN_ML);
-			static CUi::SDropDownState s_ChatStyleState;
-			static CScrollRegion s_ChatStyleScroll;
-			static std::array<const char *, 3> s_apChatStyleNames;
-			s_apChatStyleNames = {Localize("Normal"), Localize("Soft glow"), Localize("Platinum highlight")};
-			s_ChatStyleState.m_SelectionPopupContext.m_pScrollRegion = &s_ChatStyleScroll;
-			CUi::SDropDownProperties ChatStyleProperties;
-			ChatStyleProperties.m_Enabled = Auth.TitleAuthenticated() && !Auth.TitleBusy() && !pMenus->GameClient()->m_GameConsole.IsActive();
-			ChatStyleProperties.m_FontSize = BodySize;
-			const bool MeasureChatStyle = ReadOnly && !pMenus->Ui()->RenderOnly();
-			if(MeasureChatStyle)
-				pMenus->Ui()->BeginRenderOnly();
-			const int ChatStyle = pMenus->DoSettingsDropDown(&ChatStyleControl, g_Config.m_QmSponsorChatStyle, s_apChatStyleNames.data(), s_apChatStyleNames.size(), s_ChatStyleState, ChatStyleProperties, &g_Config.m_QmSponsorChatStyle, nullptr, &Row);
-			if(MeasureChatStyle)
-				pMenus->Ui()->EndRenderOnly();
-			if(!ReadOnly && ChatStyleProperties.m_Enabled)
-				g_Config.m_QmSponsorChatStyle = ChatStyle;
-			Hint(&g_Config.m_QmSponsorChatStyle, Row, Localize("Saved with your title and shared with other QmClient players."));
+
+			Flow.Text("title-auth-status", Localize(Auth.TitleStatus()), 0.0f, TipSize, LineSpacing, [pMenus](const char *pText, float Width, float FontSize) { return pMenus->TextRender()->TextBoundingBox(FontSize, pText, -1, Width).m_H + FontSize * 0.25f; }, [&](const CUIRect &Row, const char *pText) {
+				pMenus->Ui()->DoLabel(&Row, pText, TipSize, TEXTALIGN_ML, {.m_MaxWidth = Row.w, .m_EnableWidthCheck = false});
+				Hint(&Draft.m_Revision, Row, Localize("Permanent access; up to 4 online IP addresses")); }, LineHeight);
+			RowAction("title-redeem", [&](CUIRect Row) {
+				static ui_widget::SSettingsActionGroupState s_RedeemWidths;
+				const char *apLabels[] = {Localize("Redeem")};
+				const auto Actions = ui_widget::PrepareSettingsActionGroup(*pMenus->Ui(), s_RedeemWidths, Row, apLabels, 1, Metrics);
+				const auto InputActions = ResolveSettingsInputActionsLayout(Row, 1, Metrics, Actions.m_aButtons[0].w);
+				Row = InputActions.m_Input;
+				Button = InputActions.m_Actions.m_aButtons[0];
+				ui_widget::InputField(TitleCtx, &Draft.m_Code, Row, Draft.m_Code.GetEmptyText(), BodySize, nullptr, true);
+				Hint(&Draft.m_Code, Row, Localize("Redeem your sponsor code to unlock a custom title, shown in chat and on your nameplate."));
+				if(pMenus->DoButton_Menu(&s_RedeemButton, Localize("Redeem"), 0, &Button) && Enabled && !Auth.TitleAuthenticated())
+					Auth.RedeemTitleCode(Draft.m_Code.GetString());
+			});
+			RowAction("title-label", [&](CUIRect Row) {
+				pMenus->Ui()->DoLabel(&Row, Localize("Custom title"), TipSize, TEXTALIGN_ML);
+			});
+			RowAction("title-input", [&](CUIRect Row) {
+				ui_widget::InputField(TitleCtx, &Draft.m_Title, Row, Draft.m_Title.GetEmptyText(), BodySize, nullptr, true);
+				Hint(&Draft.m_Title, Row, Localize("Up to 6 Chinese or 12 ASCII characters"));
+			});
+			RowAction("title-bind-name", [&](CUIRect Row) {
+				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &Draft.m_BindName, "qm-title-bind-name", Localize("Only show with this nickname"), Draft.m_BindName, &Row) && Enabled && Auth.TitleAuthenticated())
+					Draft.m_BindName ^= 1;
+				Hint(&Draft.m_BindName, Row, Localize("Limit the title to the exact nickname below."));
+			});
+			RowAction("title-bound-name", [&](CUIRect Row) {
+				ui_widget::InputField(TitleCtx, &Draft.m_Name, Row, Draft.m_Name.GetEmptyText(), BodySize, nullptr, true);
+			});
+			RowAction("title-chat-style", [&](CUIRect Row) {
+				CUIRect ChatStyleLabel, ChatStyleControl;
+				SplitSettingsControlRow(Row, Metrics, &ChatStyleLabel, &ChatStyleControl, ESettingsControlWidth::LONG_CHOICE);
+				pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-sponsor-chat-style", &ChatStyleLabel, Localize("Chat message style"), BodySize, TEXTALIGN_ML);
+				static CUi::SDropDownState s_ChatStyleState;
+				static CScrollRegion s_ChatStyleScroll;
+				static std::array<const char *, 3> s_apChatStyleNames;
+				s_apChatStyleNames = {Localize("Normal"), Localize("Soft glow"), Localize("Platinum highlight")};
+				s_ChatStyleState.m_SelectionPopupContext.m_pScrollRegion = &s_ChatStyleScroll;
+				CUi::SDropDownProperties ChatStyleProperties;
+				ChatStyleProperties.m_Enabled = Auth.TitleAuthenticated() && !Auth.TitleBusy() && !pMenus->GameClient()->m_GameConsole.IsActive();
+				ChatStyleProperties.m_FontSize = BodySize;
+				const int ChatStyle = pMenus->DoSettingsDropDown(&ChatStyleControl, g_Config.m_QmSponsorChatStyle, s_apChatStyleNames.data(), s_apChatStyleNames.size(), s_ChatStyleState, ChatStyleProperties, &g_Config.m_QmSponsorChatStyle, nullptr, &Row);
+				if(!ReadOnly && ChatStyleProperties.m_Enabled)
+					g_Config.m_QmSponsorChatStyle = ChatStyle;
+				Hint(&g_Config.m_QmSponsorChatStyle, Row, Localize("Saved with your title and shared with other QmClient players."));
+			});
 
 			CUIRect ChatPreview, ChatPreviewLabel, ChatPreviewArea;
-			Content.HSplitTop(PreviewHeight, &ChatPreview, &Content);
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-			ChatPreview.HSplitTop(TipSize, &ChatPreviewLabel, &ChatPreviewArea);
-			pMenus->Ui()->DoLabel(&ChatPreviewLabel, Localize("Chat message preview"), TipSize, TEXTALIGN_ML);
-			pMenus->Ui()->ClipEnable(&ChatPreviewArea);
-			RenderQmSponsorChatPreview(pMenus->Graphics(), pMenus->TextRender(), ChatPreviewArea, BodySize, static_cast<EQmSponsorChatStyle>(g_Config.m_QmSponsorChatStyle), Auth.TitleAnimationTime());
-			pMenus->Ui()->ClipDisable();
-			Row = NextRow();
-			Row.VSplitMid(&Row, &Button, LineSpacing);
-			if(pMenus->DoButton_Menu(&s_SaveButton, Localize("Save"), 0, &Row) && Enabled && Auth.TitleAuthenticated() && (!Draft.m_BindName || Draft.m_Name.GetString()[0]))
-				Auth.SaveTitleProfile(Draft.m_Title.GetString(), Draft.m_BindName ? Draft.m_Name.GetString() : "", g_Config.m_QmTitleStyleEnabled ? g_Config.m_QmTitleStyle : "", static_cast<EQmSponsorChatStyle>(g_Config.m_QmSponsorChatStyle));
-			if(pMenus->DoButton_Menu(&s_RefreshButton, Localize("Refresh"), 0, &Button) && Enabled)
-				Auth.RefreshTitleProfile();
+			const bool HasPreview = Flow.Control("title-chat-preview", PreviewHeight, ChatPreview);
+			Flow.Space(LineSpacing);
+			if(HasPreview && Flow.Drawing() && !pMenus->Ui()->DrawingSuppressed())
+			{
+				ChatPreview.HSplitTop(TipSize, &ChatPreviewLabel, &ChatPreviewArea);
+				pMenus->Ui()->DoLabel(&ChatPreviewLabel, Localize("Chat message preview"), TipSize, TEXTALIGN_ML);
+				pMenus->Ui()->ClipEnable(&ChatPreviewArea);
+				RenderQmSponsorChatPreview(pMenus->Graphics(), pMenus->TextRender(), ChatPreviewArea, BodySize, static_cast<EQmSponsorChatStyle>(g_Config.m_QmSponsorChatStyle), Auth.TitleAnimationTime());
+				pMenus->Ui()->ClipDisable();
+			}
+
+			RowAction("title-profile-actions", [&](CUIRect Row) {
+				static ui_widget::SSettingsActionGroupState s_ProfileActionWidths;
+				const char *apActions[] = {Localize("Save"), Localize("Refresh")};
+				const auto Actions = ui_widget::PrepareSettingsActionGroup(*pMenus->Ui(), s_ProfileActionWidths, Row, apActions, 2, Metrics);
+				Row = Actions.m_aButtons[0];
+				Button = Actions.m_aButtons[1];
+				if(pMenus->DoButton_Menu(&s_SaveButton, Localize("Save"), 0, &Row) && Enabled && Auth.TitleAuthenticated() && (!Draft.m_BindName || Draft.m_Name.GetString()[0]))
+					Auth.SaveTitleProfile(Draft.m_Title.GetString(), Draft.m_BindName ? Draft.m_Name.GetString() : "", g_Config.m_QmTitleStyleEnabled ? g_Config.m_QmTitleStyle : "", static_cast<EQmSponsorChatStyle>(g_Config.m_QmSponsorChatStyle));
+				if(pMenus->DoButton_Menu(&s_RefreshButton, Localize("Refresh"), 0, &Button) && Enabled)
+					Auth.RefreshTitleProfile();
+			});
 		}
 		else
 		{
-			CUIRect Row;
 			SLabelProperties SingleLineProps;
 			SingleLineProps.m_DisallowNewline = true;
 			SingleLineProps.m_StopAtEnd = true;
 			SingleLineProps.m_MinimumFontSize = 6.0f;
 			const auto VisibilityToggle = [&](int *pValue, const char *pTextId, const char *pLabel) {
-				const CUIRect ToggleRow = NextRow();
-				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, pValue, pTextId, pLabel, *pValue, &ToggleRow, SingleLineProps) && !ReadOnly)
+				CUIRect ToggleRow;
+				const bool HasRow = Flow.Control(pTextId, LineHeight, ToggleRow);
+				Flow.Space(LineSpacing);
+				if(HasRow && pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, pValue, pTextId, pLabel, *pValue, &ToggleRow, SingleLineProps) && !ReadOnly)
 					*pValue ^= 1;
 			};
 			VisibilityToggle(&g_Config.m_QmShowNameplateTitle, "qm-title-show-nameplate", Localize("Show titles on nameplates"));
 			VisibilityToggle(&g_Config.m_QmNameplateTitleAboveName, "qm-title-above-name", Localize("Show titles above player names"));
 			VisibilityToggle(&g_Config.m_QmShowMainTitle, "qm-title-show-main", Localize("Show main tee title locally"));
 			VisibilityToggle(&g_Config.m_QmShowDummyTitle, "qm-title-show-dummy", Localize("Show dummy title locally"));
-			Row = NextRow();
-			if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmSponsorChatEffects, "qm-sponsor-chat-effects", Localize("Show sponsor chat effects locally"), g_Config.m_QmSponsorChatEffects, &Row) && !ReadOnly)
-				g_Config.m_QmSponsorChatEffects ^= 1;
-			Hint(&g_Config.m_QmSponsorChatEffects, Row, Localize("Turning this off only changes your display."));
+
+			RowAction("title-local-chat-effects", [&](CUIRect Row) {
+				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmSponsorChatEffects, "qm-sponsor-chat-effects", Localize("Show sponsor chat effects locally"), g_Config.m_QmSponsorChatEffects, &Row) && !ReadOnly)
+					g_Config.m_QmSponsorChatEffects ^= 1;
+				Hint(&g_Config.m_QmSponsorChatEffects, Row, Localize("Turning this off only changes your display."));
+			});
 			// 常用风格与波浪幅度保持直达，其余外观参数统一收进高级模式。
 			{
 				// 风格选择：条目里渲染「头衔文本 + 该风格」的实时效果，整列收进下拉，
@@ -493,121 +505,128 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 
 				// 选择行：点一下就在卡片内向下展开效果列表（不用浮层，层级与高度都可控）。
 				const SQmTitleStyle *pCurrentStyle = g_Config.m_QmTitleStyleEnabled ? QmTitleStyleById(g_Config.m_QmTitleStyle) : nullptr;
-				Row = NextRow();
-				CUIRect TitleStyleLabel, TitleStyleField;
-				Row.VSplitLeft(Row.w * 0.45f, &TitleStyleLabel, &TitleStyleField);
-				pMenus->Ui()->DoLabel(&TitleStyleLabel, Localize("Title style"), BodySize, TEXTALIGN_ML);
-				TitleStyleField.VSplitLeft(LineSpacing, nullptr, &TitleStyleField);
-				const bool FieldHovered = !ReadOnly && pMenus->Ui()->MouseInside(&TitleStyleField);
-				DrawRoundedSurface(pMenus->Ui(), TitleStyleField, ColorRGBA(1.0f, 1.0f, 1.0f, FieldHovered ? 0.14f : 0.06f), ColorRGBA(1.0f, 1.0f, 1.0f, 0.18f), ui_token::radius::BASE);
-				CUIRect FieldText = TitleStyleField;
-				FieldText.VMargin(2.0f, &FieldText);
-				FieldText.VSplitRight(LineHeight, &FieldText, nullptr);
-				pMenus->Ui()->DoLabel(&FieldText, pCurrentStyle != nullptr ? pCurrentStyle->m_pLabel : Localize("Server-assigned style"), TipSize, TEXTALIGN_ML);
-				pMenus->Ui()->DoLabel(&TitleStyleField, TitleStyleExpanded ? "▲" : "▼", TipSize, TEXTALIGN_MR);
-				if(!ReadOnly && pMenus->Ui()->DoButtonLogic(&s_TitleStyleFieldId, TitleStyleExpanded ? 1 : 0, &TitleStyleField, BUTTONFLAG_LEFT))
-					s_TitleStyleExpanded = !TitleStyleExpanded;
 
+				RowAction("title-style", [&](CUIRect Row) {
+					s_TitleStyleFieldRect = Row;
+					CUIRect TitleStyleLabel, TitleStyleField;
+					SplitSettingsControlRow(Row, Metrics, &TitleStyleLabel, &TitleStyleField, ESettingsControlWidth::LONG_CHOICE);
+					pMenus->Ui()->DoLabel(&TitleStyleLabel, Localize("Title style"), BodySize, TEXTALIGN_ML);
+					TitleStyleField.VSplitLeft(LineSpacing, nullptr, &TitleStyleField);
+					ui_widget::DrawButtonSurface(TitleCtx, &s_TitleStyleFieldId, TitleStyleField);
+					CUIRect FieldText = TitleStyleField;
+					FieldText.VMargin(2.0f, &FieldText);
+					FieldText.VSplitRight(LineHeight, &FieldText, nullptr);
+					pMenus->Ui()->DoLabel(&FieldText, pCurrentStyle != nullptr ? pCurrentStyle->m_pLabel : Localize("Server-assigned style"), TipSize, TEXTALIGN_ML);
+					pMenus->Ui()->DoLabel(&TitleStyleField, TitleStyleExpanded ? "▲" : "▼", TipSize, TEXTALIGN_MR);
+					if(!ReadOnly && pMenus->Ui()->DoButtonLogic(&s_TitleStyleFieldId, TitleStyleExpanded ? 1 : 0, &TitleStyleField, BUTTONFLAG_LEFT))
+						s_TitleStyleExpanded = !TitleStyleExpanded;
+				});
 				if(TitleStyleExpanded)
 				{
 					// 展开区：卡片内自绘列表，条目只有 [赞助者] 的效果本体。
-					// 面板高度与 m_Measure 的算法逐字对应，不能再出现内容比测量值高一行的情况。
+					// 专用列表区作为一块内容声明，与输入和绘制使用同一解析尺寸。
 					// 31 个风格一屏放不下，用滚动区按可见项渲染（同时避免每帧建 31 个文本容器）。
 					const int VisibleStyleItems = std::min(QmTitleStyleCount() + 1, MAX_VISIBLE_STYLE_ITEMS);
 					CUIRect Panel;
-					Content.HSplitTop(ResolveQmTitleStylePanelHeight(VisibleStyleItems), &Panel, &Content);
-					Content.HSplitTop(LineSpacing, nullptr, &Content);
-					s_TitleStylePanelRect = Panel;
-					DrawRoundedSurface(pMenus->Ui(), Panel, ColorRGBA(0.0f, 0.0f, 0.0f, 0.30f), ColorRGBA(1.0f, 1.0f, 1.0f, 0.14f), ui_token::radius::BASE);
-
-					CUIRect ListArea = Panel;
-					ListArea.Margin(STYLE_ITEM_INSET, &ListArea);
-					CScrollRegionParams ListScrollParams;
-					ListScrollParams.m_ScrollUnit = STYLE_ITEM_HEIGHT + STYLE_ITEM_SPACING;
-					vec2 ListScrollOffset;
-					s_TitleStyleListScrollRegion.Begin(&ListArea, &ListScrollOffset, &ListScrollParams);
-					CUIRect Items = ListArea;
-					Items.y += ListScrollOffset.y;
-
-					for(int ItemIndex = 0; ItemIndex < QmTitleStyleCount() + 1; ++ItemIndex)
+					const bool HasPanel = Flow.Control("title-style-list", ResolveQmTitleStylePanelHeight(VisibleStyleItems), Panel);
+					Flow.Space(LineSpacing);
+					if(HasPanel)
 					{
-						CUIRect Item;
-						Items.HSplitTop(STYLE_ITEM_HEIGHT, &Item, &Items);
-						Items.HSplitTop(STYLE_ITEM_SPACING, nullptr, &Items);
-						if(!s_TitleStyleListScrollRegion.AddRect(Item))
-							continue;
-						const bool Selected = ItemIndex == 0 ? !g_Config.m_QmTitleStyleEnabled :
-										       g_Config.m_QmTitleStyleEnabled && pCurrentStyle == QmTitleStyleByIndex(ItemIndex - 1);
-						const bool ItemHovered = !ReadOnly && pMenus->Ui()->MouseInside(&Item);
-						if(Selected || ItemHovered)
-							DrawRoundedSurface(pMenus->Ui(), Item, ColorRGBA(1.0f, 1.0f, 1.0f, Selected ? 0.22f : 0.10f), ColorRGBA(), ui_token::radius::TIGHT);
-						// 预览只画效果本体：第 0 项画服务端当前风格，其余画对应风格。
-						const SQmTitleStylePreviewEntryContext ItemCtx{Item, STYLE_ITEM_INSET, TipSize};
-						RenderQmTitleStylePreviewEntry(&s_TitleStylePreviewContext, ItemCtx, ItemIndex, "");
-						if(!ReadOnly && pMenus->Ui()->DoButtonLogic(&s_aTitleStyleItemIds[ItemIndex], Selected ? 1 : 0, &Item, BUTTONFLAG_LEFT))
+						s_TitleStylePanelRect = Panel;
+						DrawRoundedSurface(pMenus->Ui(), Panel, ColorRGBA(0.0f, 0.0f, 0.0f, 0.30f), ColorRGBA(1.0f, 1.0f, 1.0f, 0.14f), ui_token::radius::BASE);
+
+						CUIRect ListArea = Panel;
+						ListArea.Margin(STYLE_ITEM_INSET, &ListArea);
+						CScrollRegionParams ListScrollParams;
+						ListScrollParams.m_ScrollUnit = STYLE_ITEM_HEIGHT + STYLE_ITEM_SPACING;
+						vec2 ListScrollOffset;
+						s_TitleStyleListScrollRegion.Begin(&ListArea, &ListScrollOffset, &ListScrollParams);
+						CUIRect Items = ListArea;
+						Items.y += ListScrollOffset.y;
+
+						for(int ItemIndex = 0; ItemIndex < QmTitleStyleCount() + 1; ++ItemIndex)
 						{
-							if(ItemIndex == 0)
+							CUIRect Item;
+							Items.HSplitTop(STYLE_ITEM_HEIGHT, &Item, &Items);
+							Items.HSplitTop(STYLE_ITEM_SPACING, nullptr, &Items);
+							if(!s_TitleStyleListScrollRegion.AddRect(Item))
+								continue;
+							const bool Selected = ItemIndex == 0 ? !g_Config.m_QmTitleStyleEnabled :
+											       g_Config.m_QmTitleStyleEnabled && pCurrentStyle == QmTitleStyleByIndex(ItemIndex - 1);
+							const bool ItemHovered = !ReadOnly && pMenus->Ui()->MouseInside(&Item);
+							if(Selected || ItemHovered)
+								DrawRoundedSurface(pMenus->Ui(), Item, ColorRGBA(1.0f, 1.0f, 1.0f, Selected ? 0.22f : 0.10f), ColorRGBA(), ui_token::radius::TIGHT);
+							// 预览只画效果本体：第 0 项画服务端当前风格，其余画对应风格。
+							const SQmTitleStylePreviewEntryContext ItemCtx{Item, STYLE_ITEM_INSET, TipSize};
+							RenderQmTitleStylePreviewEntry(&s_TitleStylePreviewContext, ItemCtx, ItemIndex, "");
+							if(!ReadOnly && pMenus->Ui()->DoButtonLogic(&s_aTitleStyleItemIds[ItemIndex], Selected ? 1 : 0, &Item, BUTTONFLAG_LEFT))
 							{
-								// 回滚口：恢复「跟随服务端下发的风格」，本地选择随之停用。
-								g_Config.m_QmTitleStyleEnabled = 0;
-							}
-							else
-							{
-								const SQmTitleStyle *pPicked = QmTitleStyleByIndex(ItemIndex - 1);
-								if(pPicked != nullptr)
+								if(ItemIndex == 0)
 								{
-									str_copy(g_Config.m_QmTitleStyle, pPicked->m_pId);
-									g_Config.m_QmTitleStyleEnabled = 1;
+									// 回滚口：恢复「跟随服务端下发的风格」，本地选择随之停用。
+									g_Config.m_QmTitleStyleEnabled = 0;
 								}
+								else
+								{
+									const SQmTitleStyle *pPicked = QmTitleStyleByIndex(ItemIndex - 1);
+									if(pPicked != nullptr)
+									{
+										str_copy(g_Config.m_QmTitleStyle, pPicked->m_pId);
+										g_Config.m_QmTitleStyleEnabled = 1;
+									}
+								}
+								// 选择任意风格后立即恢复风格配色；仍可随后手动选择单色或彩虹。
+								g_Config.m_QmTitleColorMode = (int)EQmTitleColorMode::FOLLOW_SERVER;
+								s_TitleStyleExpanded = false;
+								pMenus->GameClient()->m_Chat.RebuildChat();
 							}
-							// 选择任意风格后立即恢复风格配色；仍可随后手动选择单色或彩虹。
-							g_Config.m_QmTitleColorMode = (int)EQmTitleColorMode::FOLLOW_SERVER;
-							s_TitleStyleExpanded = false;
-							pMenus->GameClient()->m_Chat.RebuildChat();
 						}
+						s_TitleStyleListScrollRegion.End();
 					}
-					s_TitleStyleListScrollRegion.End();
 				}
 				// 点在选择行以外的地方收起列表；选择行自己的点击只负责展开/收起。
 				// 命中的是整行（标签 + 控件），否则点标签会落进下面的输入框区域。
-				s_TitleStyleFieldRect = Row;
 				if(s_TitleStyleExpanded && !ReadOnly && pMenus->Ui()->MouseButtonClicked(0) &&
 					pMenus->Ui()->ActiveItem() == nullptr && !pMenus->Ui()->MouseInside(&s_TitleStyleFieldRect) && !pMenus->Ui()->MouseInside(&s_TitleStylePanelRect))
 					s_TitleStyleExpanded = false;
 
 				// 动画方式与强度共用普通页、搜索页和成品预览的配置。
-				Row = NextRow();
-				CUIRect MotionLabel, MotionControl;
-				Row.VSplitLeft(Row.w * 0.55f, &MotionLabel, &MotionControl);
-				pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-motion-mode", &MotionLabel, Localize("Title motion"), BodySize, TEXTALIGN_ML);
-				static CUi::SDropDownState s_TitleMotionState;
-				static CScrollRegion s_TitleMotionScroll;
-				const std::array<const char *, 2> apMotionNames = {Localize("Vertical wave"), Localize("Pop wave")};
-				s_TitleMotionState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleMotionScroll;
-				const int MotionMode = pMenus->DoSettingsDropDown(&MotionControl, g_Config.m_QmTitleMotionMode, apMotionNames.data(), apMotionNames.size(), s_TitleMotionState, {}, &g_Config.m_QmTitleMotionMode, nullptr, &Row);
-				if(!ReadOnly && MotionMode != g_Config.m_QmTitleMotionMode)
-				{
-					g_Config.m_QmTitleMotionMode = MotionMode;
-					pMenus->GameClient()->m_Chat.RebuildChat();
-				}
-				Row = NextRow();
-				if(pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-bob-amplitude", &g_Config.m_QmTitleBobAmplitude, &g_Config.m_QmTitleBobAmplitude, &Row, Localize("Wave amount"), 0, 3, &CUi::ms_LinearScrollbarScale, 0, ""))
-					pMenus->GameClient()->m_Chat.RebuildChat();
-				Hint(&g_Config.m_QmTitleBobAmplitude, Row, Localize("Strength of the vertical or pop wave. Zero keeps the title still."));
+
+				RowAction("title-motion", [&](CUIRect Row) {
+					CUIRect MotionLabel, MotionControl;
+					SplitSettingsControlRow(Row, Metrics, &MotionLabel, &MotionControl, ESettingsControlWidth::SHORT_CHOICE);
+					pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-motion-mode", &MotionLabel, Localize("Title motion"), BodySize, TEXTALIGN_ML);
+					static CUi::SDropDownState s_TitleMotionState;
+					static CScrollRegion s_TitleMotionScroll;
+					const std::array<const char *, 2> apMotionNames = {Localize("Vertical wave"), Localize("Pop wave")};
+					s_TitleMotionState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleMotionScroll;
+					const int MotionMode = pMenus->DoSettingsDropDown(&MotionControl, g_Config.m_QmTitleMotionMode, apMotionNames.data(), apMotionNames.size(), s_TitleMotionState, {}, &g_Config.m_QmTitleMotionMode, nullptr, &Row);
+					if(!ReadOnly && MotionMode != g_Config.m_QmTitleMotionMode)
+					{
+						g_Config.m_QmTitleMotionMode = MotionMode;
+						pMenus->GameClient()->m_Chat.RebuildChat();
+					}
+				});
+				RowAction("title-wave-amount", [&](CUIRect Row) {
+					if(pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-bob-amplitude", &g_Config.m_QmTitleBobAmplitude, &g_Config.m_QmTitleBobAmplitude, &Row, Localize("Wave amount"), 0, 3, &CUi::ms_LinearScrollbarScale, 0, ""))
+						pMenus->GameClient()->m_Chat.RebuildChat();
+					Hint(&g_Config.m_QmTitleBobAmplitude, Row, Localize("Strength of the vertical or pop wave. Zero keeps the title still."));
+				});
 			}
-			Row = NextRow();
-			if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmTitleInstantHints, "qm-title-instant-hints", Localize("Instant compact hints"), g_Config.m_QmTitleInstantHints, &Row) && !ReadOnly)
-				g_Config.m_QmTitleInstantHints ^= 1;
-			// 高级模式只控制这些入口是否展开，不重置已经保存的参数。
-			Row = NextRow();
-			if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmTitleAdvanced, "qm-title-advanced", Localize("Advanced mode"), TitleAdvanced, &Row) && !ReadOnly)
-				g_Config.m_QmTitleAdvanced ^= 1;
+
+			RowAction("title-hints", [&](CUIRect Row) {
+				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmTitleInstantHints, "qm-title-instant-hints", Localize("Instant compact hints"), g_Config.m_QmTitleInstantHints, &Row) && !ReadOnly)
+					g_Config.m_QmTitleInstantHints ^= 1;
+				// 高级模式只控制这些入口是否展开，不重置已经保存的参数。
+			});
+			RowAction("title-advanced", [&](CUIRect Row) {
+				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmTitleAdvanced, "qm-title-advanced", Localize("Advanced mode"), TitleAdvanced, &Row) && !ReadOnly)
+					g_Config.m_QmTitleAdvanced ^= 1;
+			});
+
 			if(TitleAdvanced)
 			{
-				// 后台已经隔离输入，不再嵌套测量裁剪而隐藏可见控件。
-				const bool MeasureAppearance = ReadOnly && !pMenus->Ui()->RenderOnly();
-				if(MeasureAppearance)
-					pMenus->Ui()->BeginRenderOnly();
+				// 预热时只绘制控件，不消费输入或写回配置。
 				bool AppearanceChanged = false;
 				CUIRect Label, Control;
 				static CUi::SDropDownState s_TitleColorModeState, s_TitleEffectState, s_TitleBloomState;
@@ -616,116 +635,98 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 				s_TitleColorModeNames = {Localize("Use style colors", "Title color mode"), Localize("Single color"), Localize("Rainbow")};
 				s_TitleEffectNames = {Localize("Polished"), Localize("Solid"), Localize("Classic"), Localize("Off")};
 				s_TitleBloomNames = {Localize("Off"), Localize("Subtle"), Localize("Full")};
-				Row = NextRow();
-				Row.VSplitLeft(Row.w * 0.55f, &Label, &Control);
-				pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-color-mode", &Label, Localize("Title color"), BodySize, TEXTALIGN_ML);
-				Hint(&g_Config.m_QmTitleColorMode, Row, Localize("Single color and Rainbow override the color of animated styles; the style keeps its motion"));
-				s_TitleColorModeState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleColorModeScroll;
-				const int ColorMode = pMenus->DoSettingsDropDown(&Control, g_Config.m_QmTitleColorMode, s_TitleColorModeNames.data(), s_TitleColorModeNames.size(), s_TitleColorModeState, {}, &g_Config.m_QmTitleColorMode, nullptr, &Row);
-				if(!ReadOnly && ColorMode != g_Config.m_QmTitleColorMode)
-				{
-					g_Config.m_QmTitleColorMode = ColorMode;
-					AppearanceChanged = true;
-				}
 
-				Row = NextRow();
-				static CButtonContainer s_TitleColorResetId;
-				SSettingsContentMetrics ColorMetrics = Metrics;
-				ColorMetrics.m_LineSpacing = 0.0f;
-				static unsigned int s_LastTitleColor = g_Config.m_QmTitleColor;
-				pMenus->DoLine_ColorPicker(&s_TitleColorResetId, ColorMetrics, &Row, Localize("Single color"), &g_Config.m_QmTitleColor, color_cast<ColorRGBA>(ColorHSLA(DefaultConfig::QmTitleColor)), false, nullptr, false, false);
-				AppearanceChanged |= s_LastTitleColor != g_Config.m_QmTitleColor;
-				if(!ReadOnly)
-					s_LastTitleColor = g_Config.m_QmTitleColor;
-				Row = NextRow();
-				AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-opacity", &g_Config.m_QmTitleOpacity, &g_Config.m_QmTitleOpacity, &Row, Localize("Title opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
-				Hint(&g_Config.m_QmTitleOpacity, Row, Localize("Applies to single-color and rainbow overrides."));
-				Row = NextRow();
-				AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-phase", &g_Config.m_QmTitlePhase, &g_Config.m_QmTitlePhase, &Row, Localize("Light band"), 0, 200);
-				Hint(&g_Config.m_QmTitlePhase, Row, Localize("Zero uses the style default. Higher values make color bands narrower."));
+				RowAction("title-color-mode", [&](CUIRect Row) {
+					SplitSettingsControlRow(Row, Metrics, &Label, &Control, ESettingsControlWidth::LONG_CHOICE);
+					pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-color-mode", &Label, Localize("Title color"), BodySize, TEXTALIGN_ML);
+					Hint(&g_Config.m_QmTitleColorMode, Row, Localize("Single color and Rainbow override the color of animated styles; the style keeps its motion"));
+					s_TitleColorModeState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleColorModeScroll;
+					const int ColorMode = pMenus->DoSettingsDropDown(&Control, g_Config.m_QmTitleColorMode, s_TitleColorModeNames.data(), s_TitleColorModeNames.size(), s_TitleColorModeState, {}, &g_Config.m_QmTitleColorMode, nullptr, &Row);
+					if(!ReadOnly && ColorMode != g_Config.m_QmTitleColorMode)
+					{
+						g_Config.m_QmTitleColorMode = ColorMode;
+						AppearanceChanged = true;
+					}
+				});
+				RowAction("title-single-color", [&](CUIRect Row) {
+					static CButtonContainer s_TitleColorResetId;
+					SSettingsContentMetrics ColorMetrics = Metrics;
+					ColorMetrics.m_LineSpacing = 0.0f;
+					static unsigned int s_LastTitleColor = g_Config.m_QmTitleColor;
+					pMenus->DoLine_ColorPicker(&s_TitleColorResetId, ColorMetrics, &Row, Localize("Single color"), &g_Config.m_QmTitleColor, color_cast<ColorRGBA>(ColorHSLA(DefaultConfig::QmTitleColor)), false, nullptr, false, false);
+					AppearanceChanged |= s_LastTitleColor != g_Config.m_QmTitleColor;
+					if(!ReadOnly)
+						s_LastTitleColor = g_Config.m_QmTitleColor;
+				});
+				RowAction("title-opacity", [&](CUIRect Row) {
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-opacity", &g_Config.m_QmTitleOpacity, &g_Config.m_QmTitleOpacity, &Row, Localize("Title opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+					Hint(&g_Config.m_QmTitleOpacity, Row, Localize("Applies to single-color and rainbow overrides."));
+				});
+				RowAction("title-phase", [&](CUIRect Row) {
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-phase", &g_Config.m_QmTitlePhase, &g_Config.m_QmTitlePhase, &Row, Localize("Light band"), 0, 200);
+					Hint(&g_Config.m_QmTitlePhase, Row, Localize("Zero uses the style default. Higher values make color bands narrower."));
+				});
+				RowAction("title-effect", [&](CUIRect Row) {
+					SplitSettingsControlRow(Row, Metrics, &Label, &Control, ESettingsControlWidth::LONG_CHOICE);
+					pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-effect", &Label, Localize("Text effect"), BodySize, TEXTALIGN_ML);
+					s_TitleEffectState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleEffectScroll;
+					const int Effect = pMenus->DoSettingsDropDown(&Control, g_Config.m_QmTitleEffect, s_TitleEffectNames.data(), s_TitleEffectNames.size(), s_TitleEffectState, {}, &g_Config.m_QmTitleEffect, nullptr, &Row);
+					if(!ReadOnly && Effect != g_Config.m_QmTitleEffect)
+					{
+						g_Config.m_QmTitleEffect = Effect;
+						AppearanceChanged = true;
+					}
+				});
+				RowAction("title-bloom", [&](CUIRect Row) {
+					SplitSettingsControlRow(Row, Metrics, &Label, &Control, ESettingsControlWidth::LONG_CHOICE);
+					pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-bloom", &Label, Localize("Classic title glow"), BodySize, TEXTALIGN_ML);
+					s_TitleBloomState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleBloomScroll;
+					const int Bloom = pMenus->DoSettingsDropDown(&Control, g_Config.m_QmTitleBloom, s_TitleBloomNames.data(), s_TitleBloomNames.size(), s_TitleBloomState, {}, &g_Config.m_QmTitleBloom, nullptr, &Row);
+					if(!ReadOnly && Bloom != g_Config.m_QmTitleBloom)
+					{
+						g_Config.m_QmTitleBloom = Bloom;
+						AppearanceChanged = true;
+					}
+				});
+				RowAction("title-shimmer", [&](CUIRect Row) {
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-shimmer-speed", &g_Config.m_QmTitleShimmerSpeed, &g_Config.m_QmTitleShimmerSpeed, &Row, Localize("Shimmer speed"), 0, 400);
+					Hint(&g_Config.m_QmTitleShimmerSpeed, Row, Localize("Highlight movement in Polished mode. Zero turns it off."));
+				});
+				RowAction("title-wave-spacing", [&](CUIRect Row) {
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-bob-wavelength", &g_Config.m_QmTitleBobWavelength, &g_Config.m_QmTitleBobWavelength, &Row, Localize("Wave spacing"), 16, 1024, &CUi::ms_LinearScrollbarScale, 0, "px");
+				});
+				RowAction("title-wave-speed", [&](CUIRect Row) {
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-bob-speed", &g_Config.m_QmTitleBobSpeed, &g_Config.m_QmTitleBobSpeed, &Row, Localize("Wave speed"), 0, 2000);
+					Hint(&g_Config.m_QmTitleBobSpeed, Row, Localize("Higher values make the wave move faster. Zero stops the movement."));
+				});
+				RowAction("title-wave-snap", [&](CUIRect Row) {
+					if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmTitleBobPixelSnap, "qm-title-bob-pixel-snap", Localize("Snap wave to pixels"), g_Config.m_QmTitleBobPixelSnap, &Row) && !ReadOnly)
+					{
+						g_Config.m_QmTitleBobPixelSnap ^= 1;
+						AppearanceChanged = true;
+					}
+				});
 
-				Row = NextRow();
-				Row.VSplitLeft(Row.w * 0.55f, &Label, &Control);
-				pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-effect", &Label, Localize("Text effect"), BodySize, TEXTALIGN_ML);
-				s_TitleEffectState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleEffectScroll;
-				const int Effect = pMenus->DoSettingsDropDown(&Control, g_Config.m_QmTitleEffect, s_TitleEffectNames.data(), s_TitleEffectNames.size(), s_TitleEffectState, {}, &g_Config.m_QmTitleEffect, nullptr, &Row);
-				if(!ReadOnly && Effect != g_Config.m_QmTitleEffect)
-				{
-					g_Config.m_QmTitleEffect = Effect;
-					AppearanceChanged = true;
-				}
-				Row = NextRow();
-				Row.VSplitLeft(Row.w * 0.55f, &Label, &Control);
-				pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-bloom", &Label, Localize("Classic title glow"), BodySize, TEXTALIGN_ML);
-				s_TitleBloomState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleBloomScroll;
-				const int Bloom = pMenus->DoSettingsDropDown(&Control, g_Config.m_QmTitleBloom, s_TitleBloomNames.data(), s_TitleBloomNames.size(), s_TitleBloomState, {}, &g_Config.m_QmTitleBloom, nullptr, &Row);
-				if(!ReadOnly && Bloom != g_Config.m_QmTitleBloom)
-				{
-					g_Config.m_QmTitleBloom = Bloom;
-					AppearanceChanged = true;
-				}
-				Row = NextRow();
-				AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-shimmer-speed", &g_Config.m_QmTitleShimmerSpeed, &g_Config.m_QmTitleShimmerSpeed, &Row, Localize("Shimmer speed"), 0, 400);
-				Hint(&g_Config.m_QmTitleShimmerSpeed, Row, Localize("Highlight movement in Polished mode. Zero turns it off."));
-				Row = NextRow();
-				AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-bob-wavelength", &g_Config.m_QmTitleBobWavelength, &g_Config.m_QmTitleBobWavelength, &Row, Localize("Wave spacing"), 16, 1024, &CUi::ms_LinearScrollbarScale, 0, "px");
-				Row = NextRow();
-				AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-bob-speed", &g_Config.m_QmTitleBobSpeed, &g_Config.m_QmTitleBobSpeed, &Row, Localize("Wave speed"), 0, 2000);
-				Hint(&g_Config.m_QmTitleBobSpeed, Row, Localize("Higher values make the wave move faster. Zero stops the movement."));
-				Row = NextRow();
-				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmTitleBobPixelSnap, "qm-title-bob-pixel-snap", Localize("Snap wave to pixels"), g_Config.m_QmTitleBobPixelSnap, &Row) && !ReadOnly)
-				{
-					g_Config.m_QmTitleBobPixelSnap ^= 1;
-					AppearanceChanged = true;
-				}
-				if(MeasureAppearance)
-					pMenus->Ui()->EndRenderOnly();
 				if(!ReadOnly && AppearanceChanged)
 					pMenus->GameClient()->m_Chat.RebuildChat();
 			}
 
 			CUIRect Preview, PreviewLabel, TitlePreviewArea;
-			Content.HSplitTop(PreviewHeight, &Preview, &Content);
-			Preview.HSplitTop(TipSize, &PreviewLabel, &TitlePreviewArea);
-			pMenus->Ui()->DoLabel(&PreviewLabel, Localize("Title preview"), TipSize, TEXTALIGN_ML);
-			const char *pPreviewStyleId = g_Config.m_QmTitleStyleEnabled ? g_Config.m_QmTitleStyle : Auth.PlayerTitleStyle(pMenus->GameClient()->m_Snap.m_LocalClientId);
-			if(pPreviewStyleId[0] == '\0')
-				pPreviewStyleId = Auth.TitleProfileStyle();
-			pMenus->Ui()->ClipEnable(&TitlePreviewArea);
-			RenderQmTitleFinishedPreview(pMenus->TextRender(), pMenus->GameClient()->RenderTools(), TitlePreviewArea, Draft.m_Title.GetString(), pPreviewStyleId, pMenus->GameClient()->IsQmDeveloperRainbow(pMenus->GameClient()->m_Snap.m_LocalClientId), BodySize * 1.4f, (float)Auth.TitleAnimationTime());
-			pMenus->Ui()->ClipDisable();
+			if(Flow.Control("title-finished-preview", PreviewHeight, Preview) && Flow.Drawing() && !pMenus->Ui()->DrawingSuppressed())
+			{
+				Preview.HSplitTop(TipSize, &PreviewLabel, &TitlePreviewArea);
+				pMenus->Ui()->DoLabel(&PreviewLabel, Localize("Title preview"), TipSize, TEXTALIGN_ML);
+				const char *pPreviewStyleId = g_Config.m_QmTitleStyleEnabled ? g_Config.m_QmTitleStyle : Auth.PlayerTitleStyle(pMenus->GameClient()->m_Snap.m_LocalClientId);
+				if(pPreviewStyleId[0] == '\0')
+					pPreviewStyleId = Auth.TitleProfileStyle();
+				pMenus->Ui()->ClipEnable(&TitlePreviewArea);
+				RenderQmTitleFinishedPreview(pMenus->TextRender(), pMenus->GameClient()->RenderTools(), TitlePreviewArea, Draft.m_Title.GetString(), pPreviewStyleId, pMenus->GameClient()->IsQmDeveloperRainbow(pMenus->GameClient()->m_Snap.m_LocalClientId), BodySize * 1.4f, (float)Auth.TitleAnimationTime());
+				pMenus->Ui()->ClipDisable();
+			}
 		}
 	};
 	Out.m_Render = [Render](CUIRect Content) { Render(Content); };
 	Out.m_RenderMeasured = std::move(Render);
-	if(DisplayCard && !Ctx.m_ReadOnly)
-	{
-		Out.m_PreLayoutInput = [=](CUIRect Content) {
-			if(pMenus->m_MenuTextPlanCollecting || pMenus->Ui()->RenderOnly())
-				return false;
-			Content.HSplitTop(5.0f * (LineHeight + LineSpacing), nullptr, &Content);
-			CUIRect StyleRow, StyleField;
-			Content.HSplitTop(LineHeight, &StyleRow, &Content);
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-			StyleRow.VSplitLeft(StyleRow.w * 0.45f + LineSpacing, nullptr, &StyleField);
-			bool Changed = false;
-			if(pMenus->Ui()->DoButtonLogic(&s_TitleStyleFieldId, s_TitleStyleExpanded, &StyleField, BUTTONFLAG_LEFT))
-			{
-				s_TitleStyleExpanded = !s_TitleStyleExpanded;
-				Changed = true;
-			}
-			if(s_TitleStyleExpanded)
-				Content.HSplitTop(ResolveQmTitleStylePanelHeight(std::min(QmTitleStyleCount() + 1, MAX_VISIBLE_STYLE_ITEMS)) + LineSpacing, nullptr, &Content);
-			Content.HSplitTop(2.0f * (LineHeight + LineSpacing), nullptr, &Content);
-			CUIRect AdvancedRow;
-			Content.HSplitTop(LineHeight, &AdvancedRow, &Content);
-			if(pMenus->Ui()->DoButtonLogic(&g_Config.m_QmTitleAdvanced, g_Config.m_QmTitleAdvanced, &AdvancedRow, BUTTONFLAG_LEFT))
-			{
-				g_Config.m_QmTitleAdvanced ^= 1;
-				Changed = true;
-			}
-			return Changed;
-		};
-	}
+	UseDeclaredModuleContent(Ctx, Out);
 	return true;
 }

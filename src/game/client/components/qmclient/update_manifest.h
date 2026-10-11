@@ -43,6 +43,29 @@ inline bool CanDownloadQmClientRelease(const SQmClientUpdateRelease &Release, bo
 	return Release.m_NewVersion && (Release.m_PackageAvailable || UseQmClientSetupUpdate(SetupInstalled, Release, PortableBuild));
 }
 
+enum class EQmClientUpdateAction
+{
+	CANCEL,
+	INSTALL,
+	DOWNLOAD,
+	CHECK,
+	RETRY,
+};
+
+// 操作文案和点击路径共用状态，检查完成不会隐式开始下载。
+inline EQmClientUpdateAction ResolveQmClientUpdateAction(bool Busy, bool Ready, bool Fetched, bool Failed, bool Downloadable)
+{
+	if(Busy)
+		return EQmClientUpdateAction::CANCEL;
+	if(Ready)
+		return EQmClientUpdateAction::INSTALL;
+	if(Failed)
+		return EQmClientUpdateAction::RETRY;
+	if(Fetched && Downloadable)
+		return EQmClientUpdateAction::DOWNLOAD;
+	return EQmClientUpdateAction::CHECK;
+}
+
 bool ParseQmClientUpdateManifest(const char *pJson, size_t JsonSize, const char *pCurrentVersion, SQmClientUpdateManifest &Manifest, char *pError, size_t ErrorSize, bool LocalIsDevelopmentBuild = false, bool SetupPackage = false, bool PortableBuild = false, bool SevenZipPackage = false);
 bool ParseQmClientUpdateRelease(const char *pJson, size_t JsonSize, const char *pCurrentVersion, SQmClientUpdateRelease &Release, char *pError, size_t ErrorSize, bool LocalIsDevelopmentBuild = false, bool PortableBuild = false);
 

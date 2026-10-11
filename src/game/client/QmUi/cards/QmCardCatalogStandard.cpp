@@ -66,7 +66,8 @@ namespace qm_card_catalog
 			if(str_comp(Card.m_Spec.m_pStableId, pStableId) != 0)
 				continue;
 			Out = std::move(Card);
-			Out.m_MeasureRevision = Out.m_MeasureRevision * 1099511628211ULL ^ Revision;
+			if(!Out.m_ResolveContentLayout)
+				Out.m_MeasureRevision = Out.m_MeasureRevision * 1099511628211ULL ^ Revision;
 			return true;
 		}
 		return false;
@@ -124,7 +125,8 @@ void CMenus::RenderSettingsCatalogPage(CUIRect MainView, const char *pTab, bool 
 		InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
 		InputState.m_pScrollParams = &ScrollParams;
 	}
-	const auto Result = SettingsCardDeckForRenderPass().RenderCached(Ctx.m_UiContext, Ctx.m_Page, pTab, Revision, BuildDefinitions, SettingsCardOrderModelForRenderPass(), pScroll, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	const uint64_t MeasurementEnvironmentRevision = ResolveSettingsCardDefinitionsRevision(m_SettingsCardDeckDisplayCycle, m_MenuTextPoolGeneration, MainView.w, 0);
+	const auto Result = SettingsCardDeckForRenderPass().RenderCached(Ctx.m_UiContext, Ctx.m_Page, pTab, Revision, BuildDefinitions, SettingsCardOrderModelForRenderPass(), pScroll, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions(), MeasurementEnvironmentRevision);
 	if(!ReadOnly && Result.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 	if(TrackTClient)

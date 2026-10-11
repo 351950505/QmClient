@@ -22349,6 +22349,150 @@ turkish = "Sistem grafik ayarlarından bu uygulama için bir GPU seçin, ardınd
 polish = "Wybierz GPU dla tej aplikacji w systemowych ustawieniach grafiki, a następnie uruchom ponownie klienta."
 
 [[message]]
+key = "Show client IDs"
+[message.translations]
+simplified_chinese = "显示客户端 ID"
+traditional_chinese = "顯示客戶端 ID"
+japanese = "クライアント ID を表示"
+korean = "클라이언트 ID 표시"
+russian = "Показывать ID клиента"
+german = "Client-IDs anzeigen"
+spanish = "Mostrar IDs de cliente"
+french = "Afficher les ID clients"
+brazilian_portuguese = "Mostrar IDs do cliente"
+portuguese = "Mostrar IDs do cliente"
+turkish = "İstemci kimliklerini göster"
+polish = "Pokaż ID klienta"
+
+[[message]]
+key = "Scoreboard, chat, spectating"
+[message.translations]
+simplified_chinese = "计分板、聊天、观战"
+traditional_chinese = "計分板、聊天、觀戰"
+japanese = "スコアボード、チャット、観戦"
+korean = "점수판, 채팅, 관전"
+russian = "таблица лидеров, чат, наблюдение"
+german = "Bestenliste, Chat, Zuschauen"
+spanish = "tabla de puntuaciones, chat, espectando"
+french = "tableau des scores, chat, spectateur"
+brazilian_portuguese = "placar, chat, espectando"
+portuguese = "placar, chat, a espetar"
+turkish = "skor tablosu, sohbet, izleme"
+polish = "tablica wyników, czat, obserwowanie"
+
+[[message]]
+key = "Own team only"
+[message.translations]
+simplified_chinese = "仅显示同队伍"
+traditional_chinese = "僅顯示同隊伍"
+japanese = "自チームのみ"
+korean = "같은 팀만 표시"
+russian = "только своя команда"
+german = "nur eigenes Team"
+spanish = "solo equipo propio"
+french = "propre équipe uniquement"
+brazilian_portuguese = "apenas própria equipe"
+portuguese = "apenas própria equipa"
+turkish = "yalnızca kendi takımı"
+polish = "tylko własna drużyna"
+
+[[message]]
+key = "Predict events"
+[message.translations]
+simplified_chinese = "预测事件"
+traditional_chinese = "預測事件"
+japanese = "イベント予測"
+korean = "이벤트 예측"
+russian = "Предсказывать события"
+german = "Ereignisse vorhersagen"
+spanish = "Predecir eventos"
+french = "Prédire les événements"
+brazilian_portuguese = "Prever eventos"
+portuguese = "Prever eventos"
+turkish = "Olayları tahmin et"
+polish = "Przewiduj zdarzenia"
+
+[[message]]
+key = "Experimental"
+[message.translations]
+simplified_chinese = "实验性"
+traditional_chinese = "實驗性"
+japanese = "実験的"
+korean = "실험적"
+russian = "экспериментально"
+german = "experimentell"
+spanish = "experimental"
+french = "expérimental"
+brazilian_portuguese = "experimental"
+portuguese = "experimental"
+turkish = "deneysel"
+polish = "eksperymentalne"
+
+[[message]]
+key = "AntiPing"
+[message.translations]
+simplified_chinese = "延迟补偿"
+traditional_chinese = "延遲補償"
+japanese = "AntiPing"
+korean = "안티핑"
+russian = "AntiPing"
+german = "AntiPing"
+spanish = "AntiPing"
+french = "AntiPing"
+brazilian_portuguese = "AntiPing"
+portuguese = "AntiPing"
+turkish = "AntiPing"
+polish = "AntiPing"
+
+[[message]]
+key = "Latency compensation"
+[message.translations]
+simplified_chinese = "AntiPing"
+traditional_chinese = "AntiPing"
+japanese = "レイテンシ補正"
+korean = "지연 시간 보정"
+russian = "компенсация задержки"
+german = "Latenzkompensation"
+spanish = "compensación de latencia"
+french = "compensation de latence"
+brazilian_portuguese = "compensação de latência"
+portuguese = "compensação de latência"
+turkish = "gecikme telafisi"
+polish = "kompensacja opóźnienia"
+
+[[message]]
+key = "Save power by lowering update rate"
+[message.translations]
+simplified_chinese = "降低刷新率以节约功耗"
+traditional_chinese = "降低更新率以節省電量"
+japanese = "更新レートを下げて省電力"
+korean = "업데이트 속도를 낮춰 전력 절약"
+russian = "Экономия энергии за счёт снижения частоты обновления"
+german = "Strom sparen durch niedrigere Aktualisierungsrate"
+spanish = "Ahorra energía reduciendo la tasa de actualización"
+french = "Économisez l'énergie en réduisant le taux de rafraîchissement"
+brazilian_portuguese = "Economize energia reduzindo a taxa de atualização"
+portuguese = "Economize energia reduzindo a taxa de atualização"
+turkish = "Güncelleme hızını düşürerek güç tasarrufu sağlar"
+polish = "Oszczędzaj energię poprzez obniżenie częstotliwości odświeżania"
+
+[[message]]
+key = "Higher input latency"
+[message.translations]
+simplified_chinese = "增加输入延迟"
+traditional_chinese = "輸入延遲較高"
+japanese = "入力遅延増加"
+korean = "입력 지연 증가"
+russian = "более высокая задержка ввода"
+german = "höhere Eingabeverzögerung"
+spanish = "mayor latencia de entrada"
+french = "latence d'entrée plus élevée"
+brazilian_portuguese = "maior latência de entrada"
+portuguese = "maior latência de entrada"
+turkish = "daha yüksek giriş gecikmesi"
+polish = "wyższe opóźnienie wejścia"
+
+[[message]]
 key = "Shuffle skin queue"
 [message.translations]
 simplified_chinese = "皮肤队列随机排序"

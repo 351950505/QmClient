@@ -25,8 +25,10 @@
 #include <game/client/QmUi/QmDropdown.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsFontSelection.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -175,18 +177,15 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 	static int s_TcUiTagMisc = 0;
 
 	ChangesCount = s_StagedInts.size() + s_StagedStrs.size() + s_StagedCols.size();
-	constexpr float ConfigSearchLabelWidth = 50.0f;
 	constexpr float ConfigSearchEditWidth = 250.0f;
+	const float ConfigSearchRowWidth = ConfigMetrics.m_LabelWidth + ConfigMetrics.m_LineSpacing + ConfigSearchEditWidth;
 	constexpr float ConfigDomainWidth = 85.0f;
 	constexpr float ConfigFilterWidth = 90.0f;
 	const float WideFiltersMinimumWidth = ResolveSettingsInlineRowMinimumWidth(
-		ConfigSearchLabelWidth + ConfigSearchEditWidth + ConfigDomainWidth * 3.0f + ConfigFilterWidth * 2.0f + Margin,
+		ConfigSearchRowWidth + ConfigDomainWidth * 3.0f + ConfigFilterWidth * 2.0f + Margin,
 		MarginSmall, 7);
 	const auto UseNarrowConfigFilters = [WideFiltersMinimumWidth](float ContentWidth) {
 		return ContentWidth < WideFiltersMinimumWidth;
-	};
-	const auto FiltersHeightForWidth = [UseNarrowConfigFilters](float ContentWidth) {
-		return (LineSize + MarginSmall) * (UseNarrowConfigFilters(ContentWidth) ? 5.0f : 3.0f);
 	};
 	auto RenderActions = [&](CUIRect ApplyBar) {
 		CPerfTimer ActionsTimer;
@@ -195,12 +194,16 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		Row.h = LineSize;
 		Row.y = ApplyBar.y + (ApplyBar.h - LineSize) / 2.0f;
 
-		const float BtnWidth = 120.0f;
 		CUIRect ApplyBtn, ClearBtn, Counter;
-		Row.VSplitLeft(BtnWidth, &ApplyBtn, &Row);
-		Row.VSplitLeft(MarginSmall, nullptr, &Row);
-		Row.VSplitLeft(BtnWidth, &ClearBtn, &Row);
-		Row.VSplitLeft(MarginSmall, nullptr, &Counter);
+		static ui_widget::SSettingsActionGroupState s_ConfigActions;
+		const char *apActionLabels[] = {Localize("Apply Changes"), Localize("Clear Changes")};
+		CUIRect Actions = Row;
+		Actions.w = std::max(0.0f, Row.w - ResolveSettingsCardLabelWidth(Row.w, ConfigMetrics) - ConfigMetrics.m_LineSpacing);
+		const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_ConfigActions, Actions, apActionLabels, 2, ConfigMetrics);
+		ApplyBtn = ActionLayout.m_aButtons[0];
+		ClearBtn = ActionLayout.m_aButtons[1];
+		const float CounterX = std::min(Row.x + std::max(0.0f, Row.w), ClearBtn.x + ClearBtn.w + ConfigMetrics.m_LineSpacing);
+		Counter = {CounterX, Row.y, std::max(0.0f, Row.x + Row.w - CounterX), Row.h};
 
 		static CButtonContainer s_ApplyBtn, s_ClearBtn;
 		int DisabledStyle = ChangesCount > 0 ? 0 : -1;
@@ -249,19 +252,13 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		LogTClientPerfStageEx("tclient_configs", "actions", ETClientSettingsPerfStage::INTERACTIVE_LAYER, ActionsTimer.ElapsedMs(), false, aBuf);
 	};
 
-	auto RenderFilters = [&](CUIRect Content) {
-		const float SearchLabelW = ConfigSearchLabelWidth;
+	auto RenderFilters = [&](CUIRect &Content) {
+		CSettingsContentLayoutFlow Flow(Content);
 		if(UseNarrowConfigFilters(Content.w))
 		{
-			auto NextRow = [&]() {
-				CUIRect Row;
-				Content.HSplitTop(LineSize, &Row, &Content);
-				Content.HSplitTop(MarginSmall, nullptr, &Content);
-				return Row;
-			};
 			auto RenderSearch = [&](CUIRect Row) {
 				CUIRect SearchLabel, SearchEdit;
-				Row.VSplitLeft(SearchLabelW, &SearchLabel, &SearchEdit);
+				SplitSettingsControlRow(Row, ConfigMetrics, &SearchLabel, &SearchEdit);
 				DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &SearchLabel, Localize("Search"), FontSize, TEXTALIGN_ML);
 				IUiContext TClientConfigSearchCtx;
 				TClientConfigSearchCtx.m_pUi = Ui();
@@ -273,10 +270,10 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 			};
 			auto RenderTags = [&](CUIRect Row, const char *pTitle, const std::array<const char *, 5> &aLabels, const std::array<int *, 5> &aValues, const std::array<const char *, 5> &aIds) {
 				CUIRect Title, Area;
-				Row.VSplitLeft(40.0f, &Title, &Area);
+				SplitSettingsControlRow(Row, ConfigMetrics, &Title, &Area);
 				if(pTitle != nullptr)
 					DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &Title, pTitle, FontSize, TEXTALIGN_ML);
-				const float Gap = 5.0f;
+				const float Gap = std::min(ConfigMetrics.m_LineSpacing, std::max(0.0f, Area.w) / 9.0f);
 				const float ButtonWidth = std::max(0.0f, (Area.w - Gap * 4.0f) / 5.0f);
 				for(size_t Index = 0; Index < aLabels.size(); ++Index)
 				{
@@ -288,179 +285,196 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 						Area.VSplitLeft(Gap, nullptr, &Area);
 				}
 			};
-			RenderSearch(NextRow());
+			CUIRect FilterRow;
+			if(Flow.Control("tclient-config-search", LineSize, FilterRow, MarginSmall))
+				RenderSearch(FilterRow);
 			{
-				CUIRect Row = NextRow();
-				const float Gap = MarginSmall;
-				const float ButtonWidth = std::max(0.0f, (Row.w - Gap * 2.0f) / 3.0f);
-				CUIRect DomainDDNet, DomainTClient, DomainQm;
-				Row.VSplitLeft(ButtonWidth, &DomainDDNet, &Row);
-				Row.VSplitLeft(Gap, nullptr, &Row);
-				Row.VSplitLeft(ButtonWidth, &DomainTClient, &Row);
-				Row.VSplitLeft(Gap, nullptr, &Row);
-				DomainQm = Row;
-				if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowDDNet, "tclient-ui-show-ddnet", Localize("DDNet"), g_Config.m_QmUiShowDDNet, &DomainDDNet))
-					g_Config.m_QmUiShowDDNet ^= 1;
-				if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowTClient, "tclient-ui-show-tclient", Localize("TClient"), g_Config.m_QmUiShowTClient, &DomainTClient))
-					g_Config.m_QmUiShowTClient ^= 1;
-				if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowQm, "tclient-ui-show-qmclient", Localize("QmClient"), g_Config.m_QmUiShowQm, &DomainQm))
-					g_Config.m_QmUiShowQm ^= 1;
+				CUIRect Row;
+				if(Flow.Control("tclient-config-domains", LineSize, Row, MarginSmall))
+				{
+					const float Gap = std::min(ConfigMetrics.m_LineSpacing, std::max(0.0f, Row.w) / 5.0f);
+					const float ButtonWidth = std::max(0.0f, (Row.w - Gap * 2.0f) / 3.0f);
+					CUIRect DomainDDNet, DomainTClient, DomainQm;
+					Row.VSplitLeft(ButtonWidth, &DomainDDNet, &Row);
+					Row.VSplitLeft(Gap, nullptr, &Row);
+					Row.VSplitLeft(ButtonWidth, &DomainTClient, &Row);
+					Row.VSplitLeft(Gap, nullptr, &Row);
+					DomainQm = Row;
+					if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowDDNet, "tclient-ui-show-ddnet", Localize("DDNet"), g_Config.m_QmUiShowDDNet, &DomainDDNet))
+						g_Config.m_QmUiShowDDNet ^= 1;
+					if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowTClient, "tclient-ui-show-tclient", Localize("TClient"), g_Config.m_QmUiShowTClient, &DomainTClient))
+						g_Config.m_QmUiShowTClient ^= 1;
+					if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowQm, "tclient-ui-show-qmclient", Localize("QmClient"), g_Config.m_QmUiShowQm, &DomainQm))
+						g_Config.m_QmUiShowQm ^= 1;
+				}
 			}
 			{
-				CUIRect Row = NextRow();
-				const float Gap = MarginSmall;
-				const float ButtonWidth = std::max(0.0f, (Row.w - Gap) / 2.0f);
-				CUIRect Compact, Modified;
-				Row.VSplitLeft(ButtonWidth, &Compact, &Row);
-				Row.VSplitLeft(Gap, nullptr, &Row);
-				Modified = Row;
-				if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiCompactList, "tclient-ui-compact-list", Localize("Compact"), g_Config.m_QmUiCompactList, &Compact))
-					g_Config.m_QmUiCompactList ^= 1;
-				if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiOnlyModified, "tclient-ui-only-modified", Localize("Modified"), g_Config.m_QmUiOnlyModified, &Modified))
-					g_Config.m_QmUiOnlyModified ^= 1;
+				CUIRect Row;
+				if(Flow.Control("tclient-config-display-filters", LineSize, Row, MarginSmall))
+				{
+					const float Gap = std::min(ConfigMetrics.m_LineSpacing, std::max(0.0f, Row.w) / 3.0f);
+					const float ButtonWidth = std::max(0.0f, (Row.w - Gap) / 2.0f);
+					CUIRect Compact, Modified;
+					Row.VSplitLeft(ButtonWidth, &Compact, &Row);
+					Row.VSplitLeft(Gap, nullptr, &Row);
+					Modified = Row;
+					if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiCompactList, "tclient-ui-compact-list", Localize("Compact"), g_Config.m_QmUiCompactList, &Compact))
+						g_Config.m_QmUiCompactList ^= 1;
+					if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiOnlyModified, "tclient-ui-only-modified", Localize("Modified"), g_Config.m_QmUiOnlyModified, &Modified))
+						g_Config.m_QmUiOnlyModified ^= 1;
+				}
 			}
-			RenderTags(NextRow(), Localize("Tags"), {"Visual", "HUD", "Input", "Chat", "Audio"}, {&s_TcUiTagVisual, &s_TcUiTagHud, &s_TcUiTagInput, &s_TcUiTagChat, &s_TcUiTagAudio}, {"tclient-ui-tag-visual", "tclient-ui-tag-hud", "tclient-ui-tag-input", "tclient-ui-tag-chat", "tclient-ui-tag-audio"});
-			RenderTags(NextRow(), nullptr, {"Auto", "Social", "Camera", "Gameplay", "Misc"}, {&s_TcUiTagAutomation, &s_TcUiTagSocial, &s_TcUiTagCamera, &s_TcUiTagGameplay, &s_TcUiTagMisc}, {"tclient-ui-tag-auto", "tclient-ui-tag-social", "tclient-ui-tag-camera", "tclient-ui-tag-gameplay", "tclient-ui-tag-misc"});
+			if(Flow.Control("tclient-config-tags-primary", LineSize, FilterRow, MarginSmall))
+				RenderTags(FilterRow, Localize("Tags"), {"Visual", "HUD", "Input", "Chat", "Audio"}, {&s_TcUiTagVisual, &s_TcUiTagHud, &s_TcUiTagInput, &s_TcUiTagChat, &s_TcUiTagAudio}, {"tclient-ui-tag-visual", "tclient-ui-tag-hud", "tclient-ui-tag-input", "tclient-ui-tag-chat", "tclient-ui-tag-audio"});
+			if(Flow.Control("tclient-config-tags-secondary", LineSize, FilterRow, MarginSmall))
+				RenderTags(FilterRow, nullptr, {"Auto", "Social", "Camera", "Gameplay", "Misc"}, {&s_TcUiTagAutomation, &s_TcUiTagSocial, &s_TcUiTagCamera, &s_TcUiTagGameplay, &s_TcUiTagMisc}, {"tclient-ui-tag-auto", "tclient-ui-tag-social", "tclient-ui-tag-camera", "tclient-ui-tag-gameplay", "tclient-ui-tag-misc"});
 			return;
 		}
 		CUIRect FilterBar, TagsBar;
-		Content.HSplitTop(LineSize + MarginSmall, &FilterBar, &Content);
-		Content.HSplitTop((LineSize + MarginSmall) * 2.0f, &TagsBar, &Content);
-		CPerfTimer FilterTimer;
-		CUIRect Row = FilterBar;
-		Row.HMargin(MarginSmall, &Row);
-		Row.h = LineSize;
-		Row.y = FilterBar.y + (FilterBar.h - LineSize) / 2.0f;
-
-		// 搜索框
-		CUIRect SearchLabel, SearchEdit;
-		Row.VSplitLeft(SearchLabelW, &SearchLabel, &Row);
-		Row.VSplitLeft(ConfigSearchEditWidth, &SearchEdit, &Row);
-		Row.VSplitLeft(MarginSmall, nullptr, &Row);
-		DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &SearchLabel, Localize("Search"), FontSize, TEXTALIGN_ML);
-		IUiContext TClientConfigSearchCtx;
-		TClientConfigSearchCtx.m_pUi = Ui();
-		TClientConfigSearchCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
-		TClientConfigSearchCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
-		TClientConfigSearchCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_config_search");
-		TClientConfigSearchCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-		ui_widget::InputField(TClientConfigSearchCtx, &s_SearchInput, SearchEdit, EditBoxFontSize, !Ui()->IsPopupOpen() && !GameClient()->m_GameConsole.IsActive());
-
-		// 分隔
-		Row.VSplitLeft(MarginSmall, nullptr, &Row);
-
-		// Domain 筛选 - DDNet / TClient / 栖梦
-		const float DomainWidth = ConfigDomainWidth;
-		CUIRect DomainDDNet, DomainTClient, DomainQm;
-		Row.VSplitLeft(DomainWidth, &DomainDDNet, &Row);
-		Row.VSplitLeft(MarginSmall, nullptr, &Row);
-		Row.VSplitLeft(DomainWidth, &DomainTClient, &Row);
-		Row.VSplitLeft(MarginSmall, nullptr, &Row);
-		Row.VSplitLeft(DomainWidth, &DomainQm, &Row);
-		Row.VSplitLeft(Margin, nullptr, &Row);
-
-		if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowDDNet, "tclient-ui-show-ddnet", Localize("DDNet"), g_Config.m_QmUiShowDDNet, &DomainDDNet))
-			g_Config.m_QmUiShowDDNet ^= 1;
-		if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowTClient, "tclient-ui-show-tclient", Localize("TClient"), g_Config.m_QmUiShowTClient, &DomainTClient))
-			g_Config.m_QmUiShowTClient ^= 1;
-		if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowQm, "tclient-ui-show-qmclient", Localize("QmClient"), g_Config.m_QmUiShowQm, &DomainQm))
-			g_Config.m_QmUiShowQm ^= 1;
-
-		// 其他筛选 - 紧凑列表 / 仅显示已修改
-		const float FilterWidth = ConfigFilterWidth;
-		CUIRect FilterCompact, FilterModified;
-		Row.VSplitLeft(FilterWidth, &FilterCompact, &Row);
-		Row.VSplitLeft(MarginSmall, nullptr, &Row);
-		Row.VSplitLeft(FilterWidth, &FilterModified, &Row);
-
-		if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiCompactList, "tclient-ui-compact-list", Localize("Compact"), g_Config.m_QmUiCompactList, &FilterCompact))
-			g_Config.m_QmUiCompactList ^= 1;
-		if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiOnlyModified, "tclient-ui-only-modified", Localize("Modified"), g_Config.m_QmUiOnlyModified, &FilterModified))
-			g_Config.m_QmUiOnlyModified ^= 1;
-		LogTClientPerfStageEx("tclient_configs", "filter", ETClientSettingsPerfStage::TEXT_CACHE, FilterTimer.ElapsedMs());
-
-		// Tags Filter Bar - Row 1
+		if(Flow.Control("tclient-config-search-domains-display", LineSize, FilterBar))
 		{
-			CUIRect TagsRow = TagsBar;
-			TagsRow.h = LineSize;
-			TagsRow.y = TagsBar.y;
+			CPerfTimer FilterTimer;
+			CUIRect Row = FilterBar;
+			Row.HMargin(MarginSmall, &Row);
+			Row.h = LineSize;
+			Row.y = FilterBar.y + (FilterBar.h - LineSize) / 2.0f;
 
-			const float TagLabelWidth = 40.0f;
-			CUIRect TagsLabel, TagsArea;
-			TagsRow.VSplitLeft(TagLabelWidth, &TagsLabel, &TagsArea);
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &TagsLabel, Localize("Tags"), FontSize, TEXTALIGN_ML);
+			// 搜索框
+			CUIRect SearchLabel, SearchEdit;
+			CUIRect SearchRow;
+			Row.VSplitLeft(std::min(std::max(0.0f, Row.w), ConfigSearchRowWidth), &SearchRow, &Row);
+			SplitSettingsControlRow(SearchRow, ConfigMetrics, &SearchLabel, &SearchEdit);
+			Row.VSplitLeft(MarginSmall, nullptr, &Row);
+			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &SearchLabel, Localize("Search"), FontSize, TEXTALIGN_ML);
+			IUiContext TClientConfigSearchCtx;
+			TClientConfigSearchCtx.m_pUi = Ui();
+			TClientConfigSearchCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
+			TClientConfigSearchCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
+			TClientConfigSearchCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_config_search");
+			TClientConfigSearchCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
+			ui_widget::InputField(TClientConfigSearchCtx, &s_SearchInput, SearchEdit, EditBoxFontSize, !Ui()->IsPopupOpen() && !GameClient()->m_GameConsole.IsActive());
 
-			// Calculate tag button width - fit 5 tags per row
-			const float TagMargin = 5.0f;
-			const int TagsPerRow = 5;
-			float TagBtnWidth = (TagsArea.w - TagMargin * (TagsPerRow - 1)) / TagsPerRow;
+			// 分隔
+			Row.VSplitLeft(MarginSmall, nullptr, &Row);
 
-			CUIRect TagBtn;
-			TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagVisual, "tclient-ui-tag-visual", Localize("Visual"), s_TcUiTagVisual, &TagBtn))
-				s_TcUiTagVisual ^= 1;
+			// Domain 筛选 - DDNet / TClient / 栖梦
+			const float DomainWidth = ConfigDomainWidth;
+			CUIRect DomainDDNet, DomainTClient, DomainQm;
+			Row.VSplitLeft(DomainWidth, &DomainDDNet, &Row);
+			Row.VSplitLeft(MarginSmall, nullptr, &Row);
+			Row.VSplitLeft(DomainWidth, &DomainTClient, &Row);
+			Row.VSplitLeft(MarginSmall, nullptr, &Row);
+			Row.VSplitLeft(DomainWidth, &DomainQm, &Row);
+			Row.VSplitLeft(Margin, nullptr, &Row);
 
-			TagsArea.VSplitLeft(TagMargin, nullptr, &TagsArea);
-			TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagHud, "tclient-ui-tag-hud", Localize("HUD"), s_TcUiTagHud, &TagBtn))
-				s_TcUiTagHud ^= 1;
+			if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowDDNet, "tclient-ui-show-ddnet", Localize("DDNet"), g_Config.m_QmUiShowDDNet, &DomainDDNet))
+				g_Config.m_QmUiShowDDNet ^= 1;
+			if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowTClient, "tclient-ui-show-tclient", Localize("TClient"), g_Config.m_QmUiShowTClient, &DomainTClient))
+				g_Config.m_QmUiShowTClient ^= 1;
+			if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiShowQm, "tclient-ui-show-qmclient", Localize("QmClient"), g_Config.m_QmUiShowQm, &DomainQm))
+				g_Config.m_QmUiShowQm ^= 1;
 
-			TagsArea.VSplitLeft(TagMargin, nullptr, &TagsArea);
-			TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagInput, "tclient-ui-tag-input", Localize("Input"), s_TcUiTagInput, &TagBtn))
-				s_TcUiTagInput ^= 1;
+			// 其他筛选 - 紧凑列表 / 仅显示已修改
+			const float FilterWidth = ConfigFilterWidth;
+			CUIRect FilterCompact, FilterModified;
+			Row.VSplitLeft(FilterWidth, &FilterCompact, &Row);
+			Row.VSplitLeft(MarginSmall, nullptr, &Row);
+			Row.VSplitLeft(FilterWidth, &FilterModified, &Row);
 
-			TagsArea.VSplitLeft(TagMargin, nullptr, &TagsArea);
-			TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagChat, "tclient-ui-tag-chat", Localize("Chat"), s_TcUiTagChat, &TagBtn))
-				s_TcUiTagChat ^= 1;
-
-			TagsArea.VSplitLeft(TagMargin, nullptr, &TagsArea);
-			TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagAudio, "tclient-ui-tag-audio", Localize("Audio"), s_TcUiTagAudio, &TagBtn))
-				s_TcUiTagAudio ^= 1;
+			if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiCompactList, "tclient-ui-compact-list", Localize("Compact"), g_Config.m_QmUiCompactList, &FilterCompact))
+				g_Config.m_QmUiCompactList ^= 1;
+			if(DoTClientSettingsButton_CheckBox(&g_Config.m_QmUiOnlyModified, "tclient-ui-only-modified", Localize("Modified"), g_Config.m_QmUiOnlyModified, &FilterModified))
+				g_Config.m_QmUiOnlyModified ^= 1;
+			LogTClientPerfStageEx("tclient_configs", "filter", ETClientSettingsPerfStage::TEXT_CACHE, FilterTimer.ElapsedMs());
 		}
-
-		// Tags Filter Bar - Row 2 (Automation, Social, Camera, Gameplay, Misc)
+		Flow.Space(MarginSmall);
+		if(Flow.Control("tclient-config-tags-primary", LineSize, TagsBar))
 		{
-			CUIRect TagsRow2 = TagsBar;
-			TagsRow2.h = LineSize;
-			TagsRow2.y = TagsBar.y + LineSize + 2.0f;
+			// Tags Filter Bar - Row 1
+			{
+				CUIRect TagsRow = TagsBar;
+				TagsRow.h = LineSize;
+				TagsRow.y = TagsBar.y;
 
-			const float TagLabelWidth = 40.0f;
-			CUIRect TagsLabel2, TagsArea2;
-			TagsRow2.VSplitLeft(TagLabelWidth, &TagsLabel2, &TagsArea2);
-			// Leave label empty for second row alignment
+				CUIRect TagsLabel, TagsArea;
+				SplitSettingsControlRow(TagsRow, ConfigMetrics, &TagsLabel, &TagsArea);
+				DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &TagsLabel, Localize("Tags"), FontSize, TEXTALIGN_ML);
 
-			const float TagMargin = 5.0f;
-			const int TagsPerRow = 5;
-			float TagBtnWidth = (TagsArea2.w - TagMargin * (TagsPerRow - 1)) / TagsPerRow;
+				// Calculate tag button width - fit 5 tags per row
+				const float TagMargin = 5.0f;
+				const int TagsPerRow = 5;
+				float TagBtnWidth = (TagsArea.w - TagMargin * (TagsPerRow - 1)) / TagsPerRow;
 
-			CUIRect TagBtn;
-			TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagAutomation, "tclient-ui-tag-auto", Localize("Auto"), s_TcUiTagAutomation, &TagBtn))
-				s_TcUiTagAutomation ^= 1;
+				CUIRect TagBtn;
+				TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagVisual, "tclient-ui-tag-visual", Localize("Visual"), s_TcUiTagVisual, &TagBtn))
+					s_TcUiTagVisual ^= 1;
 
-			TagsArea2.VSplitLeft(TagMargin, nullptr, &TagsArea2);
-			TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagSocial, "tclient-ui-tag-social", Localize("Social"), s_TcUiTagSocial, &TagBtn))
-				s_TcUiTagSocial ^= 1;
+				TagsArea.VSplitLeft(TagMargin, nullptr, &TagsArea);
+				TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagHud, "tclient-ui-tag-hud", Localize("HUD"), s_TcUiTagHud, &TagBtn))
+					s_TcUiTagHud ^= 1;
 
-			TagsArea2.VSplitLeft(TagMargin, nullptr, &TagsArea2);
-			TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagCamera, "tclient-ui-tag-camera", Localize("Camera"), s_TcUiTagCamera, &TagBtn))
-				s_TcUiTagCamera ^= 1;
+				TagsArea.VSplitLeft(TagMargin, nullptr, &TagsArea);
+				TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagInput, "tclient-ui-tag-input", Localize("Input"), s_TcUiTagInput, &TagBtn))
+					s_TcUiTagInput ^= 1;
 
-			TagsArea2.VSplitLeft(TagMargin, nullptr, &TagsArea2);
-			TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagGameplay, "tclient-ui-tag-gameplay", Localize("Gameplay"), s_TcUiTagGameplay, &TagBtn))
-				s_TcUiTagGameplay ^= 1;
+				TagsArea.VSplitLeft(TagMargin, nullptr, &TagsArea);
+				TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagChat, "tclient-ui-tag-chat", Localize("Chat"), s_TcUiTagChat, &TagBtn))
+					s_TcUiTagChat ^= 1;
 
-			TagsArea2.VSplitLeft(TagMargin, nullptr, &TagsArea2);
-			TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
-			if(DoTClientSettingsButton_CheckBox(&s_TcUiTagMisc, "tclient-ui-tag-misc", Localize("Misc"), s_TcUiTagMisc, &TagBtn))
-				s_TcUiTagMisc ^= 1;
+				TagsArea.VSplitLeft(TagMargin, nullptr, &TagsArea);
+				TagsArea.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagAudio, "tclient-ui-tag-audio", Localize("Audio"), s_TcUiTagAudio, &TagBtn))
+					s_TcUiTagAudio ^= 1;
+			}
 		}
+		Flow.Space(MarginSmall);
+		if(Flow.Control("tclient-config-tags-secondary", LineSize, TagsBar))
+		{
+			// Tags Filter Bar - Row 2 (Automation, Social, Camera, Gameplay, Misc)
+			{
+				CUIRect TagsRow2 = TagsBar;
+				TagsRow2.h = LineSize;
+				TagsRow2.y = TagsBar.y;
+
+				CUIRect TagsLabel2, TagsArea2;
+				SplitSettingsControlRow(TagsRow2, ConfigMetrics, &TagsLabel2, &TagsArea2);
+				// Leave label empty for second row alignment
+
+				const float TagMargin = 5.0f;
+				const int TagsPerRow = 5;
+				float TagBtnWidth = (TagsArea2.w - TagMargin * (TagsPerRow - 1)) / TagsPerRow;
+
+				CUIRect TagBtn;
+				TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagAutomation, "tclient-ui-tag-auto", Localize("Auto"), s_TcUiTagAutomation, &TagBtn))
+					s_TcUiTagAutomation ^= 1;
+
+				TagsArea2.VSplitLeft(TagMargin, nullptr, &TagsArea2);
+				TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagSocial, "tclient-ui-tag-social", Localize("Social"), s_TcUiTagSocial, &TagBtn))
+					s_TcUiTagSocial ^= 1;
+
+				TagsArea2.VSplitLeft(TagMargin, nullptr, &TagsArea2);
+				TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagCamera, "tclient-ui-tag-camera", Localize("Camera"), s_TcUiTagCamera, &TagBtn))
+					s_TcUiTagCamera ^= 1;
+
+				TagsArea2.VSplitLeft(TagMargin, nullptr, &TagsArea2);
+				TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagGameplay, "tclient-ui-tag-gameplay", Localize("Gameplay"), s_TcUiTagGameplay, &TagBtn))
+					s_TcUiTagGameplay ^= 1;
+
+				TagsArea2.VSplitLeft(TagMargin, nullptr, &TagsArea2);
+				TagsArea2.VSplitLeft(TagBtnWidth, &TagBtn, &TagsArea2);
+				if(DoTClientSettingsButton_CheckBox(&s_TcUiTagMisc, "tclient-ui-tag-misc", Localize("Misc"), s_TcUiTagMisc, &TagBtn))
+					s_TcUiTagMisc ^= 1;
+			}
+		}
+		Flow.Space(MarginSmall);
 	};
 
 	auto RenderList = [&](CUIRect ListArea) {
@@ -710,7 +724,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 
 			CUIRect RowItem;
 			const float RowHeight = ConfigRowHeight;
-			Content.HSplitTop(RowHeight, &RowItem, &Content);
+			ConsumeSettingsMeasuredRow(Content, RowHeight, &RowItem);
 			Content.HSplitTop(MarginExtraSmall, nullptr, &Content);
 			const bool Visible = ConfigListScrollRegion.AddRect(RowItem);
 			if(!Visible)
@@ -935,7 +949,6 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		LogTClientPerfStageEx("tclient_configs", "list", ETClientSettingsPerfStage::STATIC_LAYER, ListTimer.ElapsedMs(), false, aExtra);
 	};
 
-	const float SectionHeadingHeight = HeadlineHeight + MarginSmall;
 	const float SectionGap = MarginSmall * 2.0f;
 	const auto ConfigListViewportHeightForWidth = [ConfigMetrics](float ContentWidth) {
 		const float ConfigInlineMinWidth = ResolveSettingsInlineRowMinimumWidth(ConfigMetrics.m_LabelWidth + 2.0f * ConfigMetrics.m_ButtonHeight, ConfigMetrics.m_SectionGap, 1);
@@ -944,35 +957,31 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		const SSettingsConfigRowMetrics RowMetrics = ResolveSettingsConfigRowMetrics(g_Config.m_QmUiCompactList != 0, StackedRows, ConfigMetrics.m_LineHeight, ConfigMetrics.m_LineSpacing, HelpHeight, ConfigMetrics.m_ButtonHeight, ConfigMetrics.m_LineSpacing);
 		return std::max(RowMetrics.m_RowHeight * 2.0f, ContentWidth * 0.52f);
 	};
-	const auto ConfigsContentHeightForWidth = [ConfigListViewportHeightForWidth, SectionHeadingHeight, SectionGap, FiltersHeightForWidth](float ContentWidth) {
-		return LineSize + FiltersHeightForWidth(ContentWidth) + ConfigListViewportHeightForWidth(ContentWidth) + SectionHeadingHeight * 2.0f + SectionGap * 2.0f;
-	};
-	const auto RenderConfigCard = [&](CUIRect Content) {
-		CUIRect ChangesHeading, Actions, FiltersHeading, Filters, List;
-		const float FiltersHeight = FiltersHeightForWidth(Content.w);
-		const float ListViewportHeight = ConfigListViewportHeightForWidth(Content.w);
-		Content.HSplitTop(SectionHeadingHeight, &ChangesHeading, &Content);
-		Content.HSplitTop(LineSize, &Actions, &Content);
-		Content.HSplitTop(SectionGap, nullptr, &Content);
-		Content.HSplitTop(SectionHeadingHeight, &FiltersHeading, &Content);
-		Content.HSplitTop(FiltersHeight, &Filters, &Content);
-		Content.HSplitTop(SectionGap, nullptr, &Content);
-		Content.HSplitTop(ListViewportHeight, &List, &Content);
-		DoSettingsMenuLabel(g_Config.m_UiSettingsPage, m_TClientSettingsTab, -1, "tclient-config-changes-heading", &ChangesHeading, Localize("Config Changes"), HeadlineFontSize, TEXTALIGN_ML);
-		DoSettingsMenuLabel(g_Config.m_UiSettingsPage, m_TClientSettingsTab, -1, "tclient-config-filters-heading", &FiltersHeading, Localize("Config Filters"), HeadlineFontSize, TEXTALIGN_ML);
-		RenderActions(Actions);
-		RenderFilters(Filters);
-		RenderList(List);
+	const auto RenderConfigCard = [&](CUIRect &Content) {
+		CSettingsContentLayoutFlow Flow(Content);
+		CUIRect Row;
+		if(Flow.Control("tclient-config-changes-heading", HeadlineHeight, Row))
+			DoSettingsMenuLabel(g_Config.m_UiSettingsPage, m_TClientSettingsTab, -1, "tclient-config-changes-heading", &Row, Localize("Config Changes"), HeadlineFontSize, TEXTALIGN_ML);
+		Flow.Space(MarginSmall);
+		if(Flow.Control("tclient-config-actions", LineSize, Row))
+			RenderActions(Row);
+		Flow.Space(SectionGap);
+		if(Flow.Control("tclient-config-filters-heading", HeadlineHeight, Row))
+			DoSettingsMenuLabel(g_Config.m_UiSettingsPage, m_TClientSettingsTab, -1, "tclient-config-filters-heading", &Row, Localize("Config Filters"), HeadlineFontSize, TEXTALIGN_ML);
+		Flow.Space(MarginSmall);
+		RenderFilters(Content);
+		Flow.Space(SectionGap);
+		if(Flow.Control("tclient-config-list", ConfigListViewportHeightForWidth(Content.w), Row))
+			RenderList(Row);
 	};
 	const uint64_t CardRevision = static_cast<uint64_t>(g_Config.m_QmUiCompactList != 0);
 	if(Pass == qm_card_catalog::ETClientCardPass::REVISION)
 		return {0.0f, CardRevision};
 	if(str_comp(pStableId, "deck:tclient-configs-actions") == 0)
 	{
-		const float Height = ConfigsContentHeightForWidth(Content.w);
-		if(Pass == qm_card_catalog::ETClientCardPass::RENDER)
-			RenderConfigCard(Content);
-		return {Height, CardRevision};
+		const float SavedY = Content.y;
+		RenderConfigCard(Content);
+		return {Content.y - SavedY, CardRevision};
 	}
 	return {0.0f, CardRevision};
 }

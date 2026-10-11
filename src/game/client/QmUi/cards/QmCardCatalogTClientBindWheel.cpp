@@ -25,8 +25,10 @@
 #include <game/client/QmUi/QmDropdown.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsFontSelection.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -93,71 +95,88 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientBindWheelCard(const qm_car
 	static char s_aBindName[BINDWHEEL_MAX_NAME];
 	static char s_aBindCommand[BINDWHEEL_MAX_CMD];
 	static int s_SelectedBindIndex = -1;
-	const float EditorContentHeight = LineSize * 7.0f + SmallSize + MarginSmall * 4.0f;
 	const float PreviewContentHeight = 280.0f;
-	const auto MeasureEditor = [EditorContentHeight](float) { return EditorContentHeight; };
 	const auto RenderEditor = [this, &TClientBindWheelTextInputCtx, ReadOnly, SmallSize](CUIRect &Content) {
 		CPerfTimer EditorTimer;
 		CUIRect LeftView = Content, Label, Button;
-		LeftView.HSplitTop(LineSize, &Button, &LeftView);
-		Button.VSplitLeft(100.0f, &Label, &Button);
-		DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, "tclient-bindwheel-name-label", &Label, Localize("Name:"), FontSize, TEXTALIGN_ML);
-		static CLineInput s_NameInput;
-		s_NameInput.SetBuffer(s_aBindName, sizeof(s_aBindName));
-		s_NameInput.SetEmptyText(Localize("Name"));
-		ui_widget::InputField(TClientBindWheelTextInputCtx, &s_NameInput, Button, Localize("Name"), EditBoxFontSize);
-
-		LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
-		LeftView.HSplitTop(LineSize, &Button, &LeftView);
-		Button.VSplitLeft(100.0f, &Label, &Button);
-		DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, "tclient-bindwheel-command-label", &Label, Localize("Command:"), FontSize, TEXTALIGN_ML);
-		static CLineInput s_BindInput;
-		s_BindInput.SetBuffer(s_aBindCommand, sizeof(s_aBindCommand));
-		s_BindInput.SetEmptyText(Localize("Command"));
-		ui_widget::InputField(TClientBindWheelTextInputCtx, &s_BindInput, Button, Localize("Command"), EditBoxFontSize);
-
+		CSettingsContentLayoutFlow Flow(LeftView);
 		static CButtonContainer s_AddButton, s_RemoveButton, s_OverrideButton;
-		LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
-		LeftView.HSplitTop(LineSize, &Button, &LeftView);
-		if(DoSettingsButton_Menu(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, TCLIENT_TAB_BINDWHEEL, &s_OverrideButton, "tclient-bindwheel-override-selected", Localize("Override Selected"), 0, &Button) && !ReadOnly && s_SelectedBindIndex >= 0 && s_SelectedBindIndex < static_cast<int>(GameClient()->m_BindWheel.m_vBinds.size()))
+
+		if(Flow.Control("tclient-bindwheel-name", LineSize, Button, MarginSmall))
 		{
-			CBindWheel::CBind TempBind;
-			str_copy(TempBind.m_aName, str_length(s_aBindName) == 0 ? "*" : s_aBindName);
-			str_copy(GameClient()->m_BindWheel.m_vBinds[s_SelectedBindIndex].m_aName, TempBind.m_aName);
-			str_copy(GameClient()->m_BindWheel.m_vBinds[s_SelectedBindIndex].m_aCommand, s_aBindCommand);
+			SplitSettingsControlRow(Button, CurrentSettingsContentMetrics(), &Label, &Button);
+			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, "tclient-bindwheel-name-label", &Label, Localize("Name:"), FontSize, TEXTALIGN_ML);
+			static CLineInput s_NameInput;
+			s_NameInput.SetBuffer(s_aBindName, sizeof(s_aBindName));
+			s_NameInput.SetEmptyText(Localize("Name"));
+			ui_widget::InputField(TClientBindWheelTextInputCtx, &s_NameInput, Button, Localize("Name"), EditBoxFontSize);
 		}
 
-		LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
-		LeftView.HSplitTop(LineSize, &Button, &LeftView);
-		CUIRect ButtonAdd, ButtonRemove;
-		Button.VSplitMid(&ButtonRemove, &ButtonAdd, MarginSmall);
-		if(DoSettingsButton_Menu(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, TCLIENT_TAB_BINDWHEEL, &s_AddButton, "tclient-bindwheel-add-bind", Localize("Add Bind"), 0, &ButtonAdd) && !ReadOnly)
+		if(Flow.Control("tclient-bindwheel-command", LineSize, Button, MarginSmall))
 		{
-			CBindWheel::CBind TempBind;
-			str_copy(TempBind.m_aName, str_length(s_aBindName) == 0 ? "*" : s_aBindName);
-			GameClient()->m_BindWheel.AddBind(TempBind.m_aName, s_aBindCommand);
-			s_SelectedBindIndex = static_cast<int>(GameClient()->m_BindWheel.m_vBinds.size()) - 1;
-		}
-		if(DoSettingsButton_Menu(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, TCLIENT_TAB_BINDWHEEL, &s_RemoveButton, "tclient-bindwheel-remove-bind", Localize("Remove Bind"), 0, &ButtonRemove) && !ReadOnly && s_SelectedBindIndex >= 0)
-		{
-			GameClient()->m_BindWheel.RemoveBind(s_SelectedBindIndex);
-			s_SelectedBindIndex = -1;
+			SplitSettingsControlRow(Button, CurrentSettingsContentMetrics(), &Label, &Button);
+			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, "tclient-bindwheel-command-label", &Label, Localize("Command:"), FontSize, TEXTALIGN_ML);
+			static CLineInput s_BindInput;
+			s_BindInput.SetBuffer(s_aBindCommand, sizeof(s_aBindCommand));
+			s_BindInput.SetEmptyText(Localize("Command"));
+			ui_widget::InputField(TClientBindWheelTextInputCtx, &s_BindInput, Button, Localize("Command"), EditBoxFontSize);
 		}
 
-		LeftView.HSplitTop(MarginSmall, nullptr, &LeftView);
-		LeftView.HSplitTop(LineSize, &Label, &LeftView);
-		DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, "tclient-bindwheel-footer-console", &Label, Localize("Commands run in the console"), FontSize, TEXTALIGN_ML);
-		LeftView.HSplitTop(SmallSize, &Label, &LeftView);
-		DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, "tclient-bindwheel-footer-mouse", &Label, Localize("L select  R swap  M select only"), SmallSize, TEXTALIGN_ML);
+		if(Flow.Control("tclient-bindwheel-override", LineSize, Button, MarginSmall))
+		{
+			if(DoSettingsButton_Menu(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, TCLIENT_TAB_BINDWHEEL, &s_OverrideButton, "tclient-bindwheel-override-selected", Localize("Override Selected"), 0, &Button) && !ReadOnly && !Ui()->RenderOnly() && s_SelectedBindIndex >= 0 && s_SelectedBindIndex < static_cast<int>(GameClient()->m_BindWheel.m_vBinds.size()))
+			{
+				CBindWheel::CBind TempBind;
+				str_copy(TempBind.m_aName, str_length(s_aBindName) == 0 ? "*" : s_aBindName);
+				str_copy(GameClient()->m_BindWheel.m_vBinds[s_SelectedBindIndex].m_aName, TempBind.m_aName);
+				str_copy(GameClient()->m_BindWheel.m_vBinds[s_SelectedBindIndex].m_aCommand, s_aBindCommand);
+			}
+		}
 
-		LeftView.HSplitBottom(LineSize, &LeftView, &Label);
-		static CButtonContainer s_ReaderButtonWheel, s_ClearButtonWheel;
-		DoLine_KeyReader(Label, s_ReaderButtonWheel, s_ClearButtonWheel, Localize("Bind Wheel Key"), "+bindwheel");
-		LeftView.HSplitBottom(LineSize, &LeftView, &Label);
+		if(Flow.Control("tclient-bindwheel-add-remove", LineSize, Button, MarginSmall))
+		{
+			CUIRect ButtonAdd, ButtonRemove;
+			static ui_widget::SSettingsActionGroupState s_BindActionWidths;
+			const char *apActionLabels[] = {Localize("Remove Bind"), Localize("Add Bind")};
+			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_BindActionWidths, Button, apActionLabels, 2, CurrentSettingsContentMetrics());
+			ButtonRemove = Actions.m_aButtons[0];
+			ButtonAdd = Actions.m_aButtons[1];
+			if(DoSettingsButton_Menu(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, TCLIENT_TAB_BINDWHEEL, &s_AddButton, "tclient-bindwheel-add-bind", Localize("Add Bind"), 0, &ButtonAdd) && !ReadOnly && !Ui()->RenderOnly())
+			{
+				CBindWheel::CBind TempBind;
+				str_copy(TempBind.m_aName, str_length(s_aBindName) == 0 ? "*" : s_aBindName);
+				GameClient()->m_BindWheel.AddBind(TempBind.m_aName, s_aBindCommand);
+				s_SelectedBindIndex = static_cast<int>(GameClient()->m_BindWheel.m_vBinds.size()) - 1;
+			}
+			if(DoSettingsButton_Menu(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, TCLIENT_TAB_BINDWHEEL, &s_RemoveButton, "tclient-bindwheel-remove-bind", Localize("Remove Bind"), 0, &ButtonRemove) && !ReadOnly && !Ui()->RenderOnly() && s_SelectedBindIndex >= 0)
+			{
+				GameClient()->m_BindWheel.RemoveBind(s_SelectedBindIndex);
+				s_SelectedBindIndex = -1;
+			}
+		}
+
+		if(Flow.Control("tclient-bindwheel-help-console", LineSize, Label, MarginSmall))
+		{
+			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, "tclient-bindwheel-footer-console", &Label, Localize("Commands run in the console"), FontSize, TEXTALIGN_ML);
+		}
+
+		if(Flow.Control("tclient-bindwheel-help-mouse", SmallSize, Label, MarginSmall))
+		{
+			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, "tclient-bindwheel-footer-mouse", &Label, Localize("L select  R swap  M select only"), SmallSize, TEXTALIGN_ML);
+		}
+
 		CUIRect CheckBoxRect;
-		Label.HSplitTop(LineSize, &CheckBoxRect, &Label);
-		if(DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, TCLIENT_TAB_BINDWHEEL, &g_Config.m_QmResetBindWheelMouse, "tclient-bindwheel-reset-mouse", Localize("Reset position of mouse when opening bindwheel"), g_Config.m_QmResetBindWheelMouse, &CheckBoxRect) && !ReadOnly)
-			g_Config.m_QmResetBindWheelMouse ^= 1;
+		if(Flow.Control("tclient-bindwheel-reset-mouse", LineSize, CheckBoxRect))
+		{
+			if(DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_BINDWHEEL, TCLIENT_TAB_BINDWHEEL, &g_Config.m_QmResetBindWheelMouse, "tclient-bindwheel-reset-mouse", Localize("Reset position of mouse when opening bindwheel"), g_Config.m_QmResetBindWheelMouse, &CheckBoxRect) && !ReadOnly && !Ui()->RenderOnly())
+				g_Config.m_QmResetBindWheelMouse ^= 1;
+		}
+		if(Flow.Control("tclient-bindwheel-key", LineSize, Label))
+		{
+			static CButtonContainer s_ReaderButtonWheel, s_ClearButtonWheel;
+			DoLine_KeyReader(Label, s_ReaderButtonWheel, s_ClearButtonWheel, Localize("Bind Wheel Key"), "+bindwheel");
+		}
+		Content = LeftView;
 		LogTClientPerfStage("tclient_bindwheel_editor", EditorTimer.ElapsedMs(), false);
 	};
 	const auto MeasurePreview = [PreviewContentHeight](float) { return PreviewContentHeight; };
@@ -228,16 +247,17 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientBindWheelCard(const qm_car
 		return {0.0f, CardRevision};
 	if(str_comp(pStableId, "deck:tclient-bind-wheel-editor") == 0)
 	{
-		const float Height = MeasureEditor(Content.w);
-		if(Pass == qm_card_catalog::ETClientCardPass::RENDER)
-			RenderEditor(Content);
-		return {Height, CardRevision};
+		const float SavedY = Content.y;
+		RenderEditor(Content);
+		return {Content.y - SavedY, CardRevision};
 	}
 	if(str_comp(pStableId, "deck:tclient-bind-wheel-preview") == 0)
 	{
 		const float Height = MeasurePreview(Content.w);
-		if(Pass == qm_card_catalog::ETClientCardPass::RENDER)
-			RenderPreview(Content);
+		CSettingsContentLayoutFlow Flow(Content);
+		CUIRect Block;
+		if(Flow.Control("tclient-bindwheel-preview", Height, Block))
+			RenderPreview(Block);
 		return {Height, CardRevision};
 	}
 	return {0.0f, CardRevision};

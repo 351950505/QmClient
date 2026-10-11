@@ -241,6 +241,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - Devre Dışı, 1-9999 dakika
 
+0 = auto
+== 0 = otomatik
+
 0 disables timed rotation; skins only switch on random start events
 == 0, zamanlanmış döndürmeyi devre dışı bırakır; skinler yalnızca rastgele başlangıç olaylarında değişir
 
@@ -608,6 +611,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == Gölge patlaması
 
+AGC, experimental
+== AGC, deneysel
+
 Agree
 == Kabul Et
 
@@ -778,6 +784,9 @@ Anti Ping Smoothing
 
 Anti-spoof specific rate limit (0 = unlimited).
 == Sahteciliği önleme özel hız sınırı (0 = sınırsız).
+
+AntiPing
+== AntiPing
 
 AntiPing (latency compensation)
 == AntiPing (gecikme telafisi)
@@ -1048,6 +1057,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == Yenilemede tekrar bilgilerini otomatik getir
+
+Auto gain control for mic
+== Mikrofon için otomatik kazanç kontrolü
 
 Auto gain control for mic (AGC, experimental)
 == Mikrofon için otomatik kazanç kontrolü (AGC, deneysel)
@@ -2308,6 +2320,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == Kompresör Eşiği (%)
+
+Concurrency
+== Eşzamanlılık
 
 Concurrency (0 = auto)
 == Eşzamanlılık (0 = otomatik)
@@ -4055,6 +4070,9 @@ Enable freeze call sound
 Enable frosted glass blur behind secondary popups and dropdowns
 == Alt pencerelerin ve açılır listelerin arkasında bulanıklığı etkinleştir
 
+Enable FTAPI auto-translate
+== FTAPI otomatik çeviriyi etkinleştir
+
 Enable FTAPI auto-translate (may overload the service)
 == FTAPI otomatik çeviriyi etkinleştir (hizmeti aşırı yükleyebilir)
 
@@ -4267,6 +4285,9 @@ Enable Tee trail
 
 Enable tee trails
 == Tee izlerini etkinleştir
+
+Enable thinking mode
+== Düşünme modunu etkinleştir
 
 Enable thinking mode (slower)
 == Düşünme modunu etkinleştir (daha yavaş)
@@ -4499,6 +4520,9 @@ Expanded dropdown background color
 Expanded dropdown background opacity percentage
 == Açılan liste arka plan rengi — opaklık yüzdesi
 
+Experimental
+== deneysel
+
 Export
 == Dışa aktar
 
@@ -4630,6 +4654,9 @@ Fake CTF flags
 
 Fallback simple noise reduction strength
 == Yedek basit gürültü azaltma gücü
+
+Fast input
+== Hızlı giriş
 
 Fast input (reduce visual latency)
 == Hızlı giriş (görsel gecikmeyi azaltır)
@@ -4837,6 +4864,9 @@ Font store:
 
 Font weight:
 == Yazı tipi kalınlığı:
+
+For Gores
+== Gores için
 
 For more info: /cmdlist
 == Daha fazla bilgi: /cmdlist
@@ -5563,6 +5593,9 @@ High Detail
 
 High to low
 == Yüksekten düşüğe
+
+Higher input latency
+== daha yüksek giriş gecikmesi
 
 Higher values make the wave move faster. Zero stops the movement.
 == Yüksek değerler dalgayı hızlandırır. Sıfır hareketi durdurur.
@@ -6446,6 +6479,9 @@ Last viewed client release notes
 Latency
 == Gecikme
 
+Latency compensation
+== gecikme telafisi
+
 Latency Jitter
 == Gecikme dalgalanması
 
@@ -6478,6 +6514,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == Öğren
+
+Leave empty to detect automatically
+== otomatik algılama için boş bırakın
 
 Leave empty to disable
 == Devre dışı bırakmak için boş bırakın
@@ -7154,6 +7193,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == gecikmeye neden olabilir
 
+May overload the service
+== hizmeti aşırı yükleyebilir
+
 Memory
 == Bellek
 
@@ -7249,6 +7291,9 @@ Milliseconds to apply quick input early
 
 Min size
 == Minimum boyut
+
+Mini debug
+== küçük hata ayıklama
 
 Mini features
 == Mini özellikler
@@ -7642,6 +7687,9 @@ Native scale (1.0)
 
 Need to have started the map to swap with a player.
 == Bir oyuncuyla yer değiştirmek için haritayı başlatmış olmanız gerekir.
+
+Negative stability buffer
+== Negatif stabilite tamponu
 
 Negative stability buffer (for Gores)
 == Negatif stabilite tamponu (Gores için)
@@ -8363,6 +8411,9 @@ Overwrite clan even if empty
 Own hook line width
 == Kendi kanca çizgisi genişliği
 
+Own team only
+== yalnızca kendi takımı
+
 p = Ping latency
 == p = Ping gecikmesi
 
@@ -8869,6 +8920,9 @@ Predict client movement
 
 Predict dummy movement
 == Dummy hareketini tahmin et
+
+Predict events
+== Olayları tahmin et
 
 Predict events (experimental)
 == Olayları tahmin et (deneysel)
@@ -9523,6 +9577,9 @@ Reduce antiping and player prediction when frozen
 
 Reduce prediction while frozen
 == Donmuşken tahmini azalt
+
+Reduce visual latency
+== görsel gecikmeyi azaltır
 
 Reduced
 == Azaltılmış
@@ -10313,6 +10370,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == Tekrar oynatmada oyuncu adlarını kaydet
 
+Save power by lowering update rate
+== Güncelleme hızını düşürerek güç tasarrufu sağlar
+
 Save power by lowering update rate (higher input latency)
 == Güncelleme hızını düşürerek güç tasarrufu sağlar (daha yüksek giriş gecikmesi)
 
@@ -10441,6 +10501,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == Skor Tablosu Şeffaflığı
+
+Scoreboard, chat, spectating
+== skor tablosu, sohbet, izleme
 
 Scores are private on this server
 == Bu sunucuda skorlar gizli
@@ -11008,6 +11071,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == İsim etiketinde ayrı bir satırda istemci kimliğini göster
+
+Show client IDs
+== İstemci kimliklerini göster
 
 Show client IDs (scoreboard, chat, spectating)
 == İstemci kimliklerini göster (skor tablosu, sohbet, izleme)
@@ -11591,6 +11657,9 @@ Show player Tee
 Show players' key presses
 == Oyuncuların tuş vuruşlarını göster
 
+Show position and angle
+== Konum ve açıyı göster
+
 Show position and angle (mini debug)
 == Konum ve açıyı göster (küçük hata ayıklama)
 
@@ -12083,6 +12152,9 @@ Slide left
 Slow down the demo
 == Demoyu yavaşlat
 
+Slower
+== daha yavaş
+
 Small Tee size
 == Küçük Tee boyutu
 
@@ -12442,6 +12514,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == Durum Şeması:
+
+Steam client path
+== Steam istemci yolu
 
 Steam client path (leave empty to detect automatically)
 == Steam istemci yolu (otomatik algılama için boş bırakın)
@@ -12863,6 +12938,9 @@ Tee 0.7
 Tee appearance
 == Tee görünümü
 
+Tee collision
+== Tee çarpışması
+
 Tee collision (Tee to Tee)
 == Tee çarpışması (Tee ile Tee)
 
@@ -12871,6 +12949,9 @@ Tee color
 
 Tee death probe
 == Tee ölüm algısı
+
+Tee freeze probe
+== Tee dondurma algısı
 
 Tee freeze probe (Tee to Freeze)
 == Tee dondurma algısı (Tee ile Freeze)
@@ -12886,6 +12967,12 @@ Tee size
 
 Tee status bar
 == Tee durum çubuğu
+
+Tee to Freeze
+== Tee ile Freeze
+
+Tee to Tee
+== Tee ile Tee
 
 Tee trail color
 == Tee iz rengi

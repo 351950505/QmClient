@@ -241,6 +241,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - Отключено, 1-9999 минут
 
+0 = auto
+== 0 = авто
+
 0 disables timed rotation; skins only switch on random start events
 == 0 отключает ротацию по времени; скины меняются только при случайном старте
 
@@ -608,6 +611,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == Всплытие послесвечения
 
+AGC, experimental
+== AGC, экспериментально
+
 Agree
 == Согласиться
 
@@ -778,6 +784,9 @@ Anti Ping Smoothing
 
 Anti-spoof specific rate limit (0 = unlimited).
 == Ограничение скорости для анти-спуфинга (0 = без ограничений)
+
+AntiPing
+== AntiPing
 
 AntiPing (latency compensation)
 == AntiPing (компенсация задержки)
@@ -1048,6 +1057,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == Автоматически получать информацию о повторе при обновлении
+
+Auto gain control for mic
+== Авторегулировка усиления микрофона
 
 Auto gain control for mic (AGC, experimental)
 == Авторегулировка усиления микрофона (AGC, экспериментально)
@@ -2308,6 +2320,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == Порог компрессора (%)
+
+Concurrency
+== Конкурентность
 
 Concurrency (0 = auto)
 == Конкурентность (0 = авто)
@@ -4055,6 +4070,9 @@ Enable freeze call sound
 Enable frosted glass blur behind secondary popups and dropdowns
 == Включить размытие фона подокон и списков
 
+Enable FTAPI auto-translate
+== Включить автоперевод FTAPI
+
 Enable FTAPI auto-translate (may overload the service)
 == Включить автоперевод FTAPI (может перегрузить сервис)
 
@@ -4267,6 +4285,9 @@ Enable Tee trail
 
 Enable tee trails
 == Включить следы ти
+
+Enable thinking mode
+== Включить режим размышления
 
 Enable thinking mode (slower)
 == Включить режим размышления (медленнее)
@@ -4499,6 +4520,9 @@ Expanded dropdown background color
 Expanded dropdown background opacity percentage
 == Цвет фона раскрытого списка — непрозрачность в процентах
 
+Experimental
+== экспериментально
+
 Export
 == Экспорт
 
@@ -4630,6 +4654,9 @@ Fake CTF flags
 
 Fallback simple noise reduction strength
 == Запасная простая сила шумоподавления
+
+Fast input
+== Быстрый ввод
 
 Fast input (reduce visual latency)
 == Быстрый ввод (уменьшает визуальную задержку)
@@ -4837,6 +4864,9 @@ Font store:
 
 Font weight:
 == Насыщенность шрифта:
+
+For Gores
+== для Gores
 
 For more info: /cmdlist
 == Подробнее: /cmdlist
@@ -5563,6 +5593,9 @@ High Detail
 
 High to low
 == От высокого к низкому
+
+Higher input latency
+== более высокая задержка ввода
 
 Higher values make the wave move faster. Zero stops the movement.
 == Чем больше значение, тем быстрее движется волна. Ноль останавливает движение.
@@ -6446,6 +6479,9 @@ Last viewed client release notes
 Latency
 == Задержка
 
+Latency compensation
+== компенсация задержки
+
 Latency Jitter
 == Джиттер задержки
 
@@ -6478,6 +6514,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == Обучение
+
+Leave empty to detect automatically
+== пусто — автоопределение
 
 Leave empty to disable
 == Оставьте пустым для отключения
@@ -7154,6 +7193,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == может вызвать задержку
 
+May overload the service
+== может перегрузить сервис
+
 Memory
 == Память
 
@@ -7249,6 +7291,9 @@ Milliseconds to apply quick input early
 
 Min size
 == Минимальный размер
+
+Mini debug
+== мини-отладка
 
 Mini features
 == Мини-функции
@@ -7642,6 +7687,9 @@ Native scale (1.0)
 
 Need to have started the map to swap with a player.
 == Необходимо начать карту, чтобы обменяться с игроком.
+
+Negative stability buffer
+== Буфер отрицательной стабильности
 
 Negative stability buffer (for Gores)
 == Буфер отрицательной стабильности (для Gores)
@@ -8363,6 +8411,9 @@ Overwrite clan even if empty
 Own hook line width
 == Ширина собственной линии крюка
 
+Own team only
+== только своя команда
+
 p = Ping latency
 == p = Пинг
 
@@ -8869,6 +8920,9 @@ Predict client movement
 
 Predict dummy movement
 == Прогнозировать движение дамми
+
+Predict events
+== Предсказывать события
 
 Predict events (experimental)
 == Предсказывать события (экспериментально)
@@ -9523,6 +9577,9 @@ Reduce antiping and player prediction when frozen
 
 Reduce prediction while frozen
 == Уменьшать предсказание во время заморозки
+
+Reduce visual latency
+== уменьшает визуальную задержку
 
 Reduced
 == Уменьшенный
@@ -10313,6 +10370,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == Сохранять имена игроков в записи
 
+Save power by lowering update rate
+== Экономия энергии за счёт снижения частоты обновления
+
 Save power by lowering update rate (higher input latency)
 == Экономия энергии за счёт снижения частоты обновления (более высокая задержка ввода)
 
@@ -10441,6 +10501,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == Прозрачность таблицы лидеров
+
+Scoreboard, chat, spectating
+== таблица лидеров, чат, наблюдение
 
 Scores are private on this server
 == Очки на этом сервере приватны
@@ -11008,6 +11071,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == Показывать ID клиента на отдельной строке в табличке с именем
+
+Show client IDs
+== Показывать ID клиента
 
 Show client IDs (scoreboard, chat, spectating)
 == Показывать ID клиента (таблица лидеров, чат, наблюдение)
@@ -11591,6 +11657,9 @@ Show player Tee
 Show players' key presses
 == Показывать нажатия клавиш игроков
 
+Show position and angle
+== Показывать позицию и угол
+
 Show position and angle (mini debug)
 == Показывать позицию и угол (мини-отладка)
 
@@ -12083,6 +12152,9 @@ Slide left
 Slow down the demo
 == Замедлить демо
 
+Slower
+== медленнее
+
 Small Tee size
 == Размер маленького Tee
 
@@ -12442,6 +12514,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == Схема состояния:
+
+Steam client path
+== Путь к клиенту Steam
 
 Steam client path (leave empty to detect automatically)
 == Путь к клиенту Steam (пусто — автоопределение)
@@ -12863,6 +12938,9 @@ Tee 0.7
 Tee appearance
 == Внешний вид Tee
 
+Tee collision
+== Столкновение Tee
+
 Tee collision (Tee to Tee)
 == Столкновение Tee (Tee с Tee)
 
@@ -12871,6 +12949,9 @@ Tee color
 
 Tee death probe
 == Проверка смерти Tee
+
+Tee freeze probe
+== Проверка заморозки Tee
 
 Tee freeze probe (Tee to Freeze)
 == Проверка заморозки Tee (Tee с Freeze)
@@ -12886,6 +12967,12 @@ Tee size
 
 Tee status bar
 == Строка состояния ти
+
+Tee to Freeze
+== Tee с Freeze
+
+Tee to Tee
+== Tee с Tee
 
 Tee trail color
 == Цвет следа ти

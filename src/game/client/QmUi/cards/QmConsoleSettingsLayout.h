@@ -2,6 +2,7 @@
 #define GAME_CLIENT_QMUI_CARDS_QMCONSOLESETTINGSLAYOUT_H
 
 #include <game/client/QmUi/SecondaryPanel.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/components/qmclient/console_appearance.h>
 
 namespace QmConsoleSettingsLayout
@@ -13,8 +14,8 @@ namespace QmConsoleSettingsLayout
 
 	inline float ContentHeight(const SSettingsContentMetrics &Metrics, bool Custom, int FontSize)
 	{
-		// 两个数值、一个开关、方案标题、三个方案按钮及重置按钮。
-		return 8.0f * Metrics.m_RowStep + PreviewHeight(FontSize) + Metrics.m_LineSpacing +
+		// 两个数值、一个开关、方案标题、单行选择器及重置按钮。
+		return 6.0f * Metrics.m_RowStep + PreviewHeight(FontSize) + Metrics.m_LineSpacing +
 		       (Custom ? 9.0f * ResolveSettingsColorRowLayout({}, Metrics, false).m_ConsumedHeight : 0.0f);
 	}
 

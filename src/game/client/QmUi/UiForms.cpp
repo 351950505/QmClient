@@ -3,6 +3,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "UiForms.h"
 
+#include "SettingsPageLayout.h"
 #include "UiButtons.h"
 #include "UiDiscreteSliderStyle.h"
 #include "UiFormLogic.h"
@@ -394,9 +395,7 @@ namespace ui_widget
 			return Label;
 		}
 
-		const float LabelWidth = std::clamp(Rect.w * 0.25f, 108.0f, 180.0f);
-		Rect.VSplitLeft(LabelWidth, &Label, nullptr);
-		return Label;
+		return ResolveSettingsControlRowLayout(Rect, ResolveSettingsContentMetrics(Rect.w)).m_LabelRect;
 	}
 
 	bool NumericField(const IUiContext &Ctx, SNumericFieldState *pState, const void *pId, int *pValue, int Min, int Max, const CUIRect &Rect, const SNumericFieldOptions &Options)
@@ -429,9 +428,7 @@ namespace ui_widget
 		}
 		else if(HasLabel)
 		{
-			Label = SliderInputFieldLabelRect(Rect, true, Options.m_Flags);
-			Rect.VSplitLeft(Label.w, nullptr, &Controls);
-			Controls.VMargin(std::min(10.0f, Controls.w * 0.025f), &Controls);
+			SplitSettingsControlRow(Rect, ResolveSettingsContentMetrics(Rect.w), &Label, &Controls);
 		}
 		else
 		{
@@ -440,8 +437,7 @@ namespace ui_widget
 
 		const bool HasSuffix = Options.m_pSuffix != nullptr && Options.m_pSuffix[0] != '\0';
 		const float SuffixWidth = HasSuffix ? std::max(18.0f, Options.m_TrailingWidth) : 0.0f;
-		const float MinimumValueWidth = 52.0f + SuffixWidth + 22.0f;
-		const float ValueWidth = std::clamp((MultiLine ? ValueRect.w : Controls.w) * 0.26f, MinimumValueWidth, 128.0f);
+		const float ValueWidth = ResolveSettingsControlWidth(MultiLine ? ValueRect.w : Controls.w, ResolveSettingsContentMetrics(Rect.w), ESettingsControlWidth::NUMBER, SuffixWidth);
 		const bool HasSlider = MultiLine || Controls.w > ValueWidth + 42.0f;
 		if(!MultiLine && HasSlider)
 			Controls.VSplitRight(ValueWidth, &ScrollBar, &InputField);
@@ -654,7 +650,7 @@ namespace ui_widget
 
 	void DrawToggle(const IUiContext &Ctx, const void *pId, bool Value, const CUIRect &Rect, bool Enabled, bool Animate, const CUIRect *pHitRect)
 	{
-		if(Ctx.m_pUi == nullptr)
+		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->DrawingSuppressed())
 			return;
 		Ctx.m_pUi->DoConfigTooltip(pId, pHitRect != nullptr ? pHitRect : &Rect, pId);
 		if(Ctx.m_pUi->MeasurementOnly())

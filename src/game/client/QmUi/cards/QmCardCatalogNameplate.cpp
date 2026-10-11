@@ -1,9 +1,11 @@
-#include "QmCardCatalog.h"
+#include "QmCardCatalogInternal.h"
 
 #include <engine/shared/config.h>
 #include <engine/textrender.h>
 
 #include <game/client/QmUi/QmCardRegistry.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/nameplate_text_effects.h>
@@ -37,14 +39,16 @@ namespace qm_card_catalog
 		SingleLineProps.m_DisallowNewline = true;
 		SingleLineProps.m_StopAtEnd = true;
 		SingleLineProps.m_MinimumFontSize = 6.0f;
-		const auto NextRow = [Metrics](CUIRect &Content) {
-			CUIRect Row;
-			Content.HSplitTop(Metrics.m_LineHeight, &Row, &Content);
-			Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
-			return Row;
+		const auto NextRow = [Metrics](CUIRect &Content, const char *pId, CUIRect &Row) {
+			CSettingsContentLayoutFlow Flow(Content);
+			const bool HasRow = Flow.Control(pId, Metrics.m_LineHeight, Row);
+			Flow.Space(Metrics.m_LineSpacing);
+			return HasRow;
 		};
 		const auto NumericField = [pMenus, Metrics, CardCtx, NextRow](CUIRect &Content, const char *pTextId, const char *pLabel, int *pValue, int Min, int Max) {
-			const CUIRect Row = NextRow(Content);
+			CUIRect Row;
+			if(!NextRow(Content, pTextId, Row))
+				return;
 			ui_widget::SNumericFieldOptions Options;
 			Options.m_pLabel = pLabel;
 			Options.m_FontSize = Metrics.m_BodySize;
@@ -53,35 +57,27 @@ namespace qm_card_catalog
 				return;
 			ui_widget::NumericField(CardCtx, pMenus->GetSettingsNumericFieldState(pValue), pValue, pValue, Min, Max, Row, Options);
 		};
-		const auto CheckBox = [pMenus, Metrics](CUIRect &Content, const char *pTextId, const char *pLabel, int *pValue) {
-			pMenus->DoSettingsButton_CheckBoxAutoVMarginAndSet(Page, Tab, pValue, pTextId, pLabel, pValue, &Content, Metrics.m_LineHeight, 0.0f, Metrics.m_BodySize);
-			Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
+		const auto CheckBox = [pMenus, Metrics, NextRow](CUIRect &Content, const char *pTextId, const char *pLabel, int *pValue) {
+			CUIRect Row;
+			if(NextRow(Content, pTextId, Row) && pMenus->DoSettingsButton_CheckBox(Page, Tab, Tab, pValue, pTextId, pLabel, *pValue, &Row))
+				*pValue ^= 1;
 		};
-		const auto ProcessToggle = [pMenus, NextRow](CUIRect &Content, int *pValue) {
-			const CUIRect Row = NextRow(Content);
-			if(pMenus->TemporaryOverrideTooltip(pValue) != nullptr)
-				return false;
-			if(!pMenus->Ui()->DoButtonLogic(pValue, 0, &Row, BUTTONFLAG_LEFT))
-				return false;
-			*pValue ^= 1;
-			return true;
-		};
-
 		FSettingsCardRenderMeasured Render;
-		FSettingsCardPreLayoutInput PreLayoutInput;
 		if(str_comp(pStableId, "deck:appearance-name-plate-settings") == 0)
 		{
 			Render = [=](CUIRect &Content) {
+				CSettingsContentLayoutFlow Flow(Content);
 				const int *pOverrideSource = pMenus->TemporaryOverrideTooltip(&g_Config.m_QmNameplateShowScope) != nullptr ? &g_Config.m_QmNameplateShowScope : nullptr;
 				int ShowScope = std::clamp(g_Config.m_QmNameplateShowScope, 0, QM_NAMEPLATE_SHOW_SCOPE_COUNT - 1);
-				if(pMenus->DoSettingsLine_RadioMenu(Page, Tab, Tab, Content, "appearance-show-name-plates-label", Localize("Show name plates"),
-					   pMenus->m_vButtonContainersNamePlateShow,
-					   {"appearance-show-name-plates-none", "appearance-show-name-plates-current", "appearance-show-name-plates-local", "appearance-show-name-plates-others", "appearance-show-name-plates-others-local", "appearance-show-name-plates-all"},
-					   {Localize("None", "Show name plates"), Localize("Current", "Show name plates"), Localize("Own characters", "Show name plates"), Localize("Others", "Show name plates"), Localize("Others and own", "Show name plates"), Localize("All", "Show name plates")},
-					   {QM_NAMEPLATE_SHOW_SCOPE_OFF, QM_NAMEPLATE_SHOW_SCOPE_CURRENT, QM_NAMEPLATE_SHOW_SCOPE_LOCAL, QM_NAMEPLATE_SHOW_SCOPE_OTHERS, QM_NAMEPLATE_SHOW_SCOPE_OTHERS_LOCAL, QM_NAMEPLATE_SHOW_SCOPE_ALL},
-					   ShowScope, Metrics, pOverrideSource, &g_Config.m_QmNameplateShowScope))
+				CUIRect RadioRow;
+				if(Flow.Control("nameplate-show", Metrics.m_LineHeight, RadioRow) && pMenus->DoSettingsLine_RadioMenu(Page, Tab, Tab, RadioRow, "appearance-show-name-plates-label", Localize("Show name plates"),
+													     pMenus->m_vButtonContainersNamePlateShow,
+													     {"appearance-show-name-plates-none", "appearance-show-name-plates-current", "appearance-show-name-plates-local", "appearance-show-name-plates-others", "appearance-show-name-plates-others-local", "appearance-show-name-plates-all"},
+													     {Localize("None", "Show name plates"), Localize("Current", "Show name plates"), Localize("Own characters", "Show name plates"), Localize("Others", "Show name plates"), Localize("Others and own", "Show name plates"), Localize("All", "Show name plates")},
+													     {QM_NAMEPLATE_SHOW_SCOPE_OFF, QM_NAMEPLATE_SHOW_SCOPE_CURRENT, QM_NAMEPLATE_SHOW_SCOPE_LOCAL, QM_NAMEPLATE_SHOW_SCOPE_OTHERS, QM_NAMEPLATE_SHOW_SCOPE_OTHERS_LOCAL, QM_NAMEPLATE_SHOW_SCOPE_ALL},
+													     ShowScope, Metrics, pOverrideSource, &g_Config.m_QmNameplateShowScope))
 					g_Config.m_QmNameplateShowScope = ShowScope;
-				Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
+				Flow.Space(Metrics.m_LineSpacing);
 
 				NumericField(Content, "appearance-name-plates-size", Localize("Name plates size"), &g_Config.m_ClNamePlatesSize, -50, 100);
 				NumericField(Content, "appearance-name-plates-offset", Localize("Name plates offset"), &g_Config.m_ClNamePlatesOffset, 10, 50);
@@ -99,32 +95,19 @@ namespace qm_card_catalog
 						NumericField(Content, "appearance-client-ids-size", Localize("Client IDs size"), &g_Config.m_ClNamePlatesIdsSize, -50, 100);
 				}
 			};
-			PreLayoutInput = [=](CUIRect Content) {
-				const float RadioHeight = ResolveSettingsRadioRowLayout(Content, QM_NAMEPLATE_SHOW_SCOPE_COUNT, Metrics).m_Height;
-				Content.HSplitTop(RadioHeight + Metrics.m_LineSpacing, nullptr, &Content);
-				NextRow(Content);
-				NextRow(Content);
-				bool Changed = ProcessToggle(Content, &g_Config.m_ClNamePlatesClan);
-				if(g_Config.m_ClNamePlatesClan)
-					NextRow(Content);
-				NextRow(Content);
-				NextRow(Content);
-				NextRow(Content);
-				Changed = ProcessToggle(Content, &g_Config.m_ClNamePlatesIds) || Changed;
-				if(g_Config.m_ClNamePlatesIds)
-					Changed = ProcessToggle(Content, &g_Config.m_ClNamePlatesIdsSeparateLine) || Changed;
-				return Changed;
-			};
 		}
 		else if(str_comp(pStableId, "deck:appearance-name-plate-text") == 0)
 		{
 			Render = [=](CUIRect &Content) {
+				CSettingsContentLayoutFlow Flow(Content);
 				CheckBox(Content, "appearance-nameplate-advanced", Localize("Show advanced options"), &g_Config.m_QmNameplateAdvanced);
 				if(!g_Config.m_QmNameplateAdvanced)
 					return;
 
 				const auto EffectToggle = [&](int Effect, const char *pTextId, const char *pLabel) {
-					CUIRect Row = NextRow(Content);
+					CUIRect Row;
+					if(!NextRow(Content, pTextId, Row))
+						return;
 					const bool Enabled = (g_Config.m_QmNameplateTextEffects & Effect) != 0;
 					if(pMenus->DoSettingsButton_CheckBox(Page, Tab, Tab, pTextId, pTextId, pLabel, Enabled, &Row, SingleLineProps))
 					{
@@ -139,9 +122,11 @@ namespace qm_card_catalog
 				EffectToggle(QM_TEXT_EFFECT_GLOW, "appearance-nameplate-text-glow", Localize("Glow"));
 
 				const auto ControlRow = [&](const char *pTextId, const char *pLabel, const auto &RenderControl) {
-					CUIRect Row = NextRow(Content);
+					CUIRect Row;
+					if(!NextRow(Content, pTextId, Row))
+						return;
 					CUIRect Label, Control;
-					Row.VSplitLeft(std::min(150.0f, Row.w * 0.42f), &Label, &Control);
+					SplitSettingsControlRow(Row, Metrics, &Label, &Control);
 					SLabelProperties Props;
 					Props.m_DisallowNewline = true;
 					Props.m_StopAtEnd = true;
@@ -224,84 +209,86 @@ namespace qm_card_catalog
 				if(g_Config.m_QmNameplateEffectAutoLod)
 					NumericField(Content, "appearance-nameplate-text-lod-threshold", Localize("Full quality nameplate count"), &g_Config.m_QmNameplateEffectLodThreshold, 4, 64);
 				static CButtonContainer s_BorderColor, s_GradientColor, s_GlowColor;
-				pMenus->DoLine_ColorPicker(&s_BorderColor, Metrics, &Content, Localize("Border color"), &g_Config.m_QmNameplateTextBorderColor, ColorRGBA(0.0f, 0.0f, 0.0f, 0.5f), false, nullptr, true);
-				pMenus->DoLine_ColorPicker(&s_GradientColor, Metrics, &Content, Localize("Gradient color"), &g_Config.m_QmNameplateTextGradientColor, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f), false, nullptr, true);
-				pMenus->DoLine_ColorPicker(&s_GlowColor, Metrics, &Content, Localize("Glow color"), &g_Config.m_QmNameplateTextGlowColor, ColorRGBA(0.30f, 0.78f, 1.0f, 0.40f), false, nullptr, true);
-			};
-			PreLayoutInput = [=](CUIRect Content) {
-				const bool Changed = ProcessToggle(Content, &g_Config.m_QmNameplateAdvanced);
-				if(!g_Config.m_QmNameplateAdvanced || Changed)
-					return Changed;
-				for(int Row = 0; Row < 10; ++Row)
-					NextRow(Content);
-				return ProcessToggle(Content, &g_Config.m_QmNameplateEffectAutoLod);
+				CUIRect s_BorderColorRow;
+				if(Flow.Control("s_BorderColor", Metrics.m_LineHeight, s_BorderColorRow))
+				{
+					pMenus->DoLine_ColorPicker(&s_BorderColor, Metrics, &s_BorderColorRow, Localize("Border color"), &g_Config.m_QmNameplateTextBorderColor, ColorRGBA(0.0f, 0.0f, 0.0f, 0.5f), false, nullptr, true);
+				}
+				Flow.Space(Metrics.m_LineSpacing);
+				CUIRect s_GradientColorRow;
+				if(Flow.Control("s_GradientColor", Metrics.m_LineHeight, s_GradientColorRow))
+				{
+					pMenus->DoLine_ColorPicker(&s_GradientColor, Metrics, &s_GradientColorRow, Localize("Gradient color"), &g_Config.m_QmNameplateTextGradientColor, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f), false, nullptr, true);
+				}
+				Flow.Space(Metrics.m_LineSpacing);
+				CUIRect s_GlowColorRow;
+				if(Flow.Control("s_GlowColor", Metrics.m_LineHeight, s_GlowColorRow))
+				{
+					pMenus->DoLine_ColorPicker(&s_GlowColor, Metrics, &s_GlowColorRow, Localize("Glow color"), &g_Config.m_QmNameplateTextGlowColor, ColorRGBA(0.30f, 0.78f, 1.0f, 0.40f), false, nullptr, true);
+				}
+				Flow.Space(Metrics.m_LineSpacing);
 			};
 		}
 		else if(str_comp(pStableId, "deck:appearance-name-plate-hook-strength") == 0)
 		{
 			Render = [=](CUIRect &Content) {
-				CUIRect Row = NextRow(Content);
-				if(pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, &g_Config.m_ClNamePlatesStrong, "appearance-show-hook-strength-icon", Localize("Show hook strength icon indicator"), g_Config.m_ClNamePlatesStrong, &Row, SingleLineProps))
+				CSettingsContentLayoutFlow Flow(Content);
+				CUIRect Row;
+				const bool HasToggle = NextRow(Content, "hook-strength-enabled", Row);
+				if(HasToggle && pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, &g_Config.m_ClNamePlatesStrong, "appearance-show-hook-strength-icon", Localize("Show hook strength icon indicator"), g_Config.m_ClNamePlatesStrong, &Row, SingleLineProps))
 					g_Config.m_ClNamePlatesStrong = g_Config.m_ClNamePlatesStrong ? 0 : 1;
 				if(!g_Config.m_ClNamePlatesStrong)
 					return;
 				static int s_StrongNumberId;
-				Row = NextRow(Content);
-				pMenus->Ui()->DoConfigTooltip(&s_StrongNumberId, &Row, &g_Config.m_ClNamePlatesStrong);
-				if(pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, &s_StrongNumberId, "appearance-show-hook-strength-number", Localize("Show hook strength number indicator"), g_Config.m_ClNamePlatesStrong == 2, &Row, SingleLineProps))
-					g_Config.m_ClNamePlatesStrong = g_Config.m_ClNamePlatesStrong != 2 ? 2 : 1;
-				pMenus->DoSettingsLine_RadioMenu(Page, Tab, Tab, Content, "appearance-hook-strength-scope-label", Localize("Hook strength scope"),
-					pMenus->m_vButtonContainersNamePlateHookStrongWeakScope,
-					{"appearance-hook-strength-scope-self", "appearance-hook-strength-scope-others", "appearance-hook-strength-scope-strong", "appearance-hook-strength-scope-weak", "appearance-hook-strength-scope-all"},
-					{Localize("Self"), Localize("Others"), Localize("Strong hook"), Localize("Weak hook"), Localize("All")},
-					{QM_HOOK_STRONG_WEAK_SCOPE_SELF, QM_HOOK_STRONG_WEAK_SCOPE_OTHERS, QM_HOOK_STRONG_WEAK_SCOPE_STRONG, QM_HOOK_STRONG_WEAK_SCOPE_WEAK, QM_HOOK_STRONG_WEAK_SCOPE_ALL},
-					g_Config.m_QmNameplateHookStrongWeakScope, Metrics);
-				Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
+				if(NextRow(Content, "hook-strength-number", Row))
+				{
+					pMenus->Ui()->DoConfigTooltip(&s_StrongNumberId, &Row, &g_Config.m_ClNamePlatesStrong);
+					if(pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, &s_StrongNumberId, "appearance-show-hook-strength-number", Localize("Show hook strength number indicator"), g_Config.m_ClNamePlatesStrong == 2, &Row, SingleLineProps))
+						g_Config.m_ClNamePlatesStrong = g_Config.m_ClNamePlatesStrong != 2 ? 2 : 1;
+				}
+				CUIRect RadioRow;
+				if(Flow.Control("hook-strength-scope", Metrics.m_LineHeight, RadioRow))
+				{
+					pMenus->DoSettingsLine_RadioMenu(Page, Tab, Tab, RadioRow, "appearance-hook-strength-scope-label", Localize("Hook strength scope"),
+						pMenus->m_vButtonContainersNamePlateHookStrongWeakScope,
+						{"appearance-hook-strength-scope-self", "appearance-hook-strength-scope-others", "appearance-hook-strength-scope-strong", "appearance-hook-strength-scope-weak", "appearance-hook-strength-scope-all"},
+						{Localize("Self"), Localize("Others"), Localize("Strong hook"), Localize("Weak hook"), Localize("All")},
+						{QM_HOOK_STRONG_WEAK_SCOPE_SELF, QM_HOOK_STRONG_WEAK_SCOPE_OTHERS, QM_HOOK_STRONG_WEAK_SCOPE_STRONG, QM_HOOK_STRONG_WEAK_SCOPE_WEAK, QM_HOOK_STRONG_WEAK_SCOPE_ALL},
+						g_Config.m_QmNameplateHookStrongWeakScope, Metrics);
+				}
+				Flow.Space(Metrics.m_LineSpacing);
 				static CButtonContainer s_StrongColor, s_WeakColor;
-				pMenus->DoLine_ColorPicker(&s_StrongColor, Metrics, &Content, Localize("Strong hook color"), &g_Config.m_QmNameplateStrongHookColor, color_cast<ColorRGBA>(ColorHSLA(6401973)), false);
-				pMenus->DoLine_ColorPicker(&s_WeakColor, Metrics, &Content, Localize("Weak hook color"), &g_Config.m_QmNameplateWeakHookColor, color_cast<ColorRGBA>(ColorHSLA(41131)), false);
+				CUIRect s_StrongColorRow;
+				if(Flow.Control("s_StrongColor", Metrics.m_LineHeight, s_StrongColorRow))
+				{
+					pMenus->DoLine_ColorPicker(&s_StrongColor, Metrics, &s_StrongColorRow, Localize("Strong hook color"), &g_Config.m_QmNameplateStrongHookColor, color_cast<ColorRGBA>(ColorHSLA(6401973)), false);
+				}
+				Flow.Space(Metrics.m_LineSpacing);
+				CUIRect s_WeakColorRow;
+				if(Flow.Control("s_WeakColor", Metrics.m_LineHeight, s_WeakColorRow))
+				{
+					pMenus->DoLine_ColorPicker(&s_WeakColor, Metrics, &s_WeakColorRow, Localize("Weak hook color"), &g_Config.m_QmNameplateWeakHookColor, color_cast<ColorRGBA>(ColorHSLA(41131)), false);
+				}
+				Flow.Space(Metrics.m_LineSpacing);
 				NumericField(Content, "appearance-hook-strength-size", Localize("Size of hook strength icon and number indicator"), &g_Config.m_ClNamePlatesStrongSize, -50, 100);
-			};
-			PreLayoutInput = [=](CUIRect Content) {
-				const CUIRect Row = NextRow(Content);
-				if(!pMenus->Ui()->DoButtonLogic(&g_Config.m_ClNamePlatesStrong, 0, &Row, BUTTONFLAG_LEFT))
-					return false;
-				g_Config.m_ClNamePlatesStrong = g_Config.m_ClNamePlatesStrong ? 0 : 1;
-				return true;
 			};
 		}
 		else if(str_comp(pStableId, "deck:appearance-name-plate-key-presses") == 0)
 		{
 			Render = [=](CUIRect &Content) {
-				pMenus->DoSettingsLine_RadioMenu(Page, Tab, Tab, Content, "appearance-show-key-presses-label", Localize("Show players' key presses"),
-					pMenus->m_vButtonContainersNamePlateKeyPresses,
-					{"appearance-show-key-presses-none", "appearance-show-key-presses-own", "appearance-show-key-presses-others", "appearance-show-key-presses-all"},
-					{Localize("None", "Show players' key presses"), Localize("Own", "Show players' key presses"), Localize("Others", "Show players' key presses"), Localize("All", "Show players' key presses")},
-					{0, 3, 1, 2}, g_Config.m_ClShowDirection, Metrics, &g_Config.m_ClShowDirection);
-				Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
+				CSettingsContentLayoutFlow Flow(Content);
+				CUIRect RadioRow;
+				if(Flow.Control("keypress-scope", Metrics.m_LineHeight, RadioRow))
+				{
+					pMenus->DoSettingsLine_RadioMenu(Page, Tab, Tab, RadioRow, "appearance-show-key-presses-label", Localize("Show players' key presses"),
+						pMenus->m_vButtonContainersNamePlateKeyPresses,
+						{"appearance-show-key-presses-none", "appearance-show-key-presses-own", "appearance-show-key-presses-others", "appearance-show-key-presses-all"},
+						{Localize("None", "Show players' key presses"), Localize("Own", "Show players' key presses"), Localize("Others", "Show players' key presses"), Localize("All", "Show players' key presses")},
+						{0, 3, 1, 2}, g_Config.m_ClShowDirection, Metrics, &g_Config.m_ClShowDirection);
+				}
+				Flow.Space(Metrics.m_LineSpacing);
 				if(g_Config.m_ClShowDirection > 0)
 					NumericField(Content, "appearance-key-press-icons-size", Localize("Size of key press icons"), &g_Config.m_ClDirectionSize, -50, 100);
-			};
-			PreLayoutInput = [=](CUIRect Content) {
-				CUIRect Buttons = ResolveSettingsRadioRowLayout(Content, 4, Metrics).m_ButtonsRect;
-				const int aValues[] = {0, 3, 1, 2};
-				const float ButtonWidth = Buttons.w / 4.0f;
-				const char *pOverrideTooltip = pMenus->TemporaryOverrideTooltip(&g_Config.m_ClShowDirection);
-				bool Changed = false;
-				for(int Index = 0; Index < 4; ++Index)
-				{
-					CUIRect Button;
-					Buttons.VSplitLeft(ButtonWidth, &Button, &Buttons);
-					CButtonContainer *pId = &pMenus->m_vButtonContainersNamePlateKeyPresses[Index];
-					if(pOverrideTooltip != nullptr)
-						pMenus->GameClient()->m_Tooltips.DoToolTip(pId, &Button, pOverrideTooltip);
-					if(pMenus->Ui()->DoButtonLogic(pId, aValues[Index] == g_Config.m_ClShowDirection, &Button, BUTTONFLAG_LEFT) && pOverrideTooltip == nullptr)
-					{
-						g_Config.m_ClShowDirection = aValues[Index];
-						Changed = true;
-					}
-				}
-				return Changed;
 			};
 		}
 		else
@@ -309,17 +296,9 @@ namespace qm_card_catalog
 
 		Out = {};
 		Out.m_Spec = {pDefault->m_pStableId, Localize(pDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pDefault)};
-		// 每张卡按自己的内容回调测量，条件行不再依赖整块昵称设置的累计行数。
-		Out.m_Measure = [pMenus, Render](float ContentWidth) { return MeasureContent(pMenus, Render, ContentWidth); };
 		Out.m_Render = [Render](CUIRect Content) { Render(Content); };
 		Out.m_RenderMeasured = std::move(Render);
-		Out.m_MeasureRevision = NameplateMeasureContentRevision();
-		if(!Ctx.m_ReadOnly)
-		{
-			Out.m_PreLayoutInput = [pMenus, PreLayoutInput](CUIRect Content) {
-				return !pMenus->m_MenuTextPlanCollecting && !pMenus->Ui()->RenderOnly() && PreLayoutInput(Content);
-			};
-		}
+		UseDeclaredModuleContent(Ctx, Out);
 		return true;
 	}
 }

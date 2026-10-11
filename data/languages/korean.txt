@@ -241,6 +241,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - 비활성화, 1-9999 분
 
+0 = auto
+== 0 = 자동
+
 0 disables timed rotation; skins only switch on random start events
 == 0이면 시간 순환을 비활성화하고 무작위 시작 이벤트 때만 스킨을 전환합니다
 
@@ -608,6 +611,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == 잔상 팝
 
+AGC, experimental
+== AGC, 실험적
+
 Agree
 == 동의
 
@@ -778,6 +784,9 @@ Anti Ping Smoothing
 
 Anti-spoof specific rate limit (0 = unlimited).
 == 안티스푸프 특정 속도 제한 (0 = 무제한).
+
+AntiPing
+== 안티핑
 
 AntiPing (latency compensation)
 == 안티핑 (지연 시간 보정)
@@ -1048,6 +1057,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == 새로고침 시 리플레이 정보 자동 가져오기
+
+Auto gain control for mic
+== 마이크 자동 게인 제어
 
 Auto gain control for mic (AGC, experimental)
 == 마이크 자동 게인 제어 (AGC, 실험적)
@@ -2308,6 +2320,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == 컴프레서 임계값 (%)
+
+Concurrency
+== 동시 실행 수
 
 Concurrency (0 = auto)
 == 동시 실행 수 (0 = 자동)
@@ -4055,6 +4070,9 @@ Enable freeze call sound
 Enable frosted glass blur behind secondary popups and dropdowns
 == 하위 팝업과 드롭다운 배경 흐림 활성화
 
+Enable FTAPI auto-translate
+== FTAPI 자동 번역 활성화
+
 Enable FTAPI auto-translate (may overload the service)
 == FTAPI 자동 번역 활성화 (서비스에 과부하가 걸릴 수 있음)
 
@@ -4267,6 +4285,9 @@ Enable Tee trail
 
 Enable tee trails
 == 티 꼬리 활성화
+
+Enable thinking mode
+== 사고 모드 활성화
 
 Enable thinking mode (slower)
 == 사고 모드 활성화 (느림)
@@ -4499,6 +4520,9 @@ Expanded dropdown background color
 Expanded dropdown background opacity percentage
 == 펼쳐진 목록 배경색 — 불투명도 백분율
 
+Experimental
+== 실험적
+
 Export
 == 내보내기
 
@@ -4630,6 +4654,9 @@ Fake CTF flags
 
 Fallback simple noise reduction strength
 == 대체 단순 노이즈 감소 강도
+
+Fast input
+== 빠른 입력
 
 Fast input (reduce visual latency)
 == 빠른 입력 (시각적 지연 감소)
@@ -4837,6 +4864,9 @@ Font store:
 
 Font weight:
 == 글꼴 굵기:
+
+For Gores
+== Gores용
 
 For more info: /cmdlist
 == 더 많은 정보: /cmdlist
@@ -5563,6 +5593,9 @@ High Detail
 
 High to low
 == 높음에서 낮음으로
+
+Higher input latency
+== 입력 지연 증가
 
 Higher values make the wave move faster. Zero stops the movement.
 == 값이 클수록 물결이 빨리 움직입니다. 영으로 설정하면 멈춥니다.
@@ -6446,6 +6479,9 @@ Last viewed client release notes
 Latency
 == 지연 시간
 
+Latency compensation
+== 지연 시간 보정
+
 Latency Jitter
 == 지연 시간 지터
 
@@ -6478,6 +6514,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == 튜토리얼 Wiki
+
+Leave empty to detect automatically
+== 비워두면 자동 감지
 
 Leave empty to disable
 == 비활성화하려면 비워 두세요
@@ -7154,6 +7193,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == 지연이 발생할 수 있음
 
+May overload the service
+== 서비스에 과부하가 걸릴 수 있음
+
 Memory
 == 메모리
 
@@ -7249,6 +7291,9 @@ Milliseconds to apply quick input early
 
 Min size
 == 최소 크기
+
+Mini debug
+== 미니 디버그
 
 Mini features
 == 미니 기능
@@ -7642,6 +7687,9 @@ Native scale (1.0)
 
 Need to have started the map to swap with a player.
 == 플레이어와 교환하려면 맵을 시작해야 합니다.
+
+Negative stability buffer
+== 음수 안정성 버퍼
 
 Negative stability buffer (for Gores)
 == 음수 안정성 버퍼 (Gores용)
@@ -8363,6 +8411,9 @@ Overwrite clan even if empty
 Own hook line width
 == 자신의 갈고리 선 너비
 
+Own team only
+== 같은 팀만 표시
+
 p = Ping latency
 == p = Ping 지연 시간
 
@@ -8869,6 +8920,9 @@ Predict client movement
 
 Predict dummy movement
 == 더미 움직임 예측
+
+Predict events
+== 이벤트 예측
 
 Predict events (experimental)
 == 이벤트 예측 (실험적)
@@ -9523,6 +9577,9 @@ Reduce antiping and player prediction when frozen
 
 Reduce prediction while frozen
 == 동결 중 예측량 줄이기
+
+Reduce visual latency
+== 시각적 지연 감소
 
 Reduced
 == 감소
@@ -10313,6 +10370,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == 리플레이에 플레이어 이름 저장
 
+Save power by lowering update rate
+== 업데이트 속도를 낮춰 전력 절약
+
 Save power by lowering update rate (higher input latency)
 == 업데이트 속도를 낮춰 전력 절약 (입력 지연 증가)
 
@@ -10441,6 +10501,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == 스코어보드 투명도
+
+Scoreboard, chat, spectating
+== 점수판, 채팅, 관전
 
 Scores are private on this server
 == 이 서버의 점수는 비공개입니다
@@ -11008,6 +11071,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == 이름표의 별도 줄에 클라이언트 ID 표시
+
+Show client IDs
+== 클라이언트 ID 표시
 
 Show client IDs (scoreboard, chat, spectating)
 == 클라이언트 ID 표시 (점수판, 채팅, 관전)
@@ -11591,6 +11657,9 @@ Show player Tee
 Show players' key presses
 == 플레이어 키 입력 표시
 
+Show position and angle
+== 위치와 각도 표시
+
 Show position and angle (mini debug)
 == 위치와 각도 표시 (미니 디버그)
 
@@ -12083,6 +12152,9 @@ Slide left
 Slow down the demo
 == 데모 속도 느리게
 
+Slower
+== 느림
+
 Small Tee size
 == 작은 Tee 크기
 
@@ -12442,6 +12514,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == 상태 구성：
+
+Steam client path
+== Steam 클라이언트 경로
 
 Steam client path (leave empty to detect automatically)
 == Steam 클라이언트 경로 (비워두면 자동 감지)
@@ -12863,6 +12938,9 @@ Tee 0.7
 Tee appearance
 == Tee 외형
 
+Tee collision
+== Tee 충돌
+
 Tee collision (Tee to Tee)
 == Tee 충돌(Tee 대 Tee)
 
@@ -12871,6 +12949,9 @@ Tee color
 
 Tee death probe
 == Tee 데스 탐지
+
+Tee freeze probe
+== Tee 프리즈 탐지
 
 Tee freeze probe (Tee to Freeze)
 == Tee 프리즈 탐지(Tee 대 Freeze)
@@ -12886,6 +12967,12 @@ Tee size
 
 Tee status bar
 == Tee 상태 표시줄
+
+Tee to Freeze
+== Tee 대 Freeze
+
+Tee to Tee
+== Tee 대 Tee
 
 Tee trail color
 == Tee 궤적 색상

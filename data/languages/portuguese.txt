@@ -241,6 +241,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - Desativado, 1-9999 minutos
 
+0 = auto
+== 0 = automático
+
 0 disables timed rotation; skins only switch on random start events
 == 0 desativa a rotação temporizada; as skins só mudam em eventos de início aleatório
 
@@ -608,6 +611,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == Efeito de pós-imagem
 
+AGC, experimental
+== AGC, experimental
+
 Agree
 == Concordar
 
@@ -778,6 +784,9 @@ Anti Ping Smoothing
 
 Anti-spoof specific rate limit (0 = unlimited).
 == Limite de taxa específico anti-spoof (0 = ilimitado).
+
+AntiPing
+== AntiPing
 
 AntiPing (latency compensation)
 == AntiPing (compensação de latência)
@@ -1048,6 +1057,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == Buscar automaticamente informações de replay ao atualizar
+
+Auto gain control for mic
+== Controlo automático de ganho para o microfone
 
 Auto gain control for mic (AGC, experimental)
 == Controlo automático de ganho para o microfone (AGC, experimental)
@@ -2308,6 +2320,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == Limiar do compressor (%)
+
+Concurrency
+== Concorrência
 
 Concurrency (0 = auto)
 == Concorrência (0 = automático)
@@ -4055,6 +4070,9 @@ Enable freeze call sound
 Enable frosted glass blur behind secondary popups and dropdowns
 == Ativar desfocagem atrás de janelas secundárias e listas
 
+Enable FTAPI auto-translate
+== Ativar tradução automática FTAPI
+
 Enable FTAPI auto-translate (may overload the service)
 == Ativar tradução automática FTAPI (pode sobrecarregar o serviço)
 
@@ -4267,6 +4285,9 @@ Enable Tee trail
 
 Enable tee trails
 == Ativar rastos de tee
+
+Enable thinking mode
+== Ativar modo de pensamento
 
 Enable thinking mode (slower)
 == Ativar modo de pensamento (mais lento)
@@ -4499,6 +4520,9 @@ Expanded dropdown background color
 Expanded dropdown background opacity percentage
 == Cor de fundo da lista expandida — opacidade em percentagem
 
+Experimental
+== experimental
+
 Export
 == Exportar
 
@@ -4630,6 +4654,9 @@ Fake CTF flags
 
 Fallback simple noise reduction strength
 == Força de redução de ruído simples de fallback
+
+Fast input
+== Entrada rápida
 
 Fast input (reduce visual latency)
 == Entrada rápida (reduz latência visual)
@@ -4837,6 +4864,9 @@ Font store:
 
 Font weight:
 == Espessura do tipo de letra:
+
+For Gores
+== para Gores
 
 For more info: /cmdlist
 == Mais informações: /cmdlist
@@ -5563,6 +5593,9 @@ High Detail
 
 High to low
 == Alto para baixo
+
+Higher input latency
+== maior latência de entrada
 
 Higher values make the wave move faster. Zero stops the movement.
 == Valores maiores aceleram a onda. Zero interrompe o movimento.
@@ -6446,6 +6479,9 @@ Last viewed client release notes
 Latency
 == Latência
 
+Latency compensation
+== compensação de latência
+
 Latency Jitter
 == Variação de latência
 
@@ -6478,6 +6514,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == Aprender
+
+Leave empty to detect automatically
+== vazio para deteção automática
 
 Leave empty to disable
 == Deixe vazio para desativar
@@ -7154,6 +7193,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == pode causar atraso
 
+May overload the service
+== pode sobrecarregar o serviço
+
 Memory
 == Memória
 
@@ -7249,6 +7291,9 @@ Milliseconds to apply quick input early
 
 Min size
 == Tamanho mínimo
+
+Mini debug
+== mini debug
 
 Mini features
 == Mini funcionalidades
@@ -7642,6 +7687,9 @@ Native scale (1.0)
 
 Need to have started the map to swap with a player.
 == Precisa de ter começado o mapa para trocar de lugar com um jogador.
+
+Negative stability buffer
+== Buffer de estabilidade negativa
 
 Negative stability buffer (for Gores)
 == Buffer de estabilidade negativa (para Gores)
@@ -8363,6 +8411,9 @@ Overwrite clan even if empty
 Own hook line width
 == Largura da própria linha de gancho
 
+Own team only
+== apenas própria equipa
+
 p = Ping latency
 == p = Latência de ping
 
@@ -8869,6 +8920,9 @@ Predict client movement
 
 Predict dummy movement
 == Prever movimento do Dummy
+
+Predict events
+== Prever eventos
 
 Predict events (experimental)
 == Prever eventos (experimental)
@@ -9523,6 +9577,9 @@ Reduce antiping and player prediction when frozen
 
 Reduce prediction while frozen
 == Reduzir a previsão enquanto estiver congelado
+
+Reduce visual latency
+== reduz latência visual
 
 Reduced
 == Reduzido
@@ -10313,6 +10370,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == Guardar nomes de jogadores na repetição
 
+Save power by lowering update rate
+== Economize energia reduzindo a taxa de atualização
+
 Save power by lowering update rate (higher input latency)
 == Economize energia reduzindo a taxa de atualização (maior latência de entrada)
 
@@ -10441,6 +10501,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == Transparência do placar
+
+Scoreboard, chat, spectating
+== placar, chat, a espetar
 
 Scores are private on this server
 == As pontuações são privadas neste servidor
@@ -11008,6 +11071,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == Mostrar ID do cliente em linha separada na placa de identificação
+
+Show client IDs
+== Mostrar IDs do cliente
 
 Show client IDs (scoreboard, chat, spectating)
 == Mostrar IDs do cliente (placar, chat, a espetar)
@@ -11591,6 +11657,9 @@ Show player Tee
 Show players' key presses
 == Mostrar teclas premidas dos jogadores
 
+Show position and angle
+== Mostrar posição e ângulo
+
 Show position and angle (mini debug)
 == Mostrar posição e ângulo (mini debug)
 
@@ -12083,6 +12152,9 @@ Slide left
 Slow down the demo
 == Abrandar a demo
 
+Slower
+== mais lento
+
 Small Tee size
 == Tamanho pequeno do Tee
 
@@ -12442,6 +12514,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == Esquema de Estado:
+
+Steam client path
+== Caminho do cliente Steam
 
 Steam client path (leave empty to detect automatically)
 == Caminho do cliente Steam (vazio para deteção automática)
@@ -12863,6 +12938,9 @@ Tee 0.7
 Tee appearance
 == Aparência do Tee
 
+Tee collision
+== Colisão de Tee
+
 Tee collision (Tee to Tee)
 == Colisão de Tee (Tee contra Tee)
 
@@ -12871,6 +12949,9 @@ Tee color
 
 Tee death probe
 == Deteção de morte do Tee
+
+Tee freeze probe
+== Deteção de Freeze do Tee
 
 Tee freeze probe (Tee to Freeze)
 == Deteção de Freeze do Tee (Tee contra Freeze)
@@ -12886,6 +12967,12 @@ Tee size
 
 Tee status bar
 == Barra de estado do Tee
+
+Tee to Freeze
+== Tee contra Freeze
+
+Tee to Tee
+== Tee contra Tee
 
 Tee trail color
 == Cor do rasto do Tee

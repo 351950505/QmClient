@@ -22,6 +22,7 @@
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
+#include <vector>
 
 namespace qm_ui_test
 {
@@ -32,6 +33,8 @@ namespace qm_ui_test
 		CUIRect m_MapRect{0, 0, 1920, 1080};
 
 	public:
+		std::vector<IGraphics::SRoundedRectSdfParams> m_vRoundedSubmissions;
+		std::vector<CUIRect> m_vRectSubmissions;
 		// 测试只改变 framebuffer 设备尺寸，真实字号量化与布局仍由文字引擎执行。
 		void SetFramebufferSize(int Width, int Height)
 		{
@@ -50,8 +53,14 @@ namespace qm_ui_test
 			*pX1 = m_MapRect.x + m_MapRect.w;
 			*pY1 = m_MapRect.y + m_MapRect.h;
 		}
+		// 普通分隔线也属于 GPU 提交边界，不替换控件布局或输入。
+		void DrawRect(float X, float Y, float W, float H, ColorRGBA, int, float) override
+		{
+			++m_Draws;
+			m_vRectSubmissions.push_back({X, Y, W, H});
+		}
 		bool HasRoundedRectSdf() override { return true; }
-		void RenderRoundedRectSdf(const SRoundedRectSdfParams &) override {}
+		void RenderRoundedRectSdf(const SRoundedRectSdfParams &Params) override { m_vRoundedSubmissions.push_back(Params); }
 		// 裁剪、光标与选区只提交 GPU 绘制，不替代真实文字布局和输入行为。
 		void ClipEnable(int, int, int, int) override {}
 		void ClipDisable() override {}

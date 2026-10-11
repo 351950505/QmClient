@@ -74,12 +74,20 @@ struct SSettingsCardVisualState
 
 inline bool SettingsCardInteractionBorderVisible(const SSettingsCardVisualState &State)
 {
-	return State.m_Focused || State.m_Dragged || State.m_DropFeedback;
+	return State.m_Dragged || State.m_DropFeedback;
 }
 
-inline bool SettingsCardShouldDrawChrome(const bool RenderOnly)
+// 副标题使用整卡锚点；普通 focus/click 不能改变卡片的外观或正文布局。
+template<typename TTooltip>
+inline void ExecuteSettingsCardSubtitleTooltip(const SSettingsCardSpec &Spec, const CUIRect &Card, bool PointerInside, bool DrawChrome, TTooltip &&Tooltip)
 {
-	return !RenderOnly;
+	if(PointerInside && DrawChrome && Spec.m_pSubtitle != nullptr && Spec.m_pSubtitle[0] != '\0')
+		Tooltip(Card, Spec.m_pSubtitle);
+}
+
+inline bool SettingsCardShouldDrawChrome(const bool MeasurementOnly)
+{
+	return !MeasurementOnly;
 }
 
 template<typename TDrawSurface, typename TDrawBorderedSurface>
@@ -151,7 +159,7 @@ inline SSettingsCardFrame ResolveSettingsCardDrawFrame(SSettingsCardFrame Frame,
 
 inline ColorRGBA ResolveSettingsCardSurfaceColor(ColorRGBA Surface, const SSettingsCardVisualState &State)
 {
-	// Hover、焦点与拖放反馈只属于边框；卡片内部仅跟随整个 Deck 的绘制透明度。
+	// 普通 hover/点击/焦点不染色；拖放仅提示边框，内部只跟随 Deck 透明度。
 	Surface.a *= State.m_DrawAlpha;
 	return Surface;
 }
@@ -210,21 +218,31 @@ using FSettingsCardCollapseChanged = std::function<void(bool Collapsed)>;
 // 消费 CUIRect，Deck 就能得到实际布局高度，不再要求页面重复维护行数常量。
 inline constexpr float SETTINGS_CARD_CONTENT_MEASURE_PROBE_HEIGHT = 1000000.0f;
 
+// 使用正式绘制的消费结果校验缓存，无需每帧再执行一次探针布局。
+inline float RenderSettingsCardObservedContent(const FSettingsCardRenderMeasured &Render, CUIRect &Content)
+{
+	if(!Render)
+		return -1.0f;
+	const float StartY = Content.y;
+	Render(Content);
+	const float Height = Content.y - StartY;
+	return std::isfinite(Height) ? std::clamp(Height, 0.0f, SETTINGS_CARD_CONTENT_MEASURE_PROBE_HEIGHT) : -1.0f;
+}
+
 inline float ResolveSettingsCardContentHeight(const FSettingsCardRenderMeasured &Render, const float ContentWidth)
 {
 	if(!Render)
 		return 0.0f;
 	const float Width = std::isfinite(ContentWidth) ? std::max(0.0f, ContentWidth) : 0.0f;
 	CUIRect Probe{0.0f, 0.0f, Width, SETTINGS_CARD_CONTENT_MEASURE_PROBE_HEIGHT};
-	Render(Probe);
-	if(!std::isfinite(Probe.h))
-		return 0.0f;
-	return std::clamp(SETTINGS_CARD_CONTENT_MEASURE_PROBE_HEIGHT - Probe.h, 0.0f, SETTINGS_CARD_CONTENT_MEASURE_PROBE_HEIGHT);
+	// 读取光标前进量，避免大虚拟高度减去剩余高度时吞掉小数行间距。
+	// 与正式绘制的消费反馈共用口径，稳定内容不会反复使缓存失效。
+	return std::max(0.0f, RenderSettingsCardObservedContent(Render, Probe));
 }
 
 void RenderSettingsCardCollapseButton(const IUiContext &Ctx, const CUIRect &Rect, bool Collapsed, float DrawAlpha = 1.0f, const void *pId = nullptr);
 
-SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const CUIRect &Slot, const SSettingsCardSpec &Spec, const SSettingsCardVisualState &State, const SSettingsCardDeckVisualOptions &VisualOptions, const FSettingsCardMeasure &Measure, const FSettingsCardRender &Render, const FSettingsCardHeaderAction &HeaderAction = {}, const FSettingsCardRenderMeasured &RenderMeasured = {}, bool *pPointerInside = nullptr);
-SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame &Frame, const SSettingsCardSpec &Spec, const SSettingsCardVisualState &State, const SSettingsCardDeckVisualOptions &VisualOptions, const FSettingsCardRender &Render, const FSettingsCardHeaderAction &HeaderAction = {}, const FSettingsCardRenderMeasured &RenderMeasured = {}, bool *pPointerInside = nullptr);
+SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const CUIRect &Slot, const SSettingsCardSpec &Spec, const SSettingsCardVisualState &State, const SSettingsCardDeckVisualOptions &VisualOptions, const FSettingsCardMeasure &Measure, const FSettingsCardRender &Render, const FSettingsCardHeaderAction &HeaderAction = {}, const FSettingsCardRenderMeasured &RenderMeasured = {}, bool *pPointerInside = nullptr, float *pObservedContentHeight = nullptr);
+SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame &Frame, const SSettingsCardSpec &Spec, const SSettingsCardVisualState &State, const SSettingsCardDeckVisualOptions &VisualOptions, const FSettingsCardRender &Render, const FSettingsCardHeaderAction &HeaderAction = {}, const FSettingsCardRenderMeasured &RenderMeasured = {}, bool *pPointerInside = nullptr, float *pObservedContentHeight = nullptr);
 
 #endif

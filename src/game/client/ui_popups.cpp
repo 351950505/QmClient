@@ -4,6 +4,7 @@
 #include "QmUi/QmPopupPointer.h"
 #include "QmUi/QmPopupSource.h"
 #include "QmUi/QmUiPerf.h"
+#include "QmUi/SecondaryPanel.h"
 #include "QmUi/UiSurface.h"
 #include "QmUi/UiSurfaceText.h"
 #include "QmUi/UiTheme.h"
@@ -28,6 +29,11 @@
 #include <algorithm>
 #include <cmath>
 
+SPopupMenuProperties CUi::SecondaryPanelProperties()
+{
+	return ui_widget::SecondaryPanelProperties();
+}
+
 const CUIRect *CUi::GetPopupMenuRect(const SPopupMenuId *pId) const
 {
 	const auto PopupMenuIt = std::find_if(m_vPopupMenus.begin(), m_vPopupMenus.end(), [pId](const SPopupMenu &PopupMenu) { return !PopupMenu.m_Closing && PopupMenu.m_pId == pId; });
@@ -38,6 +44,33 @@ void CUi::DoPopupMenu(const SPopupMenuId *pId, float X, float Y, float Width, fl
 {
 	if(RenderOnly())
 		return;
+	const auto CaptureFocus = [this]() {
+		SPopupFocus Focus = m_KeyboardFocus;
+		if(CLineInput *pInput = CLineInput::GetActiveInput())
+		{
+			Focus.m_pItem = pInput;
+			Focus.m_pTextInput = pInput;
+			Focus.m_pPopupId = m_pTrackedTextPopupId;
+			Focus.m_Source = m_TextInputSource;
+		}
+		else if(Focus.m_pItem == nullptr)
+		{
+			Focus.m_pItem = m_pLastActiveItem;
+			Focus.m_pPopupId = m_pRenderingPopupId;
+			Focus.m_Source.Assign(m_pInteractionContext, m_pInteractionCardId, PopupSourceFrame());
+		}
+		return Focus;
+	};
+	const auto SuspendFocus = [this]() {
+		if(CLineInput *pActiveInput = CLineInput::GetActiveInput())
+			pActiveInput->Deactivate();
+		ReleaseTrackedTextInput();
+		m_KeyboardFocus = {};
+		m_PendingPopupFocus = {};
+		m_pLastActiveItem = nullptr;
+		SetActiveItem(nullptr);
+		m_ActiveButtonLogicButton = -1;
+	};
 	SPopupMenuProperties ResolvedProps = Props;
 	if(ResolvedProps.m_CenterInViewport)
 	{
@@ -74,8 +107,16 @@ void CUi::DoPopupMenu(const SPopupMenuId *pId, float X, float Y, float Width, fl
 		// 出场动画期间被重新打开：取消关闭状态并重放入场动画。
 		if(ExistingPopupMenu->m_Closing)
 		{
+			SPopupFocus Focus = CaptureFocus();
+			// 来源尚未重绘时立即重开，沿用这一面板原来的返回目标；新点击焦点优先。
+			if(m_KeyboardFocus.m_pItem == nullptr && CLineInput::GetActiveInput() == nullptr)
+				Focus = ExistingPopupMenu->m_ReturnFocus;
+			ExistingPopupMenu->m_ReturnFocus = ResolvedProps.m_ReturnFocus ? Focus : SPopupFocus{};
+			ExistingPopupMenu->m_OpenedFrame = PopupSourceFrame();
 			ExistingPopupMenu->m_Closing = false;
 			ExistingPopupMenu->m_OpenStart = ResolvedProps.m_Animate ? Client()->LocalTime() : -1.0f;
+			if(ResolvedProps.m_BlockUnderlyingPointerInput)
+				SuspendFocus();
 		}
 		return;
 	}
@@ -85,6 +126,8 @@ void CUi::DoPopupMenu(const SPopupMenuId *pId, float X, float Y, float Width, fl
 	pNewMenu->m_pId = pId;
 	pNewMenu->m_Props = ResolvedProps;
 	pNewMenu->m_Source.Assign(m_pInteractionContext, m_pInteractionCardId, PopupSourceFrame());
+	pNewMenu->m_ReturnFocus = ResolvedProps.m_ReturnFocus ? CaptureFocus() : SPopupFocus{};
+	pNewMenu->m_OpenedFrame = PopupSourceFrame();
 	pNewMenu->m_Rect.x = X;
 	pNewMenu->m_Rect.y = Y;
 	pNewMenu->m_Rect.w = Width;
@@ -94,11 +137,7 @@ void CUi::DoPopupMenu(const SPopupMenuId *pId, float X, float Y, float Width, fl
 	pNewMenu->m_OpenStart = ResolvedProps.m_Animate ? Client()->LocalTime() : -1.0f;
 	if(ResolvedProps.m_BlockUnderlyingPointerInput)
 	{
-		if(CLineInput *pActiveInput = CLineInput::GetActiveInput())
-			pActiveInput->Deactivate();
-		m_pLastActiveItem = nullptr;
-		SetActiveItem(nullptr);
-		m_ActiveButtonLogicButton = -1;
+		SuspendFocus();
 		SetHotItem(pId);
 	}
 }
@@ -215,7 +254,7 @@ void CUi::RenderPopupMenus()
 		// 被来源新鲜度检查收掉；CUi::Update 的兜底清扫仍会关闭真正失联的弹窗。
 		if(PopupMenu.m_Props.m_RequireSourceRefresh && !QmDropdownSourceAlive(PopupSourceFrame(), PopupMenu.m_Props.m_SourceFrame, true))
 		{
-			ClosePopupMenu(pId);
+			ClosePopupMenu(pId, false, false);
 			--i;
 			continue;
 		}
@@ -247,7 +286,8 @@ void CUi::RenderPopupMenus()
 		const bool InsideGroup = std::any_of(m_vPopupMenus.begin(), m_vPopupMenus.end(), [this](const SPopupMenu &Menu) {
 			return !Menu.m_Closing && MouseInside(&Menu.m_Rect) && (!Menu.m_Props.m_ClipToViewport || MouseInside(&Menu.m_Props.m_Viewport));
 		});
-		const SQmPopupPointerInput PointerInput{Active, PopupMenu.m_Props.m_BlockUnderlyingPointerInput, Inside, MouseButtonClicked(0) != 0, MouseButton(0) != 0, CheckActiveItem(pId), HotItem() == pId, InsideGroup};
+		const bool OpeningFrame = PopupMenu.m_Props.m_IgnoreOpeningClick && PopupMenu.m_OpenedFrame == PopupSourceFrame();
+		const SQmPopupPointerInput PointerInput{Active, PopupMenu.m_Props.m_BlockUnderlyingPointerInput, Inside, !OpeningFrame && MouseButtonClicked(0) != 0, !OpeningFrame && MouseButton(0) != 0, CheckActiveItem(pId), HotItem() == pId, InsideGroup};
 		const EQmPopupPointerAction PointerAction = QmResolvePopupPointerAction(PointerInput);
 		const bool CloseBeforeRender = PointerAction == EQmPopupPointerAction::CLOSE || PointerAction == EQmPopupPointerAction::CLOSE_GROUP;
 		if(PointerAction == EQmPopupPointerAction::CAPTURE)
@@ -374,8 +414,8 @@ void CUi::RenderPopupMenus()
 					EffectiveBorder.WithAlpha(EffectiveBorder.a * AnimAlphaMul),
 					CornerRadius, SPopupMenu::POPUP_BORDER, PopupProps.m_Corners);
 			}
-			PopupRect.Margin(SPopupMenu::POPUP_BORDER, &PopupRect);
-			PopupRect.Margin(SPopupMenu::POPUP_MARGIN, &PopupRect);
+			const float ContentInset = PopupProps.m_ContentInset >= 0.0f ? PopupProps.m_ContentInset : SPopupMenu::POPUP_BORDER + SPopupMenu::POPUP_MARGIN;
+			PopupRect.Margin(ContentInset, &PopupRect);
 
 			// The popup render function can open/close popups, which may resize the vector and thus
 			// invalidate the variable PopupMenu. We therefore store pId in a separate variable.
@@ -409,7 +449,7 @@ void CUi::RenderPopupMenus()
 	m_RenderingPopupMenus = false;
 }
 
-void CUi::ClosePopupMenu(const SPopupMenuId *pId, bool IncludeDescendants)
+void CUi::ClosePopupMenu(const SPopupMenuId *pId, bool IncludeDescendants, bool RestoreFocus)
 {
 	auto PopupMenuToClose = std::find_if(m_vPopupMenus.begin(), m_vPopupMenus.end(), [pId](const SPopupMenu &PopupMenu) { return PopupMenu.m_pId == pId; });
 	if(PopupMenuToClose != m_vPopupMenus.end())
@@ -417,6 +457,15 @@ void CUi::ClosePopupMenu(const SPopupMenuId *pId, bool IncludeDescendants)
 		// 出场动画已在播放：等待渲染循环自然移除，避免重置动画起点或重复回调。
 		if(!IncludeDescendants && PopupMenuToClose->m_Closing)
 			return;
+		const SPopupFocus ReturnFocus = PopupMenuToClose->m_Closing ? SPopupFocus{} : PopupMenuToClose->m_ReturnFocus;
+		std::vector<std::function<void()>> vClosedCallbacks;
+		for(auto It = PopupMenuToClose; It != m_vPopupMenus.end(); ++It)
+		{
+			if(!It->m_Closing && It->m_Props.m_OnClosed)
+				vClosedCallbacks.push_back(It->m_Props.m_OnClosed);
+			if(m_KeyboardFocus.m_pPopupId == It->m_pId)
+				m_KeyboardFocus = {};
+		}
 		if(m_pTrackedTextPopupId != nullptr && std::any_of(PopupMenuToClose, m_vPopupMenus.end(), [this](const SPopupMenu &Popup) {
 			   return Popup.m_pId == m_pTrackedTextPopupId;
 		   }))
@@ -430,6 +479,10 @@ void CUi::ClosePopupMenu(const SPopupMenuId *pId, bool IncludeDescendants)
 			PopupMenuToClose->m_Closing = true;
 			PopupMenuToClose->m_CloseStart = Client()->LocalTime();
 			SetActiveItem(nullptr);
+			if(RestoreFocus)
+				QueuePopupFocusRestore(ReturnFocus);
+			for(const auto &Callback : vClosedCallbacks)
+				Callback();
 			if(m_pfnPopupMenuClosedCallback)
 				m_pfnPopupMenuClosedCallback();
 			return;
@@ -453,6 +506,10 @@ void CUi::ClosePopupMenu(const SPopupMenuId *pId, bool IncludeDescendants)
 				m_vPopupMenus.end());
 		}
 		SetActiveItem(nullptr);
+		if(RestoreFocus)
+			QueuePopupFocusRestore(ReturnFocus);
+		for(const auto &Callback : vClosedCallbacks)
+			Callback();
 		if(m_pfnPopupMenuClosedCallback)
 			m_pfnPopupMenuClosedCallback();
 	}
@@ -466,21 +523,48 @@ void CUi::RefreshInteractionSource(const void *pContext, const char *pCardId)
 	for(SPopupMenu &Popup : m_vPopupMenus)
 		Popup.m_Source.Refresh(pContext, pCardId, Frame);
 	m_TextInputSource.Refresh(pContext, pCardId, Frame);
+	for(const auto &Pending : m_vPendingSelections)
+		if(const auto pCommit = Pending.lock())
+			pCommit->m_Source.Refresh(pContext, pCardId, Frame);
+}
+
+void CUi::RegisterSelectionCommit(std::shared_ptr<SQmUiSelectionCommit> &pCommit)
+{
+	if(m_pInteractionContext == nullptr || m_pInteractionCardId == nullptr || pCommit)
+		return;
+	pCommit = std::make_shared<SQmUiSelectionCommit>();
+	pCommit->m_Source.Assign(m_pInteractionContext, m_pInteractionCardId, PopupSourceFrame());
+	m_vPendingSelections.emplace_back(pCommit);
+}
+
+bool CUi::HasPendingInteractionSelection() const
+{
+	return std::any_of(m_vPendingSelections.begin(), m_vPendingSelections.end(), [this](const auto &Pending) {
+		const auto pCommit = Pending.lock();
+		return pCommit && !pCommit->m_Cancelled && pCommit->m_Source.Matches(m_pInteractionContext, m_pInteractionCardId);
+	});
 }
 
 void CUi::CloseInteractionSource(const void *pContext, const char *pCardId)
 {
 	if(RenderOnly())
 		return;
+	for(const auto &Pending : m_vPendingSelections)
+		if(const auto pCommit = Pending.lock(); pCommit && pCommit->m_Source.Matches(pContext, pCardId))
+			pCommit->m_Cancelled = true;
 	for(size_t Index = 0; Index < m_vPopupMenus.size();)
 	{
 		if(m_vPopupMenus[Index].m_Source.Matches(pContext, pCardId))
-			ClosePopupMenu(m_vPopupMenus[Index].m_pId, true);
+			ClosePopupMenu(m_vPopupMenus[Index].m_pId, true, false);
 		else
 			++Index;
 	}
 	if(m_TextInputSource.Matches(pContext, pCardId))
 		ReleaseTrackedTextInput();
+	if(m_KeyboardFocus.m_Source.Matches(pContext, pCardId))
+		m_KeyboardFocus = {};
+	if(m_PendingPopupFocus.m_Source.Matches(pContext, pCardId))
+		m_PendingPopupFocus = {};
 }
 
 void CUi::PruneInteractionSources(bool AllowPreviousFrame)
@@ -488,10 +572,19 @@ void CUi::PruneInteractionSources(bool AllowPreviousFrame)
 	if(RenderOnly())
 		return;
 	const uint64_t Frame = PopupSourceFrame();
+	m_vPendingSelections.erase(std::remove_if(m_vPendingSelections.begin(), m_vPendingSelections.end(), [Frame, AllowPreviousFrame](const auto &Pending) {
+		const auto pCommit = Pending.lock();
+		if(!pCommit)
+			return true;
+		if(pCommit->m_Source.Expired(Frame, AllowPreviousFrame))
+			pCommit->m_Cancelled = true;
+		return pCommit->m_Cancelled;
+	}),
+		m_vPendingSelections.end());
 	for(size_t Index = 0; Index < m_vPopupMenus.size();)
 	{
 		if(m_vPopupMenus[Index].m_Source.Expired(Frame, AllowPreviousFrame))
-			ClosePopupMenu(m_vPopupMenus[Index].m_pId, true);
+			ClosePopupMenu(m_vPopupMenus[Index].m_pId, true, false);
 		else
 			++Index;
 	}
@@ -517,15 +610,29 @@ bool CUi::CloseTopPopupMenu()
 	return true;
 }
 
-void CUi::ClosePopupMenus()
+void CUi::ClosePopupMenus(bool RestoreFocus)
 {
 	if(m_vPopupMenus.empty())
 		return;
 
 	if(m_pTrackedTextPopupId != nullptr)
 		ReleaseTrackedTextInput();
+	const SPopupFocus ReturnFocus = m_vPopupMenus.front().m_Closing ? SPopupFocus{} : m_vPopupMenus.front().m_ReturnFocus;
+	std::vector<std::function<void()>> vClosedCallbacks;
+	for(const auto &Popup : m_vPopupMenus)
+	{
+		if(!Popup.m_Closing && Popup.m_Props.m_OnClosed)
+			vClosedCallbacks.push_back(Popup.m_Props.m_OnClosed);
+	}
 	m_vPopupMenus.clear();
+	m_KeyboardFocus = {};
 	SetActiveItem(nullptr);
+	if(RestoreFocus)
+		QueuePopupFocusRestore(ReturnFocus);
+	else
+		m_PendingPopupFocus = {};
+	for(const auto &Callback : vClosedCallbacks)
+		Callback();
 	if(m_pfnPopupMenuClosedCallback)
 		m_pfnPopupMenuClosedCallback();
 }
@@ -660,6 +767,7 @@ CUi::SSelectionPopupContext::SSelectionPopupContext()
 
 void CUi::SSelectionPopupContext::Reset()
 {
+	m_pCommit.reset();
 	m_pUI = nullptr;
 	m_pScrollRegion = nullptr;
 	m_Props = SPopupMenuProperties();
@@ -752,6 +860,7 @@ CUi::EPopupMenuFunctionResult CUi::PopupSelection(void *pContext, CUIRect View, 
 	{
 		pSelectionPopup->m_SelectionIndex = pSelectionPopup->m_Search.SourceIndex(KeyboardResult.m_SelectedIndex);
 		pSelectionPopup->m_pSelection = &pSelectionPopup->m_vEntries[pSelectionPopup->m_SelectionIndex];
+		pUI->RegisterSelectionCommit(pSelectionPopup->m_pCommit);
 	}
 	if(KeyboardResult.m_Closed)
 		return CUi::POPUP_CLOSE_CURRENT;
@@ -818,6 +927,7 @@ CUi::EPopupMenuFunctionResult CUi::PopupSelection(void *pContext, CUIRect View, 
 			{
 				pSelectionPopup->m_pSelection = &Entry;
 				pSelectionPopup->m_SelectionIndex = SourceIndex;
+				pUI->RegisterSelectionCommit(pSelectionPopup->m_pCommit);
 			}
 		}
 		++Index;
@@ -945,19 +1055,35 @@ int CUi::DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, 
 																pRect->h * ms_FontmodHeight * 0.8f;
 	if(RenderOnly())
 	{
-		SMenuButtonProperties Props;
-		Props.m_Enabled = DropDownProps.m_Enabled;
-		Props.m_ShowDropDownIcon = true;
-		Props.m_Checked = IsPopupOpen(&State.m_SelectionPopupContext) ? 1 : 0;
-		Props.m_FontSize = ResolvedFontSize;
-		Props.m_Color = DropDownProps.m_VisualStyle.m_TriggerColor;
-		DoButton_Menu(State.m_UiElement, &State.m_ButtonContainer, [=]() { return pStrs != nullptr && CurSelection >= 0 && CurSelection < Num ? pStrs[CurSelection] : ""; }, pRect, Props);
+		if(BackgroundRender() && !DrawingSuppressed() && pRect != nullptr && pStrs != nullptr)
+		{
+			if(!State.m_Init)
+			{
+				State.m_UiElement.Init(this, -1);
+				State.m_Init = true;
+			}
+			SMenuButtonProperties Props;
+			Props.m_Enabled = DropDownProps.m_Enabled;
+			Props.m_Checked = IsPopupOpen(&State.m_SelectionPopupContext) ? 1 : 0;
+			Props.m_ShowDropDownIcon = true;
+			Props.m_HintRequiresStringCheck = true;
+			Props.m_HintCanChangePositionOrSize = true;
+			Props.m_FontSize = ResolvedFontSize;
+			Props.m_Color = DropDownProps.m_VisualStyle.m_TriggerColor;
+			DoButton_Menu(State.m_UiElement, &State.m_ButtonContainer, [CurSelection, pStrs, Num] { return CurSelection >= 0 && CurSelection < Num ? pStrs[CurSelection] : ""; }, pRect, Props);
+		}
 		return CurSelection;
 	}
-
-	if(!State.m_Init)
+	if(State.m_SelectionPopupContext.m_pCommit && State.m_SelectionPopupContext.m_pCommit->m_Cancelled)
 	{
-		State.m_UiElement.Init(this, -1);
+		State.m_DropDownState.Reset();
+		State.m_SelectionPopupContext.Reset();
+	}
+
+	if(!State.m_Init || !State.m_pOwnedScrollRegion)
+	{
+		if(!State.m_Init)
+			State.m_UiElement.Init(this, -1);
 		State.m_pOwnedScrollRegion = std::make_shared<CScrollRegion>();
 		State.m_pScrollRegion = State.m_SelectionPopupContext.m_pScrollRegion != nullptr ? State.m_SelectionPopupContext.m_pScrollRegion : State.m_pOwnedScrollRegion.get();
 		State.m_SelectionPopupContext.m_pScrollRegion = State.m_pScrollRegion;
@@ -1080,6 +1206,7 @@ int CUi::DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, 
 		const bool FontFaceAvailabilityCheck = State.m_SelectionPopupContext.m_FontFaceAvailabilityCheck;
 		const bool FontFamilySelection = State.m_SelectionPopupContext.m_FontFamilySelection;
 		State.m_SelectionPopupContext.Reset();
+		State.m_SelectionPopupContext.m_Props.m_ReturnFocus = true;
 		State.m_SelectionPopupContext.m_pScrollRegion = pScrollRegion != nullptr ? pScrollRegion : State.m_pScrollRegion;
 		State.m_SelectionPopupContext.m_SpecialFontRenderMode = SpecialFontRenderMode;
 		State.m_SelectionPopupContext.m_FontFaceAvailabilityCheck = FontFaceAvailabilityCheck;

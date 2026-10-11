@@ -38,6 +38,7 @@
 #include <game/client/QmUi/QmTree.h>
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsLabelMetadata.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContainers.h>
 #include <game/client/QmUi/UiContext.h>
@@ -393,25 +394,32 @@ ui_widget::SCapsuleTabBarStyle CMenus::MenuCapsuleTabBarStyle() const
 	return Style;
 }
 
-int CMenus::DoSegmentedChoice(CButtonContainer *pButtons, const char *const *ppLabels, const int Count, const int Current, const CUIRect &Segments, const float Rounding, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle)
+int CMenus::DoSegmentedChoice(CButtonContainer *pButtons, const char *const *ppLabels, const int Count, const int Current, const CUIRect &Segments, const float Rounding, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle, float FontSize, const void *pConfigValue, const void *pSecondConfigValue)
 {
 	int NewValue = Current;
-	if(Count <= 0 || pButtons == nullptr || ppLabels == nullptr)
+	if(pButtons == nullptr)
 		return NewValue;
-	// 胶囊 Tabbar：槽位先算完，再画容器与滑块，最后画分段文字 —— 滑块压在文字之下。
-	// 同一界面可能有多行选择器，行标识带上按钮数组地址，避免共用一条滑块轨道。
-	CUIRect aSegmentSlots[8];
-	const int SegmentCount = std::clamp(Count, 1, (int)std::size(aSegmentSlots));
-	CUIRect SegmentsRemainder = Segments;
-	for(int i = 0; i < SegmentCount; ++i)
-		SegmentsRemainder.VSplitLeft(SegmentsRemainder.w / (SegmentCount - i), &aSegmentSlots[i], &SegmentsRemainder);
+	if(FontSize <= 0.0f)
+		FontSize = std::max(0.0f, Segments.h - 4.0f) * CUi::ms_FontmodHeight;
+	SSettingsRadioState &State = m_SettingsRadioStates[pButtons];
+	const auto Layout = PrepareSettingsChoice(*Ui(), State, Segments, ppLabels, Count, FontSize);
+	if(Count <= 0 || ppLabels == nullptr)
+		return NewValue;
+	if(Layout.m_UseDropdown)
+	{
+		CUIRect Trigger = Segments;
+		CUi::SDropDownProperties Props;
+		Props.m_FontSize = FontSize;
+		return DoSettingsDropDown(&Trigger, Current >= 0 && Current < Count ? Current : -1, ppLabels, Count, State.m_DropDown, Props, pConfigValue, pSecondConfigValue);
+	}
 	const ui_widget::SCapsuleTabBarStyle FallbackStyle = SettingsCapsuleTabBarStyle();
 	const ui_widget::SCapsuleTabBarStyle &Style = pCapsuleStyle != nullptr ? *pCapsuleStyle : FallbackStyle;
 	const uint64_t SegmentGroup = BuildUiAnimNodeKey(MakeUiScopeHash("segmented_choice_capsule"), reinterpret_cast<uint64_t>(pButtons));
-	ui_widget::CapsuleTabBarChrome(TabBarUiContext(), SegmentGroup, aSegmentSlots, SegmentCount, Current >= 0 && Current < SegmentCount ? Current : -1, Style);
-	for(int i = 0; i < SegmentCount; ++i)
+	ui_widget::CapsuleTabBarChrome(TabBarUiContext(), SegmentGroup, Layout.m_aSlots.data(), Layout.m_SegmentCount, Current >= 0 && Current < Count ? Current : -1, Style);
+	for(int i = 0; i < Layout.m_SegmentCount; ++i)
 	{
-		if(DoButton_MenuTab(&pButtons[i], ppLabels[i], Current == i, &aSegmentSlots[i], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, Rounding, nullptr, nullptr, -1.0f, true))
+		Ui()->DoConfigTooltip(&pButtons[i], &Layout.m_aSlots[i], pConfigValue, pSecondConfigValue);
+		if(DoButton_MenuTab(&pButtons[i], ppLabels[i], Current == i, &Layout.m_aSlots[i], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, Rounding, nullptr, nullptr, FontSize, true))
 			NewValue = i;
 	}
 	return NewValue;
@@ -1437,6 +1445,16 @@ int CMenus::DoButton_MenuTabInternal(CButtonContainer *pButtonContainer, const c
 		}
 	}
 
+	// 按压反馈复用普通按钮的公共表面策略，覆盖已选中的胶囊滑块。
+	if(Ui()->Enabled() && !Ui()->RenderOnly() && Ui()->MouseHovered(pRect) && Ui()->CheckActiveItem(pButtonContainer) && Ui()->MouseButton(0))
+	{
+		CUIRect FeedbackRect = *pRect;
+		if(CapsuleTab)
+			pRect->Margin(ui_widget::CAPSULE_TAB_INDICATOR_INSET, &FeedbackRect);
+		const ColorRGBA Surface = CapsuleTab && Checked ? MenuTabActiveColor() : MenuTabDefaultColor();
+		DrawRoundedSurface(Ui(), FeedbackRect, ResolveUiIconButtonFeedback(CompositeUiSurface(Surface), true, true, true), ColorRGBA(), CapsuleTab ? ui_token::radius::PILL : EdgeRounding, 0.0f, Corners);
+	}
+
 	if(pAnimator != nullptr)
 	{
 		if(RepositionLabel)
@@ -1787,6 +1805,10 @@ int CMenus::DoSettingsButton_CheckBoxAutoVMarginAndSet(int Page, int Tab, const 
 
 void CMenus::DoSettingsLabel(int Page, int Tab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps, bool Render)
 {
+	const auto Presentation = ResolveSettingsLabelPresentation(pTextId, pText, [](const char *pKey) { return Localize(pKey); });
+	pText = Presentation.m_pText;
+	if(Presentation.m_pTip != nullptr && Render && !m_MenuTextPlanCollecting && !Ui()->RenderOnly() && !Ui()->DrawingSuppressed())
+		GameClient()->m_Tooltips.DoSmallToolTip(Presentation.m_pTipId, pRect, Presentation.m_pTip, CurrentSettingsContentMetrics().m_SmallSize);
 	pText = Ui()->PrepareCardLabel(pRect, pText, Render && !m_MenuTextPlanCollecting);
 	SLabelProperties EffectiveProps = LabelProps;
 	if(Page == SETTINGS_TCLIENT && Size > 0.0f)
@@ -1813,6 +1835,10 @@ void CMenus::DoSettingsLabel(int Page, int Tab, const char *pTextId, const CUIRe
 
 void CMenus::DoSettingsMenuLabel(int Page, int Tab, int Subtab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &Props, int MaxWidth)
 {
+	const auto Presentation = ResolveSettingsLabelPresentation(pTextId, pText, [](const char *pKey) { return Localize(pKey); });
+	pText = Presentation.m_pText;
+	if(Presentation.m_pTip != nullptr && !m_MenuTextPlanCollecting && !Ui()->RenderOnly() && !Ui()->DrawingSuppressed())
+		GameClient()->m_Tooltips.DoSmallToolTip(Presentation.m_pTipId, pRect, Presentation.m_pTip, CurrentSettingsContentMetrics().m_SmallSize);
 	pText = Ui()->PrepareCardLabel(pRect, pText, !m_MenuTextPlanCollecting);
 	SLabelProperties EffectiveProps = Props;
 	if(Page == SETTINGS_TCLIENT && Size > 0.0f)
@@ -2035,40 +2061,6 @@ void CMenus::DoLaserPreview(const CUIRect *pRect, const ColorHSLA LaserOutlineCo
 	}
 }
 
-bool CMenus::DoLine_RadioMenu(CUIRect &View, const char *pLabel, std::vector<CButtonContainer> &vButtonContainers, const std::vector<const char *> &vLabels, const std::vector<int> &vValues, int &Value)
-{
-	dbg_assert(vButtonContainers.size() == vValues.size(), "vButtonContainers and vValues must have the same size");
-	dbg_assert(vButtonContainers.size() == vLabels.size(), "vButtonContainers and vLabels must have the same size");
-	const int N = vButtonContainers.size();
-	const float Spacing = 2.0f;
-	const float ButtonHeight = 20.0f;
-	CUIRect Label, Buttons;
-	View.HSplitTop(Spacing, nullptr, &View);
-	View.HSplitTop(ButtonHeight, &Buttons, &View);
-	Buttons.VSplitMid(&Label, &Buttons, 10.0f);
-	Buttons.HMargin(2.0f, &Buttons);
-	Ui()->DoLabel(&Label, pLabel, 13.0f, TEXTALIGN_ML);
-	const float W = Buttons.w / N;
-	bool Pressed = false;
-	for(int i = 0; i < N; ++i)
-	{
-		CUIRect Button;
-		Buttons.VSplitLeft(W, &Button, &Buttons);
-		Ui()->DoConfigTooltip(&vButtonContainers[i], &Button, &Value);
-		int Corner = IGraphics::CORNER_NONE;
-		if(i == 0)
-			Corner = IGraphics::CORNER_L;
-		if(i == N - 1)
-			Corner = IGraphics::CORNER_R;
-		if(DoButton_Menu(&vButtonContainers[i], vLabels[i], vValues[i] == Value, &Button, BUTTONFLAG_LEFT, nullptr, Corner))
-		{
-			Pressed = true;
-			Value = vValues[i];
-		}
-	}
-	return Pressed;
-}
-
 bool CMenus::DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &View, const char *pLabelTextId, const char *pLabel, std::vector<CButtonContainer> &vButtonContainers, const std::vector<const char *> &vButtonTextIds, const std::vector<const char *> &vLabels, const std::vector<int> &vValues, int &Value, const SSettingsContentMetrics &Metrics, const int *pOverrideSource, const void *pConfigValue, const void *pSecondConfigValue)
 {
 	const void *pBinding = pConfigValue != nullptr ? pConfigValue : pOverrideSource != nullptr ? pOverrideSource :
@@ -2077,8 +2069,13 @@ bool CMenus::DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &Vi
 	dbg_assert(vButtonContainers.size() == vLabels.size(), "vButtonContainers and vLabels must have the same size");
 	dbg_assert(vButtonContainers.size() == vButtonTextIds.size(), "vButtonContainers and vButtonTextIds must have the same size");
 	const int N = vButtonContainers.size();
-	const SSettingsRadioRowLayout Layout = ResolveSettingsRadioRowLayout(View, N, Metrics);
+	if(N == 0)
+		return false;
 	const float FontSize = ResolveSettingsRadioFontSize(Metrics);
+	const void *pRowId = vButtonContainers.data();
+	SSettingsRadioState &RowState = m_SettingsRadioStates[pRowId];
+	const float OptionWidth = RowState.m_Widths.Resolve(vLabels, FontSize, TextRender()->GlyphAtlasRevision(), [this](const char *pText, float Size) { return TextRender()->TextWidth(Size, pText); }) + 2.0f * ui_token::spacing::MD;
+	const SSettingsRadioRowLayout Layout = ResolveSettingsRadioRowLayout(View, N, Metrics, OptionWidth);
 	CUIRect Label = Layout.m_LabelRect;
 	CUIRect Buttons = Layout.m_ButtonsRect;
 	View.HSplitTop(Layout.m_Height, nullptr, &View);
@@ -2103,32 +2100,38 @@ bool CMenus::DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &Vi
 		Ui()->DoButtonLogic(pOverrideSource, 0, &Layout.m_LabelRect, BUTTONFLAG_NONE);
 		GameClient()->m_Tooltips.DoToolTip(pOverrideSource, &Layout.m_LabelRect, pOverrideTooltip);
 	}
-	bool Pressed = false;
-	// 新 UI：分段按钮改胶囊滑块（先画容器与滑块，再画分段文字，滑块压在文字之下）。
-	// 被禅模式/Gores 接管的行保持旧分段渲染 —— 胶囊 chrome 没有整行灰化观感。
 	if(!Locked)
 	{
-		CUIRect aSegmentSlots[16];
-		const int SegmentCount = std::clamp(N, 1, (int)std::size(aSegmentSlots));
-		CUIRect SegmentsRemainder = Buttons;
-		for(int i = 0; i < SegmentCount; ++i)
-			SegmentsRemainder.VSplitLeft(SegmentsRemainder.w / (SegmentCount - i), &aSegmentSlots[i], &SegmentsRemainder);
 		const int CurrentIndex = std::find(vValues.begin(), vValues.end(), Value) - vValues.begin();
-		const bool CurrentValid = CurrentIndex >= 0 && CurrentIndex < SegmentCount;
-		// 行标识带上按钮容器地址，避免同屏多行共用一条滑块轨道。
-		const uint64_t SegmentGroup = BuildUiAnimNodeKey(MakeUiScopeHash("settings_radio_row_capsule"), reinterpret_cast<uint64_t>(&vButtonContainers));
-		ui_widget::CapsuleTabBarChrome(TabBarUiContext(), SegmentGroup, aSegmentSlots, SegmentCount, CurrentValid ? CurrentIndex : -1, SettingsCapsuleTabBarStyle());
-		for(int i = 0; i < SegmentCount; ++i)
+		const int NewIndex = DoSegmentedChoice(vButtonContainers.data(), vLabels.data(), N, CurrentIndex < N ? CurrentIndex : -1, Buttons, ui_token::radius::BASE, nullptr, FontSize, pBinding, pSecondConfigValue);
+		if(NewIndex >= 0 && NewIndex < N && NewIndex != CurrentIndex)
 		{
-			Ui()->DoConfigTooltip(&vButtonContainers[i], &aSegmentSlots[i], pBinding, pSecondConfigValue);
-			if(DoButton_MenuTab(&vButtonContainers[i], vLabels[i], vValues[i] == Value, &aSegmentSlots[i], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 5.0f, nullptr, nullptr, FontSize, true))
-			{
-				Pressed = true;
-				Value = vValues[i];
-			}
+			Value = vValues[NewIndex];
+			return true;
 		}
-		return Pressed;
+		return false;
 	}
+	if(Layout.m_UseDropdown)
+	{
+		CUi::SDropDownState &State = RowState.m_DropDown;
+		CUi::SDropDownProperties Props;
+		Props.m_FontSize = FontSize;
+		Props.m_Enabled = !Locked;
+		const int CurrentIndex = std::find(vValues.begin(), vValues.end(), Value) - vValues.begin();
+		const int NewIndex = DoSettingsDropDown(&Buttons, CurrentIndex < N ? CurrentIndex : -1, vLabels.data(), N, State, Props, pBinding, pSecondConfigValue, &Layout.m_LabelRect);
+		if(Locked && !m_MenuTextPlanCollecting)
+			GameClient()->m_Tooltips.DoToolTip(&State.m_ButtonContainer, &Buttons, pOverrideTooltip);
+		if(!Locked && NewIndex >= 0 && NewIndex < N && NewIndex != CurrentIndex)
+		{
+			Value = vValues[NewIndex];
+			return true;
+		}
+		return false;
+	}
+	// 从下拉恢复胶囊时关闭旧子层，避免隐藏锚点继续接收输入。
+	if(!Ui()->RenderOnly() && !m_MenuTextPlanCollecting)
+		Ui()->ClosePopupMenu(&RowState.m_DropDown.m_SelectionPopupContext, true);
+	bool Pressed = false;
 	const float W = Buttons.w / N;
 	for(int i = 0; i < N; ++i)
 	{
@@ -2139,7 +2142,7 @@ bool CMenus::DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &Vi
 			Corner = IGraphics::CORNER_L;
 		if(i == N - 1)
 			Corner = IGraphics::CORNER_R;
-		if(DoSettingsButton_Menu(Page, Tab, Subtab, &vButtonContainers[i], vButtonTextIds[i], vLabels[i], vValues[i] == Value, &Button, BUTTONFLAG_LEFT, Corner, 5.0f, ButtonColor, 0.0f, FontSize))
+		if(DoSettingsButton_Menu(Page, Tab, Subtab, &vButtonContainers[i], vButtonTextIds[i], vLabels[i], vValues[i] == Value, &Button, BUTTONFLAG_LEFT, Corner, ui_token::radius::BASE, ButtonColor, 0.0f, FontSize))
 		{
 			Pressed = true;
 			if(!Locked)
@@ -2332,6 +2335,14 @@ int CMenus::DoMenuTabV2Internal(CButtonContainer *pButtonContainer, const char *
 	}
 	else
 		DrawRoundedSurface(Ui(), *pRect, Resolved, ColorRGBA(), 7.0f * ContentScale, 0.0f, Corners);
+
+	if(Ui()->Enabled() && !Ui()->RenderOnly() && Ui()->MouseHovered(pRect) && Ui()->CheckActiveItem(pButtonContainer) && Ui()->MouseButton(0))
+	{
+		CUIRect FeedbackRect = *pRect;
+		if(CapsuleTab)
+			pRect->Margin(ui_widget::CAPSULE_TAB_INDICATOR_INSET, &FeedbackRect);
+		DrawRoundedSurface(Ui(), FeedbackRect, ResolveUiIconButtonFeedback(CompositeUiSurface(Active ? ActiveColor : Resolved), true, true, true), ColorRGBA(), CapsuleTab ? ui_token::radius::PILL : 7.0f * ContentScale, 0.0f, Corners);
+	}
 
 	const ColorRGBA PreviousLabelColor = TextRender()->GetTextColor();
 	if(CapsuleTab)
@@ -3276,7 +3287,7 @@ void CMenus::RenderStatistics(CUIRect MainView)
 	const float ModeRowHeight = ModeColumns == 1 ? 78.0f : 68.0f;
 	const float ModePanelHeight = std::clamp(72.0f + ModeRows * ModeRowHeight, 220.0f, 520.0f);
 	Content.HSplitTop(ModePanelHeight, &ModePanel, &ModeRest);
-	ModePanel.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, 8.0f);
+	ModePanel.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, ui_token::radius::CARD);
 	CUIRect ModeTitle, ModeBody;
 	ModePanel.Margin(10.0f, &ModePanel);
 	ModePanel.HSplitTop(44.0f, &ModeTitle, &ModeBody);
@@ -3476,13 +3487,13 @@ void CMenus::RenderStatistics(CUIRect MainView)
 	Actions.HSplitTop(26.0f, &ModeTitleButton, &Actions);
 	static CButtonContainer s_StatisticsRefreshButton;
 	const char *pRefreshStatsLabel = StatisticsFetching ? Localize("Syncing remote stats") : (StatisticsFailed ? Localize("Retry remote stats") : Localize("Sync remote stats"));
-	if(DoButton_Menu(&s_StatisticsRefreshButton, pRefreshStatsLabel, 0, &RefreshButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)))
+	if(DoButton_Menu(&s_StatisticsRefreshButton, pRefreshStatsLabel, 0, &RefreshButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)))
 		GameClient()->m_QmClient.RefreshQmClientStatistics();
 	static CButtonContainer s_StatisticsUseCurrentNameButton;
-	if(DoButton_Menu(&s_StatisticsUseCurrentNameButton, Localize("Use current name"), 0, &UseCurrentNameButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)))
+	if(DoButton_Menu(&s_StatisticsUseCurrentNameButton, Localize("Use current name"), 0, &UseCurrentNameButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)))
 		GameClient()->m_QmClient.UseCurrentQmDdnetPlayerName();
 	static CButtonContainer s_TotalHoursButton;
-	if(DoButton_Menu(&s_TotalHoursButton, Localize("Total hours"), s_ShowTotalHours, &ModeTitleButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)))
+	if(DoButton_Menu(&s_TotalHoursButton, Localize("Total hours"), s_ShowTotalHours, &ModeTitleButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)))
 		s_ShowTotalHours = !s_ShowTotalHours;
 	Legend.HSplitTop(8.0f, nullptr, &Legend);
 	const int Columns = ModeColumns;
@@ -3575,8 +3586,8 @@ void CMenus::RenderStatistics(CUIRect MainView)
 		BottomSection.HSplitTop(164.0f, &BottomLeft, &BottomRight);
 		BottomRight.HSplitTop(8.0f, nullptr, &BottomRight);
 	}
-	BottomLeft.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, 8.0f);
-	BottomRight.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, 8.0f);
+	BottomLeft.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, ui_token::radius::CARD);
+	BottomRight.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, ui_token::radius::CARD);
 
 	auto RenderInfoRow = [this](CUIRect &View, const char *pLabel, const char *pValue) {
 		CUIRect Row;
@@ -3720,11 +3731,11 @@ void CMenus::RenderStatistics(CUIRect MainView)
 	str_copy(aDdstatsButtonText, Localize("ddstats.tw ID stats"), sizeof(aDdstatsButtonText));
 	str_copy(aDdnetButtonText, Localize("DDNet.org map stats"), sizeof(aDdnetButtonText));
 	const bool HasPlayerName = pPlayerName && pPlayerName[0] != '\0';
-	if(DoButton_Menu(&s_DdstatsLinkButton, aDdstatsButtonText, 0, &DdstatsButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, HasPlayerName ? 0.5f : 0.2f), nullptr, 12.0f) && HasPlayerName)
+	if(DoButton_Menu(&s_DdstatsLinkButton, aDdstatsButtonText, 0, &DdstatsButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, HasPlayerName ? 0.5f : 0.2f), nullptr, 12.0f) && HasPlayerName)
 	{
 		Client()->ViewLink(aDdstatsUrl);
 	}
-	if(DoButton_Menu(&s_DdnetLinkButton, aDdnetButtonText, 0, &DdnetButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, HasPlayerName ? 0.5f : 0.2f), nullptr, 12.0f) && HasPlayerName)
+	if(DoButton_Menu(&s_DdnetLinkButton, aDdnetButtonText, 0, &DdnetButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, HasPlayerName ? 0.5f : 0.2f), nullptr, 12.0f) && HasPlayerName)
 	{
 		Client()->ViewLink(aDdnetUrl);
 	}
@@ -4053,6 +4064,64 @@ void CMenus::Render()
 		Screen.Margin(8.0f, &Screen);
 	}
 
+	if(ClientState == IClient::STATE_OFFLINE && QmNewsShouldAnnounce(true, m_ShowStart, m_Popup != POPUP_NONE,
+							    str_comp(g_Config.m_QmNewsReadRelease, CLIENT_RELEASE_VERSION) != 0, GameClient()->m_QmClient.HasUnreadQmNews()))
+		ShowQmNewFeaturesPopup();
+	// 业务只请求面板，输入、父子关闭、动画与焦点由公共弹层栈管理。
+	static SPopupMenuId s_QmNewsPanel, s_QmUpdatePanel;
+	const bool PanelState = ClientState == IClient::STATE_OFFLINE || ClientState == IClient::STATE_ONLINE || ClientState == IClient::STATE_DEMOPLAYBACK;
+	if(!Ui()->RenderOnly())
+	{
+		if(Ui()->IsPopupOpen(&s_QmNewsPanel) && (m_Popup != POPUP_QM_NEW_FEATURES || !PanelState))
+			Ui()->ClosePopupMenu(&s_QmNewsPanel, true, false);
+		if(Ui()->IsPopupOpen(&s_QmUpdatePanel) && (m_Popup != POPUP_QM_UPDATE || !PanelState))
+			Ui()->ClosePopupMenu(&s_QmUpdatePanel, true, false);
+		if(PanelState && (m_Popup == POPUP_QM_NEW_FEATURES || m_Popup == POPUP_QM_UPDATE))
+		{
+			const int RequestedPopup = m_Popup;
+			const SPopupMenuId *pId = RequestedPopup == POPUP_QM_NEW_FEATURES ? &s_QmNewsPanel : &s_QmUpdatePanel;
+			if(!Ui()->IsPopupVisible(pId))
+			{
+				// 新业务面板是独立根层，结束旧页面的弹层，避免来源失效时连带新层。
+				Ui()->ClosePopupMenus(false);
+			}
+			{
+				SPopupMenuProperties Props = CUi::SecondaryPanelProperties();
+				Props.m_ContentInset = 0.0f;
+				Props.m_RequireSourceRefresh = true;
+				Props.m_SourceFrame = Ui()->PopupSourceFrame();
+				Props.m_OnClosed = [this, RequestedPopup]() {
+					if(m_Popup == RequestedPopup)
+						m_Popup = POPUP_NONE;
+					if(RequestedPopup == POPUP_QM_UPDATE)
+						GameClient()->m_TClient.m_UpdatePopupRequested = false;
+				};
+				const float Scale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
+				const auto Kind = RequestedPopup == POPUP_QM_NEW_FEATURES ? ESettingsSecondaryPanelKind::NEWS : ESettingsSecondaryPanelKind::UPDATE;
+				const CUIRect Panel = ResolveSettingsSecondaryPanelRect(Screen, Kind, Scale);
+				Ui()->DoPopupMenu(pId, Panel.x, Panel.y, Panel.w, Panel.h, this, RequestedPopup == POPUP_QM_NEW_FEATURES ? +[](void *pContext, CUIRect View, bool Active) {
+							auto *pMenus = static_cast<CMenus *>(pContext);
+							std::optional<CUiScopedBackgroundRender> Background;
+							if(!Active)
+								Background.emplace(pMenus->Ui());
+							pMenus->RenderQmNewFeaturesPopup(View);
+							return pMenus->m_Popup == POPUP_QM_NEW_FEATURES ? CUi::POPUP_KEEP_OPEN : CUi::POPUP_CLOSE_CURRENT; } : +[](void *pContext, CUIRect View, bool Active) {
+							auto *pMenus = static_cast<CMenus *>(pContext);
+							std::optional<CUiScopedBackgroundRender> Background;
+							if(!Active)
+								Background.emplace(pMenus->Ui());
+							pMenus->RenderQmUpdatePopup(View);
+							return pMenus->m_Popup == POPUP_QM_UPDATE ? CUi::POPUP_KEEP_OPEN : CUi::POPUP_CLOSE_CURRENT; }, Props);
+			}
+			Ui()->RefreshPopupMenuSource(pId, true, Ui()->PopupSourceFrame());
+		}
+	}
+	const bool SecondaryOverlay = (m_Popup == POPUP_QM_NEW_FEATURES || m_Popup == POPUP_QM_UPDATE) &&
+				      (ClientState == IClient::STATE_OFFLINE || ClientState == IClient::STATE_ONLINE || ClientState == IClient::STATE_DEMOPLAYBACK);
+	std::optional<CUiScopedBackgroundRender> BackgroundRender;
+	if(SecondaryOverlay)
+		BackgroundRender.emplace(Ui());
+
 	switch(ClientState)
 	{
 	case IClient::STATE_QUITTING:
@@ -4082,10 +4151,7 @@ void CMenus::Render()
 	break;
 
 	case IClient::STATE_OFFLINE:
-		if(QmNewsShouldAnnounce(true, m_ShowStart, m_Popup != POPUP_NONE,
-			   str_comp(g_Config.m_QmNewsReadRelease, CLIENT_RELEASE_VERSION) != 0, GameClient()->m_QmClient.HasUnreadQmNews()))
-			ShowQmNewFeaturesPopup();
-		if(m_Popup != POPUP_NONE)
+		if(m_Popup != POPUP_NONE && !SecondaryOverlay)
 		{
 			CPerfTimer StageTimer;
 			RenderPopupFullscreen(Screen);
@@ -4195,7 +4261,7 @@ void CMenus::Render()
 			RenderDemoPlayer(Screen);
 			break;
 		}
-		if(m_Popup != POPUP_NONE)
+		if(m_Popup != POPUP_NONE && !SecondaryOverlay)
 		{
 			CPerfTimer StageTimer;
 			RenderPopupFullscreen(Screen);
@@ -4344,7 +4410,7 @@ void CMenus::Render()
 		break;
 
 	case IClient::STATE_DEMOPLAYBACK:
-		if(m_Popup != POPUP_NONE)
+		if(m_Popup != POPUP_NONE && !SecondaryOverlay)
 		{
 			CPerfTimer StageTimer;
 			RenderPopupFullscreen(Screen);
@@ -4358,6 +4424,8 @@ void CMenus::Render()
 		}
 		break;
 	}
+
+	BackgroundRender.reset();
 
 	// 启动赞助提醒浮层：只在主菜单静止时出现，避免盖住交互中的菜单内容。
 	if(ClientState == IClient::STATE_OFFLINE && m_Popup == POPUP_NONE && !m_ShowStart)
@@ -4402,13 +4470,11 @@ void CMenus::RenderPopupFullscreen(CUIRect Screen)
 #endif
 	if(m_Popup == POPUP_QM_UPDATE)
 	{
-		RenderQmUpdatePopup(Screen);
 		return;
 	}
-	// QmClient 新功能弹窗自带完整布局(标题/滚动条目/按钮)，不复用通用弹窗骨架。
+	// 公告内容使用公共二级面板外壳，业务滚动区由公告模块维护。
 	if(m_Popup == POPUP_QM_NEW_FEATURES)
 	{
-		RenderQmNewFeaturesPopup(Screen);
 		return;
 	}
 
