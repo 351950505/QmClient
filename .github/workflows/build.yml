@@ -250,6 +250,11 @@ jobs:
             cmake --build build --target game-client --parallel
           fi
 
+      - name: Verify native Metal client startup and screenshot
+        if: runner.os == 'macOS'
+        shell: bash
+        run: python3 qmclient_scripts/integration/startup_presentation_smoke.py build metal_window_presentation
+
       - name: Run tests
         if: ${{ env.RELEASE_TAG != '' || !inputs.skip_tests }}
         shell: bash

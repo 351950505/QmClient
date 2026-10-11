@@ -147,6 +147,18 @@ def smoke_vulkan_window_presentation(env: StartupEnvironment) -> None:
 	check_window_presentation(env, ["qm_graphics_mode 1", "gfx_backend Vulkan"])
 
 
+def smoke_metal_window_presentation(env: StartupEnvironment) -> None:
+	if sys.platform != "darwin":
+		print("SKIP: native Metal requires macOS")
+		return
+	check_window_presentation(env, ["qm_graphics_mode 1", "gfx_backend Metal"])
+	assert env.client is not None
+	if not any("gfx/metal:" in line and "layer configured:" in line for line in env.client._lines):
+		raise AssertionError("client did not initialize the native Metal layer")
+	if any("Failed to initialize Metal" in line for line in env.client._lines):
+		raise AssertionError("client fell back from Metal before producing the screenshot")
+
+
 def smoke_windowed_fullscreen_styles(env: StartupEnvironment) -> None:
 	if sys.platform != "win32":
 		print("SKIP: windowed fullscreen is a Windows mode")
@@ -183,6 +195,7 @@ SMOKE_TESTS = {
 	"cjk_category_independent": smoke_cjk_category_independent,
 	"window_presentation": smoke_window_presentation,
 	"vulkan_window_presentation": smoke_vulkan_window_presentation,
+	"metal_window_presentation": smoke_metal_window_presentation,
 	"windowed_fullscreen_styles": smoke_windowed_fullscreen_styles,
 }
 

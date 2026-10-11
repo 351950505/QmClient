@@ -28,6 +28,7 @@
 #include <engine/shared/video.h>
 #endif
 
+#include "backend/graphics_backend_contract.h"
 #include "backend_sdl.h"
 
 #if defined(CONF_HEADLESS_CLIENT)
@@ -44,6 +45,10 @@
 
 #if defined(CONF_BACKEND_VULKAN)
 #include "backend/vulkan/backend_vulkan.h"
+#endif
+
+#if (defined(CONF_PLATFORM_MACOS) || defined(CONF_PLATFORM_IOS)) && defined(CONF_BACKEND_METAL) && defined(CONF_BACKEND_METAL_READY)
+#include "backend/metal/backend_metal.h"
 #endif
 
 #include "graphics_threaded.h"
@@ -315,6 +320,12 @@ CCommandProcessor_SDL_GL::CCommandProcessor_SDL_GL(EBackendType BackendType, int
 	{
 #if defined(CONF_BACKEND_VULKAN)
 		m_pGLBackend = CreateVulkanCommandProcessorFragment();
+#endif
+	}
+	else if(BackendType == BACKEND_TYPE_METAL)
+	{
+#if (defined(CONF_PLATFORM_MACOS) || defined(CONF_PLATFORM_IOS)) && defined(CONF_BACKEND_METAL) && defined(CONF_BACKEND_METAL_READY)
+		m_pGLBackend = CreateMetalCommandProcessorFragment();
 #endif
 	}
 #endif
@@ -621,35 +632,11 @@ static int IsVersionSupportedGlew(EBackendType BackendType, int VersionMajor, in
 
 EBackendType CGraphicsBackend_SDL_GL::DetectBackend() const
 {
-	EBackendType RetBackendType = BACKEND_TYPE_OPENGL;
-#if defined(CONF_BACKEND_VULKAN)
+	if(m_BackendOverride != BACKEND_TYPE_AUTO)
+		return m_BackendOverride;
+	EBackendType RetBackendType = graphics_backend::IsMetalCompiled() ? BACKEND_TYPE_METAL : BACKEND_TYPE_OPENGL;
 	const char *pEnvDriver = SDL_getenv("DDNET_DRIVER");
-	if(pEnvDriver && str_comp_nocase(pEnvDriver, "GLES") == 0)
-	{
-		RetBackendType = BACKEND_TYPE_OPENGL_ES;
-	}
-	else if(pEnvDriver && str_comp_nocase(pEnvDriver, "Vulkan") == 0)
-	{
-		RetBackendType = BACKEND_TYPE_VULKAN;
-	}
-	else if(pEnvDriver && str_comp_nocase(pEnvDriver, "OpenGL") == 0)
-	{
-		RetBackendType = BACKEND_TYPE_OPENGL;
-	}
-	else if(pEnvDriver == nullptr)
-	{
-		// load the config backend
-		const char *pConfBackend = g_Config.m_GfxBackend;
-		if(str_comp_nocase(pConfBackend, "GLES") == 0)
-			RetBackendType = BACKEND_TYPE_OPENGL_ES;
-		else if(str_comp_nocase(pConfBackend, "Vulkan") == 0)
-			RetBackendType = BACKEND_TYPE_VULKAN;
-		else if(str_comp_nocase(pConfBackend, "OpenGL") == 0)
-			RetBackendType = BACKEND_TYPE_OPENGL;
-	}
-#else
-	RetBackendType = BACKEND_TYPE_OPENGL;
-#endif
+	RetBackendType = graphics_backend::ParseBackendName(pEnvDriver != nullptr ? pEnvDriver : g_Config.m_GfxBackend, RetBackendType);
 #if !defined(CONF_BACKEND_OPENGL_ES) && !defined(CONF_BACKEND_OPENGL_ES3)
 	if(RetBackendType == BACKEND_TYPE_OPENGL_ES)
 		RetBackendType = BACKEND_TYPE_OPENGL;
@@ -918,6 +905,15 @@ bool CGraphicsBackend_SDL_GL::GetDriverVersion(EGraphicsDriverAgeType DriverAgeT
 		return false;
 #endif
 	}
+	else if(BackendType == BACKEND_TYPE_METAL)
+	{
+		pName = "Metal";
+		if(graphics_backend::IsMetalCompiled() && DriverAgeType == GRAPHICS_DRIVER_AGE_TYPE_DEFAULT)
+		{
+			Major = Minor = Patch = 0;
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -1115,6 +1111,11 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 		return EGraphicsBackendErrorCodes::GRAPHICS_BACKEND_ERROR_CODE_SDL_INIT_FAILED;
 	}
 
+	// 后端重试不能继承失败实例的能力或指向旧处理器的读取回调。
+	m_GpuList = {};
+	m_Capabilities.Reset();
+	m_ReadPresentedImageDataFunc = nullptr;
+
 	EBackendType OldBackendType = m_BackendType;
 	m_BackendType = DetectBackend();
 	// little fallback for Vulkan
@@ -1154,6 +1155,9 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 		break;
 	case BACKEND_TYPE_VULKAN:
 		pBackendName = "Vulkan";
+		break;
+	case BACKEND_TYPE_METAL:
+		pBackendName = "Metal";
 		break;
 	default:
 		dbg_assert_failed("Invalid m_BackendType: %d", m_BackendType);
@@ -1230,7 +1234,12 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 	if(!IsOpenGLFamilyBackend)
 #endif
 		SdlFlags |= SDL_WINDOW_HIDDEN;
-	SdlFlags |= (IsOpenGLFamilyBackend) ? SDL_WINDOW_OPENGL : SDL_WINDOW_VULKAN;
+	if(IsOpenGLFamilyBackend)
+		SdlFlags |= SDL_WINDOW_OPENGL;
+	else if(m_BackendType == BACKEND_TYPE_METAL)
+		SdlFlags |= SDL_WINDOW_METAL;
+	else
+		SdlFlags |= SDL_WINDOW_VULKAN;
 	if(Flags & IGraphicsBackend::INITFLAG_RESIZABLE)
 		SdlFlags |= SDL_WINDOW_RESIZABLE;
 	if(Flags & IGraphicsBackend::INITFLAG_BORDERLESS)
@@ -1303,6 +1312,8 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 		log_error("gfx", "Unable to create window: %s", SDL_GetError());
 		if(m_BackendType == BACKEND_TYPE_VULKAN)
 			return EGraphicsBackendErrorCodes::GRAPHICS_BACKEND_ERROR_CODE_GL_CONTEXT_FAILED;
+		else if(m_BackendType == BACKEND_TYPE_METAL)
+			return EGraphicsBackendErrorCodes::GRAPHICS_BACKEND_ERROR_CODE_METAL_INIT_FAILED;
 		else
 			return EGraphicsBackendErrorCodes::GRAPHICS_BACKEND_ERROR_CODE_SDL_WINDOW_CREATE_FAILED;
 	}
@@ -1386,6 +1397,7 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 
 	// issue init commands for OpenGL and SDL
 	CCommandBuffer CmdBuffer(1024, 512);
+	const char *pErrorStr = nullptr;
 	CCommandProcessorFragment_GLBase::SCommand_PreInit CmdPre;
 	CmdPre.m_pWindow = m_pWindow;
 	CmdPre.m_Width = *pCurrentWidth;
@@ -1394,6 +1406,9 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 	CmdPre.m_pVersionString = m_aVersionString;
 	CmdPre.m_pRendererString = m_aRendererString;
 	CmdPre.m_pGpuList = &m_GpuList;
+	CmdPre.m_VSync = (Flags & IGraphicsBackend::INITFLAG_VSYNC) != 0;
+	CmdPre.m_pInitError = &InitError;
+	CmdPre.m_pErrStringPtr = &pErrorStr;
 	CmdBuffer.AddCommandUnsafe(CmdPre);
 	RunBufferSingleThreadedUnsafe(&CmdBuffer);
 	CmdBuffer.Reset();
@@ -1407,7 +1422,6 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 	WaitForIdle();
 	CmdBuffer.Reset();
 
-	const char *pErrorStr = nullptr;
 	if(InitError == 0)
 	{
 		CCommandProcessorFragment_GLBase::SCommand_Init CmdGL;
@@ -1465,6 +1479,7 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 		CmdBuffer.Reset();
 
 		// stop and delete the processor
+		m_ReadPresentedImageDataFunc = nullptr;
 		StopProcessor();
 		delete m_pProcessor;
 		m_pProcessor = nullptr;
@@ -1487,7 +1502,7 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 			str_copy(m_aErrorString, pErrorStr);
 		}
 
-		return EGraphicsBackendErrorCodes::GRAPHICS_BACKEND_ERROR_CODE_GL_VERSION_FAILED;
+		return m_BackendType == BACKEND_TYPE_METAL ? EGraphicsBackendErrorCodes::GRAPHICS_BACKEND_ERROR_CODE_METAL_INIT_FAILED : EGraphicsBackendErrorCodes::GRAPHICS_BACKEND_ERROR_CODE_GL_VERSION_FAILED;
 	}
 
 	{
@@ -1513,6 +1528,7 @@ int CGraphicsBackend_SDL_GL::Init(const char *pName, int *pScreen, int *pWidth, 
 
 int CGraphicsBackend_SDL_GL::Shutdown()
 {
+	m_ReadPresentedImageDataFunc = nullptr;
 	if(m_pProcessor != nullptr)
 	{
 		// issue a shutdown command
