@@ -199,18 +199,19 @@ namespace ui_widget
 				if(HasTrailingAction)
 					DrawInputFieldIcon(Ctx, TrailingRect, Options.m_pTrailingActionIcon, IconColor, Options.m_TrailingActionQmIcon);
 			}
-			// 后台绘制必须和正常输入框共用 CLineInput 的排版路径。
-			// 之前空文本单独走 DoLabel，F1 叠加绘制时会继承控制台的文本状态，
-			// 导致占位文本与实际输入文本出现水平偏移和亮度变化。
+			// 复用编辑框的后台路径，保留相同内边距、换行和水平滚动位置。
 			const char *pPlaceholder = Options.m_pPlaceholder != nullptr ? Options.m_pPlaceholder : (Search ? Localize("Search") : nullptr);
 			const char *pPreviousPlaceholder = pInput->GetEmptyText();
 			pInput->SetEmptyText(pPlaceholder);
 			if(!pInput->IsHidden() || !Ctx.m_pUi->MeasurementOnly())
 			{
 				const CQmCardLabelHintScope PreserveInput(Ctx.m_pUi, false);
-				Ctx.m_pUi->ClipEnable(&TextRect);
-				pInput->Render(&TextRect, FontSize, TextAlign, false, -1.0f, 0.0f);
-				Ctx.m_pUi->ClipDisable();
+				CUi::SEditBoxRenderOptions RenderOptions;
+				RenderOptions.m_DrawBackground = false;
+				if(Options.m_Mode == EInputFieldMode::MULTILINE)
+					Ctx.m_pUi->DoEditBoxMultiLine(pInput, &TextRect, FontSize, Options.m_LineSpacing, TextAlign, RenderOptions);
+				else
+					Ctx.m_pUi->DoEditBox(pInput, &TextRect, FontSize, Options.m_Corners, {}, TextAlign, RenderOptions);
 			}
 			pInput->SetEmptyText(pPreviousPlaceholder);
 			if(Options.m_pTrailingText != nullptr && TrailingRect.w > 0.0f)
@@ -496,7 +497,7 @@ namespace ui_widget
 			Props.m_MinimumFontSize = 6.0f;
 			if(Options.m_pLabelElement != nullptr)
 			{
-				Ctx.m_pUi->DoLabelStreamed(*Options.m_pLabelElement->Rect(0), &Label, Options.m_pLabel, LabelFontSize, Options.m_LabelAlign, Props, -1, nullptr, !Ctx.m_pUi->RenderOnly());
+				Ctx.m_pUi->DoLabelStreamed(*Options.m_pLabelElement->Rect(0), &Label, Options.m_pLabel, LabelFontSize, Options.m_LabelAlign, Props, -1, nullptr, !Ctx.m_pUi->MeasurementOnly());
 			}
 			else
 				Ctx.m_pUi->DoLabel(&Label, Options.m_pLabel, LabelFontSize, Options.m_LabelAlign, Props);

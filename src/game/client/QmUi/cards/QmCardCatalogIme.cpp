@@ -34,7 +34,7 @@ namespace
 		CUi *m_pUi;
 
 	public:
-		CImePrewarmScope(CUi *pUi, bool Prewarm) : m_pUi(Prewarm ? pUi : nullptr)
+		CImePrewarmScope(CUi *pUi, bool Prewarm) : m_pUi(Prewarm && pUi != nullptr && !pUi->RenderOnly() ? pUi : nullptr)
 		{
 			if(m_pUi != nullptr)
 				m_pUi->BeginRenderOnly();

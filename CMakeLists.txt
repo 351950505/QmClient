@@ -5271,6 +5271,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
 
   if(FREETYPE_FOUND)
     add_executable(qm-ui-popup-tests EXCLUDE_FROM_ALL
+      src/game/client/QmUi/UiDiscreteSlider.cpp
+      src/game/client/QmUi/UiDiscreteSliderLogic.cpp
       src/test/test.cpp
       src/test/support/qm_open_link_probe.cpp
       src/test/support/qm_popup_tooltip_boundary.cpp

@@ -160,8 +160,13 @@ SSettingsCardDeckResult CSettingsCardDeck::Render(const IUiContext &Ctx, const S
 	return RenderInternal(Ctx, Layout, pTab, vCards, Model, pScrollRegion, Input, Motion, VisualOptions, true);
 }
 
-SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx, const SSettingsPageLayoutFrame &Layout, const char *pTab, const std::vector<SSettingsCardDefinition> &vCards, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &RawInput, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions, bool PersistentDefinitions)
+SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &InputCtx, const SSettingsPageLayoutFrame &Layout, const char *pTab, const std::vector<SSettingsCardDefinition> &vCards, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &RawInput, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions, bool PersistentDefinitions)
 {
+	IUiContext Ctx = InputCtx;
+	// 后台仍是可见页面：Deck 的几何动画继续消费原轨道，输入仍由 RenderOnly 隔离。
+	// 不依赖旧卡片是否清空上下文中的动画指针；真正的测量不会碰可见动画。
+	if(Ctx.m_pUi != nullptr && Ctx.m_pUi->BackgroundRender() && !Ctx.m_pUi->MeasurementOnly() && Ctx.m_pAnim == nullptr)
+		Ctx.m_pAnim = Ctx.m_pUi->QmAnimationRuntime();
 	SSettingsCardDeckInput Input = ResolveSettingsCardDeckPointerInput(RawInput, Ctx.m_pUi != nullptr && (Ctx.m_pUi->RenderOnly() || Ctx.m_pUi->PointerInputBlocked()));
 	SSettingsCardDeckResult Result;
 	if(Ctx.m_pUi != nullptr && Ctx.m_pUi->RenderOnly())
@@ -755,7 +760,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 				const CUIRect Button = SettingsCardWidthButtonRect(DrawFrame);
 				if(Ctx.m_pTextRender != nullptr && Ctx.m_pUi != nullptr)
 				{
-					RenderSettingsCardHeaderIcon(Ctx, Button, Card.m_Column == 0 ? EQmIcon::BORDER_ALL : EQmIcon::ARROWS_LEFT_RIGHT, Card.m_Column == 0 ? FontIcons::FONT_ICON_BORDER_ALL : FontIcons::FONT_ICON_ARROWS_LEFT_RIGHT, State.m_DrawAlpha, &Runtime.m_WidthButtonId);
+					RenderSettingsCardHeaderIcon(InputCtx, Button, Card.m_Column == 0 ? EQmIcon::BORDER_ALL : EQmIcon::ARROWS_LEFT_RIGHT, Card.m_Column == 0 ? FontIcons::FONT_ICON_BORDER_ALL : FontIcons::FONT_ICON_ARROWS_LEFT_RIGHT, State.m_DrawAlpha, &Runtime.m_WidthButtonId);
 					if(Ctx.m_pTooltips != nullptr)
 						Ctx.m_pTooltips->DoSmallToolTip(&Runtime.m_WidthButtonId, &Button, Card.m_Column == 0 ? Localize("Default width") : Localize("Full width"), 10.0f * Ctx.m_UiScale);
 				}
@@ -764,7 +769,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 			const SSettingsCardFrame FocusFrame = ResolveSettingsCardDrawFrame(Frame, State.m_DrawOffsetX, State.m_DrawOffsetY);
 			m_Focus.Observe(pStableId, Ctx.m_pUi != nullptr && !Ctx.m_pUi->PointerInputBlocked() && PointInRect(ScrollViewport, Input.m_MouseX, Input.m_MouseY) && Ctx.m_pUi->MouseHovered(&FocusFrame.m_Rect));
 			State.m_Focused = m_Focus.IsFocused(pStableId);
-			SettingsCard(Ctx, Frame, Card.m_pDefinition->m_Spec, State, VisualOptions,
+			SettingsCard(InputCtx, Frame, Card.m_pDefinition->m_Spec, State, VisualOptions,
 				SettingsCardDeckRendersContent(Collapsed) ? Card.m_pDefinition->m_Render : FSettingsCardRender{}, HeaderAction,
 				SettingsCardDeckRendersContent(Collapsed) ? Card.m_pDefinition->m_RenderMeasured : FSettingsCardRenderMeasured{}, &PointerInsideDrawFrame);
 			Runtime.m_PointerInsideLastFrame = PointerInsideDrawFrame;

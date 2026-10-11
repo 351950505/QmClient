@@ -89,7 +89,8 @@ namespace ui_widget
 		// 因此不需要在这里额外兜底；抓取偏移在任一非拖动帧都会归零。
 
 		CUiScopedGaussianBlurSuppression GaussianBlurSuppression(pUi);
-		const float Alpha = pUi->Enabled() ? 1.0f : 0.45f;
+		// 控制台只接管输入，底下的筛选状态不是被禁用的配置。
+		const float Alpha = pUi->Enabled() || pUi->BackgroundRender() ? 1.0f : 0.45f;
 		// 槽底和旋钮沿用公共样式；档位填色继续表达数值语义。
 		const SUiTheme &Theme = Ctx.m_pTheme != nullptr ? *Ctx.m_pTheme : pUi->QmControlTheme();
 		const auto SharedStyle = ResolveUiSliderStyle(Theme, CUiScopedSurfaceText::CurrentSurface(), Hovered, Active);

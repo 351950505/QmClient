@@ -532,7 +532,7 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 		if(DoButton_MenuTab(&s_aTabs[Tab], apLabels[Tab], s_SubTab == Tab, &aTabs[Tab], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true))
 			s_SubTab = Tab;
 	}
-	if(!m_MenuTextPlanCollecting && !RenderOnly)
+	if(!m_MenuTextPlanCollecting && !Ui()->MeasurementOnly())
 	{
 		const uint64_t DisplayKey = (static_cast<uint64_t>(SETTINGS_TEE) << 32) | static_cast<uint64_t>(s_SubTab + 1);
 		if(m_SettingsCardDeckDisplayState.EnterView(DisplayKey))
@@ -951,7 +951,7 @@ void CMenus::RenderSettings(CUIRect MainView)
 		}
 	}
 	const uint64_t SettingsDisplayViewKey = ResolveSettingsCardDisplayViewKey(g_Config.m_UiSettingsPage, m_Dummy ? 1 : 0, m_AppearanceSettingsTab, m_TClientSettingsTab, m_QmClientSettingsTab, m_CreditsSettingsTab);
-	if(!CollectingMenuTextPlan && g_Config.m_UiSettingsPage != SETTINGS_TEE && m_SettingsCardDeckDisplayState.EnterView(SettingsDisplayViewKey))
+	if(!CollectingMenuTextPlan && !Ui()->MeasurementOnly() && g_Config.m_UiSettingsPage != SETTINGS_TEE && m_SettingsCardDeckDisplayState.EnterView(SettingsDisplayViewKey))
 	{
 		m_SettingsCardDeck.BeginDisplayCycle(++m_SettingsCardDeckDisplayCycle, true);
 	}

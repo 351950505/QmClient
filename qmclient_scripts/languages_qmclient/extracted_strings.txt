@@ -5180,6 +5180,7 @@ Zoom to current mouse target
 [Editor]	Align coordinates of the quad points.
 [Editor]	Align quads
 [Editor]	All combined
+[Editor]	All commands
 [Editor]	Allow all unknown settings
 [Editor]	Allow quad alignment to other quads/points when moving quads.
 [Editor]	Allow the fade tool to randomly erase to air.
@@ -5408,7 +5409,7 @@ Zoom to current mouse target
 [Editor]	ENDLESS HOOK OFF: Deactivates endless hook.
 [Editor]	ENDLESS HOOK: Activates endless hook.
 [Editor]	Enter a room code to join a collaboration room.
-[Editor]	Enter a server setting. Press Ctrl+Space or Ctrl+Shift+Space, or click ... to show available settings. If the IME reserves the shortcut, use ... .
+[Editor]	Enter a server setting. Press Ctrl+Space or Ctrl+Shift+Space to complete at the cursor. Click All commands to browse every command without changing the text until you select one. If the IME reserves the shortcut, use the button.
 [Editor]	Enter the room code
 [Editor]	ENTITIES OFF SIGN: Informs people playing with entities about important marks, tips, information or text on the map.
 [Editor]	Entities: %s

@@ -425,10 +425,11 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 			CUi::SDropDownProperties ChatStyleProperties;
 			ChatStyleProperties.m_Enabled = Auth.TitleAuthenticated() && !Auth.TitleBusy() && !pMenus->GameClient()->m_GameConsole.IsActive();
 			ChatStyleProperties.m_FontSize = BodySize;
-			if(ReadOnly)
+			const bool MeasureChatStyle = ReadOnly && !pMenus->Ui()->RenderOnly();
+			if(MeasureChatStyle)
 				pMenus->Ui()->BeginRenderOnly();
 			const int ChatStyle = pMenus->DoSettingsDropDown(&ChatStyleControl, g_Config.m_QmSponsorChatStyle, s_apChatStyleNames.data(), s_apChatStyleNames.size(), s_ChatStyleState, ChatStyleProperties, &g_Config.m_QmSponsorChatStyle, nullptr, &Row);
-			if(ReadOnly)
+			if(MeasureChatStyle)
 				pMenus->Ui()->EndRenderOnly();
 			if(!ReadOnly && ChatStyleProperties.m_Enabled)
 				g_Config.m_QmSponsorChatStyle = ChatStyle;
@@ -603,8 +604,9 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 				g_Config.m_QmTitleAdvanced ^= 1;
 			if(TitleAdvanced)
 			{
-				// 预热时只绘制控件，不消费输入或写回配置。
-				if(ReadOnly)
+				// 后台已经隔离输入，不再嵌套测量裁剪而隐藏可见控件。
+				const bool MeasureAppearance = ReadOnly && !pMenus->Ui()->RenderOnly();
+				if(MeasureAppearance)
 					pMenus->Ui()->BeginRenderOnly();
 				bool AppearanceChanged = false;
 				CUIRect Label, Control;
@@ -676,7 +678,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 					g_Config.m_QmTitleBobPixelSnap ^= 1;
 					AppearanceChanged = true;
 				}
-				if(ReadOnly)
+				if(MeasureAppearance)
 					pMenus->Ui()->EndRenderOnly();
 				if(!ReadOnly && AppearanceChanged)
 					pMenus->GameClient()->m_Chat.RebuildChat();

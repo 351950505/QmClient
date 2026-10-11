@@ -4,6 +4,7 @@
 #include <game/client/QmUi/QmAnimResolve.h>
 #include <game/client/QmUi/SettingsCardMeasure.h>
 #include <game/client/QmUi/UiButtons.h>
+#include <game/client/QmUi/UiDiscreteSlider.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/ui_scrollregion.h>
 
@@ -350,6 +351,111 @@ namespace
 			EXPECT_FALSE(m_Number.m_HasSyncedValue);
 		}
 	};
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayKeepsPlaceholderGlyphPositionAndColor)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	m_Text.Clear();
+	ui_widget::SInputFieldOptions Options;
+	Options.m_pPlaceholder = "Filter servers";
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	ui_widget::InputField(Ctx, &m_Text, m_Rect, Options);
+	const auto Baseline = m_Recording.m_vQuads;
+	ASSERT_FALSE(Baseline.empty());
+	m_Recording.m_vQuads.clear();
+	m_Ui.SetEnabled(false);
+	m_Ui.BeginBackgroundRender();
+	ui_widget::InputField(Ctx, &m_Text, m_Rect, Options);
+	m_Ui.EndBackgroundRender();
+	ASSERT_EQ(m_Recording.m_vQuads.size(), Baseline.size());
+	for(size_t i = 0; i < Baseline.size(); ++i)
+	{
+		EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.x, Baseline[i].m_Rect.x);
+		EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.y, Baseline[i].m_Rect.y);
+		EXPECT_EQ(m_Recording.m_vQuads[i].m_Color, Baseline[i].m_Color);
+	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayDrawsCachedNumericLabel)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	CUIElement Label;
+	Label.Init(&m_Ui, 1);
+	ui_widget::SNumericFieldOptions Options;
+	Options.m_pLabel = "Volume";
+	Options.m_pLabelElement = &Label;
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	ui_widget::NumericField(Ctx, &m_Number, &m_Button, &m_Value, 0, 200, m_Rect, Options);
+	const auto Baseline = m_Recording.m_vQuads;
+	ASSERT_FALSE(Baseline.empty());
+	m_Recording.m_vQuads.clear();
+	m_Ui.SetEnabled(false);
+	m_Ui.BeginBackgroundRender();
+	ui_widget::NumericField(Ctx, &m_Number, &m_Button, &m_Value, 0, 200, m_Rect, Options);
+	m_Ui.EndBackgroundRender();
+	// 数值输入与滑块路径不同，独立观察左侧缓存标签的字形提交。
+	const auto LabelGlyphs = [&](const auto &Quads) {
+		return std::count_if(Quads.begin(), Quads.end(), [&](const auto &Quad) {
+			return Quad.m_Visible && Quad.m_Rect.x < m_Rect.x + m_Rect.w * 0.25f;
+		});
+	};
+	ASSERT_GT(LabelGlyphs(Baseline), 0);
+	EXPECT_EQ(LabelGlyphs(m_Recording.m_vQuads), LabelGlyphs(Baseline));
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayPreservesScrolledInputAndMultilineLayout)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	for(const auto Mode : {ui_widget::EInputFieldMode::TEXT, ui_widget::EInputFieldMode::MULTILINE})
+	{
+		SCOPED_TRACE(static_cast<int>(Mode));
+		m_Ui.SetEnabled(true);
+		m_Text.Set("A long server command with arguments and further settings extending beyond the field");
+		m_Text.SetScrollOffset(12.0f);
+		ui_widget::SInputFieldOptions Options;
+		Options.m_Mode = Mode;
+		const auto Ctx = ui_widget::ControlContext(&m_Ui);
+		m_Recording.m_vQuads.clear();
+		ui_widget::InputField(Ctx, &m_Text, m_Rect, Options);
+		const auto Baseline = m_Recording.m_vQuads;
+		ASSERT_FALSE(Baseline.empty());
+		const float Offset = m_Text.GetScrollOffset();
+		m_Recording.m_vQuads.clear();
+		m_Ui.SetEnabled(false);
+		m_Ui.BeginBackgroundRender();
+		ui_widget::InputField(Ctx, &m_Text, m_Rect, Options);
+		m_Ui.EndBackgroundRender();
+		EXPECT_FLOAT_EQ(m_Text.GetScrollOffset(), Offset);
+		ASSERT_EQ(m_Recording.m_vQuads.size(), Baseline.size());
+		for(size_t i = 0; i < Baseline.size(); ++i)
+		{
+			EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.x, Baseline[i].m_Rect.x);
+			EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.y, Baseline[i].m_Rect.y);
+		}
+	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayDoesNotDimDiscreteServerFilter)
+{
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	ui_widget::SDiscreteSliderState State;
+	int Value = 2;
+	ui_widget::DiscreteSlider(Ctx, &m_Button, State, &Value, 0, 3, m_Rect);
+	const auto Baseline = m_Recording.m_vSurfaces;
+	ASSERT_FALSE(Baseline.empty());
+	m_Recording.m_vSurfaces.clear();
+	m_Ui.SetEnabled(false);
+	m_Ui.BeginBackgroundRender();
+	EXPECT_FALSE(ui_widget::DiscreteSlider(Ctx, &m_Button, State, &Value, 0, 3, m_Rect));
+	m_Ui.EndBackgroundRender();
+	ASSERT_EQ(m_Recording.m_vSurfaces.size(), Baseline.size());
+	for(size_t i = 0; i < Baseline.size(); ++i)
+		EXPECT_EQ(m_Recording.m_vSurfaces[i].m_FillColor, Baseline[i].m_FillColor);
+	EXPECT_EQ(Value, 2);
 }
 
 TEST_F(QmBackgroundControlsIntegration, BackgroundSubmitsFillAndBorderWithoutChangingControls)

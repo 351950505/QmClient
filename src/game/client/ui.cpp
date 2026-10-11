@@ -1767,6 +1767,15 @@ bool CUi::DoEditBoxMultiLine(CLineInput *pLineInput, const CUIRect *pRect, float
 	CUIRect Textbox;
 	pRect->VMargin(VSpacing, &Textbox);
 	const float LineWidth = Textbox.w;
+	if(RenderOnly())
+	{
+		if(RenderOptions.m_DrawBackground)
+			DrawRoundedSurface(this, *pRect, ResolveConfiguredInputSurface(), ColorRGBA(), ui_token::radius::TIGHT);
+		ClipEnable(pRect);
+		pLineInput->Render(&Textbox, FontSize, TextAlign, false, LineWidth, LineSpacing);
+		ClipDisable();
+		return false;
+	}
 
 	bool JustGotActive = false;
 	if(CheckActiveItem(pLineInput))
