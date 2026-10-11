@@ -2166,6 +2166,9 @@ int CUi::DoButton_PopupMenu(CButtonContainer *pButtonContainer, const char *pTex
 	Options.m_Color = ButtonColor;
 	const ColorRGBA Fill = ui_widget::DrawButtonSurface(ui_widget::ControlContext(this), pButtonContainer, *pRect, Options);
 	CUiScopedSurfaceText SurfaceText(TextRender(), Fill);
+	// 表面选择前景色后仍须遵守父层显隐，不能恢复成不透明文字。
+	TextRender()->TextColor(ScaleControlAlpha(TextRender()->GetTextColor()));
+	TextRender()->TextOutlineColor(ScaleControlAlpha(TextRender()->GetTextOutlineColor()));
 
 	CUIRect Label;
 	pRect->Margin(Padding, &Label);

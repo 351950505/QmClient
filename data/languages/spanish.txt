@@ -10496,9 +10496,6 @@ Screenshots
 Screenshots directory
 == Directorio de capturas de pantalla
 
-Scroll mode: Auto
-== Modo de desplazamiento: Automático
-
 Scroll mode: Off
 == Modo de desplazamiento: desactivado
 

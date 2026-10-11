@@ -39,6 +39,8 @@ struct CScrollRegionParams
 	ColorRGBA m_SliderColor;
 	ColorRGBA m_SliderColorHover;
 	ColorRGBA m_SliderColorGrabbed;
+	// 主题滑块不读取旧颜色字段，单独传递父面板的显隐系数。
+	float m_SliderAlpha;
 	bool m_HideScrollbar;
 	bool m_ScrollHorizontal;
 	const void *m_pWheelOwnerId;
@@ -100,6 +102,7 @@ inline CScrollRegionParams::CScrollRegionParams()
 	m_SliderColor = ColorRGBA(0.8f, 0.8f, 0.8f, 1.0f);
 	m_SliderColorHover = ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f);
 	m_SliderColorGrabbed = ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f);
+	m_SliderAlpha = 1.0f;
 	m_HideScrollbar = false;
 	m_ScrollHorizontal = false;
 	m_pWheelOwnerId = nullptr;

@@ -410,7 +410,10 @@ void CScrollRegion::DoSlider()
 		const bool Active = Ui()->IsActiveItem(pId);
 		const float Rounding = m_Params.m_ScrollHorizontal ? Slider.h / 2.0f : Slider.w / 2.0f;
 		if(Ui()->QmAnimationRuntime() != nullptr)
+		{
+			CUiScopedControlAlphaScale SliderAlpha(Ui(), m_Params.m_SliderAlpha);
 			ui_widget::DrawScrollbarHandle(ui_widget::ControlContext(Ui()), pId, Slider, m_Params.m_Interactive);
+		}
 		else
 			DrawRoundedSurface(Ui(), Slider, m_Params.SliderColor(Active, Ui()->HotItem() == pId), ColorRGBA(), Rounding);
 		return;
@@ -438,7 +441,10 @@ void CScrollRegion::DoSlider()
 
 	const float Rounding = m_Params.m_ScrollHorizontal ? Slider.h / 2.0f : Slider.w / 2.0f;
 	if(Ui()->QmAnimationRuntime() != nullptr)
+	{
+		CUiScopedControlAlphaScale SliderAlpha(Ui(), m_Params.m_SliderAlpha);
 		ui_widget::DrawScrollbarHandle(ui_widget::ControlContext(Ui()), pId, Slider, m_Params.m_Interactive);
+	}
 	else
 		DrawRoundedSurface(Ui(), Slider, m_Params.SliderColor(Ui()->CheckActiveItem(pId), Ui()->HotItem() == pId), ColorRGBA(), Rounding);
 }

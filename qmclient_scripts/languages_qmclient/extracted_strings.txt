@@ -3497,7 +3497,6 @@ Screenshot watermark: include map name
 Screenshot watermark: include timestamp
 Screenshots
 Screenshots directory
-Scroll mode: Auto
 Scroll mode: Off
 Scroll mode: On
 Search

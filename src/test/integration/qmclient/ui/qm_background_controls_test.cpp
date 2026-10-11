@@ -8,6 +8,7 @@
 #include <game/client/QmUi/UiDiscreteSlider.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
+#include <game/client/components/qmclient/scoreboard_scroll.h>
 #include <game/client/qm_icon.h>
 #include <game/client/ui_scrollregion.h>
 
@@ -920,6 +921,106 @@ TEST_F(QmBackgroundControlsIntegration, PageBackgroundOpacityDoesNotMultiplyCont
 			}
 		}
 	}
+}
+
+// 沿真实文字引擎和 GPU 提交验证显隐，避免参数测试漏掉主题绘制路径。
+TEST_F(QmBackgroundControlsIntegration, PopupHeaderTextAndBorderFadeWithParentAndRecover)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	m_Ui.SetBackgroundAlphaScale(0.2f);
+	const ColorRGBA Base(0.25f, 0.55f, 0.8f, 0.6f);
+	const auto Draw = [&](float Alpha) {
+		m_Recording.m_vSurfaces.clear();
+		m_Recording.m_vQuads.clear();
+		CUiScopedControlAlphaScale Fade(&m_Ui, Alpha);
+		m_Ui.DoButton_PopupMenu(&m_Button, "Scroll mode: On", &m_Rect, 10.0f, TEXTALIGN_MC, 0.0f, false, false, Base);
+	};
+	Draw(1.0f);
+	ASSERT_EQ(m_Recording.m_vSurfaces.size(), 1u);
+	const auto BaselineSurface = m_Recording.m_vSurfaces.front();
+	const auto BaselineText = m_Recording.m_vQuads;
+	ASSERT_FALSE(BaselineText.empty());
+	for(float Alpha : {0.5f, 0.0f, 1.0f})
+	{
+		SCOPED_TRACE(Alpha);
+		Draw(Alpha);
+		ASSERT_EQ(m_Recording.m_vSurfaces.size(), 1u);
+		EXPECT_NEAR(m_Recording.m_vSurfaces.front().m_FillColor.a, BaselineSurface.m_FillColor.a * Alpha, 0.0001f);
+		EXPECT_NEAR(m_Recording.m_vSurfaces.front().m_BorderColor.a, BaselineSurface.m_BorderColor.a * Alpha, 0.0001f);
+		if(Alpha == 0.0f)
+		{
+			// 文字引擎也可直接跳过全透明字形提交，二者都不能留下可见内容。
+			for(const auto &Quad : m_Recording.m_vQuads)
+				EXPECT_FLOAT_EQ(Quad.m_Color.a, 0.0f);
+			EXPECT_FLOAT_EQ(m_Ui.ControlAlphaScale(), 1.0f);
+			continue;
+		}
+		ASSERT_EQ(m_Recording.m_vQuads.size(), BaselineText.size());
+		for(size_t i = 0; i < BaselineText.size(); ++i)
+		{
+			// 字形顶点颜色量化为8位；允许一个颜色步长，关闭时仍严格为零。
+			EXPECT_NEAR(m_Recording.m_vQuads[i].m_Color.a, BaselineText[i].m_Color.a * Alpha, 1.0f / 255.0f);
+			if(Alpha == 0.0f)
+				EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Color.a, 0.0f);
+		}
+		EXPECT_FLOAT_EQ(m_Ui.ControlAlphaScale(), 1.0f);
+	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, ScoreboardThemeScrollbarFadesAtBothOverflowStatesAndRecovers)
+{
+	CUiV2AnimationRuntime Animation;
+	m_Ui.SetQmAnimationRuntime(&Animation);
+	m_Ui.SetBackgroundAlphaScale(0.2f);
+	for(float ContentHeight : {50.0f, 900.0f})
+	{
+		SCOPED_TRACE(ContentHeight);
+		CScrollRegion Region;
+		const auto Draw = [&](float Alpha) {
+			m_Recording.m_vSurfaces.clear();
+			CScrollRegionParams Params;
+			Params.m_ScrollbarAlwaysReserved = true;
+			Params.m_Interactive = false;
+			QmScoreboardScrollAlpha(Params, Alpha);
+			Region.SetContentHeightForNextFrame(ContentHeight);
+			CUIRect View{20, 20, 280, 140};
+			vec2 Offset;
+			Region.Begin(&View, &Offset, &Params);
+			Region.AddRect({View.x, View.y + Offset.y, View.w, ContentHeight});
+			Region.End();
+		};
+		Draw(1.0f);
+		if(ContentHeight <= 140.0f)
+		{
+			for(float Alpha : {0.5f, 0.0f, 1.0f})
+			{
+				Draw(Alpha);
+				EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
+				EXPECT_FLOAT_EQ(m_Ui.ControlAlphaScale(), 1.0f);
+			}
+			continue;
+		}
+		ASSERT_FALSE(m_Recording.m_vSurfaces.empty());
+		const auto BaselineHandle = m_Recording.m_vSurfaces.back();
+		ASSERT_GT(BaselineHandle.m_FillColor.a, 0.0f);
+		for(float Alpha : {0.5f, 0.0f, 1.0f})
+		{
+			SCOPED_TRACE(Alpha);
+			Draw(Alpha);
+			ASSERT_FALSE(m_Recording.m_vSurfaces.empty());
+			EXPECT_NEAR(m_Recording.m_vSurfaces.back().m_FillColor.a, BaselineHandle.m_FillColor.a * Alpha, 0.0001f);
+			EXPECT_NEAR(m_Recording.m_vSurfaces.back().m_BorderColor.a, BaselineHandle.m_BorderColor.a * Alpha, 0.0001f);
+			if(Alpha == 0.0f)
+				for(const auto &Surface : m_Recording.m_vSurfaces)
+				{
+					EXPECT_FLOAT_EQ(Surface.m_FillColor.a, 0.0f);
+					EXPECT_FLOAT_EQ(Surface.m_BorderColor.a, 0.0f);
+				}
+			EXPECT_FLOAT_EQ(m_Ui.ControlAlphaScale(), 1.0f);
+		}
+	}
+	m_Ui.SetQmAnimationRuntime(nullptr);
 }
 
 TEST_F(QmBackgroundControlsIntegration, ParentTransitionFadesControlsExactlyOnceAndRestoresAfterScope)

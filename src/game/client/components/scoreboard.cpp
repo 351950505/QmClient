@@ -275,10 +275,14 @@ void CScoreboard::ConToggleScoreboardCursor(IConsole::IResult *pResult, void *pU
 {
 	CScoreboard *pSelf = static_cast<CScoreboard *>(pUserData);
 
-	if(!QmScoreboardToggleCursor(pSelf->m_MouseUnlocked, pSelf->IsActive(), pSelf->GameClient()->m_Menus.IsActive(), pSelf->Client()->State()))
+	if(!pSelf->IsActive() ||
+		pSelf->GameClient()->m_Menus.IsActive() ||
+		pSelf->Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
 		return;
 	}
+
+	pSelf->m_MouseUnlocked = !pSelf->m_MouseUnlocked;
 
 	vec2 OldMousePos = pSelf->Ui()->MousePos();
 
@@ -367,7 +371,7 @@ void CScoreboard::OnMessage(int MsgType, void *pRawMsg)
 
 bool CScoreboard::OnCursorMove(float x, float y, IInput::ECursorType CursorType)
 {
-	if(!QmScoreboardCursorInputEnabled(IsActive(), m_MouseUnlocked, Client()->State()))
+	if(!IsActive() || !m_MouseUnlocked)
 		return false;
 
 	Ui()->ConvertMouseMove(&x, &y, CursorType);
@@ -387,10 +391,10 @@ bool CScoreboard::OnInput(const IInput::CEvent &Event)
 		m_LastMousePos = Ui()->MousePos();
 		return true;
 	}
-	if(!QmScoreboardCursorInputEnabled(IsActive(), m_MouseUnlocked, Client()->State()))
+	if(!IsActive() || !m_MouseUnlocked)
 		return false;
 
-	return QmScoreboardUiInput(*Ui(), QmScoreboardCursorInputEnabled(IsActive(), m_MouseUnlocked, Client()->State()), Event, CBinds::IsReservedShortcutChord(CBinds::GetModifierMask(Input())));
+	return QmScoreboardUiInput(*Ui(), IsActive() && m_MouseUnlocked, Event, CBinds::IsReservedShortcutChord(CBinds::GetModifierMask(Input())));
 }
 
 void CScoreboard::RenderTitle(CUIRect TitleLabel, int Team, const char *pTitle, float TitleFontSize)
@@ -1110,6 +1114,7 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 	const CNetObj_GameInfo *pGameInfoObj = GameClient()->m_Snap.m_pGameInfoObj;
 	const CNetObj_GameData *pGameDataObj = GameClient()->m_Snap.m_pGameDataObj;
 	const bool TimeScore = GameClient()->m_GameInfo.m_TimeScore;
+	const int NumPlayers = Scroll ? 16 : CountEnd - CountStart;
 	const bool LowScoreboardWidth = Scoreboard.w < 350.0f;
 	// Axiom 积分服上这一列显示当前模式的 Axiom 分数，取代 DDNet 在线点数。
 	const bool AxiomScoreColumn = HasQmAxiomScoreMode();
@@ -1142,7 +1147,8 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 	// calculate measurements
 	const float HeadlineFontsize = 11.0f;
 	const CUIRect PlayerRows = ScoreboardPlayerRowsRect(Scoreboard, HeadlineFontsize * 2.0f);
-	const SQmScoreboardRowMetrics RowMetrics = QmScoreboardRowMetrics(PlayerRows.h, EndRow - FirstRow, NumTeamLabels, NumTeamModeLabels, Scroll);
+	// 按原分列容量规划密度，短末列不能因实际人数少而放大字号。
+	const SQmScoreboardRowMetrics RowMetrics = QmScoreboardRowMetrics(PlayerRows.h, NumPlayers, NumTeamLabels, NumTeamModeLabels, Scroll);
 	const float LineHeight = RowMetrics.m_LineHeight;
 	const float TeeSizeMod = RowMetrics.m_TeeSizeMod;
 	const float Spacing = RowMetrics.m_Spacing;
@@ -1195,10 +1201,9 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 	const float PingLength = 27.5f;
 	const float PingOffset = Scoreboard.x + Scoreboard.w - PingLength - 10.0f;
 	const float CountryOffset = RowDetail.m_ShowCountry ? PingOffset - CountryLength : PingOffset;
-	const SQmScoreboardIdentityWidths IdentityWidths = QmScoreboardIdentityWidths(CountryOffset - NameOffset - (RowDetail.m_ShowClan ? 5.0f : 0.0f), RowDetail.m_ShowClan);
-	const float NameLength = IdentityWidths.m_Name;
+	const float NameLength = RowDetail.m_ShowClan ? (LowScoreboardWidth ? 90.0f : 150.0f) - TeeLength : maximum(0.0f, PingOffset - NameOffset - 5.0f);
 	const float ClanOffset = NameOffset + NameLength + 2.5f;
-	const float ClanLength = IdentityWidths.m_Clan;
+	const float ClanLength = CountryOffset - ClanOffset - 2.5f;
 
 	// render headlines
 	CUIRect Headline;
@@ -1331,7 +1336,7 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 		const int ClientId = pInfo->m_ClientId;
 		const CGameClient::CClientData &ClientData = GameClient()->m_aClients[ClientId];
 
-		if(m_MouseUnlocked && m_RenderInteractions && Client()->State() != IClient::STATE_DEMOPLAYBACK)
+		if(m_MouseUnlocked && m_RenderInteractions)
 		{
 			CUiScopedGaussianBlurSuppression GaussianBlurSuppression(Ui());
 			const int ButtonResult = Ui()->DoButtonLogic(&ClientData, 0, &Row, BUTTONFLAG_LEFT | BUTTONFLAG_RIGHT);
@@ -1491,7 +1496,6 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 		}
 
 		// name
-		if(NameLength > 0.0f)
 		{
 			CTextCursor Cursor;
 			Cursor.SetPosition(vec2(NameOffset, Row.y + (Row.h - FontSize) / 2.0f));
@@ -1559,7 +1563,7 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 		}
 
 		// clan
-		if(RowDetail.m_ShowClan && ClanLength > 0.0f)
+		if(RowDetail.m_ShowClan)
 		{
 			const char *pClanName = aClanBuf;
 			if(IsSameClan)
@@ -1812,7 +1816,9 @@ void CScoreboard::OnRender()
 		BuildPlayerRowPlan(TEAM_BLUE, BluePlayerRows);
 	const int NumPlayers = Teams ? maximum(RedPlayerRows.m_Count, BluePlayerRows.m_Count) : RedPlayerRows.m_Count;
 	// 滚动模式：非队伍玩法且人数超过一屏时，固定行高只显示一列，滚轮查看其余玩家。
-	bool ScrollMode = ScoreboardScrollModeEnabled(Teams, g_Config.m_QmScoreboardScroll, NumPlayers);
+	const bool ScrollMode = ScoreboardScrollModeEnabled(Teams, g_Config.m_QmScoreboardScroll, NumPlayers);
+	if(!ScrollMode)
+		m_ScrollRegion.Reset();
 	const bool TimeScore = GameClient()->m_GameInfo.m_TimeScore;
 
 	// Scoreboard width: clamp to screen width for narrow aspect ratios
@@ -1820,41 +1826,15 @@ void CScoreboard::OnRender()
 	CSystemMediaControls::SState MediaState;
 	const bool HasMedia = GameClient()->m_SystemMediaControls.GetStateSnapshot(MediaState);
 	const float MaxScoreboardWidth = HasMedia ? QmScoreboardMediaMaxWidth(Screen.w, true) : maximum(200.0f, Screen.w - ScreenMargin);
+	const int ScoreboardColumns = ScrollMode ? 1 : (Teams ? 2 : (NumPlayers <= 16 ? 1 : (NumPlayers <= 64 ? 2 : 3)));
 	const float ClientBrandExtraWidth = g_Config.m_QmClientShowBadge ? maximum(TextRender()->TextWidth(12.0f, "Qm"), TextRender()->TextWidth(12.0f, "Arg")) + CLIENT_BRAND_LABEL_GAP : 0.0f;
 	const float BaseScoreboardSmallWidth = (g_Config.m_QmScoreboardPoints ? (450.0f + 10.0f) : 450.0f) + ClientBrandExtraWidth;
 	const float ScoreboardSmallWidth = minimum(BaseScoreboardSmallWidth, MaxScoreboardWidth);
-	const float TitleHeight = 30.0f;
-	const float ScoreboardTop = 75.0f;
-	SQmScoreboardColumns Columns;
-	Columns.m_aEndRows[0] = RedPlayerRows.m_Count;
-	if(!Teams && !ScrollMode)
-	{
-		std::array<SQmScoreboardLayoutRow, MAX_CLIENTS> aLayoutRows{};
-		for(int i = 0; i < RedPlayerRows.m_Count; ++i)
-		{
-			const CScoreboardPlayerRow &Row = RedPlayerRows.m_aRows[i];
-			const bool TeamLabel = Row.m_DDTeam != TEAM_FLOCK && Row.m_NextSourceDDTeam != Row.m_DDTeam;
-			const bool ModeLabel = Row.m_DDTeam >= TEAM_FLOCK && Row.m_DDTeam < NUM_DDRACE_TEAMS &&
-					       RedPlayerRows.m_aTeamModes[Row.m_DDTeam].m_Known && RedPlayerRows.m_aTeamModes[Row.m_DDTeam].m_Flags != 0;
-			aLayoutRows[i] = {Row.m_DDTeam, TeamLabel, TeamLabel && ModeLabel};
-		}
-		// 最低列宽按可读字号的数字列、Tee/国旗和名字/战队预算推导，不按服务器容量选列。
-		const float ReadableFontSize = SQmScoreboardColumns::MIN_FONT_SIZE;
-		const float ScoreWidth = TextRender()->TextWidth(ReadableFontSize, TimeScore ? "00:00:00" : "99999");
-		const float PointsWidth = HasQmAxiomScoreMode() || g_Config.m_QmScoreboardPoints ? TextRender()->TextWidth(ReadableFontSize, "999999") + 10.0f : 0.0f;
-		const SQmScoreboardRowMetrics DenseMetrics = QmScoreboardRowMetrics(std::numeric_limits<float>::max(), MAX_CLIENTS, 0, 0, false);
-		const float MinimumColumnWidth = ClientBrandExtraWidth + ScoreWidth + PointsWidth + ReadableFontSize * 12.0f +
-						 60.0f * DenseMetrics.m_TeeSizeMod + (DenseMetrics.m_LineHeight - DenseMetrics.m_TeeSizeMod * 5.0f) * 2.0f + 27.5f + 40.0f;
-		const float RowsHeight = ScoreboardPlayerRowsRect({0.0f, 0.0f, MaxScoreboardWidth, maximum(0.0f, QmScoreboardPanelHeight(Screen.h, ScoreboardTop) - TitleHeight)}, 22.0f).h;
-		Columns = m_LayoutCache.Resolve(aLayoutRows, RedPlayerRows.m_Count, MaxScoreboardWidth, RowsHeight, MinimumColumnWidth);
-		ScrollMode = Columns.m_Scroll;
-	}
-	if(!ScrollMode)
-		m_ScrollRegion.Reset();
-	const EQmScoreboardScrollMode ScrollPresentation = QmScoreboardScrollMode(!Teams && g_Config.m_QmScoreboardScroll != 0 && ScrollMode, ScrollMode);
-	const float BaseScoreboardWidth = Teams ? 850.0f + ClientBrandExtraWidth * 2.0f : ScoreboardSmallWidth * Columns.m_Count;
+	const float BaseScoreboardWidth = ScrollMode || (!Teams && NumPlayers <= 16) ? ScoreboardSmallWidth : 850.0f + ClientBrandExtraWidth * ScoreboardColumns;
 	const float ScoreboardWidth = minimum(BaseScoreboardWidth, MaxScoreboardWidth);
+	const float TitleHeight = 30.0f;
 
+	const float ScoreboardTop = 75.0f;
 	CUIRect Scoreboard = {(Screen.w - ScoreboardWidth) / 2.0f, ScoreboardTop, ScoreboardWidth, QmScoreboardPanelHeight(Screen.h, ScoreboardTop)};
 	if(ExtraAnimations)
 	{
@@ -1872,8 +1852,9 @@ void CScoreboard::OnRender()
 	else
 		pSortLabel = TimeScore ? Localize("Current: Time") : Localize("Current: Score");
 	const float SortButtonWidth = TextRender()->TextWidth(SortButtonFontSize, pSortLabel) + 18.0f;
-	const ColorRGBA SortButtonColor = g_Config.m_QmScoreboardSortMode ? ScoreboardWithUiAlpha(ColorRGBA(0.25f, 0.55f, 0.8f, 0.6f), m_AnimContentAlpha) : ScoreboardUiColorSurface(m_AnimContentAlpha, 0.18f);
+	const ColorRGBA SortButtonColor = g_Config.m_QmScoreboardSortMode ? ScoreboardWithUiAlpha(ColorRGBA(0.25f, 0.55f, 0.8f, 0.6f), 1.0f) : ScoreboardUiColorSurface(1.0f, 0.18f);
 	auto &&DoHeaderButton = [&](CButtonContainer *pButton, const char *pLabel, CUIRect Rect, const ColorRGBA &Color) {
+		CUiScopedControlAlphaScale ControlAlpha(Ui(), m_AnimContentAlpha);
 		Rect.VMargin(4.0f, &Rect);
 		Rect.HMargin(6.0f, &Rect);
 		return Ui()->DoButton_PopupMenu(pButton, pLabel, &Rect, SortButtonFontSize, TEXTALIGN_MC, 0.0f, false, m_RenderInteractions, Color);
@@ -2043,10 +2024,8 @@ void CScoreboard::OnRender()
 		CUIRect SortButton;
 		CUIRect ServerPlayers;
 		CUIRect ScrollButton;
-		const bool ShowScrollButton = !Teams && (NumPlayers > 16 || ScrollMode);
-		const char *pScrollLabel = ScrollPresentation == EQmScoreboardScrollMode::AUTO   ? Localize("Scroll mode: Auto") :
-					   ScrollPresentation == EQmScoreboardScrollMode::MANUAL ? Localize("Scroll mode: On") :
-												   Localize("Scroll mode: Off");
+		const bool ShowScrollButton = !Teams && NumPlayers > 16;
+		const char *pScrollLabel = g_Config.m_QmScoreboardScroll ? Localize("Scroll mode: On") : Localize("Scroll mode: Off");
 		const float ScrollButtonWidth = TextRender()->TextWidth(SortButtonFontSize, pScrollLabel) + 18.0f;
 		{
 			CUiV2LayoutEngine LayoutEngine;
@@ -2085,10 +2064,10 @@ void CScoreboard::OnRender()
 		if(ShowScrollButton)
 		{
 			static CButtonContainer s_ScoreboardScrollButton;
-			const ColorRGBA ScrollButtonColor = ScrollMode ? ScoreboardWithUiAlpha(ColorRGBA(0.25f, 0.55f, 0.8f, 0.6f), m_AnimContentAlpha) : ScoreboardUiColorSurface(m_AnimContentAlpha, 0.18f);
+			const ColorRGBA ScrollButtonColor = g_Config.m_QmScoreboardScroll ? ScoreboardWithUiAlpha(ColorRGBA(0.25f, 0.55f, 0.8f, 0.6f), 1.0f) : ScoreboardUiColorSurface(1.0f, 0.18f);
 			if(DoHeaderButton(&s_ScoreboardScrollButton, pScrollLabel, ScrollButton, ScrollButtonColor))
 			{
-				g_Config.m_QmScoreboardScroll = QmScoreboardManualScrollAfterClick(ScrollPresentation);
+				g_Config.m_QmScoreboardScroll ^= 1;
 				m_ScrollRegion.Reset();
 			}
 		}
@@ -2098,25 +2077,64 @@ void CScoreboard::OnRender()
 		{
 			RenderScoreboard(ScoreboardContentBody, TEAM_GAME, 0, RedPlayerRows.m_Count, RedPlayerRows, RenderState, true);
 		}
+		else if(NumPlayers <= 16)
+		{
+			RenderScoreboard(ScoreboardContentBody, TEAM_GAME, 0, NumPlayers, RedPlayerRows, RenderState);
+		}
+		else if(NumPlayers <= 64)
+		{
+			int PlayersPerSide;
+			if(NumPlayers <= 24)
+				PlayersPerSide = 12;
+			else if(NumPlayers <= 32)
+				PlayersPerSide = 16;
+			else if(NumPlayers <= 48)
+				PlayersPerSide = 24;
+			else
+				PlayersPerSide = 32;
+
+			CUIRect LeftScoreboard, RightScoreboard;
+			{
+				CUiV2LayoutEngine LayoutEngine;
+				SUiStyle TwoColumnStyle;
+				TwoColumnStyle.m_Axis = EUiAxis::ROW;
+				TwoColumnStyle.m_AlignItems = EUiAlign::STRETCH;
+				TwoColumnStyle.m_JustifyContent = EUiAlign::START;
+				static thread_local std::vector<SUiLayoutChild> s_vColumns;
+				std::vector<SUiLayoutChild> &vColumns = s_vColumns;
+				vColumns.assign(2, SUiLayoutChild{});
+				vColumns[0].m_Style.m_Width = SUiLength::Flex(1.0f);
+				vColumns[1].m_Style.m_Width = SUiLength::Flex(1.0f);
+				LayoutEngine.ComputeChildren(TwoColumnStyle, CUiV2LegacyAdapter::FromCUIRect(ScoreboardContentBody), vColumns);
+				LeftScoreboard = CUiV2LegacyAdapter::ToCUIRect(vColumns[0].m_Box);
+				RightScoreboard = CUiV2LegacyAdapter::ToCUIRect(vColumns[1].m_Box);
+			}
+			RenderScoreboard(LeftScoreboard, TEAM_GAME, 0, PlayersPerSide, RedPlayerRows, RenderState);
+			RenderScoreboard(RightScoreboard, TEAM_GAME, PlayersPerSide, 2 * PlayersPerSide, RedPlayerRows, RenderState);
+		}
 		else
 		{
-			CUiV2LayoutEngine LayoutEngine;
-			SUiStyle ColumnStyle;
-			ColumnStyle.m_Axis = EUiAxis::ROW;
-			ColumnStyle.m_AlignItems = EUiAlign::STRETCH;
-			ColumnStyle.m_JustifyContent = EUiAlign::START;
-			static thread_local std::vector<SUiLayoutChild> s_vColumns;
-			std::vector<SUiLayoutChild> &vColumns = s_vColumns;
-			vColumns.assign(Columns.m_Count, SUiLayoutChild{});
-			for(SUiLayoutChild &Child : vColumns)
-				Child.m_Style.m_Width = SUiLength::Flex(1.0f);
-			LayoutEngine.ComputeChildren(ColumnStyle, CUiV2LegacyAdapter::FromCUIRect(ScoreboardContentBody), vColumns);
-			int FirstRow = 0;
-			for(int i = 0; i < Columns.m_Count; ++i)
+			const int NumColumns = 3;
+			const int PlayersPerColumn = std::ceil(128.0f / NumColumns);
 			{
-				const CUIRect Column = CUiV2LegacyAdapter::ToCUIRect(vColumns[i].m_Box);
-				RenderScoreboard(Column, TEAM_GAME, FirstRow, Columns.m_aEndRows[i], RedPlayerRows, RenderState);
-				FirstRow = Columns.m_aEndRows[i];
+				CUiV2LayoutEngine LayoutEngine;
+				SUiStyle ColumnStyle;
+				ColumnStyle.m_Axis = EUiAxis::ROW;
+				ColumnStyle.m_AlignItems = EUiAlign::STRETCH;
+				ColumnStyle.m_JustifyContent = EUiAlign::START;
+				static thread_local std::vector<SUiLayoutChild> s_vColumns;
+				std::vector<SUiLayoutChild> &vColumns = s_vColumns;
+				vColumns.assign(NumColumns, SUiLayoutChild{});
+				for(SUiLayoutChild &Child : vColumns)
+				{
+					Child.m_Style.m_Width = SUiLength::Flex(1.0f);
+				}
+				LayoutEngine.ComputeChildren(ColumnStyle, CUiV2LegacyAdapter::FromCUIRect(ScoreboardContentBody), vColumns);
+				for(int i = 0; i < NumColumns; ++i)
+				{
+					CUIRect Column = CUiV2LegacyAdapter::ToCUIRect(vColumns[i].m_Box);
+					RenderScoreboard(Column, TEAM_GAME, i * PlayersPerColumn, (i + 1) * PlayersPerColumn, RedPlayerRows, RenderState);
+				}
 			}
 		}
 	}

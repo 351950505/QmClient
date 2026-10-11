@@ -9,7 +9,6 @@
 
 #include <game/client/component.h>
 #include <game/client/components/qmclient/axiom_scores_data.h>
-#include <game/client/components/qmclient/scoreboard_layout.h>
 #include <game/client/components/qmclient/scoreboard_media_controls.h>
 #include <game/client/components/qmclient/scoreboard_team_modes.h>
 #include <game/client/ui.h>
@@ -29,9 +28,69 @@ struct SScoreboardRowRenderDetail
 	bool m_ShowCountry = true;
 };
 
+struct SScoreboardTeamLabelLayout
+{
+	float m_X;
+	float m_Y;
+	float m_IconY;
+	float m_RowSpacing;
+};
+
+constexpr float SCOREBOARD_TEAM_MODE_ICON_SIZE = 12.0f;
+
 constexpr SScoreboardRowRenderDetail ResolveScoreboardRowRenderDetail()
 {
 	return {};
+}
+
+constexpr SScoreboardTeamLabelLayout ResolveScoreboardTeamLabelLayout(float RowX, float RowY, float RowHeight, float Spacing, float TeamFontSize, float TeamIconSize, bool EndsDDTeam)
+{
+	const float ContentHeight = TeamIconSize > TeamFontSize ? TeamIconSize : TeamFontSize;
+	const float RowSpacing = EndsDDTeam && ContentHeight > Spacing ? ContentHeight : Spacing;
+	const float ContentY = RowY + RowHeight;
+	return {
+		RowX + 5.0f,
+		ContentY + (RowSpacing - TeamFontSize) / 2.0f,
+		ContentY + (RowSpacing - TeamIconSize) / 2.0f,
+		RowSpacing,
+	};
+}
+
+constexpr float ScoreboardRowsHeight(int NumRows, int NumTeamLabels, int NumTeamModeLabels, float LineHeight, float Spacing, float TeamFontSize, float TeamModeIconSize)
+{
+	if(NumRows <= 0)
+		return 0.0f;
+	const int ClampedTeamLabels = NumTeamLabels < 0 ? 0 : (NumTeamLabels > NumRows ? NumRows : NumTeamLabels);
+	const int ClampedTeamModeLabels = NumTeamModeLabels < 0 ? 0 : (NumTeamModeLabels > ClampedTeamLabels ? ClampedTeamLabels : NumTeamModeLabels);
+	const float TextSpacing = ResolveScoreboardTeamLabelLayout(0.0f, 0.0f, LineHeight, Spacing, TeamFontSize, 0.0f, true).m_RowSpacing;
+	const float IconSpacing = ResolveScoreboardTeamLabelLayout(0.0f, 0.0f, LineHeight, Spacing, TeamFontSize, TeamModeIconSize, true).m_RowSpacing;
+	return NumRows * LineHeight + (NumRows - ClampedTeamLabels) * Spacing +
+	       (ClampedTeamLabels - ClampedTeamModeLabels) * TextSpacing + ClampedTeamModeLabels * IconSpacing;
+}
+
+constexpr float ScoreboardRowsVerticalScale(float AvailableHeight, int NumRows, int NumTeamLabels, int NumTeamModeLabels, float LineHeight, float Spacing, float TeamFontSize, float TeamModeIconSize)
+{
+	if(NumRows <= 0)
+		return 1.0f;
+	if(AvailableHeight <= 0.0f)
+		return 0.0f;
+	const int ClampedTeamLabels = NumTeamLabels < 0 ? 0 : (NumTeamLabels > NumRows ? NumRows : NumTeamLabels);
+	const int ClampedTeamModeLabels = NumTeamModeLabels < 0 ? 0 : (NumTeamModeLabels > ClampedTeamLabels ? ClampedTeamLabels : NumTeamModeLabels);
+	const int TextOnlyTeamLabels = ClampedTeamLabels - ClampedTeamModeLabels;
+	const int RowsWithoutTeamLabels = NumRows - ClampedTeamLabels;
+	const float TeamTextSpacing = TeamFontSize > Spacing ? TeamFontSize : Spacing;
+	const float TeamModeSpacing = TeamModeIconSize > TeamTextSpacing ? TeamModeIconSize : TeamTextSpacing;
+	// 图标与文字随玩家行一起缩放，高度预算必须使用同一比例。
+	const float RequiredHeight = NumRows * LineHeight + RowsWithoutTeamLabels * Spacing + TextOnlyTeamLabels * TeamTextSpacing + ClampedTeamModeLabels * TeamModeSpacing;
+	if(RequiredHeight <= AvailableHeight)
+		return 1.0f;
+	return AvailableHeight / RequiredHeight;
+}
+
+constexpr CUIRect ScoreboardPlayerRowsRect(CUIRect Column, float HeadlineHeight)
+{
+	const float HeaderHeight = maximum(0.0f, minimum(HeadlineHeight, Column.h));
+	return {Column.x, Column.y + HeaderHeight, Column.w, maximum(0.0f, Column.h - HeaderHeight - 5.0f)};
 }
 
 constexpr CUIRect ScoreboardDeadTeeRect(CUIRect Row, float TeeX, float TeeWidth, float PreferredSize)
@@ -120,7 +179,6 @@ class CScoreboard : public CComponent
 
 	// 滚动状态由组件持有，离开滚动模式或释放客户端时复位。
 	CScrollRegion m_ScrollRegion;
-	CQmScoreboardLayoutCache m_LayoutCache;
 
 	std::optional<vec2> m_LastMousePos;
 	bool m_MouseUnlocked = false;

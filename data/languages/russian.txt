@@ -10496,9 +10496,6 @@ Screenshots
 Screenshots directory
 == Каталог скриншотов
 
-Scroll mode: Auto
-== Режим прокрутки: авто
-
 Scroll mode: Off
 == Режим прокрутки: выкл.
 

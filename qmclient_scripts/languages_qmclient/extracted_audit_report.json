@@ -1,8 +1,8 @@
 {
   "summary": {
-    "must_i18n": 9739,
-    "business_data": 13819,
-    "test_only": 5380,
+    "must_i18n": 9738,
+    "business_data": 13816,
+    "test_only": 5390,
     "needs_review": 553,
     "violation": 0
   },
@@ -55421,343 +55421,336 @@
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 300,
+      "line": 304,
       "text": "Show scoreboard",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 301,
+      "line": 305,
       "text": "Toggle scoreboard cursor",
       "category": "must_i18n",
       "reason": "active source key (register_help)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 564,
+      "line": 568,
       "text": "Score limit",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 570,
+      "line": 574,
       "text": "Time limit: %d min",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 576,
+      "line": 580,
       "text": "Round %d/%d",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 611,
+      "line": 615,
       "text": "Spectators",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 635,
+      "line": 639,
       "text": "%d others…",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 947,
+      "line": 951,
       "text": "Muted",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 947,
+      "line": 951,
       "text": "Unmuted",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1207,
+      "line": 1212,
       "text": "Score",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1207,
+      "line": 1212,
       "text": "Time",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1213,
+      "line": 1218,
       "text": "Points",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1216,
+      "line": 1221,
       "text": "Name",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1219,
+      "line": 1224,
       "text": "Clan",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1222,
+      "line": 1227,
       "text": "Ping",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1301,
+      "line": 1306,
       "text": "Super",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1303,
+      "line": 1308,
       "text": "Team %d (%d/%d)",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1305,
+      "line": 1310,
       "text": "Team %d",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1637,
+      "line": 1641,
       "text": "Manual",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1638,
+      "line": 1642,
       "text": "Race",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1639,
+      "line": 1643,
       "text": "Auto",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1640,
+      "line": 1644,
       "text": "Replay",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1871,
+      "line": 1851,
       "text": "Current: Ranks",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1873,
+      "line": 1853,
       "text": "Current: Score",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1873,
+      "line": 1853,
       "text": "Current: Time",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1891,
+      "line": 1872,
       "text": "Players",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1921,
+      "line": 1902,
       "text": "Red team wins!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1925,
+      "line": 1906,
       "text": "%s wins!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1933,
+      "line": 1914,
       "text": "Blue team wins!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1937,
+      "line": 1918,
       "text": "%s wins!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1943,
+      "line": 1924,
       "text": "Draw!",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2019,
+      "line": 2000,
       "text": "Red team",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2020,
+      "line": 2001,
       "text": "Blue team",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2033,
+      "line": 2014,
       "text": "Game over",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2047,
-      "text": "Scroll mode: Auto",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2048,
-      "text": "Scroll mode: On",
-      "category": "must_i18n",
-      "reason": "active source key (localize_or_localizable)"
-    },
-    {
-      "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2049,
+      "line": 2028,
       "text": "Scroll mode: Off",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2323,
+      "line": 2028,
+      "text": "Scroll mode: On",
+      "category": "must_i18n",
+      "reason": "active source key (localize_or_localizable)"
+    },
+    {
+      "file": "src/game/client/components/scoreboard.cpp",
+      "line": 2341,
       "text": "Add friend",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2323,
+      "line": 2341,
       "text": "Remove friend",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2331,
+      "line": 2349,
       "text": "Mute",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2331,
+      "line": 2349,
       "text": "Unmute",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2340,
+      "line": 2358,
       "text": "Mute emoticons",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2340,
+      "line": 2358,
       "text": "Unmute emoticons",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2349,
+      "line": 2367,
       "text": "Copy name",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2365,
+      "line": 2383,
       "text": "Skin: %s",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2368,
+      "line": 2386,
       "text": "Skin copying is only available for 0.6 skins",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2370,
+      "line": 2388,
       "text": "Copy skin",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2381,
+      "line": 2399,
       "text": "Copy skin ID",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2405,
+      "line": 2423,
       "text": "Spectate",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -57836,7 +57829,7 @@
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 1917,
+      "line": 1950,
       "text": "Search",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -144113,56 +144106,49 @@
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 300,
+      "line": 304,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 300,
+      "line": 304,
       "text": "+scoreboard",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 301,
+      "line": 305,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 301,
+      "line": 305,
       "text": "toggle_scoreboard_cursor",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 306,
+      "line": 310,
       "text": "deadtee.png",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 433,
+      "line": 437,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 456,
-      "text": "%d",
-      "category": "business_data",
-      "reason": "numeric display format template"
-    },
-    {
-      "file": "src/game/client/components/scoreboard.cpp",
-      "line": 465,
+      "line": 460,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
@@ -144176,238 +144162,224 @@
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 482,
+      "line": 473,
+      "text": "%d",
+      "category": "business_data",
+      "reason": "numeric display format template"
+    },
+    {
+      "file": "src/game/client/components/scoreboard.cpp",
+      "line": 486,
       "text": "Team invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 485,
+      "line": 489,
       "text": "00:00:00",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 564,
+      "line": 568,
       "text": "%s: %d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 615,
+      "line": 619,
       "text": ": ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 627,
+      "line": 631,
       "text": ", ",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 635,
+      "line": 639,
       "text": "Spectators",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 668,
+      "line": 672,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 714,
+      "line": 718,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 719,
+      "line": 723,
       "text": "%s - %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 759,
+      "line": 763,
       "text": "Sound mute button state mismatch",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 947,
+      "line": 951,
       "text": "%s (%s)",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1108,
+      "line": 1112,
       "text": "Team invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1187,
+      "line": 1193,
       "text": "00:00:00",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1187,
+      "line": 1193,
       "text": "99999",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1189,
+      "line": 1195,
       "text": "99999",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1189,
+      "line": 1195,
       "text": "999999",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1239,
+      "line": 1244,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1382,
+      "line": 1387,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1426,
+      "line": 1431,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1430,
+      "line": 1435,
       "text": "...",
       "category": "business_data",
       "reason": "HTML or CSS template fragment"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1603,
+      "line": 1607,
       "text": "%d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1623,
+      "line": 1627,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1631,
+      "line": 1635,
       "text": " ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1633,
+      "line": 1637,
       "text": "  ",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1843,
-      "text": "00:00:00",
-      "category": "business_data",
-      "reason": "numeric display format template"
-    },
-    {
-      "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1843,
-      "text": "99999",
-      "category": "business_data",
-      "reason": "numeric display format template"
-    },
-    {
-      "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1844,
-      "text": "999999",
-      "category": "business_data",
-      "reason": "numeric display format template"
-    },
-    {
-      "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1889,
+      "line": 1870,
       "text": "",
       "category": "business_data",
       "reason": "empty or whitespace literal"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 1891,
+      "line": 1872,
       "text": "%s: %d/%d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2197,
+      "line": 2215,
       "text": "Team invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2370,
+      "line": 2388,
       "text": "%s\\n%s",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2381,
+      "line": 2399,
       "text": "%s\\n%s",
       "category": "business_data",
       "reason": "localization context metadata"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2410,
+      "line": 2428,
       "text": "say /spec",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
     },
     {
       "file": "src/game/client/components/scoreboard.cpp",
-      "line": 2422,
+      "line": 2440,
       "text": "say /spec \"",
       "category": "business_data",
       "reason": "scoreboard sound category or command data"
@@ -156748,182 +156720,182 @@
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 39,
+      "line": 53,
       "text": "UI element can only be registered once.",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 44,
+      "line": 58,
       "text": "UI element rect count changed.",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 55,
+      "line": 69,
       "text": "UI rects can only be initialized once, create another ui element instead.",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 309,
+      "line": 323,
       "text": "gaussian blur scope underflow",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 316,
+      "line": 330,
       "text": "gaussian blur suppression scope underflow",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 425,
+      "line": 439,
       "text": "blur unavailable this frame (prepare failed)",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 425,
+      "line": 439,
       "text": "ui/blur",
       "category": "business_data",
       "reason": "path, file name, or URL data"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 670,
+      "line": 684,
       "text": "hot=%p nexthot=%p active=%p lastactive=%p",
       "category": "business_data",
       "reason": "log or telemetry payload"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 707,
+      "line": 721,
       "text": "CUi::ConvertMouseMove CursorType %d",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 902,
+      "line": 916,
       "text": "render-only UI scope underflow",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 925,
+      "line": 939,
       "text": "no clip region",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 932,
+      "line": 946,
       "text": "no clip region",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 938,
+      "line": 952,
       "text": "no clip region",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 1083,
+      "line": 1097,
       "text": "m_ActiveButtonLogicButton invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 1135,
+      "line": 1149,
       "text": "m_ActiveDraggableButtonLogicButton invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2156,
+      "line": 2210,
       "text": "%s %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2163,
+      "line": 2217,
       "text": "%s #%0*",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2165,
+      "line": 2219,
       "text": "%s %",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2168,
+      "line": 2222,
       "text": "#%0*",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2170,
+      "line": 2224,
       "text": "%",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2286,
+      "line": 2340,
       "text": "m_ActiveValueSelectorState.m_Button invalid",
       "category": "business_data",
       "reason": "machine/log/matcher call argument"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2579,
+      "line": 2633,
       "text": "%s: %s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2581,
+      "line": 2635,
       "text": "%s: %i%s",
       "category": "business_data",
       "reason": "display formatting template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2585,
+      "line": 2639,
       "text": "%s: ∞",
       "category": "business_data",
       "reason": "command, diagnostic, or payload format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2723,
+      "line": 2777,
       "text": "%02d",
       "category": "business_data",
       "reason": "numeric display format template"
     },
     {
       "file": "src/game/client/ui.cpp",
-      "line": 2725,
+      "line": 2779,
       "text": "%03d",
       "category": "business_data",
       "reason": "numeric display format template"
@@ -184540,57 +184512,127 @@
     },
     {
       "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
-      "line": 50,
+      "line": 183,
+      "text": "background recorder: %zu quad submissions\\n",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 189,
+      "text": "quad[%zu] visible=%d ui=(%g,%g,%g,%g) raw=(%g,%g,%g,%g) rgba=(%g,%g,%g,%g) pixels=(%g,%g,%g,%g) map=(%g,%g,%g,%g) clipped=%d clip=(%g,%g,%g,%g)\\n",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 263,
       "text": "server filter",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
-      "line": 51,
+      "line": 264,
       "text": "original placeholder",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
-      "line": 53,
+      "line": 267,
       "text": "pending integer",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
-      "line": 54,
+      "line": 268,
       "text": "pending numeric",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
-      "line": 86,
+      "line": 348,
       "text": "server filter",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
-      "line": 87,
+      "line": 349,
       "text": "original placeholder",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
-      "line": 90,
+      "line": 353,
       "text": "pending integer",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
-      "line": 91,
+      "line": 354,
       "text": "pending numeric",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 366,
+      "text": "Filter servers",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 421,
+      "text": "A long server command with arguments and further settings extending beyond the field",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 505,
+      "text": "read only field",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 562,
+      "text": "read only input",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 590,
+      "text": " pending",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 937,
+      "text": "Scroll mode: On",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 1160,
+      "text": "Second row",
+      "category": "test_only",
+      "reason": "test fixture or assertion text"
+    },
+    {
+      "file": "src/test/integration/qmclient/ui/qm_background_controls_test.cpp",
+      "line": 1175,
+      "text": "Visible again",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
