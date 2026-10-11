@@ -2276,6 +2276,9 @@ Commands
 Commands run in the console
 == Konsolda çalıştırılan komutlar
 
+Common filters
+== Sık kullanılan filtreler
+
 Common key bindings
 == Yaygın tuş bağlamaları
 
@@ -6950,6 +6953,9 @@ Map play history
 Map Preview TODO
 == Harita önizlemesi yapılacak
 
+Map progress
+== Harita ilerlemesi
+
 Map progress bar
 == Harita ilerleme çubuğu
 
@@ -8647,6 +8653,9 @@ Player body color
 
 Player clan
 == Oyuncu klanı
+
+Player count
+== Oyuncu sayımı
 
 Player country (ISO 3166-1 numeric code)
 == Oyuncu ülkesi (ISO 3166-1 sayısal kodu)

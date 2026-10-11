@@ -3191,6 +3191,7 @@ if(CLIENT)
     QmUi/QmTree.cpp
     QmUi/QmTree.h
     QmUi/SecondaryPanel.h
+    QmUi/ServerBrowserFilterForm.cpp
     QmUi/SettingsCard.cpp
     QmUi/SettingsCardInfo.cpp
     QmUi/SettingsCardInfo.h

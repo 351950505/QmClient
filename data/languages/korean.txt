@@ -2276,6 +2276,9 @@ Commands
 Commands run in the console
 == 콘솔에서 실행되는 명령어
 
+Common filters
+== 자주 쓰는 필터
+
 Common key bindings
 == 일반적인 키 바인딩
 
@@ -6950,6 +6953,9 @@ Map play history
 Map Preview TODO
 == 맵 미리보기 할 일
 
+Map progress
+== 맵 진행도
+
 Map progress bar
 == 맵 진행률 표시줄
 
@@ -8647,6 +8653,9 @@ Player body color
 
 Player clan
 == 플레이어 클랜
+
+Player count
+== 인원 집계
 
 Player country (ISO 3166-1 numeric code)
 == 플레이어 국가 (ISO 3166-1 숫자 코드)

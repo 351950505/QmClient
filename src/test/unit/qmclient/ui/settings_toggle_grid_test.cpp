@@ -165,6 +165,30 @@ TEST(SettingsToggleGrid, WrappedButtonLabelExpandsItsRowAndKeepsThePadding)
 	EXPECT_FLOAT_EQ(Label.y + Label.h + 3, Area.y + Area.h);
 }
 
+TEST(SettingsToggleGrid, SelectionIndicatorReservesSpaceWithoutReducingTheMeasuredLabel)
+{
+	const auto Size = ResolveSettingsToggleButtonSize(60, 12, 18, 6, 2, 15);
+	const CUIRect Button{10, 20, Size.m_Width, Size.m_Height};
+	const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, 6, 2, 15);
+	EXPECT_FLOAT_EQ(Size.m_Width, 87);
+	EXPECT_FLOAT_EQ(Label.x, 31);
+	EXPECT_FLOAT_EQ(Label.w, 60);
+	EXPECT_FLOAT_EQ(Label.x + Label.w + 6, Button.x + Button.w);
+}
+
+TEST(SettingsToggleGrid, SelectionIndicatorFitsInsideTinyButtonsWithoutNegativeLabelWidth)
+{
+	for(const float Width : {0.0f, 5.0f, 12.0f, 20.0f})
+	{
+		SCOPED_TRACE(Width);
+		const CUIRect Button{10, 20, Width, 18};
+		const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, 6, 2, 15);
+		EXPECT_GE(Label.w, 0);
+		EXPECT_GE(Label.x, Button.x);
+		EXPECT_LE(Label.x + Label.w, Button.x + Button.w);
+	}
+}
+
 TEST(SettingsToggleGrid, TinyTextButtonKeepsItsLabelInsideWithoutNegativeDimensions)
 {
 	for(const float Width : {0.0f, 5.0f, 12.0f})

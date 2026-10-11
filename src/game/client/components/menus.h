@@ -2340,6 +2340,7 @@ protected:
 	void Connect(const char *pAddress, EConnectIntent Intent = EConnectIntent::Manual);
 	void PopupConfirmSwitchServer();
 	void RenderServerbrowserFilters(CUIRect View);
+	void RenderServerbrowserFilterForm(CUIRect &View);
 	void ResetServerbrowserFilters();
 	void RenderServerbrowserDDNetFilter(CUIRect View,
 		IFilterList &Filter,

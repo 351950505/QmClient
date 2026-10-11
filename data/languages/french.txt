@@ -2276,6 +2276,9 @@ Commands
 Commands run in the console
 == Commandes exécutées dans la console
 
+Common filters
+== Filtres courants
+
 Common key bindings
 == Raccourcis clavier courants
 
@@ -6950,6 +6953,9 @@ Map play history
 Map Preview TODO
 == Aperçu de la carte à faire
 
+Map progress
+== Progression des cartes
+
 Map progress bar
 == Barre de progression de la carte
 
@@ -8647,6 +8653,9 @@ Player body color
 
 Player clan
 == Clan du joueur
+
+Player count
+== Comptage des joueurs
 
 Player country (ISO 3166-1 numeric code)
 == Pays du joueur (code numérique ISO 3166-1)
