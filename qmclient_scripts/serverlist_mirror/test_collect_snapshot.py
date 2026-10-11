@@ -1,7 +1,9 @@
 import hashlib
 import json
+import subprocess
 import tempfile
 import unittest
+from unittest import mock
 from email.utils import formatdate
 from pathlib import Path
 
@@ -47,6 +49,15 @@ class SnapshotCollection(unittest.TestCase):
         with self.assertRaises(SnapshotError):
             collect(self.output, fail, NOW + 500, ["https://one", "https://two"])
         self.assertEqual(saved, {path.name: path.read_bytes() for path in self.output.iterdir()})
+
+    def test_http_process_deadline_is_converted_and_other_sources_are_attempted(self):
+        self.run_collect(reply())
+        saved = (self.output / "servers.json").read_bytes()
+        with mock.patch("collect_snapshot.subprocess.run", side_effect=subprocess.TimeoutExpired("curl", 15)) as boundary:
+            with self.assertRaisesRegex(SnapshotError, "all official sources failed"):
+                collect(self.output, now=NOW + 100, sources=["https://one", "https://two"])
+        self.assertEqual(boundary.call_count, 2)
+        self.assertEqual((self.output / "servers.json").read_bytes(), saved)
 
     def test_last_modified_dominates_fresh_response_date(self):
         metadata = self.run_collect(reply(headers={"Date": formatdate(NOW, usegmt=True), "Age": "10", "Last-Modified": formatdate(NOW - 600, usegmt=True)}))

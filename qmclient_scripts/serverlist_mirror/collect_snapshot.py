@@ -5,9 +5,11 @@ import argparse
 import hashlib
 import json
 import os
+import subprocess
+import tempfile
 import time
-import urllib.request
 from dataclasses import dataclass
+from email.parser import BytesParser
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
@@ -28,25 +30,29 @@ class Response:
 
 
 def fetch(url):
-    request = urllib.request.Request(url, headers={"User-Agent": "QmClient-serverlist-snapshot/1", "Accept": "application/json"})
-    deadline = time.monotonic() + TIMEOUT
-    with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-        if response.status != 200 or not response.geturl().startswith("https://"):
-            raise SnapshotError("expected a successful HTTPS response")
-        # read1 每次至多一次底层读取，配合 socket 超时，单源最长约 14 秒。
-        chunks = []
-        size = 0
-        while True:
-            if time.monotonic() >= deadline:
-                raise TimeoutError("response body deadline exceeded")
-            chunk = response.read1(min(65536, MAX_BODY + 1 - size))
-            if not chunk:
-                break
-            chunks.append(chunk)
-            size += len(chunk)
-            if size > MAX_BODY:
-                raise SnapshotError("response exceeds 8 MiB")
-        return Response(b"".join(chunks), dict(response.headers.items()))
+    # Actions Ubuntu 自带 curl；max-time 也约束 DNS，避免 Python 系统解析无界等待。
+    with tempfile.TemporaryDirectory(prefix="qm-serverlist-fetch-") as directory:
+        header_path = Path(directory) / "headers"
+        body_path = Path(directory) / "body"
+        command = ["curl", "--fail", "--silent", "--show-error", "--proto", "=https",
+                   "--connect-timeout", str(TIMEOUT), "--max-time", "14", "--max-filesize", str(MAX_BODY),
+                   "--user-agent", "QmClient-serverlist-snapshot/1", "--header", "Accept: application/json",
+                   "--dump-header", str(header_path), "--output", str(body_path), "--write-out", "%{http_code}", url]
+        try:
+            result = subprocess.run(command, capture_output=True, timeout=15, check=False)
+        except subprocess.TimeoutExpired as error:
+            raise SnapshotError("HTTP process exceeded deadline") from error
+        if result.returncode or result.stdout.strip() != b"200":
+            raise SnapshotError("HTTP fetch failed: " + result.stderr.decode("utf-8", errors="replace").strip())
+        if body_path.stat().st_size > MAX_BODY:
+            raise SnapshotError("response exceeds 8 MiB")
+        # 代理 CONNECT 和 1xx 可以先于最终响应，只使用最后一块响应头。
+        blocks = header_path.read_bytes().replace(b"\r\n", b"\n").strip().split(b"\n\n")
+        lines = blocks[-1].split(b"\n", 1)
+        if len(lines) != 2 or not lines[0].startswith(b"HTTP/"):
+            raise SnapshotError("missing final HTTP response headers")
+        headers = BytesParser().parsebytes(lines[1])
+        return Response(body_path.read_bytes(), dict(headers.items()))
 
 
 def payload_time(headers, now):
