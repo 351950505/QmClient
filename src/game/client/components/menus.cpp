@@ -2238,6 +2238,12 @@ ColorHSLA CMenus::DoButton_ColorPicker(const CUIRect *pRect, unsigned int *pHsla
 
 	DrawRoundedSurface(Ui(), *pRect, color_cast<ColorRGBA>(HslaColor), Outline, 4.0f, 3.0f);
 
+	return DoButton_ColorPickerLogic(pRect, pHslaColor, Alpha);
+}
+
+ColorHSLA CMenus::DoButton_ColorPickerLogic(const CUIRect *pRect, unsigned int *pHslaColor, bool Alpha)
+{
+	ColorHSLA HslaColor = ColorHSLA(*pHslaColor, Alpha);
 	if(Ui()->DoButtonLogic(pHslaColor, 0, pRect, BUTTONFLAG_LEFT))
 	{
 		m_ColorPickerPopupContext.m_pHslaColor = pHslaColor;

@@ -918,6 +918,14 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 					}
 				}
 			};
+			const auto ProcessColorRow = [this, GraphicsMetrics](CUIRect Row, CButtonContainer *pResetId, unsigned int *pColor, ColorRGBA DefaultColor) {
+				SSettingsContentMetrics ColorMetrics = GraphicsMetrics;
+				ColorMetrics.m_LineSpacing = 0.0f;
+				const SSettingsColorRowLayout Layout = ResolveSettingsColorRowLayout(Row, ColorMetrics, false, false);
+				DoButton_ColorPickerLogic(&Layout.m_ColorButtonRect, pColor, false);
+				if(Ui()->DoButtonLogic(pResetId, 0, &Layout.m_ResetButtonRect, BUTTONFLAG_LEFT))
+					*pColor = color_cast<ColorHSLA>(DefaultColor).Pack(false);
+			};
 			CSettingsContentRowFlow Rows(ContentRect, GraphicsMetrics);
 			CUIRect Row = Rows.Next(ResolveSettingsRadioRowLayout(ContentRect, 3, GraphicsMetrics).m_Height);
 			ProcessChoiceRow(Row, qm_icon_settings::PresetIndex(g_Config.m_QmUiIconColor), 3, s_aGraphicsIconColorButtons, [this](int NewValue) {
@@ -925,7 +933,8 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 				Client()->OnWindowResize();
 			});
 			CUIRect CustomToggleRow = Rows.NextLine();
-			if(DoSettingsButton_CheckBox(SETTINGS_GRAPHICS, -1, &g_Config.m_QmUiIconCustomColorEnabled, "graphics-custom-icon-color", Localize("Use custom UI icon color"), CustomColor, &CustomToggleRow))
+			// 预布局只处理输入，标签、开关和取色器统一由正式渲染绘制一次。
+			if(Ui()->DoButtonLogic(&g_Config.m_QmUiIconCustomColorEnabled, 0, &CustomToggleRow, BUTTONFLAG_LEFT))
 			{
 				qm_icon_settings::ToggleCustomColor(g_Config.m_QmUiIconColor, g_Config.m_QmUiIconCustomColorEnabled);
 				Client()->OnWindowResize();
@@ -934,28 +943,24 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 			if(CustomColor)
 			{
 				const unsigned int OldCustomColor = g_Config.m_QmUiIconCustomColor;
-				SSettingsContentMetrics ColorMetrics = GraphicsMetrics;
-				ColorMetrics.m_LineSpacing = 0.0f;
 				CUIRect CustomColorRow = Rows.NextButton();
-				DoLine_ColorPicker(&s_GraphicsIconCustomColorResetId, ColorMetrics, &CustomColorRow, Localize("UI icon custom color"), &g_Config.m_QmUiIconCustomColor, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f), false, nullptr, false, false);
+				ProcessColorRow(CustomColorRow, &s_GraphicsIconCustomColorResetId, &g_Config.m_QmUiIconCustomColor, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f));
 				Changed = Changed || OldCustomColor != g_Config.m_QmUiIconCustomColor;
 			}
-			SSettingsContentMetrics SemanticColorMetrics = GraphicsMetrics;
-			SemanticColorMetrics.m_LineSpacing = 0.0f;
 			const unsigned OldFriendColor = g_Config.m_QmUiFriendIconColor;
 			CUIRect FriendColorRow = Rows.NextButton();
-			DoLine_ColorPicker(&s_GraphicsFriendIconColorResetId, SemanticColorMetrics, &FriendColorRow, Localize("Friend icon color"), &g_Config.m_QmUiFriendIconColor, color_cast<ColorRGBA>(ColorHSLA(0x00D1AB)), false, nullptr, false, false);
+			ProcessColorRow(FriendColorRow, &s_GraphicsFriendIconColorResetId, &g_Config.m_QmUiFriendIconColor, color_cast<ColorRGBA>(ColorHSLA(0x00D1AB)));
 			CUIRect FriendFilledRow = Rows.NextLine();
-			if(DoSettingsButton_CheckBox(SETTINGS_GRAPHICS, -1, &g_Config.m_QmUiFriendIconFilled, "graphics-solid-friend-icon", Localize("Solid friend icon"), g_Config.m_QmUiFriendIconFilled, &FriendFilledRow))
+			if(Ui()->DoButtonLogic(&g_Config.m_QmUiFriendIconFilled, 0, &FriendFilledRow, BUTTONFLAG_LEFT))
 			{
 				g_Config.m_QmUiFriendIconFilled ^= 1;
 				Changed = true;
 			}
 			const unsigned OldFavoriteColor = g_Config.m_QmUiFavoriteIconColor;
 			CUIRect FavoriteColorRow = Rows.NextButton();
-			DoLine_ColorPicker(&s_GraphicsFavoriteIconColorResetId, SemanticColorMetrics, &FavoriteColorRow, Localize("Favorite icon color"), &g_Config.m_QmUiFavoriteIconColor, color_cast<ColorRGBA>(ColorHSLA(0x21FFA6)), false, nullptr, false, false);
+			ProcessColorRow(FavoriteColorRow, &s_GraphicsFavoriteIconColorResetId, &g_Config.m_QmUiFavoriteIconColor, color_cast<ColorRGBA>(ColorHSLA(0x21FFA6)));
 			CUIRect FavoriteFilledRow = Rows.NextLine();
-			if(DoSettingsButton_CheckBox(SETTINGS_GRAPHICS, -1, &g_Config.m_QmUiFavoriteIconFilled, "graphics-solid-favorite-icon", Localize("Solid favorite icon"), g_Config.m_QmUiFavoriteIconFilled, &FavoriteFilledRow))
+			if(Ui()->DoButtonLogic(&g_Config.m_QmUiFavoriteIconFilled, 0, &FavoriteFilledRow, BUTTONFLAG_LEFT))
 			{
 				g_Config.m_QmUiFavoriteIconFilled ^= 1;
 				Changed = true;
