@@ -34,6 +34,20 @@
 
 using namespace FontIcons;
 
+namespace
+{
+	void MeasureEditBoxText(ITextRender *pTextRender, CLineInput *pLineInput, float FontSize, float LineWidth = -1.0f, float LineSpacing = 0.0f)
+	{
+		// 纯测量只收集字形和尺寸，不运行真实输入框的选区、光标及 IME 生命周期。
+		if(pLineInput->IsHidden())
+			return;
+		const char *pText = pLineInput->GetDisplayedString();
+		if(pText[0] == '\0' && pLineInput->GetEmptyText() != nullptr)
+			pText = pLineInput->GetEmptyText();
+		pTextRender->TextBoundingBox(FontSize, pText, -1, LineWidth, LineSpacing);
+	}
+}
+
 void CUIElement::Init(CUi *pUI, int RequestedRectCount)
 {
 	dbg_assert(m_pUI == nullptr, "UI element can only be registered once.");
@@ -1628,7 +1642,12 @@ bool CUi::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 	const CUIRect *pHitRect = RenderOptions.m_pHitRect != nullptr ? RenderOptions.m_pHitRect : pRect;
 	CUIRect Textbox;
 	pRect->VMargin(VSpacing, &Textbox);
-	if(RenderOnly())
+	if(MeasurementOnly())
+	{
+		MeasureEditBoxText(TextRender(), pLineInput, FontSize);
+		return false;
+	}
+	if(RenderOnly() || !RenderOptions.m_ProcessInput)
 	{
 		if(RenderOptions.m_DrawBackground)
 			DrawRoundedSurface(this, *pRect, ResolveConfiguredInputSurface(), ColorRGBA(), EditBoxRounding, 0.0f, Corners);
@@ -1759,15 +1778,18 @@ bool CUi::DoEditBoxMultiLine(CLineInput *pLineInput, const CUIRect *pRect, float
 	const CUIRect *pHitRect = RenderOptions.m_pHitRect != nullptr ? RenderOptions.m_pHitRect : pRect;
 	const bool Inside = MouseHovered(pHitRect);
 	bool Active = ActiveItem() == pLineInput || pLineInput->IsActive();
-	const bool Changed = pLineInput->WasChanged();
-	const bool CursorChanged = pLineInput->WasCursorChanged();
 	const bool ClickedOutside = (MouseButtonClicked(0) || MouseButtonClicked(1)) && !Inside;
 
 	constexpr float VSpacing = 2.0f;
 	CUIRect Textbox;
 	pRect->VMargin(VSpacing, &Textbox);
 	const float LineWidth = Textbox.w;
-	if(RenderOnly())
+	if(MeasurementOnly())
+	{
+		MeasureEditBoxText(TextRender(), pLineInput, FontSize, LineWidth, LineSpacing);
+		return false;
+	}
+	if(RenderOnly() || !RenderOptions.m_ProcessInput)
 	{
 		if(RenderOptions.m_DrawBackground)
 			DrawRoundedSurface(this, *pRect, ResolveConfiguredInputSurface(), ColorRGBA(), ui_token::radius::TIGHT);
@@ -1776,6 +1798,8 @@ bool CUi::DoEditBoxMultiLine(CLineInput *pLineInput, const CUIRect *pRect, float
 		ClipDisable();
 		return false;
 	}
+	const bool Changed = pLineInput->WasChanged();
+	const bool CursorChanged = pLineInput->WasCursorChanged();
 
 	bool JustGotActive = false;
 	if(CheckActiveItem(pLineInput))

@@ -230,6 +230,7 @@ private:
 	SQmScrollMetrics ScrollMetrics() const;
 	SQmScrollConfig ScrollConfig() const;
 	vec2 ContentScrollOffset() const;
+	void ClampBackgroundScrollOffset();
 	void DoScrollInput();
 	CUIRect WheelHotRect() const;
 	void UpdateHotScrollRegion();

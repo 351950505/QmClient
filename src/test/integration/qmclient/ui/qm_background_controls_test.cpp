@@ -6,6 +6,7 @@
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiDiscreteSlider.h>
 #include <game/client/QmUi/UiForms.h>
+#include <game/client/QmUi/UiNavigation.h>
 #include <game/client/ui_scrollregion.h>
 
 #include <test/support/qm_real_ui_fixture.h>
@@ -437,6 +438,256 @@ TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayPreservesScrolledInputAndM
 			EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.y, Baseline[i].m_Rect.y);
 		}
 	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayKeepsNumericGlyphsAndSpecialValues)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	struct SCase
+	{
+		const char *m_pSuffix;
+		int m_Value;
+		const char *m_pMaxText;
+		unsigned m_Flags;
+		bool m_Pending;
+	};
+	for(const auto &Case : {SCase{"", 123, nullptr, 0, false},
+		    SCase{"%", 123, nullptr, 0, false},
+		    SCase{"", 200, "Maximum", 0, false},
+		    SCase{"", 0, nullptr, CUi::SCROLLBAR_OPTION_INFINITE, false},
+		    SCase{"%", 123, nullptr, 0, true}})
+	{
+		SCOPED_TRACE(Case.m_pSuffix);
+		SCOPED_TRACE(Case.m_Value);
+		SCOPED_TRACE(Case.m_Pending);
+		m_Ui.SetEnabled(true);
+		ui_widget::SNumericFieldState Number;
+		m_Value = Case.m_Value;
+		ui_widget::SNumericFieldOptions Options;
+		Options.m_pSuffix = Case.m_pSuffix;
+		Options.m_pMaxText = Case.m_pMaxText;
+		Options.m_Flags = Case.m_Flags;
+		ui_widget::NumericField(Ctx, &Number, &m_Button, &m_Value, 0, 200, m_Rect, Options);
+		if(Case.m_Pending)
+		{
+			Number.m_HasPendingValue = true;
+			Number.m_PendingStoredValue = 156;
+		}
+		m_Recording.m_vQuads.clear();
+		ui_widget::NumericField(Ctx, &Number, &m_Button, &m_Value, 0, 200, m_Rect, Options);
+		const auto Baseline = m_Recording.m_vQuads;
+		ASSERT_FALSE(Baseline.empty());
+		m_Recording.m_vQuads.clear();
+		m_Ui.SetEnabled(false);
+		m_Ui.BeginBackgroundRender();
+		ui_widget::NumericField(Ctx, &Number, &m_Button, &m_Value, 0, 200, m_Rect, Options);
+		m_Ui.EndBackgroundRender();
+		ASSERT_EQ(m_Recording.m_vQuads.size(), Baseline.size());
+		for(size_t i = 0; i < Baseline.size(); ++i)
+		{
+			EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.x, Baseline[i].m_Rect.x);
+			EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.y, Baseline[i].m_Rect.y);
+			EXPECT_EQ(m_Recording.m_vQuads[i].m_Color, Baseline[i].m_Color);
+		}
+	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayKeepsReadOnlyFieldGlyphsAndPlaceholder)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	for(const char *pText : {"", "read only field"})
+	{
+		SCOPED_TRACE(pText);
+		m_Ui.SetEnabled(true);
+		m_Text.Set(pText);
+		m_Recording.m_vQuads.clear();
+		ui_widget::ReadOnlyTextField(Ctx, &m_Text, m_Rect, "placeholder", 12.0f);
+		const auto Baseline = m_Recording.m_vQuads;
+		ASSERT_FALSE(Baseline.empty());
+		m_Recording.m_vQuads.clear();
+		m_Ui.SetEnabled(false);
+		m_Ui.BeginBackgroundRender();
+		ui_widget::ReadOnlyTextField(Ctx, &m_Text, m_Rect, "placeholder", 12.0f);
+		m_Ui.EndBackgroundRender();
+		ASSERT_EQ(m_Recording.m_vQuads.size(), Baseline.size());
+		for(size_t i = 0; i < Baseline.size(); ++i)
+		{
+			EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.x, Baseline[i].m_Rect.x);
+			EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.y, Baseline[i].m_Rect.y);
+			EXPECT_EQ(m_Recording.m_vQuads[i].m_Color, Baseline[i].m_Color);
+		}
+	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayKeepsIntegerFieldGlyphs)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	m_Value = 123;
+	ui_widget::IntegerField(Ctx, &m_Integer, &m_Value, 0, 200, m_Rect, {});
+	m_Recording.m_vQuads.clear();
+	ui_widget::IntegerField(Ctx, &m_Integer, &m_Value, 0, 200, m_Rect, {});
+	const auto Baseline = m_Recording.m_vQuads;
+	ASSERT_FALSE(Baseline.empty());
+	m_Recording.m_vQuads.clear();
+	m_Ui.SetEnabled(false);
+	m_Ui.BeginBackgroundRender();
+	ui_widget::IntegerField(Ctx, &m_Integer, &m_Value, 0, 200, m_Rect, {});
+	m_Ui.EndBackgroundRender();
+	ASSERT_EQ(m_Recording.m_vQuads.size(), Baseline.size());
+	for(size_t i = 0; i < Baseline.size(); ++i)
+	{
+		EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.x, Baseline[i].m_Rect.x);
+		EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.y, Baseline[i].m_Rect.y);
+		EXPECT_EQ(m_Recording.m_vQuads[i].m_Color, Baseline[i].m_Color);
+	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, NonEditableInputUsesSameLayoutUnderConsole)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	for(auto Mode : {ui_widget::EInputFieldMode::TEXT, ui_widget::EInputFieldMode::MULTILINE})
+	{
+		m_Ui.SetEnabled(true);
+		m_Text.Set("read only input");
+		ui_widget::SInputFieldOptions Options;
+		Options.m_Mode = Mode;
+		Options.m_ProcessInput = false;
+		m_Recording.m_vQuads.clear();
+		ui_widget::InputField(Ctx, &m_Text, m_Rect, Options);
+		const auto Baseline = m_Recording.m_vQuads;
+		ASSERT_FALSE(Baseline.empty());
+		m_Recording.m_vQuads.clear();
+		m_Ui.SetEnabled(false);
+		m_Ui.BeginBackgroundRender();
+		ui_widget::InputField(Ctx, &m_Text, m_Rect, Options);
+		m_Ui.EndBackgroundRender();
+		ASSERT_EQ(m_Recording.m_vQuads.size(), Baseline.size());
+		for(size_t i = 0; i < Baseline.size(); ++i)
+		{
+			EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.x, Baseline[i].m_Rect.x);
+			EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.y, Baseline[i].m_Rect.y);
+			EXPECT_EQ(m_Recording.m_vQuads[i].m_Color, Baseline[i].m_Color);
+		}
+	}
+}
+
+TEST_F(QmBackgroundControlsIntegration, MultilineBackgroundDoesNotConsumePendingEditNotifications)
+{
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	m_Text.WasChanged();
+	m_Text.WasCursorChanged();
+	m_Text.Append(" pending");
+	ui_widget::SInputFieldOptions Options;
+	Options.m_Mode = ui_widget::EInputFieldMode::MULTILINE;
+	m_Ui.SetEnabled(false);
+	m_Ui.BeginBackgroundRender();
+	ui_widget::InputField(Ctx, &m_Text, m_Rect, Options);
+	m_Ui.EndBackgroundRender();
+	EXPECT_TRUE(m_Text.WasChanged());
+	EXPECT_TRUE(m_Text.WasCursorChanged());
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayKeepsUncommittedNumberInsteadOfMaximumLabel)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	ui_widget::SNumericFieldOptions Options;
+	Options.m_pMaxText = "Maximum";
+	m_Value = 198;
+	ui_widget::NumericField(Ctx, &m_Number, &m_Button, &m_Value, 0, 200, m_Rect, Options);
+	m_Recording.m_vQuads.clear();
+	ui_widget::NumericField(Ctx, &m_Number, &m_Button, &m_Value, 0, 200, m_Rect, Options);
+	const auto Baseline = m_Recording.m_vQuads;
+	ASSERT_FALSE(Baseline.empty());
+	// 模拟最大提交值为 200、用户已输入 198，但控制台接管后尚未提交。
+	m_Value = 200;
+	m_Number.m_LastSyncedStoredValue = 200;
+	m_Recording.m_vQuads.clear();
+	m_Ui.BeginBackgroundRender();
+	ui_widget::NumericField(Ctx, &m_Number, &m_Button, &m_Value, 0, 200, m_Rect, Options);
+	m_Ui.EndBackgroundRender();
+	ASSERT_EQ(m_Recording.m_vQuads.size(), Baseline.size());
+	for(size_t i = 0; i < Baseline.size(); ++i)
+	{
+		EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.x, Baseline[i].m_Rect.x);
+		EXPECT_FLOAT_EQ(m_Recording.m_vQuads[i].m_Rect.y, Baseline[i].m_Rect.y);
+		EXPECT_EQ(m_Recording.m_vQuads[i].m_Color, Baseline[i].m_Color);
+	}
+	EXPECT_EQ(m_Value, 200);
+	EXPECT_STREQ(m_Number.m_Input.GetString(), "198");
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayPreservesClearedIntegerInput)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	m_Integer.Clear();
+	m_Value = 123;
+	m_Recording.m_vQuads.clear();
+	m_Ui.BeginBackgroundRender();
+	ui_widget::IntegerField(Ctx, &m_Integer, &m_Value, 0, 200, m_Rect, {});
+	m_Ui.EndBackgroundRender();
+	EXPECT_TRUE(m_Recording.m_vQuads.empty());
+	EXPECT_TRUE(m_Integer.IsEmpty());
+	EXPECT_EQ(m_Value, 123);
+}
+
+TEST_F(QmBackgroundControlsIntegration, MeasurementDoesNotRecalculateActiveTextSelection)
+{
+	UseRecordingTextEngine();
+	ASSERT_FALSE(HasFatalFailure());
+	m_Text.Activate(EInputPriority::UI);
+	m_Text.GetMouseSelection()->m_Selecting = true;
+	m_Text.SetSelection(2, 5);
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	m_Ui.BeginRenderOnly();
+	ui_widget::InputField(Ctx, &m_Text, m_Rect, ui_widget::SInputFieldOptions{});
+	ui_widget::ReadOnlyTextField(Ctx, &m_Text, m_Rect, nullptr, 12.0f);
+	m_Ui.EndRenderOnly();
+	EXPECT_EQ(m_Text.GetSelectionStart(), 2u);
+	EXPECT_EQ(m_Text.GetSelectionEnd(), 5u);
+	EXPECT_TRUE(m_Text.GetMouseSelection()->m_Selecting);
+	EXPECT_TRUE(m_Text.IsActive());
+	m_Text.Deactivate();
+}
+
+TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayKeepsCapsulePlateAndIndicatorWhileMeasurementDrawsNeither)
+{
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	const CUIRect aSlots[] = {{20, 20, 80, 24}, {108, 20, 80, 24}, {196, 20, 80, 24}};
+	ui_widget::SCapsuleTabBarStyle Style;
+	ui_widget::CapsuleTabBarChrome(Ctx, 1234, aSlots, 3, 1, Style);
+	const auto Baseline = m_Recording.m_vSurfaces;
+	ASSERT_EQ(Baseline.size(), 2u);
+	EXPECT_EQ(Baseline[0].m_FillColor, vec4(Style.m_CapsuleColor.r, Style.m_CapsuleColor.g, Style.m_CapsuleColor.b, Style.m_CapsuleColor.a));
+	EXPECT_EQ(Baseline[1].m_FillColor, vec4(Style.m_IndicatorColor.r, Style.m_IndicatorColor.g, Style.m_IndicatorColor.b, Style.m_IndicatorColor.a));
+	m_Recording.m_vSurfaces.clear();
+	m_Ui.SetEnabled(false);
+	m_Ui.BeginBackgroundRender();
+	ui_widget::CapsuleTabBarChrome(Ctx, 1234, aSlots, 3, 1, Style);
+	ASSERT_EQ(m_Recording.m_vSurfaces.size(), Baseline.size());
+	for(size_t i = 0; i < Baseline.size(); ++i)
+	{
+		EXPECT_FLOAT_EQ(m_Recording.m_vSurfaces[i].m_Rect.x, Baseline[i].m_Rect.x);
+		EXPECT_FLOAT_EQ(m_Recording.m_vSurfaces[i].m_Rect.y, Baseline[i].m_Rect.y);
+		EXPECT_EQ(m_Recording.m_vSurfaces[i].m_FillColor, Baseline[i].m_FillColor);
+	}
+	m_Recording.m_vSurfaces.clear();
+	m_Ui.BeginRenderOnly();
+	ui_widget::CapsuleTabBarChrome(Ctx, 1234, aSlots, 3, 1, Style);
+	m_Ui.EndRenderOnly();
+	m_Ui.EndBackgroundRender();
+	EXPECT_TRUE(m_Recording.m_vSurfaces.empty());
 }
 
 TEST_F(QmBackgroundControlsIntegration, ConsoleOverlayDoesNotDimDiscreteServerFilter)

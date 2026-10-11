@@ -52,6 +52,18 @@ vec2 CScrollRegion::ContentScrollOffset() const
 	return m_Params.m_ScrollHorizontal ? vec2(-m_ScrollState.Offset(), 0.0f) : vec2(0.0f, -m_ScrollState.Offset());
 }
 
+void CScrollRegion::ClampBackgroundScrollOffset()
+{
+	if(!Ui()->BackgroundRender() || Ui()->MeasurementOnly())
+		return;
+
+	// 后台只约束失效的尺寸偏移；合法偏移不重设，保留暂停的动画和待处理定位。
+	const float MaxOffset = ContentOverflows() ? MaxScroll() : 0.0f;
+	const float Offset = std::clamp(m_ScrollState.Offset(), 0.0f, MaxOffset);
+	if(Offset != m_ScrollState.Offset())
+		m_ScrollState.SetOffset(Offset, ScrollMetrics(), ScrollConfig());
+}
+
 void CScrollRegion::Begin(CUIRect *pClipRect, vec2 *pOutOffset, const CScrollRegionParams *pParams)
 {
 	m_WheelConsumedThisFrame = false;
@@ -63,6 +75,7 @@ void CScrollRegion::Begin(CUIRect *pClipRect, vec2 *pOutOffset, const CScrollReg
 	// 上一帧尺寸预留滚动条空间，随后本帧再重新测量内容尺寸。
 	CUIRect ScrollbarBg = SplitContentArea();
 	DrawBackground(ScrollbarBg);
+	ClampBackgroundScrollOffset();
 
 	if(!ContentOverflows() && !Ui()->RenderOnly())
 		m_ScrollState.ResetForNonScrollableContent(Ui()->IsActiveItem(&m_SliderId) && Ui()->MouseButton(0));
@@ -80,7 +93,8 @@ void CScrollRegion::End()
 
 	if(Ui()->RenderOnly())
 	{
-		// 控制台只占输入，后台保留同一滚动位置和滚动条，暂停滚动状态推进。
+		// 当前帧测量也可能改变内容尺寸；修正越界位置但不消费输入或推进动画。
+		ClampBackgroundScrollOffset();
 		if(ContentOverflows())
 			DoSlider();
 		return;

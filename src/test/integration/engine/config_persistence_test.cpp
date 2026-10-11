@@ -10,6 +10,7 @@
 #include <test/test.h>
 
 #include <cstdlib>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -111,19 +112,42 @@ TEST_F(CConfigPersistence, DisabledSaveLeavesSettingsUntilExplicitForcedSave)
 	EXPECT_EQ(Read().find("cl_showhud 0"), std::string::npos);
 }
 
-TEST_F(CConfigPersistence, StaleSessionCannotOverwriteNewerSaveEvenWhenForced)
+TEST_F(CConfigPersistence, UnmodifiedSecondSessionSavesItsOwnSettingsAfterFirstSession)
 {
 	CConfigSession First(m_pStorage.get());
 	CConfigSession Stale(m_pStorage.get());
-	// 两个管理器保存独立的启动基线；全局配置值显式切换为对应实例的内存值。
+	// 模拟双开后依次退出：第二实例没有修改启动时的默认值，仍按最后保存者生效。
+	// 两个管理器在真实文件上保存；全局配置显式切换为对应实例的内存值。
 	g_Config.m_ClShowhud = 0;
 	ASSERT_TRUE(First.Config()->Save());
-	const std::string Newer = Read();
+	EXPECT_NE(Read().find("cl_showhud 0"), std::string::npos);
 	g_Config.m_ClShowhud = 1;
-	EXPECT_FALSE(Stale.Config()->Save());
-	EXPECT_FALSE(Stale.Config()->Save(true));
-	EXPECT_FALSE(Stale.Config()->Save());
-	EXPECT_EQ(Read(), Newer);
+	ASSERT_TRUE(Stale.Config()->Save());
+	EXPECT_EQ(Read().find("cl_showhud 0"), std::string::npos);
+	ASSERT_TRUE(Stale.Config()->Save(true));
+	ASSERT_TRUE(Stale.Config()->Save());
+}
+
+TEST_F(CConfigPersistence, IndependentSaveWritersCanCloseInReverseOrderAndSaveAgain)
+{
+	Write(SETTINGS_PATH, "cl_showhud 0\n");
+	const char *apArgs[] = {"config-persistence-test"};
+	auto pOtherStorage = CreateTempStorage(m_Info.StoragePath(), std::size(apArgs), apArgs);
+	ASSERT_NE(pOtherStorage, nullptr);
+	CConfigSession First(m_pStorage.get());
+	ASSERT_TRUE(First.Load());
+	CConfigSession Second(pOtherStorage.get());
+	ASSERT_TRUE(Second.Load());
+
+	g_Config.m_ClShowhud = 1;
+	ASSERT_TRUE(Second.Config()->Save());
+	EXPECT_EQ(Read().find("cl_showhud 0"), std::string::npos);
+	g_Config.m_ClShowhud = 0;
+	ASSERT_TRUE(First.Config()->Save(true));
+	EXPECT_NE(Read().find("cl_showhud 0"), std::string::npos);
+	g_Config.m_ClShowhud = 1;
+	ASSERT_TRUE(Second.Config()->Save());
+	EXPECT_EQ(Read().find("cl_showhud 0"), std::string::npos);
 }
 
 TEST_F(CConfigPersistence, NewSessionCanLoadAndSaveAfterAnotherSessionWrites)
@@ -140,22 +164,22 @@ TEST_F(CConfigPersistence, NewSessionCanLoadAndSaveAfterAnotherSessionWrites)
 	EXPECT_EQ(Read().find("cl_showhud 0"), std::string::npos);
 }
 
-TEST_F(CConfigPersistence, NewlyCreatedExternalSettingsAreNotOverwritten)
+TEST_F(CConfigPersistence, ReadableSettingsCreatedBeforeSaveCanBeReplaced)
 {
 	CConfigSession Session(m_pStorage.get());
 	Write(SETTINGS_PATH, "cl_showhud 0\n");
-	EXPECT_FALSE(Session.Config()->Save());
-	EXPECT_EQ(Read(), "cl_showhud 0\n");
+	ASSERT_TRUE(Session.Config()->Save());
+	EXPECT_EQ(Read().find("cl_showhud 0"), std::string::npos);
 }
 
-TEST_F(CConfigPersistence, SameLengthExternalChangeIsNotOverwritten)
+TEST_F(CConfigPersistence, ReadableExternalChangeBeforeSaveUsesLastWriterPolicy)
 {
 	Write(SETTINGS_PATH, "cl_showhud 0\n");
 	CConfigSession Session(m_pStorage.get());
 	ASSERT_TRUE(Session.Load());
 	Write(SETTINGS_PATH, "cl_showhud 1\n");
-	EXPECT_FALSE(Session.Config()->Save());
-	EXPECT_EQ(Read(), "cl_showhud 1\n");
+	ASSERT_TRUE(Session.Config()->Save());
+	EXPECT_NE(Read().find("cl_showhud 0"), std::string::npos);
 }
 
 TEST_F(CConfigPersistence, DeletedExternalSettingsAreNotRecreatedByStaleSession)
@@ -168,15 +192,40 @@ TEST_F(CConfigPersistence, DeletedExternalSettingsAreNotRecreatedByStaleSession)
 	EXPECT_FALSE(m_pStorage->FileExists(SETTINGS_PATH, IStorage::TYPE_SAVE));
 }
 
-TEST_F(CConfigPersistence, CommandDomainConflictPreventsOverwritingMainSettings)
+TEST_F(CConfigPersistence, ReadableCommandDomainChangeBeforeSaveUsesLastWriterPolicy)
 {
 	Write(SETTINGS_PATH, "cl_showhud 0\n");
 	Write("qmclient/qmclient_profiles.cfg", "echo original\n");
 	CConfigSession Session(m_pStorage.get());
 	Write("qmclient/qmclient_profiles.cfg", "echo external\n");
-	EXPECT_FALSE(Session.Config()->Save());
+	Session.Config()->RegisterCallback([](IConfigManager *pConfig, void *) {
+		pConfig->WriteLine("echo last-writer", ConfigDomain::TCLIENTPROFILES);
+	},
+		nullptr, ConfigDomain::TCLIENTPROFILES);
+	ASSERT_TRUE(Session.Config()->Save());
+	EXPECT_EQ(Read().find("cl_showhud 0"), std::string::npos);
+	EXPECT_NE(Read("qmclient/qmclient_profiles.cfg").find("echo last-writer"), std::string::npos);
+}
+
+TEST_F(CConfigPersistence, UnreadableExternalChangeBeforeSaveStillPreservesOriginal)
+{
+	Write(SETTINGS_PATH, "cl_showhud 0\n");
+	CConfigSession Session(m_pStorage.get());
+	ASSERT_TRUE(Session.Load());
+	const std::string Invalid = "cl_showhud 1\nplayer_name \"bad\xff\"\n";
+	Write(SETTINGS_PATH, Invalid);
+	EXPECT_FALSE(Session.Config()->Save(true));
+	EXPECT_EQ(Read(), Invalid);
+}
+
+TEST_F(CConfigPersistence, InitiallyUnreadableSessionCannotSaveEvenAfterExternalRepair)
+{
+	Write(SETTINGS_PATH, "player_name \"bad\xff\"\n");
+	CConfigSession Session(m_pStorage.get());
+	EXPECT_FALSE(Session.Load());
+	Write(SETTINGS_PATH, "cl_showhud 0\n");
+	EXPECT_FALSE(Session.Config()->Save(true));
 	EXPECT_EQ(Read(), "cl_showhud 0\n");
-	EXPECT_EQ(Read("qmclient/qmclient_profiles.cfg"), "echo external\n");
 }
 
 TEST_F(CConfigPersistence, InvalidUtf8RejectsWholeLoadAndProtectsOriginal)

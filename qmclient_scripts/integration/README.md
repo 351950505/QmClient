@@ -22,7 +22,7 @@ runner 通过 `QMCLIENT_TEST_STORAGE_ROOT` 指向场景临时目录。测试构�
 python qmclient_scripts/integration/e2e_config_persistence.py <test-build-dir>
 ```
 
-两个场景验证多开时旧实例拒绝覆盖新设置，以及错误编码导致加载失败后保留原文件。测试只使用隔离存档，产物保留在 `tmp/config-persistence-*`。测试代码已补充，未执行；保存失败或配置错误弹窗会在记录日志与文件状态后结束本场景的实例。
+三个场景验证双客户端按正序和反序退出均能保存、最后退出实例的设置生效，以及错误编码导致加载失败后保留原文件。启动前检查构建开启 `DEV=ON` 和 `QMCLIENT_TEST_STORAGE=ON`，否则拒绝运行，避免访问真实用户存档。产物保留在 `tmp/config-persistence-*`；坏配置场景记录日志与原文件状态后仅结束本场景的实例。场景已更新，尚未在符合这些开关的客户端上运行；普通 Release 构建不作为此 runner 的运行证据。
 
 便携版专用端到端测试使用 `QMCLIENT_PORTABLE=ON` 的真实发布客户端，复制到 `tmp/` 后验证 `profile/` 随目录搬家、忽略目录外配置及不可写时不回退：
 

@@ -4513,6 +4513,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
   # 测试显式注册；目录递归发现和遗漏清单由 test_inventory.py 核对。
   set(TESTS
     src/test/unit/qmclient/ui/settings_card_info_test.cpp
+    src/test/unit/qmclient/ui/qm_list_entry_animation_test.cpp
     src/test/unit/engine/steam_client_path_test.cpp
     src/test/unit/qmclient/ui/settings_toggle_grid_test.cpp
     src/test/unit/qmclient/ui/QmAnimTest.cpp
@@ -5271,6 +5272,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
 
   if(FREETYPE_FOUND)
     add_executable(qm-ui-popup-tests EXCLUDE_FROM_ALL
+      src/game/client/QmUi/UiNavigation.cpp
       src/game/client/QmUi/UiDiscreteSlider.cpp
       src/game/client/QmUi/UiDiscreteSliderLogic.cpp
       src/test/test.cpp

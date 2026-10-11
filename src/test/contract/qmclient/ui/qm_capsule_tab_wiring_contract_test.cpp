@@ -6,36 +6,6 @@
 #include <sstream>
 #include <string>
 
-TEST(QmNewUiMenuBranches, CapsuleTabBarChromeDrawsContainerThenSpringIndicatorUnderLabels)
-{
-	// 意图：滑块胶囊必须由容器的同一入口画在文字之前，并且由弹簧驱动、可被打断续接，
-	// 否则切换 Tab 时会瞬移或盖住经过的页签文字。
-	const std::string Source = ReadTextFile("src/game/client/QmUi/UiNavigation.cpp");
-	const std::string Header = ReadTextFile("src/game/client/QmUi/UiNavigation.h");
-	ASSERT_NE(Source.find("void CapsuleTabBarChrome("), std::string::npos);
-
-	// ui_widget::TabBar（UiDogfood 调试页）同样走胶囊，不再保留下划线小块。
-	const std::string DogfoodTabBar = FunctionBody(Source, "int TabBar(");
-	ASSERT_FALSE(DogfoodTabBar.empty());
-	EXPECT_EQ(DogfoodTabBar.find("Underline"), std::string::npos);
-	EXPECT_EQ(DogfoodTabBar.find("Indicator.Draw("), std::string::npos);
-	EXPECT_NE(DogfoodTabBar.find("std::vector<CUIRect> vTabSlots(static_cast<std::size_t>(Count));"), std::string::npos);
-	EXPECT_LT(DogfoodTabBar.find("CapsuleTabBarChrome(Ctx, BuildUiAnimNodeKey(MakeUiScopeHash(\"ui_widget_tabbar_capsule\")"), DogfoodTabBar.find("DoButton_MenuTab(&ButtonPool[i], ppLabels[i], Checked, &vTabSlots[static_cast<std::size_t>(i)]"));
-
-	EXPECT_NE(Source.find("if(Ctx.m_pUi->RenderOnly())\n\t\t\treturn;"), std::string::npos);
-	const size_t CapsuleDraw = Source.find("DrawRoundedSurface(Ctx, Capsule, Style.m_CapsuleColor, ColorRGBA(), ui_token::radius::PILL);");
-	const size_t IndicatorDraw = Source.find("DrawRoundedSurface(Ctx, Indicator, Style.m_IndicatorColor, ColorRGBA(), ui_token::radius::PILL);");
-	ASSERT_NE(CapsuleDraw, std::string::npos);
-	ASSERT_NE(IndicatorDraw, std::string::npos);
-	EXPECT_LT(CapsuleDraw, IndicatorDraw);
-	EXPECT_NE(Header.find("inline CUIRect CapsuleTabBarRowRect(const CUIRect *pSlots, int Count)"), std::string::npos);
-	// 配色自适应由 QmUi 统一提供，各 Tabbar 只传自己的容器表面色。
-	EXPECT_NE(Header.find("inline bool CapsuleTabBarSurfaceIsLight(const ColorRGBA &SurfaceColor)"), std::string::npos);
-	EXPECT_NE(Header.find("inline ColorRGBA CapsuleTabBarIndicatorColor(const ColorRGBA &SurfaceColor)"), std::string::npos);
-	EXPECT_NE(Header.find("inline ColorRGBA CapsuleTabBarActiveLabelColor(const ColorRGBA &SurfaceColor)"), std::string::npos);
-	EXPECT_NE(Header.find("inline ColorRGBA CapsuleTabBarInactiveLabelColor(const ColorRGBA &SurfaceColor)"), std::string::npos);
-}
-
 TEST(QmNewUiMenuBranches, ServerBrowserToolboxUsesCapsuleTabBar)
 {
 	// 意图：服务器浏览器工具箱页签（过滤器 / 信息 / 好友）同样使用胶囊。

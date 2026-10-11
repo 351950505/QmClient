@@ -1,4 +1,14 @@
+#include <game/client/components/menus.h>
 #include <game/client/components/tooltips.h>
+
+#include <gtest/gtest.h>
+
+// 胶囊表面使用真实公共绘制；完整菜单按钮不属于独立目标，误入即失败。
+int CMenus::DoButton_MenuTab(CButtonContainer *, const char *, int, const CUIRect *, int, SUIAnimator *, const ColorRGBA *, const ColorRGBA *, const ColorRGBA *, float, const CCommunityIcon *, CUIElement *, float, bool)
+{
+	ADD_FAILURE() << "Full menu tab buttons are outside the isolated UI target";
+	return 0;
+}
 
 // 独立输入／下拉集成目标没有完整菜单与配置管理器；提示作为外部边界，
 // 不参与这些测试的断言。按钮和输入仍链接真实生产实现。

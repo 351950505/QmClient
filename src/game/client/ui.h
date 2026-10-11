@@ -1154,7 +1154,8 @@ public:
 		SEditBoxRenderOptions() :
 			m_DrawBackground(true),
 			m_pHitRect(nullptr),
-			m_ReleaseFocusOnEnter(true)
+			m_ReleaseFocusOnEnter(true),
+			m_ProcessInput(true)
 		{
 		}
 
@@ -1162,6 +1163,8 @@ public:
 		const CUIRect *m_pHitRect;
 		// 编辑器等调用者需要保留焦点与确认热键，供外层执行数值／命令提交。
 		bool m_ReleaseFocusOnEnter;
+		// 输入权限与文字排版分离，禁用编辑仍使用相同内边距和滚动偏移。
+		bool m_ProcessInput;
 	};
 
 	void DoLabel(CUIElement::SUIElementRect &RectEl, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps = {}, int StrLen = -1, const CTextCursor *pReadCursor = nullptr) const;
