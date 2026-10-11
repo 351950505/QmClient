@@ -4457,8 +4457,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == Örnek: /map adr3, Adrenaline 3 için oylama başlatır. Harita adının 'a' ile başlaması ve 'd', 'r' ve '3' karakterlerini bu sırayla içermesi gerekir
 
-Example: name1|name2|name3
-== Örnek: isim1|isim2|isim3
+Example: A|B|C,D|E (C: main, D: dummy)
+== Örnek: A|B|C,D|E (C: ana karakter, D: dummy)
 
 Exclude
 == Hariç tut
@@ -8540,8 +8540,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == Dairesel menü açılma ve kapanma efektleri
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== Pasta menüsü yeniden adlandırma listesi (| ile ayırın, örn: Xuanmeng1|Xuanmeng2)
+Pie menu rename list (| separates entries; main,dummy renames both)
+== Dairesel menü ad listesi (| girdileri ayırır; ana karakter,dummy iki adı da değiştirir)
 
 Ping
 == Ping
@@ -10492,6 +10492,9 @@ Screenshots
 
 Screenshots directory
 == Ekran görüntüleri dizini
+
+Scroll mode
+== Kaydırma modu
 
 Scroll mode: Off
 == Kaydırma modu: kapalı

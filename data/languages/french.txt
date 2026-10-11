@@ -4457,8 +4457,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == Exemple : /map adr3 lance un vote pour Adrenaline 3. Le nom de la carte doit commencer par 'a' et contenir les caractères 'd', 'r' et '3' dans cet ordre
 
-Example: name1|name2|name3
-== Exemple : nom1|nom2|nom3
+Example: A|B|C,D|E (C: main, D: dummy)
+== Exemple : A|B|C,D|E (C : principal, D : dummy)
 
 Exclude
 == Exclure
@@ -8540,8 +8540,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == Effets d’ouverture et de fermeture du menu radial
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== Liste des pseudos modifiés du menu radial (séparés par |, ex : Xuanmeng1|Xuanmeng2)
+Pie menu rename list (| separates entries; main,dummy renames both)
+== Liste de noms du menu radial (| sépare les entrées ; principal,dummy renomme les deux)
 
 Ping
 == Ping
@@ -10492,6 +10492,9 @@ Screenshots
 
 Screenshots directory
 == Répertoire des captures d'écran
+
+Scroll mode
+== Mode de défilement
 
 Scroll mode: Off
 == Mode défilement : désactivé

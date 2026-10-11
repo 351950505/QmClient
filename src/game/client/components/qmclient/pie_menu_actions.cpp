@@ -107,22 +107,29 @@ void CPieMenu::ExecuteRenameOption(int RenameIndex)
 	if(RenameIndex < 0 || RenameIndex >= (int)m_vRenameQueue.size())
 		return;
 
-	const char *pNewName = m_vRenameQueue[RenameIndex].c_str();
-	if(!pNewName || pNewName[0] == '\0')
-		return;
-
 	const bool UseDummy = g_Config.m_ClDummy && Client()->DummyConnected();
-	char *pConfigName = UseDummy ? g_Config.m_ClDummyName : g_Config.m_PlayerName;
-	const int ConfigNameSize = UseDummy ? (int)sizeof(g_Config.m_ClDummyName) : (int)sizeof(g_Config.m_PlayerName);
+	const auto apNames = m_vRenameQueue[RenameIndex].Names(UseDummy);
+	const bool RenameMain = apNames[0] != nullptr;
+	const bool RenameDummy = apNames[1] != nullptr;
+	if(RenameMain)
+		str_copy(g_Config.m_PlayerName, apNames[0]);
+	if(RenameDummy)
+		str_copy(g_Config.m_ClDummyName, apNames[1]);
 
-	str_copy(pConfigName, pNewName, ConfigNameSize);
-	if(UseDummy)
-		GameClient()->SendDummyInfo(false);
-	else
+	if(RenameMain)
 		GameClient()->SendInfo(false);
+	if(RenameDummy && Client()->DummyConnected())
+		GameClient()->SendDummyInfo(false);
 
+	char aNames[96];
+	if(RenameMain && RenameDummy)
+		str_format(aNames, sizeof(aNames), "%s, %s", g_Config.m_PlayerName, g_Config.m_ClDummyName);
+	else if(RenameDummy)
+		str_format(aNames, sizeof(aNames), "%s (%s)", g_Config.m_ClDummyName, Localize("Dummy"));
+	else
+		str_copy(aNames, g_Config.m_PlayerName);
 	char aBuf[128];
-	str_format(aBuf, sizeof(aBuf), "已切换名字: %s%s", pConfigName, UseDummy ? " (分身)" : "");
+	str_format(aBuf, sizeof(aBuf), Localize("Rename: %s"), aNames);
 	GameClient()->m_Chat.AddLine(-2, 0, aBuf);
 }
 

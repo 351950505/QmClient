@@ -4457,8 +4457,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == 示例：/map adr3 可以发起 Adrenaline 3 的换图投票。这表示地图名必须以 'a' 开头，并按顺序包含 'd'、'r'、'3'
 
-Example: name1|name2|name3
-== 示例：名字 1|名字 2|名字 3
+Example: A|B|C,D|E (C: main, D: dummy)
+== 示例：A|B|C,D|E（C 为本体，D 为分身）
 
 Exclude
 == 排除
@@ -8540,8 +8540,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == 饼菜单开合效果
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== 饼菜单改名名单（使用 | 分隔，例如：name1|name2）
+Pie menu rename list (| separates entries; main,dummy renames both)
+== 饼菜单改名名单（| 分隔选项；C,D 同时改名，C 为本体，D 为分身）
 
 Ping
 == 延迟
@@ -10492,6 +10492,9 @@ Screenshots
 
 Screenshots directory
 == 截图目录
+
+Scroll mode
+== 滚动模式
 
 Scroll mode: Off
 == 滚动模式：关

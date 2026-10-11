@@ -24,6 +24,7 @@
 #include <game/client/QmUi/QmScroll.h>
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SettingsCardDeck.h>
+#include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
 #include <game/client/QmUi/UiTheme.h>
@@ -58,6 +59,7 @@
 #include <array>
 #include <chrono>
 #include <deque>
+#include <initializer_list>
 #include <memory>
 #include <optional>
 #include <set>
@@ -2841,6 +2843,9 @@ public:
 	CUIElement &SettingsTextElement(int Page, int Tab, const char *pTextId, const SMenuTextStyleKey &StyleKey);
 	void DoSettingsLabelStreamed(CUIElement &Element, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps = {}, int StrLen = -1, const CTextCursor *pReadCursor = nullptr, bool Render = true);
 	void DoSettingsLabel(int Page, int Tab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps = {}, bool Render = true);
+	// 同组短开关共用测量与渲染；LAYOUT/INPUT 供卡片预布局复用相同的内容尺寸与命中区域。
+	bool DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Content, std::initializer_list<SSettingsToggleEntry> Entries, const SSettingsContentMetrics &Metrics, bool ProcessInput = true, ESettingsToggleGroupPass Pass = ESettingsToggleGroupPass::RENDER);
+	bool DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect &Button, const SSettingsToggleEntry &Entry, const SSettingsContentMetrics &Metrics, bool ProcessInput = true, ESettingsToggleGroupPass Pass = ESettingsToggleGroupPass::RENDER);
 	void DoSettingsMenuLabel(int Page, int Tab, int Subtab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &Props = {}, int MaxWidth = -1);
 	int DoSettingsButton_Menu(int Page, int Tab, int Subtab, CButtonContainer *pBC, const char *pTextId, const char *pText, int Checked, const CUIRect *pRect, int Flags = BUTTONFLAG_LEFT, int Corners = IGraphics::CORNER_ALL, float Rounding = ui_token::radius::BASE, const ColorRGBA &Color = ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), float FontFactor = 0.0f, float BodySize = -1.0f, EQmIcon Icon = EQmIcon::COUNT, const char *pFallbackIcon = nullptr, const IGraphics::CTextureHandle *pIconTexture = nullptr);
 	int DoSettingsButton_Menu(int Page, int Tab, int Subtab, CButtonContainer *pBC, const char *pTextId, const char *pText, int Checked, const CUIRect *pRect, const SSettingsContentMetrics &Metrics, int Flags = BUTTONFLAG_LEFT, int Corners = IGraphics::CORNER_ALL, float Rounding = ui_token::radius::BASE, const ColorRGBA &Color = ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), float FontFactor = 0.0f, EQmIcon Icon = EQmIcon::COUNT, const char *pFallbackIcon = nullptr, const IGraphics::CTextureHandle *pIconTexture = nullptr);
@@ -3147,6 +3152,8 @@ private:
 	SSettingsCardDeckDisplayCycleState m_SettingsCardDeckDisplayState;
 	SSettingsShellLayoutFrame m_SettingsShellLayout;
 	SSettingsContentMetrics m_SettingsContentMetrics;
+	std::vector<SSettingsToggleSize> m_vSettingsToggleGroupSizes;
+	SSettingsDynamicToggleGrid m_SettingsToggleGroupGrid;
 	bool m_SettingsShellLayoutValid = false;
 
 	CCommunityIcons m_CommunityIcons;
@@ -3299,7 +3306,7 @@ private:
 	CTranslateProbe m_TranslateProbe;
 	int m_TranslateProbeDiagnostics = 0;
 	void RenderQmFunctionTranslateContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
-	void RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly, int MaxGridColumns);
+	void RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly);
 	void RenderQmFunctionFavoriteMapsContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, bool PrewarmOnly);
 	void RenderQmFunctionHJAssistContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmHudBindStatusContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);

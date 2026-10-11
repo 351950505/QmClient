@@ -4457,8 +4457,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == 예: /map adr3 로 Adrenaline 3 투표를 시작할 수 있습니다. 맵 이름이 'a' 로 시작하고 'd', 'r', '3' 을 순서대로 포함해야 합니다
 
-Example: name1|name2|name3
-== 예시: 이름1|이름2|이름3
+Example: A|B|C,D|E (C: main, D: dummy)
+== 예: A|B|C,D|E (C: 본체, D: 더미)
 
 Exclude
 == 제외
@@ -8540,8 +8540,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == 원형 메뉴 열기 및 닫기 효과
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== 파이 메뉴 이름 변경 목록 (|로 구분, 예: 현몽1|현몽2)
+Pie menu rename list (| separates entries; main,dummy renames both)
+== 파이 메뉴 이름 변경 목록 (|로 항목 구분; 본체이름,더미이름으로 둘 다 변경)
 
 Ping
 == Ping
@@ -10492,6 +10492,9 @@ Screenshots
 
 Screenshots directory
 == 스크린샷 디렉터리
+
+Scroll mode
+== 스크롤 모드
 
 Scroll mode: Off
 == 스크롤 모드: 끄기
