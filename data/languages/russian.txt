@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == Автовключение микрофона при речи
 
+Auto unspec both tees when either is hammered awake
+== Выходить из наблюдения обоими Tee, когда любого размораживают молотком
+
 Auto unspec on unfreeze
 == Автоматически прекращать наблюдение при разморозке
 
@@ -4549,6 +4552,9 @@ Existing Player
 
 Exit replay view
 == Выйти из просмотра реплея
+
+Exit spectating on both tees when either is hammered awake by another player
+== Выходить из наблюдения обоими Tee, когда другой игрок размораживает любого из них молотком
 
 Expand console
 == Развернуть консоль

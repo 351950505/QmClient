@@ -2031,6 +2031,22 @@ turkish = "Konuşurken otomatik sessizi aç"
 polish = "Automatyczne wyciszanie podczas mówienia"
 
 [[message]]
+key = "Auto unspec both tees when either is hammered awake"
+[message.translations]
+simplified_chinese = "任一方被锤醒时两个 Tee 都取消旁观"
+traditional_chinese = "任一方被錘醒時兩個 Tee 都取消旁觀"
+japanese = "どちらかがハンマーで解凍されたら両方の Tee の観戦を解除"
+korean = "어느 한 Tee가 망치로 해동되면 두 Tee 모두 관전 해제"
+russian = "Выходить из наблюдения обоими Tee, когда любого размораживают молотком"
+german = "Beide Tees aus dem Zuschauermodus holen, wenn einer mit dem Hammer aufgetaut wird"
+spanish = "Sacar a ambos Tees del modo espectador cuando uno sea descongelado con el martillo"
+french = "Quitter le mode spectateur avec les deux Tees quand l'un est dégelé au marteau"
+brazilian_portuguese = "Tirar os dois Tees do modo espectador quando um deles for descongelado com o martelo"
+portuguese = "Tirar ambos os Tees do modo espectador quando um deles for descongelado com o martelo"
+turkish = "Biri çekiçle çözüldüğünde iki Tee de seyirci modundan çıksın"
+polish = "Wyłącz obserwowanie obu Tee, gdy którykolwiek zostanie odmrożony młotkiem"
+
+[[message]]
 key = "Auto unspec on unfreeze"
 [message.translations]
 simplified_chinese = "解冻自动取消旁观"
@@ -2365,6 +2381,22 @@ brazilian_portuguese = "Modo de tradução automática (0=apenas quando a entrad
 portuguese = "Modo de tradução automática (0=apenas quando a língua de origem comum é detetada, 1=sempre traduzir)"
 turkish = "Otomatik Çeviri Modu (0=Yalnızca yaygın kaynak dil girdisinde tetikle, 1=Her zaman çevir)"
 polish = "Tryb automatycznego tłumaczenia (0=tylko przy częstym źródle, 1=zawsze tłumacz)"
+
+[[message]]
+key = "Exit spectating on both tees when either is hammered awake by another player"
+[message.translations]
+simplified_chinese = "任一方被其他玩家锤醒时，自动让两个 Tee 退出旁观"
+traditional_chinese = "任一方被其他玩家錘醒時，自動讓兩個 Tee 退出旁觀"
+japanese = "どちらかが他のプレイヤーのハンマーで解凍されたら両方の Tee の観戦を解除"
+korean = "어느 한 Tee가 다른 플레이어의 망치로 해동되면 두 Tee 모두 관전 해제"
+russian = "Выходить из наблюдения обоими Tee, когда другой игрок размораживает любого из них молотком"
+german = "Den Zuschauermodus für beide Tees beenden, wenn ein anderer Spieler einen davon mit dem Hammer auftaut"
+spanish = "Salir del modo espectador con ambos Tees cuando otro jugador descongele a cualquiera con el martillo"
+french = "Quitter le mode spectateur avec les deux Tees quand un autre joueur dégèle l'un d'eux au marteau"
+brazilian_portuguese = "Sair do modo espectador com os dois Tees quando outro jogador descongelar um deles com o martelo"
+portuguese = "Sair do modo espectador com ambos os Tees quando outro jogador descongelar um deles com o martelo"
+turkish = "Başka bir oyuncu birini çekiçle çözdüğünde iki Tee de seyirci modundan çıksın"
+polish = "Wyłącz obserwowanie obu Tee, gdy inny gracz odmrozi młotkiem któregokolwiek z nich"
 
 [[message]]
 key = "Auto-unspec when unfrozen"

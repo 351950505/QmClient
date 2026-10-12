@@ -26,6 +26,16 @@ class CUIRect;
 
 namespace QmInputOverlay
 {
+	inline int NativeMouseButtonKey(int MouseButton)
+	{
+		// 原生鼠标按钮按左、中、右排序，游戏按键按左、右、中排序。
+		if(MouseButton == 2)
+			return KEY_MOUSE_3;
+		if(MouseButton == 3)
+			return KEY_MOUSE_2;
+		return MouseButton >= 1 && MouseButton <= NUM_MOUSE_BUTTONS ? KEY_MOUSE_1 + MouseButton - 1 : KEY_UNKNOWN;
+	}
+
 	class CKeyPressCounter
 	{
 	public:

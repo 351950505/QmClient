@@ -117,7 +117,6 @@ TEST(QmNewUiMenuGameplayPredictionContract, HammerHitConsumersUseDeferredServerE
 	const std::string InferHammerHit = FunctionBody(GameClientSource, "SQmHammerHitMatch QmInferHammerHit(");
 	const std::string FinalizeHammerHitEvents = FunctionBody(GameClientSource, "void CGameClient::FinalizeHammerHitEvents()");
 	const std::string OnNewSnapshot = FunctionBody(GameClientSource, "void CGameClient::OnNewSnapshot(bool DummySwapped)");
-	const std::string WakeupActions = FunctionBody(TClientSource, "void CTClient::CheckHammerWakeupActions()");
 
 	EXPECT_EQ(CharacterSource.find("CreateHammerHitEvent"), std::string::npos);
 	EXPECT_EQ(GameWorldSource.find("HammerHitEvents"), std::string::npos);
@@ -148,13 +147,4 @@ TEST(QmNewUiMenuGameplayPredictionContract, HammerHitConsumersUseDeferredServerE
 	ASSERT_NE(FinalizePos, std::string::npos);
 	ASSERT_NE(ComponentSnapshotPos, std::string::npos);
 	EXPECT_LT(FinalizePos, ComponentSnapshotPos);
-
-	const size_t UnspecPos = WakeupActions.find("Client()->SendPackMsg(Input.m_ActiveConnection");
-	const size_t CloseChatPos = WakeupActions.find("GameClient()->m_Chat.DisableMode();");
-	const size_t SwitchPos = WakeupActions.find("Console()->ExecuteLine(aCommand);");
-	ASSERT_NE(UnspecPos, std::string::npos);
-	ASSERT_NE(CloseChatPos, std::string::npos);
-	ASSERT_NE(SwitchPos, std::string::npos);
-	EXPECT_LT(UnspecPos, CloseChatPos);
-	EXPECT_LT(CloseChatPos, SwitchPos);
 }

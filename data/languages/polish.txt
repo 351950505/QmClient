@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == Automatyczne wyciszanie podczas mówienia
 
+Auto unspec both tees when either is hammered awake
+== Wyłącz obserwowanie obu Tee, gdy którykolwiek zostanie odmrożony młotkiem
+
 Auto unspec on unfreeze
 == Automatyczne wyłączanie obserwowania po odmrożeniu
 
@@ -4549,6 +4552,9 @@ Existing Player
 
 Exit replay view
 == Zakończ podgląd nagrania
+
+Exit spectating on both tees when either is hammered awake by another player
+== Wyłącz obserwowanie obu Tee, gdy inny gracz odmrozi młotkiem któregokolwiek z nich
 
 Expand console
 == Rozwiń konsolę
