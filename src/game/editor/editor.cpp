@@ -4,6 +4,7 @@
 #include "editor.h"
 
 #include "auto_map.h"
+#include "collab_camera.h"
 #include "editor_actions.h"
 
 #include <base/color.h>
@@ -4127,7 +4128,7 @@ void CEditor::FinishCollabPull()
 		const char *pMapBase64 = EditorCollabJsonString(pRoot, "map_base64");
 		if(Revision > m_CollabRevision && pMapBase64[0] != '\0')
 		{
-			if(ApplyCollabSnapshotBase64(pMapBase64, Revision))
+			if(ApplyCollabSnapshotBase64(pMapBase64, Revision, !m_pCollabPullTask->m_JoinTransport))
 				SetCollabStatus(Localizable("Received a sync update from room %s (%d/%d people)", "Editor"), m_aCollabRoomCode, m_CollabMemberCount, m_CollabMaxMembers);
 		}
 		else
@@ -4142,7 +4143,7 @@ void CEditor::FinishCollabPull()
 	m_pCollabPullTask = nullptr;
 }
 
-bool CEditor::ApplyCollabSnapshotBase64(const char *pMapBase64, int Revision)
+bool CEditor::ApplyCollabSnapshotBase64(const char *pMapBase64, int Revision, bool RemoteUpdate)
 {
 	if(!IsCollabMapActive())
 		return false;
@@ -4179,7 +4180,8 @@ bool CEditor::ApplyCollabSnapshotBase64(const char *pMapBase64, int Revision)
 	io_close(File);
 
 	m_CollabApplyingRemoteSnapshot = true;
-	const bool Loaded = LoadCollabSnapshot(QM_EDITOR_COLLAB_INCOMING_PATH, IStorage::TYPE_SAVE);
+	const bool FollowPlacement = ShouldFollowEditorCollabPlacement(g_Config.m_QmEditorCollabFollowPlacement != 0, RemoteUpdate, m_CollabRevision, Revision);
+	const bool Loaded = LoadCollabSnapshot(QM_EDITOR_COLLAB_INCOMING_PATH, IStorage::TYPE_SAVE, FollowPlacement);
 	m_CollabApplyingRemoteSnapshot = false;
 	if(!Loaded)
 	{
@@ -4193,33 +4195,43 @@ bool CEditor::ApplyCollabSnapshotBase64(const char *pMapBase64, int Revision)
 	return true;
 }
 
-bool CEditor::LoadCollabSnapshot(const char *pFilename, int StorageType)
+bool CEditor::LoadCollabSnapshot(const char *pFilename, int StorageType, bool FollowPlacement)
 {
 	if(!IsCollabMapActive())
 		return false;
 	char aPreviousFilename[IO_MAX_PATH_LENGTH];
 	str_copy(aPreviousFilename, Map()->m_aFilename);
 	const bool ValidSaveFilename = Map()->m_ValidSaveFilename;
+	const auto PreviousPlacements = FollowPlacement ? CEditorCollabPlacementSnapshot::Capture(*Map()) : CEditorCollabPlacementSnapshot{};
 
 	const auto &&ErrorHandler = [this](const char *pErrorMessage) {
 		SetCollabStatus("%s", pErrorMessage);
 		log_error("editor/collab", "%s", pErrorMessage);
 	};
 
-	Reset(false);
-	Map()->Clean();
-	const bool Result = Map()->Load(pFilename, StorageType, std::move(ErrorHandler));
-	if(Result)
+	const bool Result = ReloadEditorCollabSnapshotKeepingCamera(Map()->m_MapViewState, [&]() {
+		Reset(false);
+		Map()->Clean();
+		const bool Loaded = Map()->Load(pFilename, StorageType, std::move(ErrorHandler));
+		if(Loaded)
+		{
+			str_copy(Map()->m_aFilename, aPreviousFilename);
+			Map()->m_ValidSaveFilename = ValidSaveFilename;
+			Map()->SortImages();
+			Map()->SelectGameLayer();
+
+			for(CEditorComponent &Component : m_vComponents)
+				Component.OnMapLoad();
+
+			log_info("editor/collab", Localize("Loaded the collaboration room's map snapshot", "Editor"));
+		}
+		return Loaded;
+	});
+	if(Result && FollowPlacement && PreviousPlacements.m_Complete)
 	{
-		str_copy(Map()->m_aFilename, aPreviousFilename);
-		Map()->m_ValidSaveFilename = ValidSaveFilename;
-		Map()->SortImages();
-		Map()->SelectGameLayer();
-
-		for(CEditorComponent &Component : m_vComponents)
-			Component.OnMapLoad();
-
-		log_info("editor/collab", Localize("Loaded the collaboration room's map snapshot", "Editor"));
+		const auto Placements = CEditorCollabPlacementSnapshot::Capture(*Map());
+		if(const auto Target = Placements.FindPlacement(PreviousPlacements))
+			Target->CenterCamera(Map()->m_MapViewState.m_WorldOffset, Map()->m_MapViewState.m_EditorOffset);
 	}
 	return Result;
 }
@@ -4634,7 +4646,7 @@ void CEditor::RenderMenubar(CUIRect MenuBar)
 	if(DoButton_Ex(&s_CollabButton, Localize("Collaboration", "Editor"), m_CollabState == ECollabState::CONNECTED, &CollabButton, BUTTONFLAG_LEFT, Localize("Create or join an editor collaboration room for up to 4 people.", "Editor"), IGraphics::CORNER_T, EditorFontSizes::MENU, TEXTALIGN_ML))
 	{
 		static SPopupMenuId s_PopupCollabId;
-		Ui()->DoPopupMenu(&s_PopupCollabId, CollabButton.x, CollabButton.y + CollabButton.h - 1.0f, 360.0f, 170.0f, this, PopupCollab, PopupProperties);
+		Ui()->DoPopupMenu(&s_PopupCollabId, CollabButton.x, CollabButton.y + CollabButton.h - 1.0f, 360.0f, 214.0f, this, PopupCollab, PopupProperties);
 	}
 
 	CUIRect ChangedIndicator, Info, Help, Close;

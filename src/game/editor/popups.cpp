@@ -389,6 +389,11 @@ CUi::EPopupMenuFunctionResult CEditor::PopupCollab(void *pContext, CUIRect View,
 	if(pEditor->DoButton_Editor(&s_LeaveRoomButton, Localize("Leave room", "Editor"), Disconnected ? -1 : 0, &Leave, BUTTONFLAG_LEFT, Localize("Leave the current collaboration room.", "Editor")))
 		pEditor->LeaveCollabRoom();
 
+	View.HSplitTop(6.0f, nullptr, &View);
+	View.HSplitTop(22.0f, &Slot, &View);
+	if(pEditor->DoButton_Editor(&g_Config.m_QmEditorCollabFollowPlacement, Localize("Follow remote placements", "Editor"), g_Config.m_QmEditorCollabFollowPlacement, &Slot, BUTTONFLAG_LEFT, Localize("Follow remote placements in the collaborative editor")))
+		g_Config.m_QmEditorCollabFollowPlacement ^= 1;
+
 	View.HSplitTop(8.0f, nullptr, &View);
 	View.HSplitTop(36.0f, &Slot, &View);
 	pEditor->Ui()->DoLabel(&Slot, pEditor->m_aCollabStatus, 10.0f, TEXTALIGN_ML, TextProps);

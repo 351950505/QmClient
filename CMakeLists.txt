@@ -3826,6 +3826,8 @@ if(CLIENT)
   set_src(GAME_EDITOR GLOB_RECURSE src/game/editor
     auto_map.cpp
     auto_map.h
+    collab_camera.cpp
+    collab_camera.h
     component.cpp
     component.h
     drawing_tools.cpp
@@ -4693,6 +4695,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/engine/demo_player_test.cpp
     src/test/unit/engine/video_frame_capture_test.cpp
     src/test/unit/engine/editor_test.cpp
+    src/test/unit/client/editor_collab_camera_test.cpp
     src/test/unit/client/editor_quad_slice_test.cpp
     src/test/unit/client/editor_envelope_channels_test.cpp
     src/test/integration/client/editor_envelope_channel_io_test.cpp
@@ -5110,6 +5113,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/client/voice_spatial_utils_test.cpp
   )
   set(TESTS_EXTRA
+    src/game/editor/collab_camera.cpp
     src/game/editor/mapitems/envelope.cpp
     src/game/map/envelope_eval.cpp
     src/game/map/render_map.cpp

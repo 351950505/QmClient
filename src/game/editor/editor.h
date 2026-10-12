@@ -379,8 +379,8 @@ public:
 	void FinishCollabLeave();
 	void FinishCollabPush();
 	void FinishCollabPull();
-	bool ApplyCollabSnapshotBase64(const char *pMapBase64, int Revision);
-	bool LoadCollabSnapshot(const char *pFilename, int StorageType);
+	bool ApplyCollabSnapshotBase64(const char *pMapBase64, int Revision, bool RemoteUpdate = false);
+	bool LoadCollabSnapshot(const char *pFilename, int StorageType, bool FollowPlacement = false);
 
 	// TODO: The name of the ShowFileDialogError function is not accurate anymore, this is used for generic error messages.
 	//       Popups in UI should be shared_ptrs to make this even more generic.

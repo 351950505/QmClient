@@ -1,0 +1,68 @@
+#ifndef GAME_EDITOR_COLLAB_CAMERA_H
+#define GAME_EDITOR_COLLAB_CAMERA_H
+
+#include <base/vmath.h>
+
+#include <array>
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
+
+class CEditorMap;
+
+// 快照替换会取消当前工具操作，只保存相机；缩放对象按值保存，包含进行中的平滑曲线。
+template<typename TViewState, typename FLoad>
+bool ReloadEditorCollabSnapshotKeepingCamera(TViewState &State, FLoad &&Load)
+{
+	const auto Zoom = State.m_Zoom;
+	const float WorldZoom = State.m_WorldZoom;
+	const vec2 WorldOffset = State.m_WorldOffset;
+	const vec2 EditorOffset = State.m_EditorOffset;
+	const bool Loaded = std::forward<FLoad>(Load)();
+	State.m_Zoom = Zoom;
+	State.m_WorldZoom = WorldZoom;
+	State.m_WorldOffset = WorldOffset;
+	State.m_EditorOffset = EditorOffset;
+	return Loaded;
+}
+
+bool ShouldFollowEditorCollabPlacement(bool Enabled, bool RemoteUpdate, int PreviousRevision, int Revision);
+
+struct SEditorCollabPlacementTarget
+{
+	vec2 m_Center;
+	ivec2 m_GroupOffset;
+	ivec2 m_Parallax;
+
+	void CenterCamera(vec2 &WorldOffset, vec2 &EditorOffset) const;
+};
+
+// 只记录放置内容，组/图层属性和对象颜色、包络等属性不会产生跟随目标。
+class CEditorCollabPlacementSnapshot
+{
+public:
+	struct SLayer
+	{
+		int m_Kind = 0;
+		int m_GroupIndex = 0;
+		std::string m_GroupName;
+		std::string m_LayerName;
+		ivec2 m_GroupOffset = ivec2(0, 0);
+		ivec2 m_Parallax = ivec2(100, 100);
+		int m_Width = 0;
+		int m_Height = 0;
+		std::vector<uint16_t> m_vTiles;
+		std::vector<std::array<int, 8>> m_vQuads;
+		std::vector<std::array<int, 2>> m_vSounds;
+	};
+
+	bool m_Complete = true;
+	std::vector<SLayer> m_vLayers;
+
+	static CEditorCollabPlacementSnapshot Capture(const CEditorMap &Map);
+	std::optional<SEditorCollabPlacementTarget> FindPlacement(const CEditorCollabPlacementSnapshot &Previous) const;
+};
+
+#endif

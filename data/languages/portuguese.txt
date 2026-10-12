@@ -2669,8 +2669,8 @@ Console color
 Console color scheme
 == Consola: esquema de cores
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== Consola: esquema de cores: 0=Terminal moderno, 1=PowerShell clássico, 2=personalizado
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== Consola: esquema de cores: 0=Terminal moderno, 1=PowerShell clássico, 2=personalizado, 3=PowerShell 7
 
 Console command color
 == Consola: cor dos comandos
@@ -6287,6 +6287,9 @@ Interface surface
 Interface surface color
 == Cor da superfície da interface
 
+Interface text size percentage
+== Tamanho do texto da interface em percentagem
+
 Interface transparency
 == Transparência geral da interface
 
@@ -7933,6 +7936,9 @@ Nameplates
 
 Native scale (1.0)
 == Escala nativa (1.0)
+
+Navigation size percentage
+== Tamanho da navegação em percentagem
 
 Need to have started the map to swap with a player.
 == Precisa de ter começado o mapa para trocar de lugar com um jogador.
@@ -11357,6 +11363,9 @@ Settings card titles use rainbow colors
 Settings file
 == Ficheiro de definições
 
+Settings navigation migration version
+== Versão de migração da navegação das definições
+
 Settings page opacity
 == Opacidade da página de definições
 
@@ -14348,6 +14357,9 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == Escala da UI
 
+UI scrolling: 0=original, 1=damped
+== Deslocamento da interface: 0=original, 1=amortecido
+
 UI server address
 == Endereço do servidor UI
 
@@ -14722,6 +14734,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Usar o pipeline de anéis procedurais quando a renderização melhorada estiver ativa
+
+Use rounded corners for interface surfaces
+== Usar cantos arredondados nas superfícies da interface
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Usar pipelines SDF para Dynamic Island e retângulos arredondados quando a renderização melhorada estiver ativa
