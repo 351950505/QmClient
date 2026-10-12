@@ -3475,8 +3475,6 @@ if(CLIENT)
     components/qmclient/word_filter_list.cpp
     components/qmclient/word_filter_list.h
     components/qmclient/data_version.h
-    components/qmclient/dummy_hammer_input.cpp
-    components/qmclient/dummy_hammer_input.h
     components/qmclient/demo_ui.h
     components/qmclient/emoticon_commands.h
     components/qmclient/hammer_hit_detection.cpp
@@ -4614,8 +4612,6 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_blank_asset_fallback_test.cpp
     src/test/unit/qmclient/client/qm_spectator_selector_layout_test.cpp
     src/test/unit/qmclient/client/qm_shortcut_held_bind_test.cpp
-    src/test/unit/qmclient/client/qm_dummy_hammer_input_test.cpp
-    src/test/integration/qmclient/client/qm_deepfly_bind_test.cpp
     src/test/unit/qmclient/client/qm_spectator_tele_search_test.cpp
     src/test/unit/qmclient/client/qm_spectator_friend_priority_test.cpp
     src/test/unit/qmclient/client/qm_mobile_spectator_test.cpp
@@ -5179,7 +5175,6 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/game/client/components/qmclient/vote_map_library.cpp
     src/game/client/components/qmclient/vote_map_loader.cpp
     src/game/client/components/qmclient/hammer_hit_detection.cpp
-    src/game/client/components/qmclient/dummy_hammer_input.cpp
     src/game/client/components/qmclient/axiom_scores.cpp
     src/game/client/components/qmclient/axiom_scores_data.cpp
     src/game/client/components/qmclient/streamer_word_filter.cpp
