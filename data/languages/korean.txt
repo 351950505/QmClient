@@ -656,6 +656,9 @@ Alive: %.1fs/%.1fs
 All
 == 전체
 
+All categories
+== 전체
+
 All combined
 == 모두 결합
 

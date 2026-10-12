@@ -656,6 +656,9 @@ Alive: %.1fs/%.1fs
 All
 == Tümü
 
+All categories
+== Tüm kategoriler
+
 All combined
 == Tümü birleştirilmiş
 

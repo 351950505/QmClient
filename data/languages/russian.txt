@@ -656,6 +656,9 @@ Alive: %.1fs/%.1fs
 All
 == Все
 
+All categories
+== Все категории
+
 All combined
 == Все вместе
 

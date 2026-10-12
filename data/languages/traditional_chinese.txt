@@ -656,6 +656,9 @@ Alive: %.1fs/%.1fs
 All
 == 全體
 
+All categories
+== 全部
+
 All combined
 == 全部文件
 

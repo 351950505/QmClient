@@ -6,7 +6,9 @@
 #include <engine/shared/localization.h>
 
 #include <game/client/QmUi/QmCardRegistry.h>
+#include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
+#include <game/client/QmUi/UiSurfaceText.h>
 #include <game/client/components/qmclient/bind_editor.h>
 #include <game/client/gameclient.h>
 #include <game/client/qm_icon.h>
@@ -14,6 +16,7 @@
 #include <game/localization.h>
 
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <optional>
 #include <string>
@@ -21,68 +24,19 @@
 
 namespace
 {
-	struct SBindPreset
-	{
-		const char *m_pLabel;
-		const char *m_pCommand;
-	};
+	using qm_bind_editor::ECommandCategory;
+	using qm_bind_editor::SCommandOption;
 
-	constexpr SBindPreset s_aPresets[] = {
-		{Localizable("Move left"), "+left"},
-		{Localizable("Move right"), "+right"},
-		{Localizable("Jump"), "+jump"},
-		{Localizable("Fire"), "+fire"},
-		{Localizable("Hook"), "+hook"},
-		{Localizable("Hook collisions"), "+showhookcoll"},
-		{Localizable("Pause"), "say /pause"},
-		{Localizable("Kill"), "kill"},
-		{Localizable("Zoom in"), "zoom+"},
-		{Localizable("Zoom out"), "zoom-"},
-		{Localizable("Default zoom"), "zoom"},
-		{Localizable("Show others"), "say /showothers"},
-		{Localizable("Show all"), "say /showall"},
-		{Localizable("Toggle dyncam"), "toggle cl_dyncam 0 1"},
-		{Localizable("Toggle ghost"), "toggle cl_race_show_ghost 0 1"},
-		{Localizable("Hammer"), "+weapon1"},
-		{Localizable("Pistol"), "+weapon2"},
-		{Localizable("Shotgun"), "+weapon3"},
-		{Localizable("Grenade"), "+weapon4"},
-		{Localizable("Laser"), "+weapon5"},
-		{Localizable("Next weapon"), "+nextweapon"},
-		{Localizable("Prev. weapon"), "+prevweapon"},
-		{Localizable("Vote yes"), "vote yes"},
-		{Localizable("Vote no"), "vote no"},
-		{Localizable("Chat"), "+show_chat; chat all"},
-		{Localizable("Team chat"), "+show_chat; chat team"},
-		{Localizable("Converse"), "+show_chat; chat all /c "},
-		{Localizable("Show chat"), "+show_chat"},
-		{Localizable("Repeat message"), "+qm_repeat"},
-		{Localizable("Voice chat"), "+qm_voice_ptt"},
-		{Localizable("Toggle dummy"), "toggle cl_dummy 0 1"},
-		{Localizable("Dummy jump"), "+toggle_restore cl_dummy_jump 1"},
-		{Localizable("Dummy fire"), "+toggle_restore cl_dummy_fire 1"},
-		{Localizable("Dummy hook"), "+toggle_restore cl_dummy_hook 1"},
-		{Localizable("Dummy copy"), "toggle cl_dummy_copy_moves 0 1"},
-		{Localizable("Dummy control"), "toggle cl_dummy_control 1 0"},
-		{Localizable("Emoticon"), "+emote"},
-		{Localizable("Spectate mode"), "+spectate"},
-		{Localizable("Spectate next"), "spectate_next"},
-		{Localizable("Spectate previous"), "spectate_previous"},
-		{Localizable("Active disconnect"), "qm_timeout_disconnect"},
-		{Localizable("Console"), "toggle_local_console"},
-		{Localizable("Screenshot"), "screenshot"},
-		{Localizable("Scoreboard"), "+scoreboard"},
-		{Localizable("Statboard"), "+statboard"},
-		{Localizable("Pie menu"), "+pie_menu"},
-		{Localizable("Show entities"), "toggle cl_overlay_entities 0 100"},
-		{Localizable("Show HUD"), "toggle cl_showhud 0 1"},
-	};
-
-	struct SCommandOption
-	{
-		std::string m_Label;
-		qm_bind_editor::SRegisteredCommand m_Command;
-		bool m_Preset = false;
+	constexpr std::array<const char *, static_cast<size_t>(ECommandCategory::NUM_CATEGORIES)> s_apCategoryLabels = {
+		Localizable("All categories"),
+		Localizable("Movement"),
+		Localizable("Camera"),
+		Localizable("Dummy"),
+		Localizable("Weapon"),
+		Localizable("Chat"),
+		Localizable("Voting"),
+		Localizable("Miscellaneous"),
+		Localizable("Console"),
 	};
 
 	struct SArgumentInput
@@ -100,6 +54,9 @@ namespace
 		CButtonContainer m_PickerButton;
 		CButtonContainer m_DropdownButton;
 		CButtonContainer m_AddButton;
+		std::array<CButtonContainer, s_apCategoryLabels.size()> m_aCategoryButtons;
+		ECommandCategory m_Category = ECommandCategory::ALL;
+		ECommandCategory m_LastCategory = ECommandCategory::NUM_CATEGORIES;
 		CLineInputBuffered<256> m_Filter;
 		CLineInputBuffered<qm_bind_editor::INPUT_CAPACITY> m_CommandInput;
 		CListBox m_ListBox;
@@ -153,12 +110,8 @@ namespace
 
 	void PopulateOptions(IConsole &Console, SBindCommandEditorState &State)
 	{
-		State.m_vOptions.clear();
-		State.m_vOptions.push_back({Localizable("Custom command"), {}, true});
-		for(const SBindPreset &Preset : s_aPresets)
-			State.m_vOptions.push_back({Preset.m_pLabel, {Preset.m_pCommand, {}, {}}, true});
-		for(auto &Command : qm_bind_editor::RegisteredCommands(Console))
-			State.m_vOptions.push_back({Command.m_Name, std::move(Command), false});
+		State.m_vOptions = qm_bind_editor::CommandOptions(Console);
+		State.m_LastCategory = ECommandCategory::NUM_CATEGORIES;
 		State.m_vFiltered.clear();
 		State.m_LastFilter.clear();
 		State.m_Filter.Clear();
@@ -200,6 +153,40 @@ CUi::EPopupMenuFunctionResult CMenus::PopupQmBindCommands(void *pContext, CUIRec
 	CMenus *pMenus = State.m_pMenus;
 	CUi *pUi = pMenus->Ui();
 	View.Margin(4.0f, &View);
+	const IUiContext Ctx = pMenus->SettingsUiContext("qm_bind_command_picker", 1.0f);
+	const float TabFontSize = State.m_FontSize * 0.9f;
+	const float Gap = 4.0f;
+	float TabWidth = State.m_LineHeight * 3.0f;
+	for(const char *pLabel : s_apCategoryLabels)
+		TabWidth = std::max(TabWidth, pMenus->TextRender()->TextWidth(TabFontSize, Localize(pLabel)) + 12.0f);
+	const int TabsPerRow = std::clamp(static_cast<int>((View.w + Gap) / (TabWidth + Gap)), 1, static_cast<int>(s_apCategoryLabels.size()));
+	CUIRect TabRow;
+	for(size_t Index = 0; Index < s_apCategoryLabels.size(); ++Index)
+	{
+		if(Index % TabsPerRow == 0)
+		{
+			View.HSplitTop(State.m_LineHeight, &TabRow, &View);
+			View.HSplitTop(Gap, nullptr, &View);
+		}
+		CUIRect Tab;
+		TabRow.VSplitLeft((View.w - Gap * (TabsPerRow - 1)) / TabsPerRow, &Tab, &TabRow);
+		if(Index % TabsPerRow + 1 < static_cast<size_t>(TabsPerRow))
+			TabRow.VSplitLeft(Gap, nullptr, &TabRow);
+		const auto Category = static_cast<ECommandCategory>(Index);
+		const bool Selected = State.m_Category == Category;
+		ui_widget::SButtonSurfaceOptions Options;
+		Options.m_Enabled = Active;
+		Options.m_Selected = Selected;
+		const ColorRGBA Fill = ui_widget::DrawButtonSurface(Ctx, &State.m_aCategoryButtons[Index], Tab, Options);
+		CUiScopedSurfaceText SurfaceText(pMenus->TextRender(), Fill);
+		SLabelProperties Props;
+		Props.m_MaxWidth = Tab.w;
+		Props.m_EllipsisAtEnd = true;
+		pUi->DoLabel(&Tab, Localize(s_apCategoryLabels[Index]), TabFontSize, TEXTALIGN_MC, Props);
+		pMenus->GameClient()->m_Tooltips.DoToolTip(&State.m_aCategoryButtons[Index], &Tab, Localize(s_apCategoryLabels[Index]));
+		if(Active && pUi->DoButtonLogic(&State.m_aCategoryButtons[Index], Selected, &Tab, BUTTONFLAG_LEFT))
+			State.m_Category = Category;
+	}
 	CUIRect Search;
 	View.HSplitTop(State.m_LineHeight, &Search, &View);
 	View.HSplitTop(4.0f, nullptr, &View);
@@ -215,29 +202,20 @@ CUi::EPopupMenuFunctionResult CMenus::PopupQmBindCommands(void *pContext, CUIRec
 	SearchOptions.m_Clearable = true;
 	SearchOptions.m_ProcessInput = Active;
 	SearchOptions.m_FontSize = State.m_FontSize;
-	const IUiContext Ctx = pMenus->SettingsUiContext("qm_bind_command_picker", 1.0f);
 	const auto SearchResult = ui_widget::InputField(Ctx, &State.m_Filter, Search, SearchOptions);
-	const bool FirstFrame = State.m_vFiltered.empty() && State.m_LastFilter.empty();
-	if(FirstFrame || State.m_LastFilter != State.m_Filter.GetString())
+	if(State.m_LastCategory != State.m_Category || State.m_LastFilter != State.m_Filter.GetString())
 	{
+		State.m_LastCategory = State.m_Category;
 		State.m_LastFilter = State.m_Filter.GetString();
-		State.m_vFiltered.clear();
-		for(size_t Index = 0; Index < State.m_vOptions.size(); ++Index)
-		{
-			const SCommandOption &Option = State.m_vOptions[Index];
-			const char *pFilter = State.m_LastFilter.c_str();
-			if(State.m_LastFilter.empty() || str_utf8_find_nocase(Localize(Option.m_Label.c_str()), pFilter) ||
-				str_utf8_find_nocase(Option.m_Command.m_Name.c_str(), pFilter) ||
-				str_utf8_find_nocase(Localize(Option.m_Command.m_Help.c_str()), pFilter))
-				State.m_vFiltered.push_back(Index);
-		}
+		State.m_vFiltered = qm_bind_editor::FilterCommandOptions(State.m_vOptions, State.m_Category, State.m_LastFilter, [](const char *pText) { return Localize(pText); });
 		State.m_Selection = State.m_vFiltered.empty() ? -1 : 0;
 		State.m_ListBox.ResetScroll();
 	}
 
 	State.m_ListBox.SetActive(Active);
 	State.m_ListBox.SetWheelOwnerPriority(EUiWheelOwnerPriority::POPUP);
-	State.m_ListBox.DoStart(State.m_LineHeight * 1.8f, (int)State.m_vFiltered.size(), 1, 3, State.m_Selection, &View, false);
+	const int ItemsPerRow = std::max(1, static_cast<int>(View.w / (State.m_LineHeight * 8.0f)));
+	State.m_ListBox.DoStart(State.m_LineHeight * 1.8f, (int)State.m_vFiltered.size(), ItemsPerRow, 3, State.m_Selection, &View, false);
 	for(const size_t Index : State.m_vFiltered)
 	{
 		const SCommandOption &Option = State.m_vOptions[Index];
@@ -327,8 +305,8 @@ void CMenus::RenderQmBindCommandEditor(CUIRect &Content, const CBindSlot Slot, c
 			State.m_FontSize = Metrics.m_BodySize;
 			State.m_LineHeight = Metrics.m_LineHeight;
 			const CUIRect Screen = *Ui()->Screen();
-			const float Width = std::min(std::max(Selector.w, 300.0f), Screen.w - 16.0f);
-			const float Height = std::min(280.0f, Screen.h - 16.0f);
+			const float Width = std::min(std::max(Selector.w, 560.0f), Screen.w - 16.0f);
+			const float Height = std::min(std::max(380.0f, Metrics.m_LineHeight * 19.0f), Screen.h - 16.0f);
 			const float X = std::clamp(Selector.x, Screen.x + 8.0f, Screen.x + Screen.w - Width - 8.0f);
 			const float Y = std::clamp(Selector.y + Selector.h, Screen.y + 8.0f, Screen.y + Screen.h - Height - 8.0f);
 			SPopupMenuProperties Props;

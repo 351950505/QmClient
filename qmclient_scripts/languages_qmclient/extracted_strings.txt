@@ -217,6 +217,7 @@ Alive notification text
 Alive notification vertical position (percentage of screen height)
 Alive: %.1fs/%.1fs
 All
+All categories
 All combined
 All maps
 All players

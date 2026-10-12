@@ -656,6 +656,9 @@ Alive: %.1fs/%.1fs
 All
 == すべて
 
+All categories
+== すべて
+
 All combined
 == すべて結合
 
