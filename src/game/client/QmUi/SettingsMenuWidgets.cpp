@@ -6,6 +6,7 @@
 #include <engine/textrender.h>
 
 #include <game/client/QmUi/QmScroll.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -28,63 +29,6 @@ using namespace qm_tclient_cards;
 
 std::unordered_map<std::string, CBindSlot> g_CommandBindCache;
 bool g_CommandBindCacheInitialized = false;
-
-CMenus::SSettingsQmScrollFrame CMenus::BeginSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, CUIRect *pView, float ContentHeight, const SQmSettingsCardStyle &CardStyle, float UiScale, float PreviousOffsetY, bool Enabled)
-{
-	SSettingsQmScrollFrame Frame;
-	Frame.m_ViewRect = *pView;
-	Frame.m_ClipRect = *pView;
-	Frame.m_PreviousOffsetY = PreviousOffsetY;
-	Frame.m_Enabled = Enabled;
-	const SQmResolvedScrollPolicy ScrollPolicy = QmResolveScrollPolicy({EQmScrollProfile::SETTINGS_OUTER}, UiScale, g_Config.m_UiSmoothScrollTime / 1000.0f);
-	Frame.m_Style = ScrollPolicy.m_Style;
-	(void)CardStyle;
-	if(!Enabled)
-		return Frame;
-
-	const SQmScrollConfig ScrollConfig = QmSettingsScrollConfig(UiScale, g_Config.m_UiSmoothScrollTime / 1000.0f);
-
-	SQmScrollContainerInput ScrollInput;
-	ScrollInput.m_Hovered = Ui()->MouseHovered(pView);
-	ScrollInput.m_MouseValid = true;
-	ScrollInput.m_MouseX = Ui()->MouseX();
-	ScrollInput.m_MouseY = Ui()->MouseY();
-	ScrollInput.m_MouseDown = Ui()->MouseButton(0);
-	ScrollInput.m_MousePressed = Ui()->MouseButtonClicked(0);
-
-	const SQmScrollContainerFrame ProbeFrame = ScrollContainer.PreviewFrame(ScrollState, *pView, ContentHeight, Frame.m_Style);
-	CUIRect WheelHotRect = ProbeFrame.m_ClipRect;
-	if(ProbeFrame.m_ScrollbarVisible)
-		WheelHotRect.w += Frame.m_Style.m_ScrollbarWidth;
-	ScrollInput.m_Hovered = Ui()->MouseHovered(&WheelHotRect);
-	ScrollInput.m_ModifierPressed = Input()->ModifierIsPressed();
-	ScrollInput.m_AltPressed = Input()->AltIsPressed();
-
-	if(ProbeFrame.m_ScrollbarVisible)
-	{
-		const void *pScrollbarId = &ScrollContainer;
-		ScrollInput.m_ThumbHovered = Ui()->MouseHovered(&ProbeFrame.m_ScrollbarThumbRect);
-		ScrollInput.m_TrackHovered = Ui()->MouseHovered(&ProbeFrame.m_ScrollbarTrackRect) && !ScrollInput.m_ThumbHovered;
-		if(ScrollInput.m_ThumbHovered || ScrollInput.m_TrackHovered)
-			Ui()->SetHotItem(pScrollbarId);
-		if((Ui()->HotItem() == pScrollbarId || ScrollInput.m_ThumbHovered || ScrollInput.m_TrackHovered) && ScrollInput.m_MousePressed)
-			Ui()->SetActiveItem(pScrollbarId);
-		if(Ui()->CheckActiveItem(pScrollbarId))
-		{
-			ScrollInput.m_ThumbHovered = ScrollInput.m_ThumbHovered || ScrollContainer.ScrollbarDragActive(ScrollState);
-			ScrollInput.m_TrackHovered = ScrollInput.m_TrackHovered && !ScrollContainer.ScrollbarDragActive(ScrollState);
-			if(!ScrollInput.m_MouseDown)
-				Ui()->SetActiveItem(nullptr);
-		}
-	}
-
-	Frame.m_Frame = ScrollContainer.Update(ScrollState, *pView, ContentHeight, GameClient()->UiRuntimeV2()->FrameDt(), ScrollInput, Frame.m_Style, ScrollConfig);
-	Frame.m_ClipRect = Frame.m_Frame.m_ClipRect;
-	Frame.m_Offset.y = -Frame.m_Frame.m_Offset;
-	*pView = Frame.m_ClipRect;
-	Ui()->ClipEnable(&Frame.m_ClipRect);
-	return Frame;
-}
 
 void CMenus::RenderQmSettingsSliderWithValueInput(const void *pId, const CUIRect &ControlColumn, int *pValue, int MinValue, int MaxValue, const char *pSuffix, bool PrewarmOnly, unsigned Flags)
 {
@@ -155,8 +99,12 @@ bool CMenus::RenderQmFunctionCheckbox(const void *pId, const char *pTextId, cons
 
 bool CMenus::RenderQmVisualCheckbox(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue)
 {
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Row;
-	Content.HSplitTop(LineHeight, &Row, &Content);
+	const bool HasRow = Flow.Control(pTextId, LineHeight, Row);
+	Flow.Space(LineSpacing);
+	if(!HasRow)
+		return false;
 	const char *pOverrideTooltip = TemporaryOverrideTooltip(pValue);
 	Ui()->DoConfigTooltip(pId, &Row, pValue);
 	SLabelProperties LabelProps;
@@ -173,48 +121,12 @@ bool CMenus::RenderQmVisualCheckbox(CUIRect &Content, float LineHeight, float Li
 	const bool Changed = DoSettingsButton_CheckBox(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, pId, pTextId, pText, *pValue, &Row, LabelProps, pOverrideTooltip == nullptr) != 0;
 	if(Changed)
 		*pValue ^= 1;
-	Content.HSplitTop(LineSpacing, nullptr, &Content);
 	return Changed;
 }
 
 void CMenus::RenderQmVisualLabel(const char *pTextId, CUIRect *pRect, const char *pText, float FontSize, int TextAlign, const SLabelProperties &LabelProps)
 {
 	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, pTextId, pRect, pText, FontSize, TextAlign, LabelProps, (int)pRect->w);
-}
-
-void CMenus::FinishSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, SSettingsQmScrollFrame &Frame, const CUIRect &EndRect, float *pContentHeight, float *pPreviousOffsetY, bool TrackScrollActive)
-{
-	if(!Frame.m_Enabled)
-		return;
-
-	Ui()->ClipDisable();
-	*pContentHeight = maximum(0.0f, std::ceil(EndRect.y + EndRect.h - (Frame.m_ClipRect.y + Frame.m_Offset.y)));
-	Frame.m_Frame = ScrollContainer.PreviewFrame(ScrollState, Frame.m_ViewRect, *pContentHeight, Frame.m_Style);
-	CUIRect WheelHotRect = Frame.m_Frame.m_ClipRect;
-	if(Frame.m_Frame.m_ScrollbarVisible)
-		WheelHotRect.w += Frame.m_Style.m_ScrollbarWidth;
-	const void *pWheelOwnerId = &ScrollContainer;
-	const bool WheelEligible = Frame.m_Frame.m_ScrollbarVisible && !Ui()->UnderlyingScrollBlocked() && Ui()->MouseHovered(&WheelHotRect);
-	Ui()->RegisterWheelOwner(pWheelOwnerId, EUiWheelOwnerPriority::PAGE, WheelHotRect, WheelEligible);
-	float WheelDelta = 0.0f;
-	if(Ui()->TryConsumeWheel(pWheelOwnerId, &WheelDelta))
-	{
-		const SQmScrollConfig ScrollConfig = QmSettingsScrollConfig(1.0f, g_Config.m_UiSmoothScrollTime / 1000.0f);
-		ScrollContainer.ScrollByWheel(ScrollState, WheelDelta, Frame.m_ViewRect.h, *pContentHeight, ScrollConfig);
-		Frame.m_Frame = ScrollContainer.PreviewFrame(ScrollState, Frame.m_ViewRect, *pContentHeight, Frame.m_Style);
-	}
-	const float CurrentOffsetY = Frame.m_Frame.m_ScrollbarVisible ? Frame.m_Frame.m_Offset : 0.0f;
-	if(TrackScrollActive)
-	{
-		m_SettingsScrollActive = m_SettingsScrollActive || absolute(CurrentOffsetY - Frame.m_PreviousOffsetY) > 0.01f;
-		if(pPreviousOffsetY != nullptr)
-			*pPreviousOffsetY = CurrentOffsetY;
-	}
-	if(Frame.m_Frame.m_ScrollbarVisible)
-	{
-		DrawRoundedSurface(Ui(), Frame.m_Frame.m_ScrollbarTrackRect, ColorRGBA(1.0f, 1.0f, 1.0f, 0.08f), ColorRGBA(), Frame.m_Frame.m_ScrollbarTrackRect.w * 0.5f);
-		DrawRoundedSurface(Ui(), Frame.m_Frame.m_ScrollbarThumbRect, ColorRGBA(1.0f, 1.0f, 1.0f, 0.34f), ColorRGBA(), Frame.m_Frame.m_ScrollbarThumbRect.w * 0.5f);
-	}
 }
 
 bool CMenus::RenderQmHudCheckbox(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue)

@@ -68,7 +68,7 @@ TEST(SettingsCardInfoLayout, LeadingActionStaysLeftOfInfoWidthAndCollapse)
 		EXPECT_LE(Width.x + Width.w, Frame.m_HandleRect.x);
 		EXPECT_FLOAT_EQ(Locate.y, Frame.m_HandleRect.y);
 		EXPECT_FLOAT_EQ(Locate.h, Frame.m_HandleRect.h);
-		EXPECT_FLOAT_EQ(Frame.m_SubtitleRect.w, Frame.m_TitleRect.w);
+		EXPECT_FLOAT_EQ(Frame.m_SubtitleRect.w, Frame.m_HeaderRect.w);
 	}
 }
 
@@ -229,16 +229,16 @@ TEST(SettingsCardHelpText, DuplicateOrMissingDescriptionsDoNotProduceEmptyLines)
 	EXPECT_TRUE(SettingsCardTooltipText({"example", "Title", nullptr, nullptr}).empty());
 }
 
-TEST(SettingsCardInfoLayout, DescriptionLengthDoesNotReserveSpaceInTheCard)
+TEST(SettingsCardInfoLayout, HoverOverviewKeepsCardGeometryAndContentHeight)
 {
 	for(const float Scale : {0.78f, 1.0f, 1.5f})
 	{
 		const CUIRect Slot{10, 20, 400, 0};
 		const auto Plain = BuildSettingsCardFrame(Slot, {"example", "Title", nullptr}, 120, Scale);
 		const auto Help = BuildSettingsCardFrame(Slot, {"example", "Title", "A long overview", "Detailed information"}, 120, Scale);
-		EXPECT_FLOAT_EQ(Help.m_Rect.h, Plain.m_Rect.h);
-		EXPECT_FLOAT_EQ(Help.m_ContentRect.y, Plain.m_ContentRect.y);
+		EXPECT_FLOAT_EQ(Help.m_Rect.h, Plain.m_Rect.h + Help.m_SubtitleRect.h);
+		EXPECT_FLOAT_EQ(Help.m_ContentRect.y, Plain.m_ContentRect.y + Help.m_SubtitleRect.h);
 		EXPECT_FLOAT_EQ(Help.m_ContentRect.h, 120);
-		EXPECT_FLOAT_EQ(Help.m_SubtitleRect.h, 0);
+		EXPECT_GT(Help.m_SubtitleRect.h, 0);
 	}
 }

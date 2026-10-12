@@ -18,6 +18,8 @@
 #include <engine/storage.h>
 #include <engine/textrender.h>
 
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -51,8 +53,11 @@ extern std::unordered_map<std::string, CBindSlot> g_CommandBindCache;
 
 void CMenus::RenderQmFunctionFavoriteMapsContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, bool PrewarmOnly)
 {
+	CSettingsContentLayoutFlow Flow(Content);
+	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();
 	const auto &FavMaps = GameClient()->TClientComponent().GetFavoriteMaps();
-	qm_card_catalog::FavoriteMapsLayoutRevision(FavMaps.size());
+	if(Flow.Input() && !ReadOnly)
+		qm_card_catalog::FavoriteMapsLayoutRevision(FavMaps.size());
 
 	auto MapCategoryKeyFromText = [](const char *pText) -> const char * {
 		if(!pText || pText[0] == '\0')
@@ -134,7 +139,7 @@ void CMenus::RenderQmFunctionFavoriteMapsContent(CUIRect &Content, float UiScale
 	static float s_NextFullScan = 0.0f;
 	IServerBrowser *pServerBrowser = ServerBrowser();
 	const float Now = Client()->LocalTime();
-	if(Ui()->RenderOnly())
+	if(!Flow.Input() || ReadOnly)
 	{
 		// 文本预热只读取现有分类快照，不能扫描服务器或写入磁盘缓存。
 	}
@@ -231,14 +236,14 @@ void CMenus::RenderQmFunctionFavoriteMapsContent(CUIRect &Content, float UiScale
 
 	static int s_CopiedMapIndex = -1;
 	static float s_CopiedTime = 0.0f;
-	if(s_CopiedMapIndex >= 0 && Client()->LocalTime() - s_CopiedTime > 1.5f)
+	if(Flow.Input() && !ReadOnly && s_CopiedMapIndex >= 0 && Client()->LocalTime() - s_CopiedTime > 1.5f)
 		s_CopiedMapIndex = -1;
 	CUIRect Row;
 	if(FavMaps.empty())
 	{
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-favorite-maps-empty", &Row, Localize("No favorite maps yet"), BodySize, TEXTALIGN_ML, {}, (int)Row.w);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		if(Flow.Control("favorite-maps-empty", LineHeight, Row))
+			DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-favorite-maps-empty", &Row, Localize("No favorite maps yet"), BodySize, TEXTALIGN_ML, {}, (int)Row.w);
+		Flow.Space(LineSpacing);
 		return;
 	}
 
@@ -251,17 +256,23 @@ void CMenus::RenderQmFunctionFavoriteMapsContent(CUIRect &Content, float UiScale
 	{
 		if(MapIndex >= std::size(s_aMapButtonIds))
 			break;
-		Content.HSplitTop(LineHeight, &Row, &Content);
+		const std::string Id = "favorite-map-" + MapName;
+		if(!Flow.Control(Id.c_str(), LineHeight, Row))
+		{
+			Flow.Space(LineSpacing);
+			++MapIndex;
+			continue;
+		}
 		CUIRect RowLabel, RowRemove;
 		Row.VSplitRight(LineHeight, &RowLabel, &RowRemove);
 		RowRemove.HMargin(std::clamp(2.0f * UiScale, 1.0f, 2.0f), &RowRemove);
-		if(ui_widget::IconButton(IconButtonCtx, &s_aMapRemoveButtons[MapIndex], EQmIcon::CLOSE, FONT_ICON_XMARK, RowRemove))
+		if(ui_widget::IconButton(IconButtonCtx, &s_aMapRemoveButtons[MapIndex], EQmIcon::CLOSE, FONT_ICON_XMARK, RowRemove) && Flow.Input() && !ReadOnly)
 		{
 			if(RemoveMapName.empty())
 				RemoveMapName = MapName;
 			s_CopiedMapIndex = -1;
 		}
-		if(!PrewarmOnly && Ui()->MouseInside(&RowLabel))
+		if(Flow.Input() && !ReadOnly && Ui()->MouseInside(&RowLabel))
 		{
 			Ui()->SetHotItem(&s_aMapButtonIds[MapIndex]);
 			if(Ui()->MouseButtonClicked(0))
@@ -288,10 +299,10 @@ void CMenus::RenderQmFunctionFavoriteMapsContent(CUIRect &Content, float UiScale
 			GameClient()->m_Tooltips.DoToolTip(&s_aMapButtonIds[MapIndex], &RowLabel, Localize("Click to copy the map name"));
 		if(Ui()->HotItem() == &s_aMapRemoveButtons[MapIndex])
 			GameClient()->m_Tooltips.DoToolTip(&s_aMapRemoveButtons[MapIndex], &RowRemove, Localize("Remove from favorites"));
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		Flow.Space(LineSpacing);
 		++MapIndex;
 	}
-	if(!RemoveMapName.empty())
+	if(Flow.Input() && !ReadOnly && !RemoveMapName.empty())
 	{
 		GameClient()->TClientComponent().RemoveFavoriteMap(RemoveMapName.c_str());
 		const size_t FavoriteMapCount = GameClient()->TClientComponent().GetFavoriteMaps().size();

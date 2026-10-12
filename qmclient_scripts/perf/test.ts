@@ -5,7 +5,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parseLine, parseLog, parseLogWithDiagnostics } from './lib/parse.ts';
-import { PerfLogCollector, expandFrameBatch } from './lib/stream.ts';
+import { expandFrameBatch } from './lib/stream.ts';
+import { runSamplingTests } from './sampling_test.ts';
 import { configurationSummary } from './lib/configuration.ts';
 import { selectFrameTimeEntries } from './lib/stats.ts';
 import {
@@ -1673,23 +1674,8 @@ function testUnifiedConfigurationKeepsInitialCurrentAndStringValues() {
   assert.equal(configurationSummary([manifest, ...records]).incomplete, true);
 }
 
-function testUnifiedCollectorBoundsMemoryAndKeepsLatestConfig() {
-  const collector = new PerfLogCollector(16, 8, 8);
-  for(let i = 0; i < 1000; i++) {
-    collector.add(parseLine(JSON.stringify({system: 'perf/frame', event: 'frame_sample', duration_ms: i % 20 + 1, frame: i}))!);
-    collector.add(parseLine(JSON.stringify({system: 'perf/config', event: 'config_value', session: 1, name: 'tc_enabled', owner: 'tclient', type: 'int', value: String(i), initial: i === 0 ? 1 : 0, revision: i + 1, part: 0, parts: 1}))!);
-  }
-  const result = collector.finish({ totalLines: 2000, invalidLines: 0 });
-  assert.ok(result.entries.length <= 18);
-  assert.ok(result.diagnostics.sampledEntries! > 0);
-  const config = configurationSummary(result.entries).variables[0];
-  assert.equal(config.initialValue, 0);
-  assert.equal(config.value, 999);
-  assert.ok(reportQuality(result.entries, result.diagnostics).warnings.some(w => w.includes('analysis_sampled')));
-}
-
 testUnifiedFrameSamplesDoNotMixComponentDurations();
 testUnifiedConfigurationKeepsInitialCurrentAndStringValues();
-testUnifiedCollectorBoundsMemoryAndKeepsLatestConfig();
+runSamplingTests();
 
 console.log('qmclient perf tests passed');

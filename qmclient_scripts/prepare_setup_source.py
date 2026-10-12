@@ -14,7 +14,7 @@ if not __package__:
 from qmclient_scripts.package_stdio import configure_stdio
 
 
-def prepare(source: Path, data: Path, output: Path) -> None:
+def prepare(source: Path, data: Path, output: Path, steam_appid_file: Path | None = None) -> None:
 	source = source.resolve(strict=True)
 	data = data.resolve(strict=True)
 	output = output.resolve()
@@ -53,6 +53,18 @@ def prepare(source: Path, data: Path, output: Path) -> None:
 	if len({name.casefold() for name in generated_files}) != len(generated_files):
 		raise ValueError("duplicate Setup generated asset manifest entry")
 
+	# Steam 认账依赖 exe 旁的 steam_appid.txt（SteamAPI_Init 只在当前工作目录查找），
+	# 此前安装载荷漏装该文件，导致安装版在非 Steam 位置启动时不显示运行状态、不计时长。
+	if steam_appid_file is not None:
+		if not steam_appid_file.is_file():
+			raise ValueError(f"missing steam_appid file: {steam_appid_file}")
+		try:
+			appid = steam_appid_file.read_text(encoding="ascii").strip()
+		except UnicodeDecodeError as error:
+			raise ValueError("steam_appid file must contain an ASCII numeric App ID") from error
+		if not appid.isdecimal():
+			raise ValueError("steam_appid file must contain a numeric App ID")
+
 	shutil.rmtree(temporary, ignore_errors=True)
 	temporary.mkdir(parents=True)
 	try:
@@ -62,6 +74,8 @@ def prepare(source: Path, data: Path, output: Path) -> None:
 				kind = "executable" if path.suffix.casefold() == ".exe" else "runtime DLL"
 				raise ValueError(f"missing required {kind}: {name}")
 			shutil.copy2(path, temporary / name)
+		if steam_appid_file is not None:
+			shutil.copy2(steam_appid_file, temporary / "steam_appid.txt")
 		dlls = sorted(source.glob("*.dll"), key=lambda path: path.name.casefold())
 		if not dlls:
 			raise ValueError("no runtime DLLs found in build directory")
@@ -87,8 +101,9 @@ def main() -> int:
 	parser.add_argument("--source", type=Path, required=True, help="build directory")
 	parser.add_argument("--data", type=Path, required=True, help="repository data directory")
 	parser.add_argument("--output", type=Path, required=True)
+	parser.add_argument("--steam-appid-file", type=Path, default=None, help="steam_appid.txt copied to the payload root for Steam recognition")
 	args = parser.parse_args()
-	prepare(args.source, args.data, args.output)
+	prepare(args.source, args.data, args.output, steam_appid_file=args.steam_appid_file)
 	print(f"已准备 Setup 载荷: {args.output}")
 	return 0
 

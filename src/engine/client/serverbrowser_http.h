@@ -2,10 +2,16 @@
 #define ENGINE_CLIENT_SERVERBROWSER_HTTP_H
 #include <base/types.h>
 
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
+
 class CServerInfo;
 class IEngine;
 class IStorage;
 class IHttp;
+class IHttpRequest;
 
 class IServerBrowserHttp
 {
@@ -15,6 +21,7 @@ public:
 	virtual void Shutdown() = 0;
 	virtual void Update() = 0;
 
+	virtual uint64_t Revision() const = 0;
 	virtual bool IsRefreshing() const = 0;
 	virtual bool IsError() const = 0;
 	virtual bool IsStale() const = 0;
@@ -27,4 +34,11 @@ public:
 };
 
 IServerBrowserHttp *CreateServerBrowserHttp(IEngine *pEngine, IStorage *pStorage, IHttp *pHttp, const char *pPreviousBestUrl);
+// 注入仅替换 HTTP 创建与时钟边界，生产调度、解析和缓存仍共用同一个实现。
+IServerBrowserHttp *CreateServerBrowserHttpWithSources(IEngine *pEngine, IStorage *pStorage, IHttp *pHttp,
+	std::vector<std::string> vUrls, const char *pPreviousBestUrl,
+	std::function<std::shared_ptr<IHttpRequest>(const char *)> Factory,
+	std::function<int64_t()> Clock, bool UseFallbackTiers = false,
+	std::function<int(int)> RetryDelay = {},
+	std::function<bool(const std::string &, const std::string &)> SaveWriter = {});
 #endif // ENGINE_CLIENT_SERVERBROWSER_HTTP_H

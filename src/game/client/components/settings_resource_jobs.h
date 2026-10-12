@@ -2,9 +2,11 @@
 #define GAME_CLIENT_COMPONENTS_SETTINGS_RESOURCE_JOBS_H
 
 #include <game/client/components/settings_runtime_cache.h>
+#include <game/client/ui_rect.h>
 
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 struct SSettingsSkinListColorKey
@@ -85,6 +87,57 @@ enum class ESettingsResourcePriority
 	PREFETCH,
 	VISIBLE,
 };
+
+class CSettingsSkinLoadViewport
+{
+	std::vector<std::string> m_vNames;
+	std::unordered_set<std::string> m_Names;
+	size_t m_Frame = 0;
+	std::optional<size_t> m_PublishedFrame;
+
+public:
+	void BeginFrame() { ++m_Frame; }
+	void Publish(std::vector<std::string> Names, bool MeasurementOnly = false)
+	{
+		if(MeasurementOnly)
+			return;
+		m_PublishedFrame = m_Frame;
+		if(Names == m_vNames)
+			return;
+		m_vNames = std::move(Names);
+		m_Names.clear();
+		m_Names.insert(m_vNames.begin(), m_vNames.end());
+	}
+	bool Contains(const std::string &Name) const { return m_PublishedFrame == m_Frame && m_Names.contains(Name); }
+	static bool RowVisible(bool MeasurementOnly, const CUIRect &Row, const CUIRect *pClip)
+	{
+		const CUIRect Visible = pClip ? Row.Intersection(*pClip) : Row;
+		return !MeasurementOnly && Visible.w > 0.0f && Visible.h > 0.0f;
+	}
+};
+
+// 当前视窗先于其他可见需求，其次预取和后台；单项被拒绝不阻断后续请求。
+template<typename T, typename FPriority, typename FVisible, typename FVisit>
+void SettingsVisitSkinLoadRequests(const std::vector<T> &Requests, FPriority Priority, FVisible CurrentVisible, FVisit Visit)
+{
+	std::vector<int> vRanks;
+	vRanks.reserve(Requests.size());
+	for(const auto &Request : Requests)
+	{
+		const auto RequestPriority = Priority(Request);
+		vRanks.push_back(CurrentVisible(Request) ? 0 : RequestPriority == ESettingsResourcePriority::VISIBLE ? 1 :
+						       RequestPriority == ESettingsResourcePriority::PREFETCH        ? 2 :
+														       3);
+	}
+	for(int Rank = 0; Rank < 4; ++Rank)
+	{
+		for(size_t Index = 0; Index < Requests.size(); ++Index)
+		{
+			if(vRanks[Index] == Rank)
+				Visit(Requests[Index]);
+		}
+	}
+}
 
 enum class ESettingsSkinBackgroundRequestBlockReason
 {

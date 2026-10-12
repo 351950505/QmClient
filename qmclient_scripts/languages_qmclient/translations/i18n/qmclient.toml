@@ -2031,22 +2031,6 @@ turkish = "Konuşurken otomatik sessizi aç"
 polish = "Automatyczne wyciszanie podczas mówienia"
 
 [[message]]
-key = "Auto unspec both tees when either is hammered awake"
-[message.translations]
-simplified_chinese = "任一方被锤醒时两个 Tee 都取消旁观"
-traditional_chinese = "任一方被錘醒時兩個 Tee 都取消旁觀"
-japanese = "どちらかがハンマーで解凍されたら両方の Tee の観戦を解除"
-korean = "어느 한 Tee가 망치로 해동되면 두 Tee 모두 관전 해제"
-russian = "Выходить из наблюдения обоими Tee, когда любого размораживают молотком"
-german = "Beide Tees aus dem Zuschauermodus holen, wenn einer mit dem Hammer aufgetaut wird"
-spanish = "Sacar a ambos Tees del modo espectador cuando uno sea descongelado con el martillo"
-french = "Quitter le mode spectateur avec les deux Tees quand l'un est dégelé au marteau"
-brazilian_portuguese = "Tirar os dois Tees do modo espectador quando um deles for descongelado com o martelo"
-portuguese = "Tirar ambos os Tees do modo espectador quando um deles for descongelado com o martelo"
-turkish = "Biri çekiçle çözüldüğünde iki Tee de seyirci modundan çıksın"
-polish = "Wyłącz obserwowanie obu Tee, gdy którykolwiek zostanie odmrożony młotkiem"
-
-[[message]]
 key = "Auto unspec on unfreeze"
 [message.translations]
 simplified_chinese = "解冻自动取消旁观"
@@ -2381,22 +2365,6 @@ brazilian_portuguese = "Modo de tradução automática (0=apenas quando a entrad
 portuguese = "Modo de tradução automática (0=apenas quando a língua de origem comum é detetada, 1=sempre traduzir)"
 turkish = "Otomatik Çeviri Modu (0=Yalnızca yaygın kaynak dil girdisinde tetikle, 1=Her zaman çevir)"
 polish = "Tryb automatycznego tłumaczenia (0=tylko przy częstym źródle, 1=zawsze tłumacz)"
-
-[[message]]
-key = "Exit spectating on both tees when either is hammered awake by another player"
-[message.translations]
-simplified_chinese = "任一方被其他玩家锤醒时，自动让两个 Tee 退出旁观"
-traditional_chinese = "任一方被其他玩家錘醒時，自動讓兩個 Tee 退出旁觀"
-japanese = "どちらかが他のプレイヤーのハンマーで解凍されたら両方の Tee の観戦を解除"
-korean = "어느 한 Tee가 다른 플레이어의 망치로 해동되면 두 Tee 모두 관전 해제"
-russian = "Выходить из наблюдения обоими Tee, когда другой игрок размораживает любого из них молотком"
-german = "Den Zuschauermodus für beide Tees beenden, wenn ein anderer Spieler einen davon mit dem Hammer auftaut"
-spanish = "Salir del modo espectador con ambos Tees cuando otro jugador descongele a cualquiera con el martillo"
-french = "Quitter le mode spectateur avec les deux Tees quand un autre joueur dégèle l'un d'eux au marteau"
-brazilian_portuguese = "Sair do modo espectador com os dois Tees quando outro jogador descongelar um deles com o martelo"
-portuguese = "Sair do modo espectador com ambos os Tees quando outro jogador descongelar um deles com o martelo"
-turkish = "Başka bir oyuncu birini çekiçle çözdüğünde iki Tee de seyirci modundan çıksın"
-polish = "Wyłącz obserwowanie obu Tee, gdy inny gracz odmrozi młotkiem któregokolwiek z nich"
 
 [[message]]
 key = "Auto-unspec when unfrozen"
@@ -3935,182 +3903,6 @@ turkish = "Sohbet balonu şeffaflığı (0-100)"
 polish = "Przezroczystość dymków czatu (0-100)"
 
 [[message]]
-key = "Chat completion appearance"
-[message.translations]
-simplified_chinese = "聊天补全外观"
-traditional_chinese = "聊天補全外觀"
-japanese = "チャット補完の外観"
-korean = "채팅 자동 완성 모양"
-russian = "Оформление автодополнения в чате"
-german = "Darstellung der Chat-Vervollständigung"
-spanish = "Apariencia del autocompletado del chat"
-french = "Apparence de la complétion du chat"
-brazilian_portuguese = "Aparência do autocompletar do chat"
-portuguese = "Aspeto da conclusão da conversa"
-turkish = "Sohbet tamamlama görünümü"
-polish = "Wygląd uzupełniania na czacie"
-
-[[message]]
-key = "Chat completion background color"
-[message.translations]
-simplified_chinese = "聊天补全背景色"
-traditional_chinese = "聊天補全背景色"
-japanese = "チャット補完の背景色"
-korean = "채팅 자동 완성 배경색"
-russian = "Цвет фона автодополнения в чате"
-german = "Hintergrundfarbe der Chat-Vervollständigung"
-spanish = "Color de fondo del autocompletado del chat"
-french = "Couleur de fond de la complétion du chat"
-brazilian_portuguese = "Cor de fundo do autocompletar do chat"
-portuguese = "Cor de fundo da conclusão da conversa"
-turkish = "Sohbet tamamlama arka plan rengi"
-polish = "Kolor tła uzupełniania na czacie"
-
-[[message]]
-key = "Chat completion background opacity"
-[message.translations]
-simplified_chinese = "聊天补全背景透明度"
-traditional_chinese = "聊天補全背景透明度"
-japanese = "チャット補完の背景不透明度"
-korean = "채팅 자동 완성 배경 불투명도"
-russian = "Непрозрачность фона автодополнения в чате"
-german = "Hintergrunddeckkraft der Chat-Vervollständigung"
-spanish = "Opacidad del fondo del autocompletado del chat"
-french = "Opacité du fond de la complétion du chat"
-brazilian_portuguese = "Opacidade do fundo do autocompletar do chat"
-portuguese = "Opacidade do fundo da conclusão da conversa"
-turkish = "Sohbet tamamlama arka plan opaklığı"
-polish = "Nieprzezroczystość tła uzupełniania na czacie"
-
-[[message]]
-key = "Chat completion selected text color"
-[message.translations]
-simplified_chinese = "聊天补全选中文字颜色"
-traditional_chinese = "聊天補全選取文字顏色"
-japanese = "チャット補完の選択文字色"
-korean = "채팅 자동 완성 선택된 텍스트 색상"
-russian = "Цвет выбранного текста автодополнения в чате"
-german = "Farbe des ausgewählten Textes der Chat-Vervollständigung"
-spanish = "Color del texto seleccionado del autocompletado del chat"
-french = "Couleur du texte sélectionné de la complétion du chat"
-brazilian_portuguese = "Cor do texto selecionado do autocompletar do chat"
-portuguese = "Cor do texto selecionado da conclusão da conversa"
-turkish = "Sohbet tamamlamada seçili metin rengi"
-polish = "Kolor zaznaczonego tekstu uzupełniania na czacie"
-
-[[message]]
-key = "Chat completion selection background color"
-[message.translations]
-simplified_chinese = "聊天补全选中背景色"
-traditional_chinese = "聊天補全選取背景色"
-japanese = "チャット補完の選択背景色"
-korean = "채팅 자동 완성 선택 배경색"
-russian = "Цвет фона выбранного пункта автодополнения в чате"
-german = "Hintergrundfarbe der Auswahl der Chat-Vervollständigung"
-spanish = "Color de fondo de selección del autocompletado del chat"
-french = "Couleur de fond de la sélection de la complétion du chat"
-brazilian_portuguese = "Cor de fundo da seleção do autocompletar do chat"
-portuguese = "Cor de fundo da seleção da conclusão da conversa"
-turkish = "Sohbet tamamlama seçim arka plan rengi"
-polish = "Kolor tła zaznaczenia uzupełniania na czacie"
-
-[[message]]
-key = "Chat completion text color"
-[message.translations]
-simplified_chinese = "聊天补全文字颜色"
-traditional_chinese = "聊天補全文字顏色"
-japanese = "チャット補完の文字色"
-korean = "채팅 자동 완성 텍스트 색상"
-russian = "Цвет текста автодополнения в чате"
-german = "Textfarbe der Chat-Vervollständigung"
-spanish = "Color del texto del autocompletado del chat"
-french = "Couleur du texte de la complétion du chat"
-brazilian_portuguese = "Cor do texto do autocompletar do chat"
-portuguese = "Cor do texto da conclusão da conversa"
-turkish = "Sohbet tamamlama metin rengi"
-polish = "Kolor tekstu uzupełniania na czacie"
-
-[[message]]
-key = "Colors for chat command and emoji completion"
-[message.translations]
-simplified_chinese = "聊天指令和表情补全的配色"
-traditional_chinese = "聊天指令和表情補全的配色"
-japanese = "チャットのコマンド・絵文字補完の配色"
-korean = "채팅 명령어 및 이모지 자동 완성 색상"
-russian = "Цвета автодополнения команд и эмодзи в чате"
-german = "Farben für die Befehls- und Emoji-Vervollständigung im Chat"
-spanish = "Colores del autocompletado de comandos y emojis del chat"
-french = "Couleurs de la complétion des commandes et émojis du chat"
-brazilian_portuguese = "Cores do autocompletar de comandos e emojis no chat"
-portuguese = "Cores da conclusão de comandos e emojis na conversa"
-turkish = "Sohbette komut ve emoji tamamlama renkleri"
-polish = "Kolory uzupełniania poleceń i emoji na czacie"
-
-[[message]]
-key = "Reset chat completion appearance"
-[message.translations]
-simplified_chinese = "恢复聊天补全默认外观"
-traditional_chinese = "恢復聊天補全預設外觀"
-japanese = "チャット補完の外観をリセット"
-korean = "채팅 자동 완성 모양 초기화"
-russian = "Сбросить оформление автодополнения в чате"
-german = "Darstellung der Chat-Vervollständigung zurücksetzen"
-spanish = "Restablecer apariencia del autocompletado del chat"
-french = "Réinitialiser l’apparence de la complétion du chat"
-brazilian_portuguese = "Redefinir aparência do autocompletar do chat"
-portuguese = "Repor aspeto da conclusão da conversa"
-turkish = "Sohbet tamamlama görünümünü sıfırla"
-polish = "Przywróć wygląd uzupełniania na czacie"
-
-[[message]]
-key = "Selected text color"
-[message.translations]
-simplified_chinese = "选中文字颜色"
-traditional_chinese = "選取文字顏色"
-japanese = "選択文字色"
-korean = "선택된 텍스트 색상"
-russian = "Цвет выбранного текста"
-german = "Farbe des ausgewählten Textes"
-spanish = "Color del texto seleccionado"
-french = "Couleur du texte sélectionné"
-brazilian_portuguese = "Cor do texto selecionado"
-portuguese = "Cor do texto selecionado"
-turkish = "Seçili metin rengi"
-polish = "Kolor zaznaczonego tekstu"
-
-[[message]]
-key = "Selection background color"
-[message.translations]
-simplified_chinese = "选中背景色"
-traditional_chinese = "選取背景色"
-japanese = "選択背景色"
-korean = "선택 배경색"
-russian = "Цвет фона выбранного пункта"
-german = "Hintergrundfarbe der Auswahl"
-spanish = "Color de fondo de selección"
-french = "Couleur de fond de la sélection"
-brazilian_portuguese = "Cor de fundo da seleção"
-portuguese = "Cor de fundo da seleção"
-turkish = "Seçim arka plan rengi"
-polish = "Kolor tła zaznaczenia"
-
-[[message]]
-key = "Chat emoji completion"
-[message.translations]
-simplified_chinese = "聊天表情补全"
-traditional_chinese = "聊天表情補全"
-japanese = "チャットの絵文字補完"
-korean = "채팅 이모지 자동 완성"
-russian = "Автодополнение эмодзи в чате"
-german = "Emoji-Vervollständigung im Chat"
-spanish = "Autocompletado de emojis en el chat"
-french = "Complétion des émojis dans le chat"
-brazilian_portuguese = "Autocompletar emojis no chat"
-portuguese = "Completar emojis na conversa"
-turkish = "Sohbette emoji tamamlama"
-polish = "Uzupełnianie emoji na czacie"
-
-[[message]]
 key = "Chat fade smooth time (milliseconds)"
 [message.translations]
 simplified_chinese = "聊天消息淡出过渡时长（毫秒）"
@@ -4237,6 +4029,22 @@ brazilian_portuguese = "Verificar atualizações"
 portuguese = "Procurar atualizações"
 turkish = "Güncellemeleri kontrol et"
 polish = "Sprawdź aktualizacje"
+
+[[message]]
+key = "Current version: %s (up to date)"
+[message.translations]
+simplified_chinese = "当前版本：%s（已是最新）"
+traditional_chinese = "目前版本：%s（已是最新）"
+japanese = "現在のバージョン：%s（最新）"
+korean = "현재 버전: %s(최신)"
+russian = "Текущая версия: %s (актуальная)"
+german = "Aktuelle Version: %s (aktuell)"
+spanish = "Versión actual: %s (actualizada)"
+french = "Version actuelle : %s (à jour)"
+brazilian_portuguese = "Versão atual: %s (atualizada)"
+portuguese = "Versão atual: %s (atualizada)"
+turkish = "Mevcut sürüm: %s (güncel)"
+polish = "Obecna wersja: %s (aktualna)"
 
 [[message]]
 key = "Check if voice server address is reachable"
@@ -8335,22 +8143,6 @@ turkish = "Elastik geri tepme"
 polish = "Elastyczny z odbiciem"
 
 [[message]]
-key = "Emoji completion"
-[message.translations]
-simplified_chinese = "表情补全"
-traditional_chinese = "表情補全"
-japanese = "絵文字補完"
-korean = "이모지 자동 완성"
-russian = "Автодополнение эмодзи"
-german = "Emoji-Vervollständigung"
-spanish = "Autocompletado de emojis"
-french = "Complétion des émojis"
-brazilian_portuguese = "Autocompletar emojis"
-portuguese = "Completar emojis"
-turkish = "Emoji tamamlama"
-polish = "Uzupełnianie emoji"
-
-[[message]]
 key = "Emotes are disabled."
 [message.translations]
 simplified_chinese = "本服务器已禁用表情功能"
@@ -9839,20 +9631,20 @@ turkish = "Bağlanacak tam takma ad"
 polish = "Dokładny powiązany pseudonim"
 
 [[message]]
-key = "Example: A|B|C,D|E (C: main, D: dummy)"
+key = "Example: name1|name2|name3"
 [message.translations]
-simplified_chinese = "示例：A|B|C,D|E（C 为本体，D 为分身）"
-traditional_chinese = "範例：A|B|C,D|E（C 為本體，D 為分身）"
-japanese = "例：A|B|C,D|E（C：メイン、D：ダミー）"
-korean = "예: A|B|C,D|E (C: 본체, D: 더미)"
-russian = "Пример: A|B|C,D|E (C: основной, D: дамми)"
-german = "Beispiel: A|B|C,D|E (C: Hauptfigur, D: Dummy)"
-spanish = "Ejemplo: A|B|C,D|E (C: principal, D: dummy)"
-french = "Exemple : A|B|C,D|E (C : principal, D : dummy)"
-brazilian_portuguese = "Exemplo: A|B|C,D|E (C: principal, D: dummy)"
-portuguese = "Exemplo: A|B|C,D|E (C: principal, D: dummy)"
-turkish = "Örnek: A|B|C,D|E (C: ana karakter, D: dummy)"
-polish = "Przykład: A|B|C,D|E (C: główna postać, D: dummy)"
+simplified_chinese = "示例：名字 1|名字 2|名字 3"
+traditional_chinese = "示例：名字 1|名字 2|名字 3"
+japanese = "例：名前 1|名前 2|名前 3"
+korean = "예시: 이름1|이름2|이름3"
+russian = "Пример: имя1|имя2|имя3"
+german = "Beispiel: name1|name2|name3"
+spanish = "Ejemplo: nombre1|nombre2|nombre3"
+french = "Exemple : nom1|nom2|nom3"
+brazilian_portuguese = "Exemplo: nome1|nome2|nome3"
+portuguese = "Exemplo: nome1|nome2|nome3"
+turkish = "Örnek: isim1|isim2|isim3"
+polish = "Przykład: nazwa1|nazwa2|nazwa3"
 
 [[message]]
 key = "Exit replay view"
@@ -20367,20 +20159,20 @@ turkish = "Dairesel menü açılma ve kapanma efektleri"
 polish = "Efekty otwierania i zamykania menu kołowego"
 
 [[message]]
-key = "Pie menu rename list (| separates entries; main,dummy renames both)"
+key = "Pie menu rename list (separate with |, e.g., name1|name2)"
 [message.translations]
-simplified_chinese = "饼菜单改名名单（| 分隔选项；C,D 同时改名，C 为本体，D 为分身）"
-traditional_chinese = "餅選單改名名單（| 分隔選項；C,D 同時改名，C 為本體，D 為分身）"
-japanese = "パイメニュー名前変更リスト（| で項目を区切る。メイン名,ダミー名で両方を変更）"
-korean = "파이 메뉴 이름 변경 목록 (|로 항목 구분; 본체이름,더미이름으로 둘 다 변경)"
-russian = "Список имён кругового меню (| разделяет пункты; основной,дамми меняет оба имени)"
-german = "Umbenennungsliste des Kreismenüs (| trennt Einträge; Hauptfigur,Dummy benennt beide um)"
-spanish = "Lista de nombres del menú radial (| separa entradas; principal,dummy cambia ambos nombres)"
-french = "Liste de noms du menu radial (| sépare les entrées ; principal,dummy renomme les deux)"
-brazilian_portuguese = "Lista de nomes do menu radial (| separa entradas; principal,dummy renomeia ambos)"
-portuguese = "Lista de nomes do menu radial (| separa entradas; principal,dummy muda ambos os nomes)"
-turkish = "Dairesel menü ad listesi (| girdileri ayırır; ana karakter,dummy iki adı da değiştirir)"
-polish = "Lista nazw menu kołowego (| rozdziela wpisy; główna postać,dummy zmienia obie nazwy)"
+simplified_chinese = "饼菜单改名名单（使用 | 分隔，例如：name1|name2）"
+traditional_chinese = "餅菜單改名名單（使用 | 分隔，如：璇夢 1|璇夢 2）"
+japanese = "パイメニュー名前変更リスト（| で区切る、例：璇夢1|璇夢2）"
+korean = "파이 메뉴 이름 변경 목록 (|로 구분, 예: 현몽1|현몽2)"
+russian = "Список переименований в меню-пироге (разделитель |, напр.: Сюаньмэн1|Сюаньмэн2)"
+german = "Pie-Menü-Umbenennungsliste (mit | trennen, z.B. Xuanmeng1|Xuanmeng2)"
+spanish = "Lista de nombres alternativos del menú de empanadas (separados por |, ej: Xuanmeng1|Xuanmeng2)"
+french = "Liste des pseudos modifiés du menu radial (séparés par |, ex : Xuanmeng1|Xuanmeng2)"
+brazilian_portuguese = "Lista de renomeação do menu de torta (use | para separar, ex.: XuanMeng1|XuanMeng2)"
+portuguese = "Lista de renomeação do menu de torta (use | para separar, ex.: XuanMeng1|XuanMeng2)"
+turkish = "Pasta menüsü yeniden adlandırma listesi (| ile ayırın, örn: Xuanmeng1|Xuanmeng2)"
+polish = "Lista zmienionych nazw w menu kołowym (oddzielone |, np. Gracz1|Gracz2)"
 
 [[message]]
 key = "Pistol guide line"
@@ -23327,22 +23119,6 @@ turkish = "Değiştirme yöntemi 0=Regex 1=Tam 2=Her İkisi"
 polish = "Tryb zastępowania 0=Regex 1=Pełny 2=Oba"
 
 [[message]]
-key = "Filter sensitive words"
-[message.translations]
-simplified_chinese = "过滤内置敏感词"
-traditional_chinese = "過濾內建敏感詞"
-japanese = "内蔵リストで要注意語をフィルタリング"
-korean = "내장 목록으로 민감한 단어 필터링"
-russian = "Фильтровать чувствительные слова"
-german = "Sensible Wörter filtern"
-spanish = "Filtrar palabras sensibles"
-french = "Filtrer les mots sensibles"
-brazilian_portuguese = "Filtrar palavras sensíveis"
-portuguese = "Filtrar palavras sensíveis"
-turkish = "Hassas kelimeleri filtrele"
-polish = "Filtruj wrażliwe słowa"
-
-[[message]]
 key = "Replace non-friend names with ID"
 [message.translations]
 simplified_chinese = "用 ID 替换非好友名称"
@@ -24402,22 +24178,6 @@ brazilian_portuguese = "Rolar linhas longas"
 portuguese = "Deslocar linhas longas"
 turkish = "Uzun satırları kaydır"
 polish = "Przewijanie długich linii"
-
-[[message]]
-key = "Scroll mode"
-[message.translations]
-simplified_chinese = "滚动模式"
-traditional_chinese = "捲動模式"
-japanese = "スクロールモード"
-korean = "스크롤 모드"
-russian = "Режим прокрутки"
-german = "Scrollmodus"
-spanish = "Modo de desplazamiento"
-french = "Mode de défilement"
-brazilian_portuguese = "Modo de rolagem"
-portuguese = "Modo de deslocamento"
-turkish = "Kaydırma modu"
-polish = "Tryb przewijania"
 
 [[message]]
 key = "Scroll mode: Off"
@@ -25938,22 +25698,6 @@ brazilian_portuguese = "Mostrar título do dummy localmente"
 portuguese = "Mostrar título do dummy localmente"
 turkish = "Kukla unvanını yerel olarak göster"
 polish = "Pokazuj tytuł dummy lokalnie"
-
-[[message]]
-key = "Show emoji completion in chat"
-[message.translations]
-simplified_chinese = "在聊天中显示表情补全"
-traditional_chinese = "在聊天中顯示表情補全"
-japanese = "チャットで絵文字補完を表示"
-korean = "채팅에서 이모지 자동 완성 표시"
-russian = "Показывать автодополнение эмодзи в чате"
-german = "Emoji-Vervollständigung im Chat anzeigen"
-spanish = "Mostrar autocompletado de emojis en el chat"
-french = "Afficher la complétion des émojis dans le chat"
-brazilian_portuguese = "Mostrar sugestões de emojis no chat"
-portuguese = "Mostrar sugestões de emojis na conversa"
-turkish = "Sohbette emoji tamamlamayı göster"
-polish = "Pokaż uzupełnianie emoji na czacie"
 
 [[message]]
 key = "Show feat-003 shared UI primitives dogfood page (takes over QmClient settings page, for visual verification of 11 primitives + spring/easing animations)"
@@ -36519,7 +36263,6 @@ portuguese = "Introduza separadamente as palavras-passe registadas no Axiom para
 turkish = "Ana hesap ve dummy için Axiom'da kayıtlı parolaları ayrı ayrı girin. Bu seçenek hesap oluşturmaz."
 polish = "Wpisz osobno hasła zarejestrowane na Axiom dla głównego konta i dummy. Ta opcja nie tworzy kont."
 
-
 [[message]]
 key = "Demo directory"
 [message.translations]
@@ -36536,7 +36279,6 @@ portuguese = "Pasta de demos"
 turkish = "Demo kayıt dizini"
 polish = "Katalog nagrań demo"
 
-
 [[message]]
 key = "Screenshot directory"
 [message.translations]
@@ -36552,7 +36294,6 @@ brazilian_portuguese = "Pasta de capturas de tela"
 portuguese = "Pasta de capturas de ecrã"
 turkish = "Ekran görüntüsü dizini"
 polish = "Katalog zrzutów ekranu"
-
 
 [[message]]
 key = "Video directory"
@@ -36633,6 +36374,598 @@ brazilian_portuguese = "Suavizar a câmera controlada pelo mouse ao assistir liv
 portuguese = "Suavizar a câmara controlada pelo rato ao observar livremente em partidas e demos"
 turkish = "Oyunda ve demolarda serbest izleme sırasında fareyle kontrol edilen kamerayı yumuşat"
 polish = "Wygładź ruch kamery sterowanej myszą podczas swobodnej obserwacji w grze i demach"
+
+[[message]]
+key = "Tee collision"
+[message.translations]
+simplified_chinese = "Tee 碰撞"
+traditional_chinese = "Tee 碰撞"
+japanese = "Tee の衝突"
+korean = "Tee 충돌"
+russian = "Столкновение Tee"
+german = "Tee-Kollision"
+spanish = "Colisión de Tee"
+french = "Collision des Tee"
+brazilian_portuguese = "Colisão de Tee"
+portuguese = "Colisão de Tee"
+turkish = "Tee çarpışması"
+polish = "Kolizja Tee"
+
+[[message]]
+key = "Tee to Tee"
+[message.translations]
+simplified_chinese = "Tee 与 Tee"
+traditional_chinese = "Tee 與 Tee"
+japanese = "Tee 対 Tee"
+korean = "Tee 대 Tee"
+russian = "Tee с Tee"
+german = "Tee gegen Tee"
+spanish = "Tee contra Tee"
+french = "Tee contre Tee"
+brazilian_portuguese = "Tee contra Tee"
+portuguese = "Tee contra Tee"
+turkish = "Tee ile Tee"
+polish = "Tee z Tee"
+
+[[message]]
+key = "Tee freeze probe"
+[message.translations]
+simplified_chinese = "Tee 冻结探针"
+traditional_chinese = "Tee 凍結探針"
+japanese = "Tee のフリーズ判定"
+korean = "Tee 프리즈 탐지"
+russian = "Проверка заморозки Tee"
+german = "Tee-Freeze-Prüfung"
+spanish = "Detección de Freeze del Tee"
+french = "Détection du gel du Tee"
+brazilian_portuguese = "Detecção de Freeze do Tee"
+portuguese = "Deteção de Freeze do Tee"
+turkish = "Tee dondurma algısı"
+polish = "Wykrywanie zamrożenia Tee"
+
+[[message]]
+key = "Tee to Freeze"
+[message.translations]
+simplified_chinese = "Tee 与 Freeze"
+traditional_chinese = "Tee 與 Freeze"
+japanese = "Tee 対 Freeze"
+korean = "Tee 대 Freeze"
+russian = "Tee с Freeze"
+german = "Tee gegen Freeze"
+spanish = "Tee contra Freeze"
+french = "Tee contre Freeze"
+brazilian_portuguese = "Tee contra Freeze"
+portuguese = "Tee contra Freeze"
+turkish = "Tee ile Freeze"
+polish = "Tee z Freeze"
+
+[[message]]
+key = "Enable FTAPI auto-translate"
+[message.translations]
+simplified_chinese = "启用 FTAPI 自动翻译"
+traditional_chinese = "啟用 FTAPI 自動翻譯"
+japanese = "FTAPI 自動翻訳を有効化"
+korean = "FTAPI 자동 번역 활성화"
+russian = "Включить автоперевод FTAPI"
+german = "FTAPI-Auto-Übersetzung aktivieren"
+spanish = "Activar traducción automática de FTAPI"
+french = "Activer la traduction automatique FTAPI"
+brazilian_portuguese = "Ativar tradução automática FTAPI"
+portuguese = "Ativar tradução automática FTAPI"
+turkish = "FTAPI otomatik çeviriyi etkinleştir"
+polish = "Włącz automatyczne tłumaczenie FTAPI"
+
+[[message]]
+key = "May overload the service"
+[message.translations]
+simplified_chinese = "可能导致服务过载"
+traditional_chinese = "可能導致服務過載"
+japanese = "サービスに過負荷がかかる可能性あり"
+korean = "서비스에 과부하가 걸릴 수 있음"
+russian = "может перегрузить сервис"
+german = "kann den Dienst überlasten"
+spanish = "puede sobrecargar el servicio"
+french = "peut surcharger le service"
+brazilian_portuguese = "pode sobrecarregar o serviço"
+portuguese = "pode sobrecarregar o serviço"
+turkish = "hizmeti aşırı yükleyebilir"
+polish = "może przeciążyć usługę"
+
+[[message]]
+key = "Concurrency"
+[message.translations]
+simplified_chinese = "并发数"
+traditional_chinese = "併發數"
+japanese = "同時実行数"
+korean = "동시 실행 수"
+russian = "Конкурентность"
+german = "Parallelität"
+spanish = "Concurrencia"
+french = "Concurrence"
+brazilian_portuguese = "Concorrência"
+portuguese = "Concorrência"
+turkish = "Eşzamanlılık"
+polish = "Współbieżność"
+
+[[message]]
+key = "0 = auto"
+[message.translations]
+simplified_chinese = "0 = 自动"
+traditional_chinese = "0 = 自動"
+japanese = "0 = 自動"
+korean = "0 = 자동"
+russian = "0 = авто"
+german = "0 = automatisch"
+spanish = "0 = automático"
+french = "0 = automatique"
+brazilian_portuguese = "0 = automático"
+portuguese = "0 = automático"
+turkish = "0 = otomatik"
+polish = "0 = automatycznie"
+
+[[message]]
+key = "Enable thinking mode"
+[message.translations]
+simplified_chinese = "启用思考模式"
+traditional_chinese = "啟用思考模式"
+japanese = "思考モードを有効にする"
+korean = "사고 모드 활성화"
+russian = "Включить режим размышления"
+german = "Denkmodus aktivieren"
+spanish = "Activar modo de pensamiento"
+french = "Activer le mode de réflexion"
+brazilian_portuguese = "Ativar modo de pensamento"
+portuguese = "Ativar modo de pensamento"
+turkish = "Düşünme modunu etkinleştir"
+polish = "Włącz tryb myślenia"
+
+[[message]]
+key = "Slower"
+[message.translations]
+simplified_chinese = "较慢"
+traditional_chinese = "較慢"
+japanese = "低速"
+korean = "느림"
+russian = "медленнее"
+german = "langsamer"
+spanish = "más lento"
+french = "plus lent"
+brazilian_portuguese = "mais lento"
+portuguese = "mais lento"
+turkish = "daha yavaş"
+polish = "wolniejszy"
+
+[[message]]
+key = "Auto gain control for mic"
+[message.translations]
+simplified_chinese = "自动平衡麦克风音量"
+traditional_chinese = "自動平衡麥克風音量"
+japanese = "マイクの自動ゲイン制御"
+korean = "마이크 자동 게인 제어"
+russian = "Авторегулировка усиления микрофона"
+german = "Automatische Mikrofonverstärkung"
+spanish = "Control automático de ganancia para el micrófono"
+french = "Contrôle automatique du gain pour le micro"
+brazilian_portuguese = "Controle automático de ganho para microfone"
+portuguese = "Controlo automático de ganho para o microfone"
+turkish = "Mikrofon için otomatik kazanç kontrolü"
+polish = "Automatyczna regulacja wzmocnienia mikrofonu"
+
+[[message]]
+key = "AGC, experimental"
+[message.translations]
+simplified_chinese = "AGC，实验性"
+traditional_chinese = "AGC，實驗性"
+japanese = "AGC、実験的"
+korean = "AGC, 실험적"
+russian = "AGC, экспериментально"
+german = "AGC, experimentell"
+spanish = "AGC, experimental"
+french = "CAG, expérimental"
+brazilian_portuguese = "AGC, experimental"
+portuguese = "AGC, experimental"
+turkish = "AGC, deneysel"
+polish = "AGC, eksperymentalne"
+
+[[message]]
+key = "Steam client path"
+[message.translations]
+simplified_chinese = "Steam 客户端路径"
+traditional_chinese = "Steam 用戶端路徑"
+japanese = "Steam クライアントのパス"
+korean = "Steam 클라이언트 경로"
+russian = "Путь к клиенту Steam"
+german = "Steam-Clientpfad"
+spanish = "Ruta del cliente de Steam"
+french = "Chemin du client Steam"
+brazilian_portuguese = "Caminho do cliente Steam"
+portuguese = "Caminho do cliente Steam"
+turkish = "Steam istemci yolu"
+polish = "Ścieżka klienta Steam"
+
+[[message]]
+key = "Leave empty to detect automatically"
+[message.translations]
+simplified_chinese = "留空自动检测"
+traditional_chinese = "留空自動偵測"
+japanese = "空欄で自動検出"
+korean = "비워두면 자동 감지"
+russian = "пусто — автоопределение"
+german = "leer für automatische Erkennung"
+spanish = "vacía para detectar automáticamente"
+french = "vide pour la détection automatique"
+brazilian_portuguese = "vazio para detectar automaticamente"
+portuguese = "vazio para deteção automática"
+turkish = "otomatik algılama için boş bırakın"
+polish = "pusta oznacza automatyczne wykrywanie"
+
+[[message]]
+key = "Show original text below outgoing translation"
+[message.translations]
+simplified_chinese = "在出站译文下方显示原文"
+traditional_chinese = "在送出譯文下方顯示原文"
+japanese = "送信する翻訳文の下に原文を表示"
+korean = "발신 번역문 아래에 원문 표시"
+russian = "Показывать оригинал под переводом исходящего сообщения"
+german = "Originaltext unter der Übersetzung ausgehender Nachrichten anzeigen"
+spanish = "Mostrar el texto original debajo de la traducción de mensajes salientes"
+french = "Afficher le texte original sous la traduction des messages sortants"
+brazilian_portuguese = "Mostrar o texto original abaixo da tradução das mensagens enviadas"
+portuguese = "Mostrar o texto original abaixo da tradução das mensagens enviadas"
+turkish = "Giden mesajın çevirisinin altında orijinal metni göster"
+polish = "Pokazuj oryginalny tekst pod tłumaczeniem wysyłanych wiadomości"
+
+[[message]]
+key = "Show the original text locally below translated outgoing messages"
+[message.translations]
+simplified_chinese = "只在本地发送译文下方显示原文，不向服务器发送原文"
+traditional_chinese = "僅在本機送出的譯文下方顯示原文，不向伺服器傳送原文"
+japanese = "送信した翻訳メッセージの下に原文をローカルでのみ表示し、原文はサーバーに送信しません"
+korean = "전송한 번역 메시지 아래에 원문을 로컬에서만 표시하며, 원문은 서버로 전송하지 않습니다"
+russian = "Показывать оригинал под отправленными переведёнными сообщениями только локально, не отправляя оригинал на сервер"
+german = "Originaltext nur lokal unter gesendeten übersetzten Nachrichten anzeigen, ohne ihn an den Server zu senden"
+spanish = "Mostrar el texto original solo localmente debajo de los mensajes traducidos enviados, sin enviar el original al servidor"
+french = "Afficher le texte original uniquement en local sous les messages traduits envoyés, sans envoyer l’original au serveur"
+brazilian_portuguese = "Mostrar o texto original apenas localmente abaixo das mensagens traduzidas enviadas, sem enviar o original ao servidor"
+portuguese = "Mostrar o texto original apenas localmente abaixo das mensagens traduzidas enviadas, sem enviar o original ao servidor"
+turkish = "Orijinal metni gönderilen çevrilmiş mesajların altında yalnızca yerel olarak göster; orijinal metni sunucuya gönderme"
+polish = "Pokazuj oryginalny tekst tylko lokalnie pod wysłanymi przetłumaczonymi wiadomościami, bez wysyłania oryginału na serwer"
+
+[[message]]
+key = "Translated message could not be queued; original was not sent"
+[message.translations]
+simplified_chinese = "译文未能加入发送队列，原文未发送"
+traditional_chinese = "譯文未能加入傳送佇列，原文未傳送"
+japanese = "翻訳メッセージを送信キューに追加できませんでした。原文は送信されていません"
+korean = "번역 메시지를 전송 대기열에 추가하지 못했습니다. 원문은 전송되지 않았습니다"
+russian = "Не удалось добавить переведённое сообщение в очередь отправки; оригинал не был отправлен"
+german = "Die übersetzte Nachricht konnte nicht in die Sendewarteschlange eingereiht werden; der Originaltext wurde nicht gesendet"
+spanish = "No se pudo añadir el mensaje traducido a la cola de envío; el original no se envió"
+french = "Impossible d’ajouter le message traduit à la file d’envoi ; l’original n’a pas été envoyé"
+brazilian_portuguese = "Não foi possível adicionar a mensagem traduzida à fila de envio; o original não foi enviado"
+portuguese = "Não foi possível adicionar a mensagem traduzida à fila de envio; o original não foi enviado"
+turkish = "Çevrilmiş mesaj gönderim kuyruğuna eklenemedi; orijinal metin gönderilmedi"
+polish = "Nie udało się dodać przetłumaczonej wiadomości do kolejki wysyłania; oryginał nie został wysłany"
+
+[[message]]
+key = "Translation canceled because the sender changed"
+[message.translations]
+simplified_chinese = "发送者已改变，翻译已取消"
+traditional_chinese = "傳送者已變更，翻譯已取消"
+japanese = "送信者が変更されたため、翻訳をキャンセルしました"
+korean = "발신자가 변경되어 번역이 취소되었습니다"
+russian = "Перевод отменён, поскольку отправитель изменился"
+german = "Übersetzung abgebrochen, da sich der Absender geändert hat"
+spanish = "Traducción cancelada porque cambió el remitente"
+french = "Traduction annulée car l’expéditeur a changé"
+brazilian_portuguese = "Tradução cancelada porque o remetente mudou"
+portuguese = "Tradução cancelada porque o remetente mudou"
+turkish = "Gönderen değiştiği için çeviri iptal edildi"
+polish = "Tłumaczenie anulowane, ponieważ zmienił się nadawca"
+
+[[message]]
+key = "Auto unspec both tees when either is hammered awake"
+[message.translations]
+simplified_chinese = "任一方被锤醒时两个 Tee 都取消旁观"
+traditional_chinese = "任一方被錘醒時兩個 Tee 都取消旁觀"
+japanese = "どちらかがハンマーで解凍されたら両方の Tee の観戦を解除"
+korean = "어느 한 Tee가 망치로 해동되면 두 Tee 모두 관전 해제"
+russian = "Выходить из наблюдения обоими Tee, когда любого размораживают молотком"
+german = "Beide Tees aus dem Zuschauermodus holen, wenn einer mit dem Hammer aufgetaut wird"
+spanish = "Sacar a ambos Tees del modo espectador cuando uno sea descongelado con el martillo"
+french = "Quitter le mode spectateur avec les deux Tees quand l'un est dégelé au marteau"
+brazilian_portuguese = "Tirar os dois Tees do modo espectador quando um deles for descongelado com o martelo"
+portuguese = "Tirar ambos os Tees do modo espectador quando um deles for descongelado com o martelo"
+turkish = "Biri çekiçle çözüldüğünde iki Tee de seyirci modundan çıksın"
+polish = "Wyłącz obserwowanie obu Tee, gdy którykolwiek zostanie odmrożony młotkiem"
+
+[[message]]
+key = "Exit spectating on both tees when either is hammered awake by another player"
+[message.translations]
+simplified_chinese = "任一方被其他玩家锤醒时，自动让两个 Tee 退出旁观"
+traditional_chinese = "任一方被其他玩家錘醒時，自動讓兩個 Tee 退出旁觀"
+japanese = "どちらかが他のプレイヤーのハンマーで解凍されたら両方の Tee の観戦を解除"
+korean = "어느 한 Tee가 다른 플레이어의 망치로 해동되면 두 Tee 모두 관전 해제"
+russian = "Выходить из наблюдения обоими Tee, когда другой игрок размораживает любого из них молотком"
+german = "Den Zuschauermodus für beide Tees beenden, wenn ein anderer Spieler einen davon mit dem Hammer auftaut"
+spanish = "Salir del modo espectador con ambos Tees cuando otro jugador descongele a cualquiera con el martillo"
+french = "Quitter le mode spectateur avec les deux Tees quand un autre joueur dégèle l'un d'eux au marteau"
+brazilian_portuguese = "Sair do modo espectador com os dois Tees quando outro jogador descongelar um deles com o martelo"
+portuguese = "Sair do modo espectador com ambos os Tees quando outro jogador descongelar um deles com o martelo"
+turkish = "Başka bir oyuncu birini çekiçle çözdüğünde iki Tee de seyirci modundan çıksın"
+polish = "Wyłącz obserwowanie obu Tee, gdy inny gracz odmrozi młotkiem któregokolwiek z nich"
+
+[[message]]
+key = "Chat completion appearance"
+[message.translations]
+simplified_chinese = "聊天补全外观"
+traditional_chinese = "聊天補全外觀"
+japanese = "チャット補完の外観"
+korean = "채팅 자동 완성 모양"
+russian = "Оформление автодополнения в чате"
+german = "Darstellung der Chat-Vervollständigung"
+spanish = "Apariencia del autocompletado del chat"
+french = "Apparence de la complétion du chat"
+brazilian_portuguese = "Aparência do autocompletar do chat"
+portuguese = "Aspeto da conclusão da conversa"
+turkish = "Sohbet tamamlama görünümü"
+polish = "Wygląd uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion background color"
+[message.translations]
+simplified_chinese = "聊天补全背景色"
+traditional_chinese = "聊天補全背景色"
+japanese = "チャット補完の背景色"
+korean = "채팅 자동 완성 배경색"
+russian = "Цвет фона автодополнения в чате"
+german = "Hintergrundfarbe der Chat-Vervollständigung"
+spanish = "Color de fondo del autocompletado del chat"
+french = "Couleur de fond de la complétion du chat"
+brazilian_portuguese = "Cor de fundo do autocompletar do chat"
+portuguese = "Cor de fundo da conclusão da conversa"
+turkish = "Sohbet tamamlama arka plan rengi"
+polish = "Kolor tła uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion background opacity"
+[message.translations]
+simplified_chinese = "聊天补全背景透明度"
+traditional_chinese = "聊天補全背景透明度"
+japanese = "チャット補完の背景不透明度"
+korean = "채팅 자동 완성 배경 불투명도"
+russian = "Непрозрачность фона автодополнения в чате"
+german = "Hintergrunddeckkraft der Chat-Vervollständigung"
+spanish = "Opacidad del fondo del autocompletado del chat"
+french = "Opacité du fond de la complétion du chat"
+brazilian_portuguese = "Opacidade do fundo do autocompletar do chat"
+portuguese = "Opacidade do fundo da conclusão da conversa"
+turkish = "Sohbet tamamlama arka plan opaklığı"
+polish = "Nieprzezroczystość tła uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion selected text color"
+[message.translations]
+simplified_chinese = "聊天补全选中文字颜色"
+traditional_chinese = "聊天補全選取文字顏色"
+japanese = "チャット補完の選択文字色"
+korean = "채팅 자동 완성 선택된 텍스트 색상"
+russian = "Цвет выбранного текста автодополнения в чате"
+german = "Farbe des ausgewählten Textes der Chat-Vervollständigung"
+spanish = "Color del texto seleccionado del autocompletado del chat"
+french = "Couleur du texte sélectionné de la complétion du chat"
+brazilian_portuguese = "Cor do texto selecionado do autocompletar do chat"
+portuguese = "Cor do texto selecionado da conclusão da conversa"
+turkish = "Sohbet tamamlamada seçili metin rengi"
+polish = "Kolor zaznaczonego tekstu uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion selection background color"
+[message.translations]
+simplified_chinese = "聊天补全选中背景色"
+traditional_chinese = "聊天補全選取背景色"
+japanese = "チャット補完の選択背景色"
+korean = "채팅 자동 완성 선택 배경색"
+russian = "Цвет фона выбранного пункта автодополнения в чате"
+german = "Hintergrundfarbe der Auswahl der Chat-Vervollständigung"
+spanish = "Color de fondo de selección del autocompletado del chat"
+french = "Couleur de fond de la sélection de la complétion du chat"
+brazilian_portuguese = "Cor de fundo da seleção do autocompletar do chat"
+portuguese = "Cor de fundo da seleção da conclusão da conversa"
+turkish = "Sohbet tamamlama seçim arka plan rengi"
+polish = "Kolor tła zaznaczenia uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion text color"
+[message.translations]
+simplified_chinese = "聊天补全文字颜色"
+traditional_chinese = "聊天補全文字顏色"
+japanese = "チャット補完の文字色"
+korean = "채팅 자동 완성 텍스트 색상"
+russian = "Цвет текста автодополнения в чате"
+german = "Textfarbe der Chat-Vervollständigung"
+spanish = "Color del texto del autocompletado del chat"
+french = "Couleur du texte de la complétion du chat"
+brazilian_portuguese = "Cor do texto do autocompletar do chat"
+portuguese = "Cor do texto da conclusão da conversa"
+turkish = "Sohbet tamamlama metin rengi"
+polish = "Kolor tekstu uzupełniania na czacie"
+
+[[message]]
+key = "Colors for chat command and emoji completion"
+[message.translations]
+simplified_chinese = "聊天指令和表情补全的配色"
+traditional_chinese = "聊天指令和表情補全的配色"
+japanese = "チャットのコマンド・絵文字補完の配色"
+korean = "채팅 명령어 및 이모지 자동 완성 색상"
+russian = "Цвета автодополнения команд и эмодзи в чате"
+german = "Farben für die Befehls- und Emoji-Vervollständigung im Chat"
+spanish = "Colores del autocompletado de comandos y emojis del chat"
+french = "Couleurs de la complétion des commandes et émojis du chat"
+brazilian_portuguese = "Cores do autocompletar de comandos e emojis no chat"
+portuguese = "Cores da conclusão de comandos e emojis na conversa"
+turkish = "Sohbette komut ve emoji tamamlama renkleri"
+polish = "Kolory uzupełniania poleceń i emoji na czacie"
+
+[[message]]
+key = "Reset chat completion appearance"
+[message.translations]
+simplified_chinese = "恢复聊天补全默认外观"
+traditional_chinese = "恢復聊天補全預設外觀"
+japanese = "チャット補完の外観をリセット"
+korean = "채팅 자동 완성 모양 초기화"
+russian = "Сбросить оформление автодополнения в чате"
+german = "Darstellung der Chat-Vervollständigung zurücksetzen"
+spanish = "Restablecer apariencia del autocompletado del chat"
+french = "Réinitialiser l’apparence de la complétion du chat"
+brazilian_portuguese = "Redefinir aparência do autocompletar do chat"
+portuguese = "Repor aspeto da conclusão da conversa"
+turkish = "Sohbet tamamlama görünümünü sıfırla"
+polish = "Przywróć wygląd uzupełniania na czacie"
+
+[[message]]
+key = "Selected text color"
+[message.translations]
+simplified_chinese = "选中文字颜色"
+traditional_chinese = "選取文字顏色"
+japanese = "選択文字色"
+korean = "선택된 텍스트 색상"
+russian = "Цвет выбранного текста"
+german = "Farbe des ausgewählten Textes"
+spanish = "Color del texto seleccionado"
+french = "Couleur du texte sélectionné"
+brazilian_portuguese = "Cor do texto selecionado"
+portuguese = "Cor do texto selecionado"
+turkish = "Seçili metin rengi"
+polish = "Kolor zaznaczonego tekstu"
+
+[[message]]
+key = "Selection background color"
+[message.translations]
+simplified_chinese = "选中背景色"
+traditional_chinese = "選取背景色"
+japanese = "選択背景色"
+korean = "선택 배경색"
+russian = "Цвет фона выбранного пункта"
+german = "Hintergrundfarbe der Auswahl"
+spanish = "Color de fondo de selección"
+french = "Couleur de fond de la sélection"
+brazilian_portuguese = "Cor de fundo da seleção"
+portuguese = "Cor de fundo da seleção"
+turkish = "Seçim arka plan rengi"
+polish = "Kolor tła zaznaczenia"
+
+[[message]]
+key = "Chat emoji completion"
+[message.translations]
+simplified_chinese = "聊天表情补全"
+traditional_chinese = "聊天表情補全"
+japanese = "チャットの絵文字補完"
+korean = "채팅 이모지 자동 완성"
+russian = "Автодополнение эмодзи в чате"
+german = "Emoji-Vervollständigung im Chat"
+spanish = "Autocompletado de emojis en el chat"
+french = "Complétion des émojis dans le chat"
+brazilian_portuguese = "Autocompletar emojis no chat"
+portuguese = "Completar emojis na conversa"
+turkish = "Sohbette emoji tamamlama"
+polish = "Uzupełnianie emoji na czacie"
+
+[[message]]
+key = "Emoji completion"
+[message.translations]
+simplified_chinese = "表情补全"
+traditional_chinese = "表情補全"
+japanese = "絵文字補完"
+korean = "이모지 자동 완성"
+russian = "Автодополнение эмодзи"
+german = "Emoji-Vervollständigung"
+spanish = "Autocompletado de emojis"
+french = "Complétion des émojis"
+brazilian_portuguese = "Autocompletar emojis"
+portuguese = "Completar emojis"
+turkish = "Emoji tamamlama"
+polish = "Uzupełnianie emoji"
+
+[[message]]
+key = "Example: A|B|C,D|E (C: main, D: dummy)"
+[message.translations]
+simplified_chinese = "示例：A|B|C,D|E（C 为本体，D 为分身）"
+traditional_chinese = "範例：A|B|C,D|E（C 為本體，D 為分身）"
+japanese = "例：A|B|C,D|E（C：メイン、D：ダミー）"
+korean = "예: A|B|C,D|E (C: 본체, D: 더미)"
+russian = "Пример: A|B|C,D|E (C: основной, D: дамми)"
+german = "Beispiel: A|B|C,D|E (C: Hauptfigur, D: Dummy)"
+spanish = "Ejemplo: A|B|C,D|E (C: principal, D: dummy)"
+french = "Exemple : A|B|C,D|E (C : principal, D : dummy)"
+brazilian_portuguese = "Exemplo: A|B|C,D|E (C: principal, D: dummy)"
+portuguese = "Exemplo: A|B|C,D|E (C: principal, D: dummy)"
+turkish = "Örnek: A|B|C,D|E (C: ana karakter, D: dummy)"
+polish = "Przykład: A|B|C,D|E (C: główna postać, D: dummy)"
+
+[[message]]
+key = "Pie menu rename list (| separates entries; main,dummy renames both)"
+[message.translations]
+simplified_chinese = "饼菜单改名名单（| 分隔选项；C,D 同时改名，C 为本体，D 为分身）"
+traditional_chinese = "餅選單改名名單（| 分隔選項；C,D 同時改名，C 為本體，D 為分身）"
+japanese = "パイメニュー名前変更リスト（| で項目を区切る。メイン名,ダミー名で両方を変更）"
+korean = "파이 메뉴 이름 변경 목록 (|로 항목 구분; 본체이름,더미이름으로 둘 다 변경)"
+russian = "Список имён кругового меню (| разделяет пункты; основной,дамми меняет оба имени)"
+german = "Umbenennungsliste des Kreismenüs (| trennt Einträge; Hauptfigur,Dummy benennt beide um)"
+spanish = "Lista de nombres del menú radial (| separa entradas; principal,dummy cambia ambos nombres)"
+french = "Liste de noms du menu radial (| sépare les entrées ; principal,dummy renomme les deux)"
+brazilian_portuguese = "Lista de nomes do menu radial (| separa entradas; principal,dummy renomeia ambos)"
+portuguese = "Lista de nomes do menu radial (| separa entradas; principal,dummy muda ambos os nomes)"
+turkish = "Dairesel menü ad listesi (| girdileri ayırır; ana karakter,dummy iki adı da değiştirir)"
+polish = "Lista nazw menu kołowego (| rozdziela wpisy; główna postać,dummy zmienia obie nazwy)"
+
+[[message]]
+key = "Filter sensitive words"
+[message.translations]
+simplified_chinese = "过滤内置敏感词"
+traditional_chinese = "過濾內建敏感詞"
+japanese = "内蔵リストで要注意語をフィルタリング"
+korean = "내장 목록으로 민감한 단어 필터링"
+russian = "Фильтровать чувствительные слова"
+german = "Sensible Wörter filtern"
+spanish = "Filtrar palabras sensibles"
+french = "Filtrer les mots sensibles"
+brazilian_portuguese = "Filtrar palavras sensíveis"
+portuguese = "Filtrar palavras sensíveis"
+turkish = "Hassas kelimeleri filtrele"
+polish = "Filtruj wrażliwe słowa"
+
+[[message]]
+key = "Scroll mode"
+[message.translations]
+simplified_chinese = "滚动模式"
+traditional_chinese = "捲動模式"
+japanese = "スクロールモード"
+korean = "스크롤 모드"
+russian = "Режим прокрутки"
+german = "Scrollmodus"
+spanish = "Modo de desplazamiento"
+french = "Mode de défilement"
+brazilian_portuguese = "Modo de rolagem"
+portuguese = "Modo de deslocamento"
+turkish = "Kaydırma modu"
+polish = "Tryb przewijania"
+
+[[message]]
+key = "Show emoji completion in chat"
+[message.translations]
+simplified_chinese = "在聊天中显示表情补全"
+traditional_chinese = "在聊天中顯示表情補全"
+japanese = "チャットで絵文字補完を表示"
+korean = "채팅에서 이모지 자동 완성 표시"
+russian = "Показывать автодополнение эмодзи в чате"
+german = "Emoji-Vervollständigung im Chat anzeigen"
+spanish = "Mostrar autocompletado de emojis en el chat"
+french = "Afficher la complétion des émojis dans le chat"
+brazilian_portuguese = "Mostrar sugestões de emojis no chat"
+portuguese = "Mostrar sugestões de emojis na conversa"
+turkish = "Sohbette emoji tamamlamayı göster"
+polish = "Pokaż uzupełnianie emoji na czacie"
 
 [[message]]
 key = "All sounds"
@@ -37881,3 +38214,67 @@ brazilian_portuguese = "Pulo no ar"
 portuguese = "Salto no ar"
 turkish = "Havada zıplama"
 polish = "Skok w powietrzu"
+
+[[message]]
+key = "Color picker saturation/value area shape: 0=square, 1=wheel"
+[message.translations]
+simplified_chinese = "取色器饱和度/明度区域形态：0=方图，1=色环"
+traditional_chinese = "取色器飽和度/明度區域形態：0=方圖，1=色環"
+japanese = "カラーピッカーの彩度/明度領域の形状: 0=四角、1=色相環"
+korean = "색상 선택기의 채도/명도 영역 모양: 0=사각형, 1=색상환"
+russian = "Форма области насыщенности/яркости: 0=квадрат, 1=цветовой круг"
+german = "Form des Sättigungs-/Helligkeitsbereichs: 0=Quadrat, 1=Farbrad"
+spanish = "Forma del área de saturación/valor: 0=cuadrado, 1=rueda"
+french = "Forme de la zone saturation/valeur : 0=carré, 1=roue"
+brazilian_portuguese = "Formato da área de saturação/valor: 0=quadrado, 1=roda"
+portuguese = "Forma da área de saturação/valor: 0=quadrado, 1=roda"
+turkish = "Renk seçicinin doygunluk/parlaklık alanı şekli: 0=kare, 1=renk çemberi"
+polish = "Kształt obszaru nasycenia/jasności: 0=kwadrat, 1=koło barw"
+
+[[message]]
+key = "Color picker saved swatches (format: name|#hex entries separated by semicolons)"
+[message.translations]
+simplified_chinese = "取色器已保存色样（格式：名称|#十六进制颜色，各条目以分号分隔）"
+traditional_chinese = "取色器已儲存色樣（格式：名稱|#十六進位顏色，各項目以分號分隔）"
+japanese = "保存した色見本（形式: 名前|#16進数、項目はセミコロンで区切る）"
+korean = "저장된 색상 견본 (형식: 이름|#16진수, 항목은 세미콜론으로 구분)"
+russian = "Сохранённые образцы цвета (формат: имя|#hex, записи разделены точкой с запятой)"
+german = "Gespeicherte Farbmuster (Format: Name|#hex, Einträge durch Semikolon getrennt)"
+spanish = "Muestras guardadas (formato: nombre|#hex, entradas separadas por punto y coma)"
+french = "Nuanciers enregistrés (format : nom|#hex, entrées séparées par des points-virgules)"
+brazilian_portuguese = "Amostras salvas (formato: nome|#hex, entradas separadas por ponto e vírgula)"
+portuguese = "Amostras guardadas (formato: nome|#hex, entradas separadas por ponto e vírgula)"
+turkish = "Kaydedilen renk örnekleri (biçim: ad|#hex, girdiler noktalı virgülle ayrılır)"
+polish = "Zapisane próbki kolorów (format: nazwa|#hex, wpisy oddzielone średnikami)"
+
+[[message]]
+key = "Query isolated serverlist consumer state"
+[message.translations]
+simplified_chinese = "查询隔离服务器列表消费者状态"
+traditional_chinese = "查詢隔離伺服器列表消費者狀態"
+japanese = "隔離サーバーリスト利用側の状態を照会"
+korean = "격리된 서버 목록 소비자 상태 조회"
+russian = "Запросить состояние изолированного потребителя списка серверов"
+german = "Status des isolierten Serverlisten-Verbrauchers abfragen"
+spanish = "Consultar el estado del consumidor aislado de la lista de servidores"
+french = "Consulter l’état du consommateur isolé de la liste des serveurs"
+brazilian_portuguese = "Consultar o estado do consumidor isolado da lista de servidores"
+portuguese = "Consultar o estado do consumidor isolado da lista de servidores"
+turkish = "Yalıtılmış sunucu listesi tüketicisinin durumunu sorgula"
+polish = "Sprawdź stan izolowanego odbiorcy listy serwerów"
+
+[[message]]
+key = "Refresh isolated serverlist consumer"
+[message.translations]
+simplified_chinese = "刷新隔离服务器列表消费者"
+traditional_chinese = "重新整理隔離伺服器列表消費者"
+japanese = "隔離サーバーリスト利用側を更新"
+korean = "격리된 서버 목록 소비자 새로 고침"
+russian = "Обновить изолированный потребитель списка серверов"
+german = "Isolierten Serverlisten-Verbraucher aktualisieren"
+spanish = "Actualizar el consumidor aislado de la lista de servidores"
+french = "Actualiser le consommateur isolé de la liste des serveurs"
+brazilian_portuguese = "Atualizar o consumidor isolado da lista de servidores"
+portuguese = "Atualizar o consumidor isolado da lista de servidores"
+turkish = "Yalıtılmış sunucu listesi tüketicisini yenile"
+polish = "Odśwież izolowanego odbiorcę listy serwerów"

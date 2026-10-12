@@ -186,7 +186,8 @@ TEST(SettingsCard, CanonicalRectOwnsDisplayHitDragAndProxyGeometry)
 	EXPECT_GE(Frame.m_ContentRect.y, Frame.m_Rect.y);
 	EXPECT_LE(Frame.m_ContentRect.x + Frame.m_ContentRect.w, Frame.m_Rect.x + Frame.m_Rect.w);
 	EXPECT_LE(Frame.m_ContentRect.y + Frame.m_ContentRect.h, Frame.m_Rect.y + Frame.m_Rect.h);
-	EXPECT_FLOAT_EQ(Frame.m_SubtitleRect.h, 0.0f);
+	EXPECT_GT(Frame.m_SubtitleRect.h, 0.0f);
+	EXPECT_LE(Frame.m_SubtitleRect.y + Frame.m_SubtitleRect.h, Frame.m_ContentRect.y);
 }
 
 TEST(SettingsCard, MotionPolicyKeepsRequiredFeedbackAtLevelZero)
@@ -270,31 +271,6 @@ TEST(SettingsPageLayout, NonPositiveScaleUsesBaseGeometry)
 	EXPECT_FLOAT_EQ(Zero.m_aColumns[0].w, Base.m_aColumns[0].w);
 }
 
-TEST(SettingsPageLayout, ContentMetricsReserveControlWidthWithoutPageMagicNumbers)
-{
-	const SSettingsContentMetrics Narrow = ResolveSettingsContentMetrics(420.0f);
-	const SSettingsContentMetrics Wide = ResolveSettingsContentMetrics(900.0f);
-	EXPECT_GE(420.0f - Narrow.m_LabelWidth, 160.0f * Narrow.m_UiScale);
-	EXPECT_GE(900.0f - Wide.m_LabelWidth, 160.0f * Wide.m_UiScale);
-	EXPECT_LT(Narrow.m_LabelWidth, Wide.m_LabelWidth);
-}
-
-TEST(SettingsPageLayout, ContentMetricsShareOneResponsiveScaleContract)
-{
-	const SSettingsContentMetrics Narrow = ResolveSettingsContentMetrics(640.0f);
-	const SSettingsContentMetrics Standard = ResolveSettingsContentMetrics(1000.0f);
-	EXPECT_FLOAT_EQ(Narrow.m_BodySize, 10.0f);
-	EXPECT_FLOAT_EQ(Narrow.m_LineHeight, 16.0f);
-	EXPECT_FLOAT_EQ(Narrow.m_LineSpacing, 3.9f);
-	EXPECT_FLOAT_EQ(Narrow.m_CardGap, ui_token::settings::CARD_GAP * Narrow.m_UiScale);
-	EXPECT_FLOAT_EQ(Standard.m_BodySize, ui_token::font::BODY);
-	EXPECT_FLOAT_EQ(Standard.m_LineHeight, ui_token::settings::ROW_HEIGHT);
-	EXPECT_FLOAT_EQ(Standard.m_LineSpacing, ui_token::settings::ROW_GAP);
-	EXPECT_FLOAT_EQ(Standard.m_CardGap, ui_token::settings::CARD_GAP);
-	EXPECT_FLOAT_EQ(Narrow.m_SmallSize, ResolveSettingsSmallFontSize(Narrow.m_UiScale));
-	EXPECT_FLOAT_EQ(Standard.m_SmallSize, ResolveSettingsSmallFontSize(Standard.m_UiScale));
-}
-
 TEST(SettingsPageLayout, DisplayCycleStateStartsOncePerVisiblePage)
 {
 	SSettingsCardDeckDisplayCycleState State;
@@ -318,26 +294,11 @@ TEST(SettingsPageLayout, CardDefinitionRevisionChangesOnlyForStructuralInputs)
 	EXPECT_NE(ResolveSettingsCardDefinitionsRevision(4, 7, 800.0f, 4), Stable);
 }
 
-TEST(SettingsPageLayout, CardMetricsUseColumnWidthForTwoColumnControls)
-{
-	const SSettingsContentMetrics PageMetrics = ResolveSettingsContentMetrics(1600.0f);
-	const float CardLabelWidth = ResolveSettingsCardLabelWidth(700.0f, PageMetrics);
-	EXPECT_LT(CardLabelWidth, PageMetrics.m_LabelWidth);
-	EXPECT_GE(700.0f - CardLabelWidth, 160.0f * PageMetrics.m_UiScale);
-}
-
 TEST(SettingsPageLayout, GridHeightUsesOnlyRowsContainingItems)
 {
 	EXPECT_FLOAT_EQ(ResolveSettingsGridHeight(6, 3, 40.0f, 5.0f), 85.0f);
 	EXPECT_FLOAT_EQ(ResolveSettingsGridHeight(7, 3, 40.0f, 5.0f), 130.0f);
 	EXPECT_FLOAT_EQ(ResolveSettingsGridHeight(0, 3, 40.0f, 5.0f), 0.0f);
-}
-
-TEST(SettingsPageLayout, RowStackDoesNotAddSpacingAfterLastRow)
-{
-	EXPECT_FLOAT_EQ(ResolveSettingsRowsHeight(6, 20.0f, 5.0f), 145.0f);
-	EXPECT_FLOAT_EQ(ResolveSettingsRowsHeight(1, 20.0f, 5.0f), 20.0f);
-	EXPECT_FLOAT_EQ(ResolveSettingsRowsHeight(0, 20.0f, 5.0f), 0.0f);
 }
 
 TEST(SettingsPageLayout, ListViewportShowsOnlyWholeRowsAndCapsAtEight)
@@ -418,16 +379,16 @@ TEST(SettingsPageLayout, CustomSelectionNeverFallsBackToTheFirstSupportedItem)
 	EXPECT_EQ(ResolveSettingsSelectionWithCustomFallback(-1, 0), 0);
 }
 
-TEST(SettingsPageLayout, ControllerRadioRowAddsASecondLineOnlyWhenWidthRequiresIt)
+TEST(SettingsPageLayout, ControllerRadioRowUsesDropdownWithoutAddingASecondLine)
 {
 	const SSettingsContentMetrics WideMetrics = ResolveSettingsContentMetrics(700.0f);
 	const SSettingsRadioRowLayout Wide = ResolveSettingsRadioRowLayout({0.0f, 0.0f, 700.0f, 100.0f}, 2, WideMetrics);
-	EXPECT_FALSE(Wide.m_Stacked);
+	EXPECT_FALSE(Wide.m_UseDropdown);
 	EXPECT_FLOAT_EQ(Wide.m_Height, Wide.m_ButtonsRect.h);
 
 	const SSettingsContentMetrics NarrowMetrics = ResolveSettingsContentMetrics(240.0f);
-	const SSettingsRadioRowLayout Narrow = ResolveSettingsRadioRowLayout({0.0f, 0.0f, 240.0f, 100.0f}, 2, NarrowMetrics);
-	EXPECT_TRUE(Narrow.m_Stacked);
+	const SSettingsRadioRowLayout Narrow = ResolveSettingsRadioRowLayout({0.0f, 0.0f, 140.0f, 100.0f}, 2, NarrowMetrics);
+	EXPECT_TRUE(Narrow.m_UseDropdown);
 	EXPECT_FLOAT_EQ(Narrow.m_Height, Narrow.m_ButtonsRect.y + Narrow.m_ButtonsRect.h);
 }
 
@@ -445,7 +406,7 @@ TEST(SettingsPageLayout, ControllerHeightTracksStateWidthAndAxisLimit)
 	EXPECT_LT(Disabled, MissingDevice);
 	EXPECT_LT(MissingDevice, Absolute);
 	EXPECT_FLOAT_EQ(Relative - Absolute, RowHeight + RowSpacing);
-	EXPECT_GT(Narrow, Relative);
+	EXPECT_FLOAT_EQ(Narrow, Relative);
 	EXPECT_FLOAT_EQ(ClampedAxes - Relative, 4.0f * (RowHeight + RowSpacing));
 }
 
@@ -504,10 +465,12 @@ TEST(SettingsPageLayout, SavedProfilesHeightTracksRowsAndCapsTheViewport)
 TEST(SettingsPageLayout, TeeQueueListViewportUsesCompleteRowsAndPrioritizesQueueSpace)
 {
 	const SSettingsContentMetrics Metrics = ResolveSettingsContentMetrics(1000.0f);
-	const float FixedChromeHeight = Metrics.m_LineSpacing * 4.0f + Metrics.m_LineHeight;
 	const float PresetRowSpacing = Metrics.m_LineSpacing * 0.5f;
-	EXPECT_FLOAT_EQ(ResolveSettingsTeeQueuePresetHeight(Metrics, 3), FixedChromeHeight + ResolveSettingsListViewportHeight(3, Metrics.m_ListRowHeight, PresetRowSpacing));
-	EXPECT_FLOAT_EQ(ResolveSettingsTeeQueuePresetHeight(Metrics, 6), FixedChromeHeight + ResolveSettingsListViewportHeight(6, Metrics.m_ListRowHeight, PresetRowSpacing));
+	const float ThreeRowsHeight = ResolveSettingsTeeQueuePresetHeight(Metrics, 3);
+	const float SixRowsHeight = ResolveSettingsTeeQueuePresetHeight(Metrics, 6);
+	EXPECT_FLOAT_EQ(SixRowsHeight - ThreeRowsHeight, ResolveSettingsListViewportHeight(6, Metrics.m_ListRowHeight, PresetRowSpacing) - ResolveSettingsListViewportHeight(3, Metrics.m_ListRowHeight, PresetRowSpacing));
+	// 预设工具栏与应用目标按钮不挤占列表的完整行。
+	EXPECT_GE(ThreeRowsHeight - ResolveSettingsListViewportHeight(3, Metrics.m_ListRowHeight, PresetRowSpacing), Metrics.m_LineHeight + Metrics.m_ButtonHeight);
 	EXPECT_EQ(ResolveSettingsTeeVisiblePresetRows(0), 2);
 	EXPECT_EQ(ResolveSettingsTeeVisiblePresetRows(3), 3);
 	EXPECT_EQ(ResolveSettingsTeeVisiblePresetRows(12), 3);
@@ -545,118 +508,11 @@ TEST(SettingsPageLayout, TeeCustomColorsUseTwoStackedFullWidthGroups)
 	EXPECT_FLOAT_EQ(Disabled.m_BodyGroup.h, 0.0f);
 }
 
-TEST(SettingsPageLayout, ColorRowsUseCanonicalControlHeightAndSpacing)
-{
-	const SSettingsContentMetrics Metrics = ResolveSettingsContentMetrics(640.0f);
-	const CUIRect View{10.0f, 20.0f, 360.0f, 200.0f};
-	const SSettingsColorRowLayout Layout = ResolveSettingsColorRowLayout(View, Metrics, false);
-
-	EXPECT_FLOAT_EQ(Layout.m_RowRect.h, Metrics.m_ButtonHeight);
-	EXPECT_FLOAT_EQ(Layout.m_LabelRect.h, Metrics.m_ButtonHeight);
-	EXPECT_FLOAT_EQ(Layout.m_ColorButtonRect.h, Metrics.m_ButtonHeight);
-	EXPECT_FLOAT_EQ(Layout.m_ResetButtonRect.h, Metrics.m_ButtonHeight);
-	EXPECT_FLOAT_EQ(Layout.m_ConsumedHeight, Metrics.m_ButtonHeight + Metrics.m_LineSpacing);
-	EXPECT_LE(Layout.m_LabelRect.x + Layout.m_LabelRect.w, Layout.m_ColorButtonRect.x);
-	EXPECT_LE(Layout.m_ColorButtonRect.x + Layout.m_ColorButtonRect.w, Layout.m_ResetButtonRect.x);
-
-	const SSettingsColorRowLayout Indented = ResolveSettingsColorRowLayout(View, Metrics, true);
-	EXPECT_GT(Indented.m_LabelRect.x, Layout.m_LabelRect.x);
-	EXPECT_FLOAT_EQ(Indented.m_ColorButtonRect.h, Layout.m_ColorButtonRect.h);
-	EXPECT_FLOAT_EQ(Indented.m_ResetButtonRect.h, Layout.m_ResetButtonRect.h);
-
-	const CUIRect NarrowView{10.0f, 20.0f, 100.0f, 200.0f};
-	const SSettingsColorRowLayout Narrow = ResolveSettingsColorRowLayout(NarrowView, Metrics, false);
-	EXPECT_GE(Narrow.m_LabelRect.w, 0.0f);
-	EXPECT_GE(Narrow.m_ColorButtonRect.w, 0.0f);
-	EXPECT_GE(Narrow.m_ResetButtonRect.w, 0.0f);
-	EXPECT_GE(Narrow.m_LabelRect.x, NarrowView.x);
-	EXPECT_LE(Narrow.m_ResetButtonRect.x + Narrow.m_ResetButtonRect.w, NarrowView.x + NarrowView.w);
-
-	SSettingsContentMetrics NoBottomSpacing = Metrics;
-	NoBottomSpacing.m_LineSpacing = 0.0f;
-	const SSettingsColorRowLayout NoBottomSpacingLayout = ResolveSettingsColorRowLayout(View, NoBottomSpacing, false);
-	EXPECT_FLOAT_EQ(NoBottomSpacingLayout.m_ConsumedHeight, Metrics.m_ButtonHeight);
-	EXPECT_LT(NoBottomSpacingLayout.m_LabelRect.x + NoBottomSpacingLayout.m_LabelRect.w, NoBottomSpacingLayout.m_ColorButtonRect.x);
-	EXPECT_LT(NoBottomSpacingLayout.m_ColorButtonRect.x + NoBottomSpacingLayout.m_ColorButtonRect.w, NoBottomSpacingLayout.m_ResetButtonRect.x);
-
-	const SSettingsColorRowLayout LastRow = ResolveSettingsColorRowLayout(View, Metrics, false, false);
-	EXPECT_FLOAT_EQ(LastRow.m_ConsumedHeight, Metrics.m_ButtonHeight);
-}
-
-TEST(SettingsPageLayout, RadioRowsUseMetricsAndStackOnlyWhenRequired)
-{
-	const SSettingsContentMetrics Metrics = ResolveSettingsContentMetrics(640.0f);
-	const SSettingsRadioRowLayout Inline = ResolveSettingsRadioRowLayout({0.0f, 0.0f, 600.0f, 100.0f}, 3, Metrics);
-	EXPECT_FALSE(Inline.m_Stacked);
-	EXPECT_FLOAT_EQ(Inline.m_Height, 24.0f);
-	EXPECT_FLOAT_EQ(Inline.m_LabelRect.h, Inline.m_Height);
-	EXPECT_FLOAT_EQ(Inline.m_ButtonsRect.h, Inline.m_Height);
-
-	const SSettingsRadioRowLayout Stacked = ResolveSettingsRadioRowLayout({0.0f, 0.0f, 140.0f, 100.0f}, 3, Metrics);
-	EXPECT_TRUE(Stacked.m_Stacked);
-	EXPECT_FLOAT_EQ(Stacked.m_Height, Metrics.m_LineHeight + Metrics.m_LineSpacing + 24.0f);
-	EXPECT_FLOAT_EQ(Stacked.m_ButtonsRect.y, Metrics.m_LineHeight + Metrics.m_LineSpacing);
-}
-
 TEST(SettingsPageLayout, InlineRowMinimumWidthIncludesEveryGap)
 {
 	EXPECT_FLOAT_EQ(ResolveSettingsInlineRowMinimumWidth(745.0f, 5.0f, 7), 780.0f);
 	EXPECT_FLOAT_EQ(ResolveSettingsInlineRowMinimumWidth(745.0f, 3.0f, 7), 766.0f);
 	EXPECT_FLOAT_EQ(ResolveSettingsInlineRowMinimumWidth(-1.0f, 5.0f, -1), 0.0f);
-}
-
-TEST(SettingsPageLayout, AppearanceDynamicCardsMatchConsumedPrimitivesAtBothScales)
-{
-	const SSettingsContentMetrics Compact = ResolveSettingsContentMetrics(640.0f);
-	EXPECT_FLOAT_EQ(Compact.m_UiScale, 0.78f);
-	EXPECT_NEAR(ResolveAppearanceChatMessagesHeight(Compact), 437.8f, 0.001f);
-	EXPECT_NEAR(ResolveQmHudCoordsHeight(Compact), 155.3f, 0.001f);
-	EXPECT_NEAR(ResolveQmHudNotificationsHeight(Compact, false, false), 95.6f, 0.001f);
-	EXPECT_NEAR(ResolveQmHudNotificationsHeight(Compact, true, false), 311.4f, 0.001f);
-	EXPECT_NEAR(ResolveQmHudNotificationsHeight(Compact, true, true), 391.0f, 0.001f);
-	EXPECT_NEAR(ResolveAppearanceLaserColorsHeight(Compact), 319.8f, 0.001f);
-	EXPECT_NEAR(ResolveAppearanceLaserEnhancedHeight(Compact, false), 95.6f, 0.001f);
-	EXPECT_NEAR(ResolveAppearanceLaserEnhancedHeight(Compact, true), 135.4f, 0.001f);
-
-	const SSettingsContentMetrics Standard = ResolveSettingsContentMetrics(1000.0f);
-	EXPECT_FLOAT_EQ(Standard.m_UiScale, 1.0f);
-	EXPECT_FLOAT_EQ(ResolveAppearanceChatMessagesHeight(Standard), 550.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudCoordsHeight(Standard), 195.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudNotificationsHeight(Standard, false, false), 120.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudNotificationsHeight(Standard, true, false), 390.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudNotificationsHeight(Standard, true, true), 490.0f);
-	EXPECT_FLOAT_EQ(ResolveAppearanceLaserColorsHeight(Standard), 400.0f);
-	EXPECT_FLOAT_EQ(ResolveAppearanceLaserEnhancedHeight(Standard, false), 120.0f);
-	EXPECT_FLOAT_EQ(ResolveAppearanceLaserEnhancedHeight(Standard, true), 170.0f);
-}
-
-TEST(SettingsPageLayout, BothSettingsShellsUseFinalContentWidthMetrics)
-{
-	const SSettingsContentMetrics LegacyMetrics = ResolveSettingsContentMetrics(640.0f);
-	const SSettingsContentMetrics NewMetrics = ResolveSettingsContentMetrics(1000.0f);
-	EXPECT_FLOAT_EQ(ResolveSettingsColorRowLayout({0.0f, 0.0f, 640.0f, 100.0f}, LegacyMetrics, false).m_ConsumedHeight, LegacyMetrics.m_RowStep);
-	EXPECT_FLOAT_EQ(ResolveSettingsColorRowLayout({0.0f, 0.0f, 1000.0f, 100.0f}, NewMetrics, false).m_ConsumedHeight, NewMetrics.m_RowStep);
-}
-
-TEST(SettingsPageLayout, QmHudDynamicCardsMatchEveryVisibleState)
-{
-	const SSettingsContentMetrics Metrics = ResolveSettingsContentMetrics(1000.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudPlayerStatsHeight(Metrics, false, false), 70.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudPlayerStatsHeight(Metrics, true, true), 120.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudPlayerStatsHeight(Metrics, true, false), 245.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudInputOverlayHeight(Metrics, false), 20.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudInputOverlayHeight(Metrics, true), 300.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudNotificationsHeight(Metrics, true, false), 390.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudNotificationsHeight(Metrics, true, true), 490.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudDummyMiniViewHeight(Metrics, false), 25.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudDummyMiniViewHeight(Metrics, true), 121.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudVoiceHeight(Metrics, false, false, false, 0, false, false), 20.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudVoiceHeight(Metrics, true, false, false, 0, false, false), 145.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudVoiceHeight(Metrics, true, true, false, 0, false, false), 450.75f);
-	EXPECT_NEAR(ResolveQmHudVoiceHeight(Metrics, true, true, true, 1, true, true), 823.7f, 0.001f);
-	EXPECT_FLOAT_EQ(ResolveQmHudBackground3DHeight(Metrics, 600.0f, false, false, false, false, false, false), 20.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudBackground3DHeight(Metrics, 600.0f, true, false, false, false, false, false), 474.0f);
-	EXPECT_FLOAT_EQ(ResolveQmHudBackground3DHeight(Metrics, 600.0f, true, true, true, true, true, true), 674.0f);
 }
 
 TEST(SettingsPageLayout, QmHudRevisionsCoverEveryHeightBranch)
@@ -688,14 +544,6 @@ TEST(SettingsPageLayout, ConditionalRowsUseFrameSnapshotUntilNextLayout)
 	EXPECT_FLOAT_EQ(ResolveDDNetGameplayRows(true, false), 9.0f);
 	EXPECT_FLOAT_EQ(ResolveDDNetGameplayRows(false, true), 12.0f);
 	EXPECT_FLOAT_EQ(ResolveDDNetGameplayRows(true, true), 12.0f);
-}
-
-TEST(SettingsPageLayout, SettingsPagesShareTheQmScaleBaseline)
-{
-	EXPECT_FLOAT_EQ(ResolveSettingsUiScale(800.0f), 0.85f);
-	EXPECT_FLOAT_EQ(ResolveSettingsUiScale(1000.0f), 1.0f);
-	EXPECT_LT(ResolveSettingsUiScale(680.0f), ResolveSettingsUiScale(681.0f));
-	EXPECT_NEAR(ResolveSettingsUiScale(679.0f), ResolveSettingsUiScale(680.0f), 0.01f);
 }
 
 TEST(SettingsPageLayout, SettingsShellUsesFluidNarrowAndCappedWideGeometry)

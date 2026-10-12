@@ -5,11 +5,16 @@
 
 #include <game/client/ui_rect.h>
 
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <string>
+
 struct SSettingsCardSpec
 {
 	const char *m_pStableId = nullptr;
 	const char *m_pTitle = nullptr;
-	// 保留描述来源供搜索和标题悬浮说明共用，不在卡片内绘制。
+	// 整卡悬浮时在固定预留的副标题行显示，同时保留搜索描述来源。
 	const char *m_pSubtitle = nullptr;
 	// 可选详细说明，同样通过控件锚定的悬浮提示显示。
 	const char *m_pInfo = nullptr;

@@ -5,6 +5,8 @@
 
 #include "ui_scrollregion.h"
 
+#include <game/client/QmUi/QmListEntryAnimation.h>
+
 #include <algorithm>
 #include <cstdint>
 
@@ -21,25 +23,6 @@ constexpr bool QmListBoxShouldScrollToInitialSelection(bool InitialScrollPending
 constexpr bool QmListBoxInitialScrollRemainsPending(bool InitialScrollPending, int SelectedIndex)
 {
 	return InitialScrollPending && SelectedIndex < 0;
-}
-
-constexpr bool QmListBoxShouldStartEntryAnimation(bool Enabled, bool RenderOnly, int64_t LastRenderTime, int64_t Now, int64_t InactiveGap)
-{
-	return Enabled && !RenderOnly && (LastRenderTime == 0 || Now - LastRenderTime > InactiveGap);
-}
-
-inline float QmListBoxEntryOffset(float ElapsedSeconds, float DurationSeconds, float Distance)
-{
-	if(DurationSeconds <= 0.0f || ElapsedSeconds >= DurationSeconds)
-		return 0.0f;
-	const float Progress = std::clamp(ElapsedSeconds / DurationSeconds, 0.0f, 1.0f);
-	const float EasedProgress = 1.0f - (1.0f - Progress) * (1.0f - Progress);
-	return -Distance * (1.0f - EasedProgress);
-}
-
-constexpr bool QmListBoxEntryAnimationFinished(bool Enabled, bool RenderOnly, float ElapsedSeconds, float DurationSeconds)
-{
-	return !Enabled || (!RenderOnly && (DurationSeconds <= 0.0f || ElapsedSeconds >= DurationSeconds));
 }
 
 inline CUIRect QmListBoxEntryAnimatedRect(const CUIRect &Rect, float OffsetY)
@@ -95,8 +78,7 @@ private:
 	bool m_ScrollbarAlwaysReserved;
 	bool m_InitialScrollPending;
 	float m_EntryAnimationOffset;
-	int64_t m_LastRenderTime;
-	int64_t m_EntryAnimationStartTime;
+	CQmListEntryAnimation m_EntryAnimation;
 	ColorRGBA m_SelectedItemActiveColor;
 	ColorRGBA m_SelectedItemInactiveColor;
 	ColorRGBA m_HoveredItemColor;

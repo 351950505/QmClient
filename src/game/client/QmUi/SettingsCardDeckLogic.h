@@ -116,9 +116,16 @@ inline bool SettingsCardDeckDefinitionsRevisionChanged(const bool Initialized, c
 	return !Initialized || CurrentRevision != NextRevision;
 }
 
-inline bool SettingsCardDeckDefinitionsCacheKeyChanged(const bool Initialized, const uint64_t CurrentRevision, const uint64_t NextRevision, const char *pCurrentTab, const char *pNextTab)
+enum class ESettingsCardRenderPass
 {
-	return SettingsCardDeckDefinitionsRevisionChanged(Initialized, CurrentRevision, NextRevision) ||
+	INTERACTIVE,
+	BACKGROUND,
+	MEASUREMENT,
+};
+
+inline bool SettingsCardDeckDefinitionsCacheKeyChanged(const bool Initialized, const uint64_t CurrentRevision, const uint64_t NextRevision, const char *pCurrentTab, const char *pNextTab, const ESettingsCardRenderPass CurrentRenderPass = ESettingsCardRenderPass::INTERACTIVE, const ESettingsCardRenderPass NextRenderPass = ESettingsCardRenderPass::INTERACTIVE)
+{
+	return CurrentRenderPass != NextRenderPass || SettingsCardDeckDefinitionsRevisionChanged(Initialized, CurrentRevision, NextRevision) ||
 	       std::string_view(pCurrentTab != nullptr ? pCurrentTab : "") != std::string_view(pNextTab != nullptr ? pNextTab : "");
 }
 
@@ -254,6 +261,7 @@ bool SettingsCardDeckContentHeightChanged(float PreviousContentHeight, float Con
 bool SettingsCardDeckShouldSnapReflow(bool GeometryStateChanged, bool DragActive);
 // 滚动改变卡片在静止指针下的命中对象时，仅抑制当前滚动帧的 hover 反馈。
 bool SettingsCardDeckScrollMoved(bool HasPreviousOffset, float PreviousOffsetY, float CurrentOffsetY);
+float ResolveSettingsCardDeckPassiveScrollOffset(bool BackgroundRender, bool HasPreviousOffset, float PreviousOffsetY);
 // 卡片视觉位置与静态布局不一致时，禁止用静态 header 几何开始拖拽。
 bool SettingsCardDeckAllowsDragStart(bool EntryPending, bool EntryPositionActive, bool ReflowTargetChanged, bool ReflowPositionActive);
 // 稳定帧不得访问动画 runtime；仅目标变化、活动轨道或关闭动效后的复位需要工作。

@@ -21,6 +21,7 @@
 class CGLSLTWProgram;
 class CGLSLPrimitiveProgram;
 class CGLSLTileProgram;
+class CGLSLCompiler;
 
 #if defined(BACKEND_AS_OPENGL_ES) && defined(CONF_BACKEND_OPENGL_ES3)
 #define BACKEND_GL_MODERN_API 1
@@ -218,6 +219,7 @@ class CCommandProcessorFragment_OpenGL2 : public CCommandProcessorFragment_OpenG
 
 protected:
 	void SetState(const CCommandBuffer::SState &State, CGLSLTWProgram *pProgram, bool Use2DArrayTextures = false);
+	bool InitBorderTileProgram(CGLSLTileProgram *pProgram, CGLSLCompiler &Compiler, IStorage *pStorage, bool Textured);
 
 #ifndef BACKEND_GL_MODERN_API
 	bool Cmd_Init(const SCommand_Init *pCommand) override;

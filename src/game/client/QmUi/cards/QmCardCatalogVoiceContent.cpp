@@ -19,6 +19,8 @@
 #include <engine/storage.h>
 #include <engine/textrender.h>
 
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -36,8 +38,6 @@
 #include <game/client/ui_listbox.h>
 #include <game/localization.h>
 
-#include <SDL3/SDL_audio.h>
-
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -53,6 +53,10 @@ extern std::unordered_map<std::string, CBindSlot> g_CommandBindCache;
 
 namespace
 {
+	CUi::SDropDownState s_VoiceInputDeviceDropDownState;
+	CUi::SDropDownState s_VoiceOutputDeviceDropDownState;
+	CUi::SDropDownState s_VoiceBitrateProfileDropDownState;
+	CUi::SDropDownState s_VoiceNoiseSuppressModeDropDownState;
 	void LogQmPerfStage(IClient *pClient, const char *pStage, double DurationMs, bool Force, const char *pExtra)
 	{
 		if(g_Config.m_QmPerfDebug)
@@ -60,20 +64,27 @@ namespace
 	}
 }
 
+bool qm_card_catalog::VoiceHasPendingInput()
+{
+	return s_VoiceInputDeviceDropDownState.m_SelectionPopupContext.m_SelectionIndex >= 0 ||
+	       s_VoiceOutputDeviceDropDownState.m_SelectionPopupContext.m_SelectionIndex >= 0 ||
+	       s_VoiceBitrateProfileDropDownState.m_SelectionPopupContext.m_SelectionIndex >= 0 ||
+	       s_VoiceNoiseSuppressModeDropDownState.m_SelectionPopupContext.m_SelectionIndex >= 0;
+}
+
 void CMenus::RenderQmHudVoiceContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, float LabelWidth, bool PrewarmOnly)
 {
+	CSettingsContentLayoutFlow Flow(Content);
+	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();
 	const float LineHeight = Metrics.m_LineHeight;
 	const float BodySize = Metrics.m_BodySize;
 	const float LineSpacing = Metrics.m_LineSpacing;
 	const float UiScale = Metrics.m_UiScale;
-	// 下拉框在正式绘制阶段才提交配置。当前帧继续使用测量阶段的模式，
-	// 避免先绘制新增行、下一帧才扩展卡片高度。
-	const int NoiseSuppressModeForLayout = g_Config.m_QmVoiceNoiseSuppressEnable == 1 ? 1 : 0;
 	CUIRect Row, LabelCol, ControlCol;
-	auto DoQmSettingsCheckboxAuto = [this](const void *pId, const char *pTextId, const char *pText, int *pValue, CUIRect *pRect, float) {
+	auto DoQmSettingsCheckboxAuto = [this, &Flow, ReadOnly](const void *pId, const char *pTextId, const char *pText, int *pValue, CUIRect *pRect, float) {
 		Ui()->DoConfigTooltip(pId, pRect, pValue);
 		const bool Changed = DoSettingsButton_CheckBox(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_HUD, QMCLIENT_SETTINGS_TAB_HUD, pId, pTextId, pText, *pValue, pRect) != 0;
-		if(Changed)
+		if(Changed && Flow.Input() && !ReadOnly)
 			*pValue ^= 1;
 		return Changed;
 	};
@@ -93,22 +104,26 @@ void CMenus::RenderQmHudVoiceContent(CUIRect &Content, const SSettingsContentMet
 	QmClientVoiceTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_qmclient_voice_text_inputs");
 	QmClientVoiceTextInputCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
 
-	Content.HSplitTop(LineHeight, &Row, &Content);
-	DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceEnable, "Enable voice", Localize("Enable voice"), &g_Config.m_QmVoiceEnable, &Row, LineHeight);
+	if(Flow.Control("voice-enabled", LineHeight, Row))
+		DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceEnable, "Enable voice", Localize("Enable voice"), &g_Config.m_QmVoiceEnable, &Row, LineHeight);
 	if(g_Config.m_QmVoiceEnable)
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		Flow.Space(LineSpacing);
 
 	if(g_Config.m_QmVoiceEnable)
 	{
-		[[maybe_unused]] auto AddVoiceSectionLabel = [&](const char *pTitle, const char *pHint) {
-			Content.HSplitTop(LineHeight * 0.78f, &Row, &Content);
-			Ui()->DoLabel(&Row, pTitle, Metrics.m_HeadlineSize, TEXTALIGN_ML);
-			if(pHint != nullptr && pHint[0] != '\0')
-			{
-				Content.HSplitTop(LineHeight * 0.68f, &Row, &Content);
-				Ui()->DoLabel(&Row, pHint, Metrics.m_SmallSize, TEXTALIGN_ML);
-			}
-			Content.HSplitTop(LineSpacing * 0.75f, nullptr, &Content);
+		auto AddVoiceSectionLabel = [&](const char *pTitle, const char *pHint) {
+			const auto Measure = [this](const char *pText, float Width, float FontSize) { return TextRender()->TextBoundingBox(FontSize, pText, -1, Width).m_H + FontSize * 0.25f; };
+			const auto Draw = [this](float FontSize) {
+				return [this, FontSize](const CUIRect &Rect, const char *pText) {
+					SLabelProperties Props;
+					Props.m_MaxWidth = Rect.w;
+					Ui()->DoLabel(&Rect, pText, FontSize, TEXTALIGN_ML, Props);
+				};
+			};
+			Flow.Text("voice-status-title", pTitle, 0, Metrics.m_HeadlineSize, 0, Measure, Draw(Metrics.m_HeadlineSize), LineHeight * 0.78f);
+			if(pHint && pHint[0])
+				Flow.Text("voice-status-hint", pHint, 0, Metrics.m_SmallSize, 0, Measure, Draw(Metrics.m_SmallSize), LineHeight * 0.68f);
+			Flow.Space(LineSpacing * 0.75f);
 		};
 
 		const bool NeedVoiceDiagnostics = g_Config.m_QmVoiceShowAdvanced && g_Config.m_QmVoiceShowConnectionStatus;
@@ -247,14 +262,16 @@ void CMenus::RenderQmHudVoiceContent(CUIRect &Content, const SSettingsContentMet
 				return Localize("Audio backend init failed");
 			return Localize("Unclassified audio issue");
 		};
-		auto RenderVoiceStatusRow = [&](const char *pTitle, const char *pValue) {
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			CUIRect StatusLabel, StatusValue;
-			Row.VSplitLeft(LabelWidth, &StatusLabel, &StatusValue);
-			Ui()->DoLabel(&StatusLabel, pTitle, BodySize, TEXTALIGN_ML);
-			Ui()->DoLabel(&StatusValue, pValue, Metrics.m_SmallSize, TEXTALIGN_ML);
-			Content.HSplitTop(LineSpacing * 0.75f, nullptr, &Content);
+		auto RenderVoiceStatusRow = [&](const char *pId, const char *pTitle, const char *pValue) {
+			const auto Columns = ResolveSettingsControlRowLayout(Content, Metrics);
+			const float PrimaryFraction = Content.w > 0 ? (Columns.m_ControlRect.x - Content.x) / Content.w : 0;
+			const float Gap = Columns.m_ControlRect.x - Columns.m_LabelRect.x - Columns.m_LabelRect.w;
+			Flow.TextColumns(pId, pTitle, pValue, BodySize, LineHeight, PrimaryFraction, Gap, LineSpacing * 0.75f, [this](const char *pText, float Width, float Size) { return TextRender()->TextBoundingBox(Size, pText, -1, Width).m_H; }, [&](const CUIRect &Column, const char *pText) {
+				SLabelProperties Props;
+				Props.m_MaxWidth = Column.w;
+				Ui()->DoLabel(&Column, pText, Column.x == Content.x ? BodySize : Metrics.m_SmallSize, TEXTALIGN_ML, Props); });
 		};
+
 		auto LocalizeVoiceUiActionHint = [&](const VoiceUtils::SVoiceUiStatus &Status) {
 			const char *pHint = VoiceUtils::VoiceUiActionHint(Status);
 			if(str_comp(pHint, "select_input_device") == 0)
@@ -319,335 +336,370 @@ void CMenus::RenderQmHudVoiceContent(CUIRect &Content, const SSettingsContentMet
 			}
 		}
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitLeft(LabelWidth, &LabelCol, &ControlCol);
-		DoQmSettingsLabel("qmclient-voice-room-password", &LabelCol, Localize("Room password"), BodySize);
-		static CLineInput s_VoiceToken(g_Config.m_QmVoiceToken, sizeof(g_Config.m_QmVoiceToken));
-		if(!PrewarmOnly && !Ui()->RenderOnly())
+		if(Flow.Control("voice-room-password", LineHeight, Row))
 		{
-			s_VoiceToken.SetEmptyText(Localize("Leave empty to join public room"));
-			s_VoiceToken.SetHidden(true);
+			SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelCol, &ControlCol);
+			DoQmSettingsLabel("qmclient-voice-room-password", &LabelCol, Localize("Room password"), BodySize);
+			static CLineInput s_VoiceToken(g_Config.m_QmVoiceToken, sizeof(g_Config.m_QmVoiceToken));
+			if(!PrewarmOnly && !Ui()->RenderOnly())
+			{
+				s_VoiceToken.SetEmptyText(Localize("Leave empty to join public room"));
+				s_VoiceToken.SetHidden(true);
+			}
+			ui_widget::InputField(QmClientVoiceTextInputCtx, &s_VoiceToken, ControlCol, Localize("Leave empty to join public room"), BodySize);
 		}
-		ui_widget::InputField(QmClientVoiceTextInputCtx, &s_VoiceToken, ControlCol, Localize("Leave empty to join public room"), BodySize);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		Flow.Space(LineSpacing);
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceMicMute, "Mute microphone", Localize("Mute microphone"), &g_Config.m_QmVoiceMicMute, &Row, LineHeight);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-
-		Content.HSplitTop(LineHeight, &Row, &Content);
+		if(Flow.Control("voice-mic-muted", LineHeight, Row))
 		{
-			CUIRect LabelColValue, ControlColValue;
-			Row.VSplitLeft(LabelWidth, &LabelColValue, &ControlColValue);
-			DoQmSettingsLabel("qmclient-voice-microphone-volume", &LabelColValue, Localize("Microphone volume"), BodySize);
-			static int s_QmVoiceMicVolumeInputId;
-			RenderSliderWithValueInput(&s_QmVoiceMicVolumeInputId, ControlColValue, &g_Config.m_QmVoiceMicVolume, 0, 300, "%");
+			DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceMicMute, "Mute microphone", Localize("Mute microphone"), &g_Config.m_QmVoiceMicMute, &Row, LineHeight);
 		}
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		Flow.Space(LineSpacing);
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceVadEnable, "Auto unmute when speaking", Localize("Auto unmute when speaking"), &g_Config.m_QmVoiceVadEnable, &Row, LineHeight);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		if(Flow.Control("voice-mic-volume", LineHeight, Row))
+		{
+			{
+				CUIRect LabelColValue, ControlColValue;
+				SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColValue, &ControlColValue);
+				DoQmSettingsLabel("qmclient-voice-microphone-volume", &LabelColValue, Localize("Microphone volume"), BodySize);
+				static int s_QmVoiceMicVolumeInputId;
+				RenderSliderWithValueInput(&s_QmVoiceMicVolumeInputId, ControlColValue, &g_Config.m_QmVoiceMicVolume, 0, 300, "%");
+			}
+		}
+		Flow.Space(LineSpacing);
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceShowAdvanced, "Advanced options", Localize("Advanced options"), &g_Config.m_QmVoiceShowAdvanced, &Row, LineHeight);
+		if(Flow.Control("voice-vad", LineHeight, Row))
+		{
+			DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceVadEnable, "Auto unmute when speaking", Localize("Auto unmute when speaking"), &g_Config.m_QmVoiceVadEnable, &Row, LineHeight);
+		}
+		Flow.Space(LineSpacing);
+
+		if(Flow.Control("voice-advanced", LineHeight, Row))
+		{
+			DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceShowAdvanced, "Advanced options", Localize("Advanced options"), &g_Config.m_QmVoiceShowAdvanced, &Row, LineHeight);
+		}
 		if(g_Config.m_QmVoiceShowAdvanced)
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
+			Flow.Space(LineSpacing);
 
 		if(g_Config.m_QmVoiceShowAdvanced)
 		{
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceShowConnectionStatus, "Show voice connection status", Localize("Show voice connection status"), &g_Config.m_QmVoiceShowConnectionStatus, &Row, LineHeight);
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
+			if(Flow.Control("voice-connection-status", LineHeight, Row))
+			{
+				DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceShowConnectionStatus, "Show voice connection status", Localize("Show voice connection status"), &g_Config.m_QmVoiceShowConnectionStatus, &Row, LineHeight);
+			}
+			Flow.Space(LineSpacing);
 
 			if(g_Config.m_QmVoiceShowConnectionStatus)
 			{
 				AddVoiceSectionLabel(Localize("Current status"), Localize("Start here to quickly diagnose if the issue is with device, server, or room"));
-				RenderVoiceStatusRow(Localize("Microphone"), LocalizeVoiceUiMicStatus(VoiceUiStatus));
-				RenderVoiceStatusRow(Localize("Speaker"), LocalizeVoiceUiOutputStatus(VoiceUiStatus));
-				RenderVoiceStatusRow(Localize("Input switch"), aVoiceInputRouteStatus);
-				RenderVoiceStatusRow(Localize("Output switch"), aVoiceOutputRouteStatus);
-				RenderVoiceStatusRow(Localize("Server"), aVoiceServerStatus);
-				RenderVoiceStatusRow(Localize("Room"), aVoiceRoomStatus);
-				RenderVoiceStatusRow(Localize("Send & Receive"), aVoiceTransportDetail);
-				RenderVoiceStatusRow(Localize("Troubleshooting suggestions"), LocalizeVoiceUiActionHint(VoiceUiStatus));
-				RenderVoiceStatusRow(Localize("Audio issue"), LocalizeVoiceUiAudioIssue(VoiceUiStatus));
+				RenderVoiceStatusRow("voice-status-mic", Localize("Microphone"), LocalizeVoiceUiMicStatus(VoiceUiStatus));
+				RenderVoiceStatusRow("voice-status-speaker", Localize("Speaker"), LocalizeVoiceUiOutputStatus(VoiceUiStatus));
+				RenderVoiceStatusRow("voice-status-input-route", Localize("Input switch"), aVoiceInputRouteStatus);
+				RenderVoiceStatusRow("voice-status-output-route", Localize("Output switch"), aVoiceOutputRouteStatus);
+				RenderVoiceStatusRow("voice-status-server", Localize("Server"), aVoiceServerStatus);
+				RenderVoiceStatusRow("voice-status-room", Localize("Room"), aVoiceRoomStatus);
+				RenderVoiceStatusRow("voice-status-transport", Localize("Send & Receive"), aVoiceTransportDetail);
+				RenderVoiceStatusRow("voice-status-suggestion", Localize("Troubleshooting suggestions"), LocalizeVoiceUiActionHint(VoiceUiStatus));
+				RenderVoiceStatusRow("voice-status-audio-issue", Localize("Audio issue"), LocalizeVoiceUiAudioIssue(VoiceUiStatus));
 				const char *pPrimaryError = VoiceUtils::VoiceUiPrimaryError(VoiceUiStatus);
-				RenderVoiceStatusRow(Localize("Detailed reason"), pPrimaryError[0] != '\0' ? pPrimaryError : Localize("No audio issues detected"));
-				Content.HSplitTop(LineSpacing * 0.5f, nullptr, &Content);
+				RenderVoiceStatusRow("voice-status-reason", Localize("Detailed reason"), pPrimaryError[0] != '\0' ? pPrimaryError : Localize("No audio issues detected"));
+				Flow.Space(LineSpacing * 0.5f);
 			}
 
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			Row.VSplitLeft(LabelWidth, &LabelCol, &ControlCol);
-			DoQmSettingsLabel("qmclient-voice-server-ip", &LabelCol, Localize("Server URL"), BodySize);
-			static CLineInput s_VoiceServer(g_Config.m_QmVoiceServer, sizeof(g_Config.m_QmVoiceServer));
-			if(!PrewarmOnly && !Ui()->RenderOnly())
-				s_VoiceServer.SetEmptyText("wss://qmclient.icu/ws/voice");
-			ui_widget::InputField(QmClientVoiceTextInputCtx, &s_VoiceServer, ControlCol, "wss://qmclient.icu/ws/voice", BodySize);
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
+			if(Flow.Control("voice-server-url", LineHeight, Row))
+			{
+				SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelCol, &ControlCol);
+				DoQmSettingsLabel("qmclient-voice-server-ip", &LabelCol, Localize("Server URL"), BodySize);
+				static CLineInput s_VoiceServer(g_Config.m_QmVoiceServer, sizeof(g_Config.m_QmVoiceServer));
+				if(!PrewarmOnly && !Ui()->RenderOnly())
+					s_VoiceServer.SetEmptyText("wss://qmclient.icu/ws/voice");
+				ui_widget::InputField(QmClientVoiceTextInputCtx, &s_VoiceServer, ControlCol, "wss://qmclient.icu/ws/voice", BodySize);
+			}
+			Flow.Space(LineSpacing);
 
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			Row.VSplitLeft(LabelWidth, &LabelCol, &ControlCol);
-			DoQmSettingsLabel("qmclient-voice-input-device", &LabelCol, Localize("Input device"), BodySize);
-			static std::vector<std::string> s_VoiceInputDeviceDisplayNames;
-			static std::vector<std::string> s_VoiceInputDeviceConfigValues;
-			static std::vector<const char *> s_VoiceInputDeviceDropDownNames;
-			static std::vector<VoiceUtils::SVoiceDeviceDropdownEntry> s_VoiceInputDeviceEntries;
-			static CUi::SDropDownState s_VoiceInputDeviceDropDownState;
-			static CScrollRegion s_VoiceInputDeviceDropDownScrollRegion;
-			static bool s_VoiceInputDevicesInitialized = false;
-			s_VoiceInputDeviceDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_VoiceInputDeviceDropDownScrollRegion;
-			auto RefreshVoiceInputDeviceList = [&]() {
-				CPerfTimer StageTimer;
-				s_VoiceInputDeviceDisplayNames.clear();
-				s_VoiceInputDeviceConfigValues.clear();
-				s_VoiceInputDeviceDropDownNames.clear();
-				std::vector<std::string> vDetectedDeviceNames;
-				for(const auto &Device : SdlAudioDevices(true))
-					vDetectedDeviceNames.emplace_back(Device.m_Name);
+			if(Flow.Control("voice-input-device", LineHeight, Row))
+			{
+				SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelCol, &ControlCol);
+				DoQmSettingsLabel("qmclient-voice-input-device", &LabelCol, Localize("Input device"), BodySize);
+				static std::vector<std::string> s_VoiceInputDeviceDisplayNames;
+				static std::vector<std::string> s_VoiceInputDeviceConfigValues;
+				static std::vector<const char *> s_VoiceInputDeviceDropDownNames;
+				static std::vector<VoiceUtils::SVoiceDeviceDropdownEntry> s_VoiceInputDeviceEntries;
+				static CScrollRegion s_VoiceInputDeviceDropDownScrollRegion;
+				static bool s_VoiceInputDevicesInitialized = false;
+				s_VoiceInputDeviceDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_VoiceInputDeviceDropDownScrollRegion;
+				auto RefreshVoiceInputDeviceList = [&]() {
+					CPerfTimer StageTimer;
+					s_VoiceInputDeviceDisplayNames.clear();
+					s_VoiceInputDeviceConfigValues.clear();
+					s_VoiceInputDeviceDropDownNames.clear();
+					std::vector<std::string> vDetectedDeviceNames;
+					for(const auto &Device : SdlAudioDevices(true))
+						vDetectedDeviceNames.emplace_back(Device.m_Name);
 
-				VoiceUtils::BuildVoiceDeviceDropdownEntries(
-					vDetectedDeviceNames,
-					g_Config.m_QmVoiceInputDevice,
-					Localize("Default"),
-					Localize("Disconnected"),
-					s_VoiceInputDeviceEntries);
+					VoiceUtils::BuildVoiceDeviceDropdownEntries(
+						vDetectedDeviceNames,
+						g_Config.m_QmVoiceInputDevice,
+						Localize("Default"),
+						Localize("Disconnected"),
+						s_VoiceInputDeviceEntries);
 
-				s_VoiceInputDeviceDisplayNames.reserve(s_VoiceInputDeviceEntries.size());
-				s_VoiceInputDeviceConfigValues.reserve(s_VoiceInputDeviceEntries.size());
-				s_VoiceInputDeviceDropDownNames.reserve(s_VoiceInputDeviceDisplayNames.size());
-				for(const auto &Entry : s_VoiceInputDeviceEntries)
+					s_VoiceInputDeviceDisplayNames.reserve(s_VoiceInputDeviceEntries.size());
+					s_VoiceInputDeviceConfigValues.reserve(s_VoiceInputDeviceEntries.size());
+					s_VoiceInputDeviceDropDownNames.reserve(s_VoiceInputDeviceDisplayNames.size());
+					for(const auto &Entry : s_VoiceInputDeviceEntries)
+					{
+						s_VoiceInputDeviceDisplayNames.push_back(Entry.m_DisplayName);
+						s_VoiceInputDeviceConfigValues.push_back(Entry.m_ConfigValue);
+						s_VoiceInputDeviceDropDownNames.push_back(s_VoiceInputDeviceDisplayNames.back().c_str());
+					}
+
+					char aVoiceExtra[96];
+					str_format(aVoiceExtra, sizeof(aVoiceExtra), "devices=%d", (int)s_VoiceInputDeviceDisplayNames.size());
+					LogQmPerfStage(Client(), "voice_device_enum", StageTimer.ElapsedMs(), false, aVoiceExtra);
+				};
+				if(Flow.Input() && !ReadOnly && !s_VoiceInputDevicesInitialized)
 				{
-					s_VoiceInputDeviceDisplayNames.push_back(Entry.m_DisplayName);
-					s_VoiceInputDeviceConfigValues.push_back(Entry.m_ConfigValue);
-					s_VoiceInputDeviceDropDownNames.push_back(s_VoiceInputDeviceDisplayNames.back().c_str());
-				}
-
-				char aVoiceExtra[96];
-				str_format(aVoiceExtra, sizeof(aVoiceExtra), "devices=%d", (int)s_VoiceInputDeviceDisplayNames.size());
-				LogQmPerfStage(Client(), "voice_device_enum", StageTimer.ElapsedMs(), false, aVoiceExtra);
-			};
-			const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();
-			if(!ReadOnly && !s_VoiceInputDevicesInitialized)
-			{
-				RefreshVoiceInputDeviceList();
-				s_VoiceInputDevicesInitialized = true;
-			}
-
-			CUIRect VoiceInputDropDownRect;
-			CUIRect VoiceInputRefreshButton;
-			ControlCol.VSplitRight(maximum(68.0f, 68.0f * UiScale), &VoiceInputDropDownRect, &VoiceInputRefreshButton);
-
-			static CButtonContainer s_VoiceInputRefreshButton;
-			if(ReadOnly)
-			{
-				DoQmSettingsLabel("qmclient-voice-input-default", &VoiceInputDropDownRect, Localize("Default"), BodySize);
-				DoQmSettingsMenuButton(&s_VoiceInputRefreshButton, "qmclient-voice-input-refresh", Localize("Refresh"), &VoiceInputRefreshButton);
-			}
-			else
-			{
-				const int VoiceInputSelectedOld = VoiceUtils::VoiceFindSelectedDeviceIndex(s_VoiceInputDeviceEntries, g_Config.m_QmVoiceInputDevice);
-				const int VoiceInputSelectedNew = DoSettingsDropDown(&VoiceInputDropDownRect, VoiceInputSelectedOld, s_VoiceInputDeviceDropDownNames.data(), s_VoiceInputDeviceDropDownNames.size(), s_VoiceInputDeviceDropDownState, {}, g_Config.m_QmVoiceInputDevice, nullptr, &Row);
-				if(VoiceInputSelectedNew >= 0 && VoiceInputSelectedNew != VoiceInputSelectedOld && (size_t)VoiceInputSelectedNew < s_VoiceInputDeviceConfigValues.size())
-					str_copy(g_Config.m_QmVoiceInputDevice, s_VoiceInputDeviceConfigValues[VoiceInputSelectedNew].c_str(), sizeof(g_Config.m_QmVoiceInputDevice));
-				if(DoQmSettingsMenuButton(&s_VoiceInputRefreshButton, "qmclient-voice-input-refresh", Localize("Refresh"), &VoiceInputRefreshButton))
 					RefreshVoiceInputDeviceList();
-			}
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			Row.VSplitLeft(LabelWidth, &LabelCol, &ControlCol);
-			DoQmSettingsLabel("qmclient-voice-output-device", &LabelCol, Localize("Output device"), BodySize);
-			static std::vector<std::string> s_VoiceOutputDeviceDisplayNames;
-			static std::vector<std::string> s_VoiceOutputDeviceConfigValues;
-			static std::vector<const char *> s_VoiceOutputDeviceDropDownNames;
-			static std::vector<VoiceUtils::SVoiceDeviceDropdownEntry> s_VoiceOutputDeviceEntries;
-			static CUi::SDropDownState s_VoiceOutputDeviceDropDownState;
-			static CScrollRegion s_VoiceOutputDeviceDropDownScrollRegion;
-			static bool s_VoiceOutputDevicesInitialized = false;
-			s_VoiceOutputDeviceDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_VoiceOutputDeviceDropDownScrollRegion;
-			auto RefreshVoiceOutputDeviceList = [&]() {
-				CPerfTimer StageTimer;
-				s_VoiceOutputDeviceDisplayNames.clear();
-				s_VoiceOutputDeviceConfigValues.clear();
-				s_VoiceOutputDeviceDropDownNames.clear();
-				std::vector<std::string> vDetectedDeviceNames;
-				for(const auto &Device : SdlAudioDevices(false))
-					vDetectedDeviceNames.emplace_back(Device.m_Name);
-
-				VoiceUtils::BuildVoiceDeviceDropdownEntries(
-					vDetectedDeviceNames,
-					g_Config.m_QmVoiceOutputDevice,
-					Localize("Default"),
-					Localize("Disconnected"),
-					s_VoiceOutputDeviceEntries);
-
-				s_VoiceOutputDeviceDisplayNames.reserve(s_VoiceOutputDeviceEntries.size());
-				s_VoiceOutputDeviceConfigValues.reserve(s_VoiceOutputDeviceEntries.size());
-				s_VoiceOutputDeviceDropDownNames.reserve(s_VoiceOutputDeviceDisplayNames.size());
-				for(const auto &Entry : s_VoiceOutputDeviceEntries)
-				{
-					s_VoiceOutputDeviceDisplayNames.push_back(Entry.m_DisplayName);
-					s_VoiceOutputDeviceConfigValues.push_back(Entry.m_ConfigValue);
-					s_VoiceOutputDeviceDropDownNames.push_back(s_VoiceOutputDeviceDisplayNames.back().c_str());
+					s_VoiceInputDevicesInitialized = true;
 				}
 
-				char aVoiceExtra[96];
-				str_format(aVoiceExtra, sizeof(aVoiceExtra), "devices=%d", (int)s_VoiceOutputDeviceDisplayNames.size());
-				LogQmPerfStage(Client(), "voice_output_device_enum", StageTimer.ElapsedMs(), false, aVoiceExtra);
-			};
-			if(!ReadOnly && !s_VoiceOutputDevicesInitialized)
-			{
-				RefreshVoiceOutputDeviceList();
-				s_VoiceOutputDevicesInitialized = true;
-			}
+				CUIRect VoiceInputDropDownRect;
+				CUIRect VoiceInputRefreshButton;
+				ControlCol.VSplitRight(maximum(68.0f, 68.0f * UiScale), &VoiceInputDropDownRect, &VoiceInputRefreshButton);
 
-			CUIRect VoiceOutputDropDownRect;
-			CUIRect VoiceOutputRefreshButton;
-			ControlCol.VSplitRight(maximum(68.0f, 68.0f * UiScale), &VoiceOutputDropDownRect, &VoiceOutputRefreshButton);
-
-			static CButtonContainer s_VoiceOutputRefreshButton;
-			if(ReadOnly)
-			{
-				DoQmSettingsLabel("qmclient-voice-output-default", &VoiceOutputDropDownRect, Localize("Default"), BodySize);
-				DoQmSettingsMenuButton(&s_VoiceOutputRefreshButton, "qmclient-voice-output-refresh", Localize("Refresh"), &VoiceOutputRefreshButton);
+				static CButtonContainer s_VoiceInputRefreshButton;
+				if(s_VoiceInputDeviceEntries.empty())
+				{
+					DoQmSettingsLabel("qmclient-voice-input-default", &VoiceInputDropDownRect, Localize("Default"), BodySize);
+					DoQmSettingsMenuButton(&s_VoiceInputRefreshButton, "qmclient-voice-input-refresh", Localize("Refresh"), &VoiceInputRefreshButton);
+				}
+				else
+				{
+					const int VoiceInputSelectedOld = VoiceUtils::VoiceFindSelectedDeviceIndex(s_VoiceInputDeviceEntries, g_Config.m_QmVoiceInputDevice);
+					const int VoiceInputSelectedNew = DoSettingsDropDown(&VoiceInputDropDownRect, VoiceInputSelectedOld, s_VoiceInputDeviceDropDownNames.data(), s_VoiceInputDeviceDropDownNames.size(), s_VoiceInputDeviceDropDownState, {}, g_Config.m_QmVoiceInputDevice, nullptr, &Row);
+					if(Flow.Input() && !ReadOnly && VoiceInputSelectedNew >= 0 && VoiceInputSelectedNew != VoiceInputSelectedOld && (size_t)VoiceInputSelectedNew < s_VoiceInputDeviceConfigValues.size())
+						str_copy(g_Config.m_QmVoiceInputDevice, s_VoiceInputDeviceConfigValues[VoiceInputSelectedNew].c_str(), sizeof(g_Config.m_QmVoiceInputDevice));
+					if(DoQmSettingsMenuButton(&s_VoiceInputRefreshButton, "qmclient-voice-input-refresh", Localize("Refresh"), &VoiceInputRefreshButton) && Flow.Input() && !ReadOnly)
+						RefreshVoiceInputDeviceList();
+				}
 			}
-			else
+			Flow.Space(LineSpacing);
+
+			if(Flow.Control("voice-output-device", LineHeight, Row))
 			{
-				const int VoiceOutputSelectedOld = VoiceUtils::VoiceFindSelectedDeviceIndex(s_VoiceOutputDeviceEntries, g_Config.m_QmVoiceOutputDevice);
-				const int VoiceOutputSelectedNew = DoSettingsDropDown(&VoiceOutputDropDownRect, VoiceOutputSelectedOld, s_VoiceOutputDeviceDropDownNames.data(), s_VoiceOutputDeviceDropDownNames.size(), s_VoiceOutputDeviceDropDownState, {}, g_Config.m_QmVoiceOutputDevice, nullptr, &Row);
-				if(VoiceOutputSelectedNew >= 0 && VoiceOutputSelectedNew != VoiceOutputSelectedOld && (size_t)VoiceOutputSelectedNew < s_VoiceOutputDeviceConfigValues.size())
-					str_copy(g_Config.m_QmVoiceOutputDevice, s_VoiceOutputDeviceConfigValues[VoiceOutputSelectedNew].c_str(), sizeof(g_Config.m_QmVoiceOutputDevice));
-				if(DoQmSettingsMenuButton(&s_VoiceOutputRefreshButton, "qmclient-voice-output-refresh", Localize("Refresh"), &VoiceOutputRefreshButton))
+				SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelCol, &ControlCol);
+				DoQmSettingsLabel("qmclient-voice-output-device", &LabelCol, Localize("Output device"), BodySize);
+				static std::vector<std::string> s_VoiceOutputDeviceDisplayNames;
+				static std::vector<std::string> s_VoiceOutputDeviceConfigValues;
+				static std::vector<const char *> s_VoiceOutputDeviceDropDownNames;
+				static std::vector<VoiceUtils::SVoiceDeviceDropdownEntry> s_VoiceOutputDeviceEntries;
+				static CScrollRegion s_VoiceOutputDeviceDropDownScrollRegion;
+				static bool s_VoiceOutputDevicesInitialized = false;
+				s_VoiceOutputDeviceDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_VoiceOutputDeviceDropDownScrollRegion;
+				auto RefreshVoiceOutputDeviceList = [&]() {
+					CPerfTimer StageTimer;
+					s_VoiceOutputDeviceDisplayNames.clear();
+					s_VoiceOutputDeviceConfigValues.clear();
+					s_VoiceOutputDeviceDropDownNames.clear();
+					std::vector<std::string> vDetectedDeviceNames;
+					for(const auto &Device : SdlAudioDevices(false))
+						vDetectedDeviceNames.emplace_back(Device.m_Name);
+
+					VoiceUtils::BuildVoiceDeviceDropdownEntries(
+						vDetectedDeviceNames,
+						g_Config.m_QmVoiceOutputDevice,
+						Localize("Default"),
+						Localize("Disconnected"),
+						s_VoiceOutputDeviceEntries);
+
+					s_VoiceOutputDeviceDisplayNames.reserve(s_VoiceOutputDeviceEntries.size());
+					s_VoiceOutputDeviceConfigValues.reserve(s_VoiceOutputDeviceEntries.size());
+					s_VoiceOutputDeviceDropDownNames.reserve(s_VoiceOutputDeviceDisplayNames.size());
+					for(const auto &Entry : s_VoiceOutputDeviceEntries)
+					{
+						s_VoiceOutputDeviceDisplayNames.push_back(Entry.m_DisplayName);
+						s_VoiceOutputDeviceConfigValues.push_back(Entry.m_ConfigValue);
+						s_VoiceOutputDeviceDropDownNames.push_back(s_VoiceOutputDeviceDisplayNames.back().c_str());
+					}
+
+					char aVoiceExtra[96];
+					str_format(aVoiceExtra, sizeof(aVoiceExtra), "devices=%d", (int)s_VoiceOutputDeviceDisplayNames.size());
+					LogQmPerfStage(Client(), "voice_output_device_enum", StageTimer.ElapsedMs(), false, aVoiceExtra);
+				};
+				if(Flow.Input() && !ReadOnly && !s_VoiceOutputDevicesInitialized)
+				{
 					RefreshVoiceOutputDeviceList();
-			}
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			{
-				static std::vector<const char *> s_VoiceBitrateProfileDropDownNames;
-				s_VoiceBitrateProfileDropDownNames = {
-					Localize("Auto"),
-					"24 kbps",
-					"32 kbps",
-					"48 kbps",
-					"64 kbps",
-				};
-				static CUi::SDropDownState s_VoiceBitrateProfileDropDownState;
-				static CScrollRegion s_VoiceBitrateProfileDropDownScrollRegion;
-				s_VoiceBitrateProfileDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_VoiceBitrateProfileDropDownScrollRegion;
-
-				Row.VSplitLeft(LabelWidth, &LabelCol, &ControlCol);
-				DoQmSettingsLabel("qmclient-voice-bitrate", &LabelCol, Localize("Voice bitrate"), BodySize);
-				const int CurrentBitrateProfile = std::clamp(g_Config.m_QmVoiceBitrateProfile, 0, 4);
-				const int NewBitrateProfile = DoSettingsDropDown(&ControlCol, CurrentBitrateProfile, s_VoiceBitrateProfileDropDownNames.data(), s_VoiceBitrateProfileDropDownNames.size(), s_VoiceBitrateProfileDropDownState, {}, &g_Config.m_QmVoiceBitrateProfile, nullptr, &Row);
-				if(CurrentBitrateProfile != NewBitrateProfile)
-					g_Config.m_QmVoiceBitrateProfile = NewBitrateProfile;
-			}
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			{
-				static std::vector<const char *> s_VoiceNoiseSuppressModeDropDownNames;
-				s_VoiceNoiseSuppressModeDropDownNames = {
-					Localize("No noise reduction"),
-					Localize("Simple noise reduction"),
-				};
-				static CUi::SDropDownState s_VoiceNoiseSuppressModeDropDownState;
-				static CScrollRegion s_VoiceNoiseSuppressModeDropDownScrollRegion;
-				s_VoiceNoiseSuppressModeDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_VoiceNoiseSuppressModeDropDownScrollRegion;
-
-				Row.VSplitLeft(LabelWidth, &LabelCol, &ControlCol);
-				DoQmSettingsLabel("qmclient-voice-noise-reduction-mode", &LabelCol, Localize("Noise reduction mode"), BodySize);
-				const int CurrentNoiseSuppressMode = NoiseSuppressModeForLayout;
-				const int NewNoiseSuppressMode = DoSettingsDropDown(&ControlCol, CurrentNoiseSuppressMode, s_VoiceNoiseSuppressModeDropDownNames.data(), s_VoiceNoiseSuppressModeDropDownNames.size(), s_VoiceNoiseSuppressModeDropDownState, {}, &g_Config.m_QmVoiceNoiseSuppressEnable, nullptr, &Row);
-				if(CurrentNoiseSuppressMode != NewNoiseSuppressMode)
-					g_Config.m_QmVoiceNoiseSuppressEnable = NewNoiseSuppressMode;
-			}
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-
-			if(NoiseSuppressModeForLayout != 0)
-			{
-				Content.HSplitTop(LineHeight, &Row, &Content);
-				{
-					CUIRect LabelColValue, ControlColValue;
-					Row.VSplitLeft(LabelWidth, &LabelColValue, &ControlColValue);
-					const char *pNoiseSuppressStrengthLabel = Localize("Simple noise reduction strength");
-					Ui()->DoLabel(&LabelColValue, pNoiseSuppressStrengthLabel, BodySize, TEXTALIGN_ML);
-					static int s_QmVoiceNoiseSuppressStrengthInputId;
-					RenderSliderWithValueInput(&s_QmVoiceNoiseSuppressStrengthInputId, ControlColValue, &g_Config.m_QmVoiceNoiseSuppressStrength, 0, 100, "%");
+					s_VoiceOutputDevicesInitialized = true;
 				}
-				Content.HSplitTop(LineSpacing, nullptr, &Content);
+
+				CUIRect VoiceOutputDropDownRect;
+				CUIRect VoiceOutputRefreshButton;
+				ControlCol.VSplitRight(maximum(68.0f, 68.0f * UiScale), &VoiceOutputDropDownRect, &VoiceOutputRefreshButton);
+
+				static CButtonContainer s_VoiceOutputRefreshButton;
+				if(s_VoiceOutputDeviceEntries.empty())
+				{
+					DoQmSettingsLabel("qmclient-voice-output-default", &VoiceOutputDropDownRect, Localize("Default"), BodySize);
+					DoQmSettingsMenuButton(&s_VoiceOutputRefreshButton, "qmclient-voice-output-refresh", Localize("Refresh"), &VoiceOutputRefreshButton);
+				}
+				else
+				{
+					const int VoiceOutputSelectedOld = VoiceUtils::VoiceFindSelectedDeviceIndex(s_VoiceOutputDeviceEntries, g_Config.m_QmVoiceOutputDevice);
+					const int VoiceOutputSelectedNew = DoSettingsDropDown(&VoiceOutputDropDownRect, VoiceOutputSelectedOld, s_VoiceOutputDeviceDropDownNames.data(), s_VoiceOutputDeviceDropDownNames.size(), s_VoiceOutputDeviceDropDownState, {}, g_Config.m_QmVoiceOutputDevice, nullptr, &Row);
+					if(Flow.Input() && !ReadOnly && VoiceOutputSelectedNew >= 0 && VoiceOutputSelectedNew != VoiceOutputSelectedOld && (size_t)VoiceOutputSelectedNew < s_VoiceOutputDeviceConfigValues.size())
+						str_copy(g_Config.m_QmVoiceOutputDevice, s_VoiceOutputDeviceConfigValues[VoiceOutputSelectedNew].c_str(), sizeof(g_Config.m_QmVoiceOutputDevice));
+					if(DoQmSettingsMenuButton(&s_VoiceOutputRefreshButton, "qmclient-voice-output-refresh", Localize("Refresh"), &VoiceOutputRefreshButton) && Flow.Input() && !ReadOnly)
+						RefreshVoiceOutputDeviceList();
+				}
+			}
+			Flow.Space(LineSpacing);
+
+			if(Flow.Control("voice-bitrate", LineHeight, Row))
+			{
+				{
+					static std::vector<const char *> s_VoiceBitrateProfileDropDownNames;
+					s_VoiceBitrateProfileDropDownNames = {
+						Localize("Auto"),
+						"24 kbps",
+						"32 kbps",
+						"48 kbps",
+						"64 kbps",
+					};
+					static CScrollRegion s_VoiceBitrateProfileDropDownScrollRegion;
+					s_VoiceBitrateProfileDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_VoiceBitrateProfileDropDownScrollRegion;
+
+					SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelCol, &ControlCol);
+					DoQmSettingsLabel("qmclient-voice-bitrate", &LabelCol, Localize("Voice bitrate"), BodySize);
+					const int CurrentBitrateProfile = std::clamp(g_Config.m_QmVoiceBitrateProfile, 0, 4);
+					const int NewBitrateProfile = DoSettingsDropDown(&ControlCol, CurrentBitrateProfile, s_VoiceBitrateProfileDropDownNames.data(), s_VoiceBitrateProfileDropDownNames.size(), s_VoiceBitrateProfileDropDownState, {}, &g_Config.m_QmVoiceBitrateProfile, nullptr, &Row);
+					if(Flow.Input() && !ReadOnly && CurrentBitrateProfile != NewBitrateProfile)
+						g_Config.m_QmVoiceBitrateProfile = NewBitrateProfile;
+				}
+			}
+			Flow.Space(LineSpacing);
+
+			if(Flow.Control("voice-noise-reduction", LineHeight, Row))
+			{
+				{
+					static std::vector<const char *> s_VoiceNoiseSuppressModeDropDownNames;
+					s_VoiceNoiseSuppressModeDropDownNames = {
+						Localize("No noise reduction"),
+						Localize("Simple noise reduction"),
+					};
+					static CScrollRegion s_VoiceNoiseSuppressModeDropDownScrollRegion;
+					s_VoiceNoiseSuppressModeDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_VoiceNoiseSuppressModeDropDownScrollRegion;
+
+					SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelCol, &ControlCol);
+					DoQmSettingsLabel("qmclient-voice-noise-reduction-mode", &LabelCol, Localize("Noise reduction mode"), BodySize);
+					const int CurrentNoiseSuppressMode = (g_Config.m_QmVoiceNoiseSuppressEnable == 1 ? 1 : 0);
+					const int NewNoiseSuppressMode = DoSettingsDropDown(&ControlCol, CurrentNoiseSuppressMode, s_VoiceNoiseSuppressModeDropDownNames.data(), s_VoiceNoiseSuppressModeDropDownNames.size(), s_VoiceNoiseSuppressModeDropDownState, {}, &g_Config.m_QmVoiceNoiseSuppressEnable, nullptr, &Row);
+					if(Flow.Input() && !ReadOnly && CurrentNoiseSuppressMode != NewNoiseSuppressMode)
+						g_Config.m_QmVoiceNoiseSuppressEnable = NewNoiseSuppressMode;
+				}
+			}
+			Flow.Space(LineSpacing);
+
+			if((g_Config.m_QmVoiceNoiseSuppressEnable == 1 ? 1 : 0) != 0)
+			{
+				if(Flow.Control("voice-noise-strength", LineHeight, Row))
+				{
+					{
+						CUIRect LabelColValue, ControlColValue;
+						SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColValue, &ControlColValue);
+						const char *pNoiseSuppressStrengthLabel = Localize("Simple noise reduction strength");
+						Ui()->DoLabel(&LabelColValue, pNoiseSuppressStrengthLabel, BodySize, TEXTALIGN_ML);
+						static int s_QmVoiceNoiseSuppressStrengthInputId;
+						RenderSliderWithValueInput(&s_QmVoiceNoiseSuppressStrengthInputId, ControlColValue, &g_Config.m_QmVoiceNoiseSuppressStrength, 0, 100, "%");
+					}
+				}
+				Flow.Space(LineSpacing);
 			}
 
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceAgcEnable, "Auto gain control for mic (AGC, experimental)", Localize("Auto gain control for mic (AGC, experimental)"), &g_Config.m_QmVoiceAgcEnable, &Row, LineHeight);
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
+			if(Flow.Control("voice-agc", LineHeight, Row))
+			{
+				DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceAgcEnable, "Auto gain control for mic (AGC, experimental)", Localize("Auto gain control for mic (AGC, experimental)"), &g_Config.m_QmVoiceAgcEnable, &Row, LineHeight);
+			}
+			Flow.Space(LineSpacing);
 
 			if(g_Config.m_QmVoiceVadEnable)
 			{
-				Content.HSplitTop(LineHeight, &Row, &Content);
+				if(Flow.Control("voice-vad-threshold", LineHeight, Row))
 				{
-					CUIRect LabelColValue, ControlColValue;
-					Row.VSplitLeft(LabelWidth, &LabelColValue, &ControlColValue);
-					DoQmSettingsLabel("qmclient-voice-speech-trigger-threshold", &LabelColValue, Localize("Speech trigger threshold"), BodySize);
-					static int s_QmVoiceVadThresholdInputId;
-					RenderSliderWithValueInput(&s_QmVoiceVadThresholdInputId, ControlColValue, &g_Config.m_QmVoiceVadThreshold, 0, 100, "%");
+					{
+						CUIRect LabelColValue, ControlColValue;
+						SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColValue, &ControlColValue);
+						DoQmSettingsLabel("qmclient-voice-speech-trigger-threshold", &LabelColValue, Localize("Speech trigger threshold"), BodySize);
+						static int s_QmVoiceVadThresholdInputId;
+						RenderSliderWithValueInput(&s_QmVoiceVadThresholdInputId, ControlColValue, &g_Config.m_QmVoiceVadThreshold, 0, 100, "%");
+					}
 				}
-				Content.HSplitTop(LineSpacing, nullptr, &Content);
+				Flow.Space(LineSpacing);
 
-				Content.HSplitTop(LineHeight, &Row, &Content);
+				if(Flow.Control("voice-vad-delay", LineHeight, Row))
 				{
-					CUIRect LabelColValue, ControlColValue;
-					Row.VSplitLeft(LabelWidth, &LabelColValue, &ControlColValue);
-					DoQmSettingsLabel("qmclient-voice-activation-release-delay", &LabelColValue, Localize("Voice activation release delay"), BodySize);
-					static int s_QmVoiceVadReleaseDelayMsInputId;
-					RenderSliderWithValueInput(&s_QmVoiceVadReleaseDelayMsInputId, ControlColValue, &g_Config.m_QmVoiceVadReleaseDelayMs, 0, 1000, "ms");
+					{
+						CUIRect LabelColValue, ControlColValue;
+						SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColValue, &ControlColValue);
+						DoQmSettingsLabel("qmclient-voice-activation-release-delay", &LabelColValue, Localize("Voice activation release delay"), BodySize);
+						static int s_QmVoiceVadReleaseDelayMsInputId;
+						RenderSliderWithValueInput(&s_QmVoiceVadReleaseDelayMsInputId, ControlColValue, &g_Config.m_QmVoiceVadReleaseDelayMs, 0, 1000, "ms");
+					}
 				}
-				Content.HSplitTop(LineSpacing, nullptr, &Content);
+				Flow.Space(LineSpacing);
 			}
 
-			Content.HSplitTop(LineSpacing * 1.15f, nullptr, &Content);
+			Flow.Space(LineSpacing * 1.15f);
 
-			Content.HSplitTop(LineHeight, &Row, &Content);
+			if(Flow.Control("voice-playback-volume", LineHeight, Row))
 			{
-				CUIRect LabelColValue, ControlColValue;
-				Row.VSplitLeft(LabelWidth, &LabelColValue, &ControlColValue);
-				DoQmSettingsLabel("qmclient-voice-playback-volume", &LabelColValue, Localize("Playback volume"), BodySize);
-				static int s_QmVoiceVolumeInputId;
-				RenderSliderWithValueInput(&s_QmVoiceVolumeInputId, ControlColValue, &g_Config.m_QmVoiceVolume, 0, 400, "%");
+				{
+					CUIRect LabelColValue, ControlColValue;
+					SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColValue, &ControlColValue);
+					DoQmSettingsLabel("qmclient-voice-playback-volume", &LabelColValue, Localize("Playback volume"), BodySize);
+					static int s_QmVoiceVolumeInputId;
+					RenderSliderWithValueInput(&s_QmVoiceVolumeInputId, ControlColValue, &g_Config.m_QmVoiceVolume, 0, 400, "%");
+				}
 			}
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
+			Flow.Space(LineSpacing);
 
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceStereo, "Enable stereo positioning", Localize("Enable stereo positioning"), &g_Config.m_QmVoiceStereo, &Row, LineHeight);
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
+			if(Flow.Control("voice-stereo", LineHeight, Row))
+			{
+				DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceStereo, "Enable stereo positioning", Localize("Enable stereo positioning"), &g_Config.m_QmVoiceStereo, &Row, LineHeight);
+			}
+			Flow.Space(LineSpacing);
 
 			if(g_Config.m_QmVoiceStereo)
 			{
-				Content.HSplitTop(LineHeight, &Row, &Content);
+				if(Flow.Control("voice-stereo-width", LineHeight, Row))
+				{
+					{
+						CUIRect LabelColValue, ControlColValue;
+						SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColValue, &ControlColValue);
+						DoQmSettingsLabel("qmclient-voice-left-right-channel-width", &LabelColValue, Localize("Left/right channel width"), BodySize);
+						static int s_QmVoiceStereoWidthInputId;
+						RenderSliderWithValueInput(&s_QmVoiceStereoWidthInputId, ControlColValue, &g_Config.m_QmVoiceStereoWidth, 0, 200, "%");
+					}
+				}
+				Flow.Space(LineSpacing);
+			}
+
+			if(Flow.Control("voice-radius", LineHeight, Row))
+			{
 				{
 					CUIRect LabelColValue, ControlColValue;
-					Row.VSplitLeft(LabelWidth, &LabelColValue, &ControlColValue);
-					DoQmSettingsLabel("qmclient-voice-left-right-channel-width", &LabelColValue, Localize("Left/right channel width"), BodySize);
-					static int s_QmVoiceStereoWidthInputId;
-					RenderSliderWithValueInput(&s_QmVoiceStereoWidthInputId, ControlColValue, &g_Config.m_QmVoiceStereoWidth, 0, 200, "%");
+					SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColValue, &ControlColValue);
+					DoQmSettingsLabel("qmclient-voice-distance-radius-tiles", &LabelColValue, Localize("Voice distance radius (tiles)"), BodySize);
+					static int s_QmVoiceRadiusInputId;
+					RenderSliderWithValueInput(&s_QmVoiceRadiusInputId, ControlColValue, &g_Config.m_QmVoiceRadius, 1, 400);
 				}
-				Content.HSplitTop(LineSpacing, nullptr, &Content);
 			}
+			Flow.Space(LineSpacing);
 
-			Content.HSplitTop(LineHeight, &Row, &Content);
+			if(Flow.Control("voice-group-global", LineHeight, Row))
 			{
-				CUIRect LabelColValue, ControlColValue;
-				Row.VSplitLeft(LabelWidth, &LabelColValue, &ControlColValue);
-				DoQmSettingsLabel("qmclient-voice-distance-radius-tiles", &LabelColValue, Localize("Voice distance radius (tiles)"), BodySize);
-				static int s_QmVoiceRadiusInputId;
-				RenderSliderWithValueInput(&s_QmVoiceRadiusInputId, ControlColValue, &g_Config.m_QmVoiceRadius, 1, 400);
+				DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceGroupGlobal, "Full map listen in same room", Localize("Full map listen in same room"), &g_Config.m_QmVoiceGroupGlobal, &Row, LineHeight);
 			}
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			DoQmSettingsCheckboxAuto(&g_Config.m_QmVoiceGroupGlobal, "Full map listen in same room", Localize("Full map listen in same room"), &g_Config.m_QmVoiceGroupGlobal, &Row, LineHeight);
 		}
 	}
 }

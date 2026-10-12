@@ -4,6 +4,7 @@
 #include <engine/keys.h>
 
 #include <game/client/lineinput.h>
+#include <game/client/ui.h>
 
 // 按事件顺序记录修饰键与请求，避免同一帧松开 Ctrl 后丢失补全。
 class CQmEditorSettingsCompletion
@@ -13,10 +14,14 @@ class CQmEditorSettingsCompletion
 	CLineInput *m_pRequestedInput = nullptr;
 	CLineInput *m_pSpaceInput = nullptr;
 	uint32_t m_SpaceInputCount = 0;
+	bool m_SpacePressObserved = false;
+	bool m_SpaceHeld = false;
 
 public:
 	bool OnInput(CLineInput *pLineInput, const IInput &Input, const IInput::CEvent &Event)
 	{
+		if(Event.m_Key == KEY_SPACE && (Event.m_Flags & IInput::FLAG_PRESS))
+			m_SpacePressObserved = true;
 		unsigned Modifier = 0;
 		switch(Event.m_Key)
 		{
@@ -74,8 +79,19 @@ public:
 		if(m_pRequestedInput != CLineInput::GetActiveInput() || Input.HasComposition())
 			m_pRequestedInput = nullptr;
 		const bool Requested = m_pRequestedInput == &LineInput;
-		if(Requested || Clicked)
+		// 只补偿未路由到本组件的首次按下。帧状态也来自实际事件，不能恢复系统吞键。
+		// 已路由的普通空格、重复按下，以及先按空格后按 Ctrl 都不能重新请求。
+		const bool SpaceHeld = Input.KeyIsPressed(KEY_SPACE);
+		const bool ShortcutPressed = !m_SpacePressObserved && !m_SpaceHeld &&
+					     Input.KeyPress(KEY_SPACE) && SpaceHeld && Input.ModifierIsPressed() && !Input.AltIsPressed() && LineInput.IsActive();
+		if(LineInput.IsActive())
+		{
+			m_SpaceHeld = SpaceHeld;
+			m_SpacePressObserved = false;
+		}
+		if(Requested || Clicked || ShortcutPressed)
 			m_pRequestedInput = nullptr;
+		const bool CompletionRequested = Requested || ShortcutPressed;
 		if(m_pSpaceInput == &LineInput)
 			m_pSpaceInput = nullptr;
 		// 窗口失焦可能没有松键事件，在绘制边界同步已释放的修饰键。
@@ -84,9 +100,40 @@ public:
 			m_Modifiers = 0;
 			m_ModifiersObserved = false;
 		}
-		if(Input.HasComposition() || (!Clicked && !(Requested && LineInput.IsActive())))
+		if(Input.HasComposition() || (!Clicked && !(CompletionRequested && LineInput.IsActive())))
 			return false;
 		LineInput.Activate(EInputPriority::UI);
+		return true;
+	}
+};
+
+// 全部指令浏览与光标处的前缀补全分开；打开、关闭均不修改输入内容。
+class CQmEditorSettingsCommandBrowser
+{
+	bool m_Open = false;
+
+public:
+	void Open() { m_Open = true; }
+	void Close() { m_Open = false; }
+	bool IsOpen() const { return m_Open; }
+	static bool RestoreInputOnClick(CUi &Ui, CLineInput &LineInput, const CUIRect &DropdownRect, bool Selectable)
+	{
+		if(!Selectable || !Ui.MouseButtonClicked(0) || !Ui.MouseHovered(&DropdownRect))
+			return false;
+		Ui.SetActiveItem(&LineInput);
+		LineInput.Activate(EInputPriority::UI);
+		return true;
+	}
+	bool Matches(const char *pCommand, const char *pPrefix) const
+	{
+		return m_Open || str_startswith_nocase(pCommand, pPrefix);
+	}
+	bool Select(CLineInput &LineInput, const char *pCommand)
+	{
+		if(!m_Open || !pCommand || !pCommand[0])
+			return false;
+		LineInput.SetRange(pCommand, 0, LineInput.GetLength());
+		Close();
 		return true;
 	}
 };

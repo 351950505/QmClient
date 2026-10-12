@@ -3133,6 +3133,7 @@ if(CLIENT)
     text.cpp
     text_gradient.h
     qm_font_names.h
+    qm_system_fonts.h
     qm_font_name_match.h
     text_sweep.h
     updater.cpp
@@ -3210,6 +3211,8 @@ if(CLIENT)
     QmUi/SettingsToggleGrid.h
     QmUi/SettingsIconFeedback.h
     QmUi/SettingsCard.h
+    QmUi/SettingsCardSubtitle.h
+    QmUi/SettingsCardMeasure.h
     QmUi/SettingsCardCollapseState.cpp
     QmUi/SettingsCardCollapseState.h
     QmUi/SettingsCardWidth.h
@@ -3217,6 +3220,7 @@ if(CLIENT)
     QmUi/SettingsCardGeometry.h
     QmUi/UiButtons.cpp
     QmUi/UiButtons.h
+    QmUi/ThemeSelectionLayout.h
     QmUi/UiContainers.h
     QmUi/UiContext.h
     QmUi/UiDiscreteSlider.cpp
@@ -3436,6 +3440,8 @@ if(CLIENT)
     components/qmclient/browser_status_layout.h
     components/qmclient/chat_command_preview.h
     components/qmclient/chat_input_layout.h
+    components/qmclient/pending_chat_messages.h
+    components/qmclient/chat_translation_notes.h
     components/qmclient/chat_scrollbar.h
     components/qmclient/chat_gradient.h
     components/qmclient/chat_command_hud.h
@@ -4567,8 +4573,10 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
   # 测试显式注册；目录递归发现和遗漏清单由 test_inventory.py 核对。
   set(TESTS
     src/test/unit/qmclient/ui/settings_card_info_test.cpp
+    src/test/unit/qmclient/ui/qm_list_entry_animation_test.cpp
     src/test/unit/engine/steam_client_path_test.cpp
     src/test/unit/qmclient/ui/settings_toggle_grid_test.cpp
+    src/test/unit/qmclient/ui/settings_choice_grid_test.cpp
     src/test/unit/qmclient/ui/QmAnimTest.cpp
     src/test/unit/qmclient/ui/QmAnimSpringTest.cpp
     src/test/unit/qmclient/ui/QmAnimCoreTest.cpp
@@ -4586,6 +4594,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/contract/qmclient/client/qm_phosphor_resource_contract_test.cpp
     src/test/contract/qmclient/ui/qm_font_icon_resource_contract_test.cpp
     src/test/unit/qmclient/ui/QmLayoutTest.cpp
+    src/test/unit/qmclient/ui/QmColorPickerPaletteTest.cpp
+    src/test/unit/qmclient/ui/QmColorPickerSliderTest.cpp
     src/test/unit/qmclient/ui/qm_secondary_button_style_test.cpp
     src/test/contract/qmclient/client/qm_afk_presentation_contract_test.cpp
     src/test/unit/qmclient/client/qm_blank_asset_fallback_test.cpp
@@ -4640,6 +4650,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/ui/qm_card_registry_test.cpp
     src/test/unit/qmclient/ui/qm_interaction_source_test.cpp
     src/test/unit/qmclient/ui/qm_console_ui_layout_test.cpp
+    src/test/unit/qmclient/ui/qm_console_settings_layout_test.cpp
     src/test/unit/qmclient/client/qm_credits_layout_test.cpp
     src/test/unit/qmclient/client/qm_module_layout_adapter_test.cpp
     src/test/unit/base/aio_test.cpp
@@ -4703,6 +4714,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/ui/players_menu_test.cpp
     src/test/integration/qmclient/ui/vote_map_loader_test.cpp
     src/test/unit/client/map_history_test.cpp
+    src/test/unit/client/map_tile_border_test.cpp
     src/test/unit/engine/map_load_test.cpp
     src/test/unit/engine/linereader_test.cpp
     src/test/unit/base/mapbugs_test.cpp
@@ -4733,6 +4745,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_chat_command_policy_test.cpp
     src/test/unit/qmclient/client/qm_chat_command_hud_test.cpp
     src/test/unit/qmclient/client/qm_chat_presentation_test.cpp
+    src/test/unit/qmclient/client/qm_pending_chat_messages_test.cpp
+    src/test/unit/qmclient/client/qm_outgoing_chat_annotations_test.cpp
     src/test/unit/qmclient/client/qm_chat_text_layout_test.cpp
     src/test/unit/qmclient/client/qm_console_log_filter_test.cpp
     src/test/unit/qmclient/client/qm_console_selection_test.cpp
@@ -4815,6 +4829,9 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/settings/settings_font_selection_test.cpp
     src/test/unit/qmclient/settings/settings_icon_options_test.cpp
     src/test/unit/qmclient/settings/settings_page_layout_test.cpp
+    src/test/unit/qmclient/settings/settings_content_metrics_test.cpp
+    src/test/unit/qmclient/settings/settings_label_metadata_test.cpp
+    src/test/unit/qmclient/settings/settings_content_layout_test.cpp
     src/test/unit/qmclient/settings/qm_general_card_layout_test.cpp
     src/test/unit/qmclient/settings/settings_tee_emote_slider_test.cpp
     src/test/unit/qmclient/settings/settings_tee_layout_test.cpp
@@ -4907,6 +4924,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qmclient_update_http_test.cpp
     src/test/unit/engine/http/http_url_test.cpp
     src/test/unit/qmclient/client/qmclient_update_proxy_test.cpp
+    src/test/integration/qmclient/client/qm_serverlist_recovery_test.cpp
     src/test/integration/qmclient/client/qmclient_update_request_test.cpp
     src/test/integration/qmclient/client/qmclient_update_survey_test.cpp
     src/test/integration/qmclient/client/qmclient_update_package_test.cpp
@@ -5072,6 +5090,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
   set(TESTS_EXTRA
     src/game/editor/mapitems/envelope.cpp
     src/game/map/envelope_eval.cpp
+    src/game/map/render_map.cpp
     src/engine/client/backend_threaded.cpp
     src/engine/client/backend/vulkan/backend_vulkan_qm_ext.cpp
     src/engine/client/backend/graphics_backend_contract.cpp
@@ -5362,18 +5381,31 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
 
   if(FREETYPE_FOUND)
     add_executable(qm-ui-popup-tests EXCLUDE_FROM_ALL
+      src/game/client/QmUi/UiNavigation.cpp
+      src/game/client/QmUi/UiDiscreteSlider.cpp
+      src/game/client/QmUi/UiDiscreteSliderLogic.cpp
       src/test/test.cpp
       src/test/support/qm_open_link_probe.cpp
       src/test/support/qm_popup_tooltip_boundary.cpp
       src/test/support/qm_exit_process_probe.cpp
       src/test/integration/qmclient/ui/qm_dropdown_popup_wheel_test.cpp
+      src/test/integration/qmclient/ui/qm_font_combobox_test.cpp
       src/test/integration/qmclient/ui/qm_popup_blur_scope_test.cpp
+      src/test/integration/qmclient/ui/qm_settings_search_session_test.cpp
+      src/test/integration/qmclient/ui/qm_settings_paragraph_test.cpp
       src/test/integration/qmclient/ui/qm_console_settings_scroll_test.cpp
       src/test/integration/qmclient/ui/qm_scrollbar_color_submission_test.cpp
+      src/test/integration/qmclient/ui/qm_background_controls_test.cpp
       src/test/integration/qmclient/ui/qm_editor_text_input_test.cpp
       src/test/integration/qmclient/ui/qm_tooltip_text_layout_test.cpp
+      src/test/integration/qmclient/ui/qm_card_summary_layout_test.cpp
+      src/test/integration/qmclient/ui/qm_secondary_panel_actions_test.cpp
+      src/test/integration/qmclient/ui/qm_settings_action_group_test.cpp
+      src/test/integration/qmclient/ui/qm_settings_text_columns_test.cpp
+      src/test/integration/qmclient/ui/qm_adaptive_choice_test.cpp
       src/test/integration/qmclient/ui/qm_console_button_text_layout_test.cpp
       src/test/integration/qmclient/ui/qm_icon_text_test.cpp
+      src/test/integration/qmclient/ui/qm_theme_selection_test.cpp
       src/test/integration/qmclient/ui/qm_ui_element_lifetime_test.cpp
       src/engine/client/text.cpp
       src/game/client/ui.cpp
@@ -5381,6 +5413,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/game/client/ui_rect.cpp
       src/game/client/ui_scrollregion.cpp
       src/game/client/lineinput.cpp
+      src/game/client/QmUi/SettingsCardGeometry.cpp
       src/game/client/QmUi/QmLineInputMotion.cpp
       src/game/client/QmUi/UiButtons.cpp
       src/game/client/QmUi/UiSurface.cpp
@@ -5467,6 +5500,7 @@ if(TARGET benchmark::benchmark AND SERVER AND FREETYPE_FOUND)
     src/test/benchmark/qm_text_benchmark.cpp
     src/test/benchmark/qm_ime_layout_benchmark.cpp
     src/test/benchmark/qm_chat_layout_benchmark.cpp
+    src/test/benchmark/qm_scoreboard_layout_benchmark.cpp
     src/test/benchmark/qm_translate_benchmark.cpp
     src/game/client/components/qmclient/translate/translate_jobs.cpp
     src/game/client/components/qmclient/translate/translate_parse.cpp
@@ -5479,6 +5513,8 @@ if(TARGET benchmark::benchmark AND SERVER AND FREETYPE_FOUND)
     src/test/benchmark/qm_net_benchmark.cpp
     src/test/benchmark/qm_snapshot_benchmark.cpp
     src/test/benchmark/qm_font_raster_benchmark.cpp
+    src/test/benchmark/qm_font_search_benchmark.cpp
+    src/game/client/QmUi/QmDropdown.cpp
     src/test/benchmark/qm_icon_render_benchmark.cpp
     src/engine/client/text.cpp
     src/test/benchmark/qm_steam_benchmark.cpp

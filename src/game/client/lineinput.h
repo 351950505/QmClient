@@ -77,6 +77,12 @@ namespace qm_lineinput
 class CLineInput
 {
 public:
+	enum class ERenderMode
+	{
+		DRAW,
+		GEOMETRY,
+	};
+
 	struct SMouseSelection
 	{
 		bool m_Selecting = false;
@@ -251,7 +257,8 @@ public:
 		return Changed;
 	}
 
-	STextBoundingBox Render(const CUIRect *pRect, float FontSize, int Align, bool Changed, float LineWidth, float LineSpacing, const std::vector<STextColorSplit> &vColorSplits = {});
+	// GEOMETRY 保留鼠标选择与光标几何，不提交文字、选区或光标绘制。
+	STextBoundingBox Render(const CUIRect *pRect, float FontSize, int Align, bool Changed, float LineWidth, float LineSpacing, const std::vector<STextColorSplit> &vColorSplits = {}, ERenderMode Mode = ERenderMode::DRAW);
 	SMouseSelection *GetMouseSelection() { return &m_MouseSelection; }
 
 	const void *GetClearButtonId() const { return &m_ClearButtonId; }

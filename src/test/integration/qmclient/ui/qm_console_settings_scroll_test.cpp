@@ -60,6 +60,26 @@ namespace
 			Region.End();
 		}
 
+		vec2 DrawResizingRegion(float ContentExtent, CUIRect View, bool Horizontal = false, bool Premeasure = true)
+		{
+			m_Client.AdvanceFrame();
+			CScrollRegionParams Params;
+			Params.m_ScrollHorizontal = Horizontal;
+			if(Premeasure)
+				m_ParentScroll.SetContentHeightForNextFrame(ContentExtent);
+			vec2 Offset;
+			m_ParentScroll.Begin(&View, &Offset, &Params);
+			View.x += Offset.x;
+			View.y += Offset.y;
+			if(Horizontal)
+				View.w = ContentExtent;
+			else
+				View.h = ContentExtent;
+			m_ParentScroll.AddRect(View);
+			m_ParentScroll.End();
+			return Offset;
+		}
+
 		static CUi::EPopupMenuFunctionResult Parent(void *pContext, CUIRect View, bool Active)
 		{
 			auto *pThis = static_cast<QmConsoleSettingsScrollIntegration *>(pContext);
@@ -235,4 +255,147 @@ TEST_F(QmConsoleSettingsScrollIntegration, BackgroundDrawPreservesPopupButtonPre
 	OwnerFrame();
 	EXPECT_EQ(Button.m_Clicks, 1);
 	EXPECT_EQ(m_Ui.ActiveItem(), nullptr);
+}
+
+TEST_F(QmConsoleSettingsScrollIntegration, BackgroundPremeasuredShrinkClampsReturnedOffsetAndKeepsLastRowVisible)
+{
+	const CUIRect View{40, 40, 240, 240};
+	for(bool Horizontal : {false, true})
+	{
+		for(float ContentExtent : {400.0f, 200.0f, 0.0f})
+		{
+			SCOPED_TRACE(Horizontal);
+			SCOPED_TRACE(ContentExtent);
+			m_ParentScroll.Reset();
+			DrawResizingRegion(900.0f, View, Horizontal);
+			m_ParentScroll.SetScrollOffsetY(-600.0f);
+			ASSERT_FLOAT_EQ(m_ParentScroll.State().Offset(), 600.0f);
+			m_Ui.BeginBackgroundRender();
+			const vec2 Offset = DrawResizingRegion(ContentExtent, View, Horizontal);
+			m_Ui.EndBackgroundRender();
+			const float Expected = ContentExtent == 400.0f ? 160.0f : 0.0f;
+			EXPECT_FLOAT_EQ(Horizontal ? Offset.x : Offset.y, -Expected);
+			EXPECT_FLOAT_EQ(Horizontal ? Offset.y : Offset.x, 0.0f);
+			EXPECT_FLOAT_EQ(m_ParentScroll.State().Offset(), Expected);
+			if(ContentExtent > 0.0f)
+			{
+				CUIRect LastRow = *m_ParentScroll.ClipRect();
+				if(Horizontal)
+				{
+					LastRow.x += ContentExtent - 20.0f + Offset.x;
+					LastRow.w = 20.0f;
+				}
+				else
+				{
+					LastRow.y += ContentExtent - 20.0f + Offset.y;
+					LastRow.h = 20.0f;
+				}
+				EXPECT_FALSE(m_ParentScroll.RectClipped(LastRow));
+			}
+		}
+	}
+}
+
+TEST_F(QmConsoleSettingsScrollIntegration, BackgroundViewportExpansionClampsBeforeContentLayout)
+{
+	for(bool Horizontal : {false, true})
+	{
+		SCOPED_TRACE(Horizontal);
+		m_ParentScroll.Reset();
+		CUIRect View{40, 40, 240, 240};
+		DrawResizingRegion(900.0f, View, Horizontal);
+		m_ParentScroll.SetScrollOffsetY(-600.0f);
+		m_Ui.BeginBackgroundRender();
+		if(Horizontal)
+			View.w = 800.0f;
+		else
+			View.h = 800.0f;
+		const vec2 Offset = DrawResizingRegion(900.0f, View, Horizontal);
+		EXPECT_FLOAT_EQ(Horizontal ? Offset.x : Offset.y, -100.0f);
+		if(Horizontal)
+			View.w = 1000.0f;
+		else
+			View.h = 1000.0f;
+		const vec2 FittingOffset = DrawResizingRegion(900.0f, View, Horizontal);
+		m_Ui.EndBackgroundRender();
+		EXPECT_FLOAT_EQ(Horizontal ? FittingOffset.x : FittingOffset.y, 0.0f);
+		EXPECT_FLOAT_EQ(m_ParentScroll.State().Offset(), 0.0f);
+	}
+}
+
+TEST_F(QmConsoleSettingsScrollIntegration, BackgroundContentMeasuredAtEndClampsAndNextFrameUsesCorrectedOffset)
+{
+	const CUIRect View{40, 40, 240, 240};
+	for(bool Horizontal : {false, true})
+	{
+		SCOPED_TRACE(Horizontal);
+		m_ParentScroll.Reset();
+		DrawResizingRegion(900.0f, View, Horizontal);
+		m_ParentScroll.SetScrollOffsetY(-600.0f);
+		m_Ui.BeginBackgroundRender();
+		DrawResizingRegion(400.0f, View, Horizontal, false);
+		EXPECT_FLOAT_EQ(m_ParentScroll.State().Offset(), 160.0f);
+		const vec2 Offset = DrawResizingRegion(400.0f, View, Horizontal, false);
+		EXPECT_FLOAT_EQ(Horizontal ? Offset.x : Offset.y, -160.0f);
+		DrawResizingRegion(200.0f, View, Horizontal, false);
+		EXPECT_FLOAT_EQ(m_ParentScroll.State().Offset(), 0.0f);
+		m_Ui.EndBackgroundRender();
+		// 内容重新增长并恢复前台后，不应恢复尺寸改变前的越界偏移。
+		const vec2 Restored = DrawResizingRegion(900.0f, View, Horizontal);
+		EXPECT_FLOAT_EQ(Horizontal ? Restored.x : Restored.y, 0.0f);
+	}
+}
+
+TEST_F(QmConsoleSettingsScrollIntegration, BackgroundValidOffsetPreservesPendingRevealUntilForeground)
+{
+	const CUIRect View{40, 40, 240, 240};
+	DrawResizingRegion(900.0f, View);
+	m_ParentScroll.SetScrollOffsetY(-200.0f);
+	m_ParentScroll.ScrollRelativeDirect(50.0f);
+	m_Ui.BeginBackgroundRender();
+	const vec2 Offset = DrawResizingRegion(900.0f, View);
+	m_Ui.EndBackgroundRender();
+	EXPECT_FLOAT_EQ(Offset.y, -200.0f);
+	EXPECT_FLOAT_EQ(m_ParentScroll.State().Offset(), 200.0f);
+	DrawResizingRegion(900.0f, View);
+	EXPECT_FLOAT_EQ(m_ParentScroll.State().Offset(), 250.0f);
+}
+
+TEST_F(QmConsoleSettingsScrollIntegration, BackgroundValidOffsetPreservesPausedScrollAnimation)
+{
+	const CUIRect View{40, 40, 240, 240};
+	DrawResizingRegion(900.0f, View);
+	m_ParentScroll.SetScrollOffsetY(-100.0f);
+	SQmScrollMetrics Metrics;
+	Metrics.m_ViewportSize = 240.0f;
+	Metrics.m_ContentSize = 900.0f;
+	const SQmScrollConfig Config = QmNativeWheelScrollConfig(1.0f, 0.2f);
+	m_ParentScroll.State().ScrollTo(400.0f, Metrics, Config);
+	ASSERT_TRUE(m_ParentScroll.Animating());
+	const float Velocity = m_ParentScroll.State().Velocity();
+	m_Ui.BeginBackgroundRender();
+	const vec2 Offset = DrawResizingRegion(900.0f, View);
+	m_Ui.EndBackgroundRender();
+	EXPECT_FLOAT_EQ(Offset.y, -100.0f);
+	EXPECT_FLOAT_EQ(m_ParentScroll.State().Offset(), 100.0f);
+	EXPECT_FLOAT_EQ(m_ParentScroll.State().Velocity(), Velocity);
+	EXPECT_TRUE(m_ParentScroll.Animating());
+	DrawResizingRegion(900.0f, View);
+	EXPECT_GT(m_ParentScroll.State().Offset(), 100.0f);
+}
+
+TEST_F(QmConsoleSettingsScrollIntegration, NestedMeasurementDoesNotClampBackgroundScrollState)
+{
+	const CUIRect View{40, 40, 240, 240};
+	DrawResizingRegion(900.0f, View);
+	m_ParentScroll.SetScrollOffsetY(-600.0f);
+	m_Ui.BeginBackgroundRender();
+	m_Ui.BeginRenderOnly();
+	DrawResizingRegion(400.0f, View);
+	m_Ui.EndRenderOnly();
+	EXPECT_FLOAT_EQ(m_ParentScroll.State().Offset(), 600.0f);
+	const vec2 Offset = DrawResizingRegion(400.0f, View);
+	m_Ui.EndBackgroundRender();
+	EXPECT_FLOAT_EQ(Offset.y, -160.0f);
+	EXPECT_FLOAT_EQ(m_ParentScroll.State().Offset(), 160.0f);
 }

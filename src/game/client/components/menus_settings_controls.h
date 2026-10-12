@@ -95,16 +95,14 @@ private:
 	bool m_SearchMatchReveal = false;
 	void UpdateSearchMatches();
 
-	float MeasureSettingsBindsHeight(EBindOptionGroup Group) const;
 	void RenderSettingsBinds(EBindOptionGroup Group, CUIRect View, bool ReadOnly);
 
-	float MeasureSettingsMouseHeight() const;
 	void RenderSettingsMouse(CUIRect View);
 	std::vector<CButtonContainer> m_vJoystickIngameModeButtonContainers = {{}, {}};
 	char m_aaJoystickAxisCheckboxIds[NUM_JOYSTICK_AXES][2]; // 2 for X and Y buttons
 	CScrollRegion m_JoystickDropDownScrollRegion;
 	CUi::SDropDownState m_JoystickDropDownState;
-	float MeasureSettingsJoystickHeight(float ContentWidth) const;
+
 	void RenderSettingsJoystick(CUIRect View, bool ReadOnly);
 	void RenderJoystickAxisPicker(CUIRect View, bool ReadOnly);
 	void RenderJoystickBar(const CUIRect *pRect, float Current, float Tolerance, bool Active);

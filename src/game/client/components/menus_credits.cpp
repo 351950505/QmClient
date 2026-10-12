@@ -14,6 +14,9 @@
 #include <engine/textrender.h>
 
 #include <game/client/QmUi/QmCardRegistry.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsParagraph.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/UiForms.h>
@@ -23,7 +26,6 @@
 #include <game/client/QmUi/cards/QmCardCatalog.h>
 #include <game/client/components/menu_background.h>
 #include <game/client/components/menus.h>
-#include <game/client/components/qmclient/qm_markdown.h>
 #include <game/client/components/qmclient/qm_sponsor_authors.h>
 #include <game/client/components/qmclient/qm_title_color.h>
 #include <game/client/components/qmclient/qm_title_render.h>
@@ -252,16 +254,12 @@ void CMenus::RenderSettingsContributors(CUIRect MainView, bool PrewarmOnly)
 									 "credits-qmclient";
 	const int SponsorsRevision = GameClient()->m_QmClient.QmSponsorsRevision();
 	const bool HasSponsorDeveloper = GameClient()->m_QmClient.HasDeveloperCredential();
-	const bool SponsorImageVisible = FindMenuImage("sponsor") != nullptr;
 	uint64_t CardLayoutRevision = str_quickhash("qmclient-contributors");
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (uint64_t)(ActiveTab + 1);
-	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (ReadOnly ? 1u : 0u);
-	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (s_ShowSponsorQrCode ? 1u : 0u);
-	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (SponsorImageVisible ? 1u : 0u);
-	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (uint64_t)SponsorsRevision;
+	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (PrewarmOnly ? 1u : 0u);
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (HasSponsorDeveloper ? 1u : 0u);
 	const uint64_t DefinitionsRevision = ResolveSettingsCardDefinitionsRevision(m_SettingsCardDeckDisplayCycle, m_MenuTextPoolGeneration, MainView.w, CardLayoutRevision);
-	const auto BuildDefinitions = [this, Metrics, ReadOnly, ActiveTab, SponsorsRevision, HasSponsorDeveloper](std::vector<SSettingsCardDefinition> &vCards) {
+	const auto BuildDefinitions = [this, Metrics, ReadOnly = PrewarmOnly, ActiveTab, SponsorsRevision, HasSponsorDeveloper](std::vector<SSettingsCardDefinition> &vCards) {
 		if(ActiveTab == CREDITS_SETTINGS_TAB_QMCLIENT)
 			AppendQmClientContributorCards(vCards, Metrics, ReadOnly, SponsorsRevision, HasSponsorDeveloper);
 		else
@@ -288,24 +286,24 @@ void CMenus::RenderSettingsContributors(CUIRect MainView, bool PrewarmOnly)
 	InputState.m_CtrlPressed = !ReadOnly && Input()->ModifierIsPressed();
 	InputState.m_AllowHeaderDrag = !ReadOnly;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	static qm_card_order::CModel s_ContributorsPrewarmOrderModel;
 	static bool s_ContributorsPrewarmOrderModelInitialized = false;
 	static CSettingsCardDeck s_ContributorsPrewarmDeck;
-	if(ReadOnly && !s_ContributorsPrewarmOrderModelInitialized)
+	if(Ui()->MeasurementOnly() && !s_ContributorsPrewarmOrderModelInitialized)
 	{
 		s_ContributorsPrewarmOrderModel.LoadMerged("", qm_card_registry::BuildDefaultEntries());
 		s_ContributorsPrewarmOrderModelInitialized = true;
 	}
-	qm_card_order::CModel &CardOrderModel = ReadOnly ? s_ContributorsPrewarmOrderModel : SettingsCardOrderModel();
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_ContributorsPrewarmDeck : m_SettingsCardDeck;
+	qm_card_order::CModel &CardOrderModel = Ui()->MeasurementOnly() ? s_ContributorsPrewarmOrderModel : SettingsCardOrderModel();
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_ContributorsPrewarmDeck : m_SettingsCardDeck;
 	// 信息 tab 删除前的旧 stable id 前缀也接受，保证旧的搜索/深链接定位仍能展开卡片。
 	if(!ReadOnly && (str_startswith(m_SettingsCardFocusStableId.c_str(), "deck:tclient-info-") != nullptr || str_startswith(m_SettingsCardFocusStableId.c_str(), "deck:qmclient-contributors-") != nullptr || str_startswith(m_SettingsCardFocusStableId.c_str(), "deck:credits-") != nullptr))
 	{
 		CardDeck.RequestReveal(m_SettingsCardFocusStableId.c_str());
 		m_SettingsCardFocusStableId.clear();
 	}
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, pDeckTab, DefinitionsRevision, BuildDefinitions, CardOrderModel, ReadOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, pDeckTab, DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }
@@ -332,69 +330,37 @@ void CMenus::AppendDdnetContributorCard(std::vector<SSettingsCardDefinition> &vC
 		"catseyenebulous", "Rei-Tw", "Matodor", "Emilcha", "art0007i", "SollyBunny", "0xfaulty", "AssassinTee", "Pioooooo",
 		"ASKLL-STAR", "K1nop1c0", "Bamcane", "qxdFox", "ZerolAcqua", "swarfeya", "Scrumplex", "12944qwerty", "Pointer31",
 		"ProfSapphire", "0xpixty", "GlimmeR", "horoni"};
-	const auto BuildDdnetContributorLines = [this, TipSize](float MaxLineWidth) {
-		static std::vector<std::string> Lines;
-		static float s_CachedMaxLineWidth = -1.0f;
-		static uint64_t s_CachedTextGeneration = UINT64_MAX;
-		if(std::abs(s_CachedMaxLineWidth - MaxLineWidth) <= 0.01f && s_CachedTextGeneration == m_MenuTextPoolGeneration)
-			return std::cref(Lines);
-
-		Lines.clear();
-		Lines.emplace_back();
-		const char *pSeparator = ", ";
-		const float SeparatorWidth = TextRender()->TextWidth(TipSize, pSeparator);
-		float LineWidth = 0.0f;
+	static const std::string s_Contributors = [] {
+		std::string Names;
 		for(const char *pName : s_apDdnetContributors)
 		{
-			const float NameWidth = TextRender()->TextWidth(TipSize, pName);
-			if(Lines.back().empty())
-			{
-				Lines.back() = pName;
-				LineWidth = NameWidth;
-			}
-			else if(LineWidth + SeparatorWidth + NameWidth > MaxLineWidth)
-			{
-				Lines.emplace_back(pName);
-				LineWidth = NameWidth;
-			}
-			else
-			{
-				Lines.back().append(pSeparator);
-				Lines.back().append(pName);
-				LineWidth += SeparatorWidth + NameWidth;
-			}
+			if(!Names.empty())
+				Names += " · ";
+			Names += pName;
 		}
-		s_CachedMaxLineWidth = MaxLineWidth;
-		s_CachedTextGeneration = m_MenuTextPoolGeneration;
-		return std::cref(Lines);
-	};
-	DdnetCredits.m_Measure = [LineHeight, LineSpacing, BuildDdnetContributorLines](float ContentWidth) {
-		return ResolveSettingsRowsHeight(1 + (int)BuildDdnetContributorLines(ContentWidth).get().size(), LineHeight, LineSpacing);
-	};
-	DdnetCredits.m_Render = [this, LineHeight, LineSpacing, TipSize, ReadOnly, BuildDdnetContributorLines](CUIRect Content) {
-		CUIRect Row;
+		return Names;
+	}();
+	DdnetCredits.m_RenderMeasured = [this, Metrics, LineHeight, LineSpacing, TipSize, ReadOnly](CUIRect &Content) {
+		CUIRect Row, LeftButton, RightButton;
 		static CButtonContainer s_DdnetStaffButton;
 		static CButtonContainer s_DdnetReleasesButton;
+		const char *apLabels[] = {Localize("DDNet staff"), Localize("DDNet releases")};
 
-		// 两个入口按钮同一行并列。
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		CUIRect StaffButton, ReleasesButton;
-		Row.VSplitMid(&StaffButton, &ReleasesButton, LineSpacing);
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetStaffButton, "qmclient-ddnet-staff", Localize("DDNet staff"), 0, &StaffButton))
-			Client()->ViewLink("https://ddnet.org/staff");
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetReleasesButton, "qmclient-ddnet-releases", Localize("DDNet releases"), 0, &ReleasesButton))
-			Client()->ViewLink("https://ddnet.org/releases/");
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-
-		const std::vector<std::string> &ContributorLines = BuildDdnetContributorLines(Content.w).get();
-		for(size_t Index = 0; Index < ContributorLines.size(); ++Index)
+		CSettingsContentLayoutFlow Flow(Content);
+		if(Flow.Control("ddnet-actions", LineHeight, Row))
 		{
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			Ui()->DoLabel(&Row, ContributorLines[Index].c_str(), TipSize, TEXTALIGN_ML);
-			if(Index + 1 < ContributorLines.size())
-				Content.HSplitTop(LineSpacing, nullptr, &Content);
+			// 两枚入口按钮等分整行宽度，中缝留出行距。
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetStaffButton, "qmclient-ddnet-staff", apLabels[0], ReadOnly ? -1 : 0, &LeftButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://ddnet.org/staff");
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetReleasesButton, "qmclient-ddnet-releases", apLabels[1], ReadOnly ? -1 : 0, &RightButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://ddnet.org/releases/");
 		}
+		Flow.Space(LineSpacing);
+		// 名单用小字加大行距的流式排版，间隔点分隔，降低拥挤感。
+		Flow.Text("ddnet-contributor-names", s_Contributors.c_str(), 0.0f, TipSize, 0.0f, [this](const char *pText, float Width, float Size) { return TextRender()->TextBoundingBox(Size, pText, -1, Width).m_H + Size * 0.75f; }, [this, TipSize](const CUIRect &Rect, const char *pText) { Ui()->DoLabel(&Rect, pText, TipSize, TEXTALIGN_ML, {.m_MaxWidth = Rect.w, .m_EnableWidthCheck = false}); }, LineHeight);
 	};
+	qm_settings_content::UseDeclaredContent(DdnetCredits, Ui(), TextRender());
 	vCards.push_back(std::move(DdnetCredits));
 }
 
@@ -407,26 +373,29 @@ void CMenus::AppendTClientDeveloperCard(std::vector<SSettingsCardDefinition> &vC
 
 	SSettingsCardDefinition Developers;
 	Developers.m_Spec = {"deck:tclient-info-developers", Localize("TClient Developers"), qm_card_registry::ResolveLocalizedDescription("deck:tclient-info-developers")};
-	Developers.m_Measure = [LineHeight, LineSpacing](float) {
-		return ResolveSettingsRowsHeight(2, LineHeight, LineSpacing) + LineSpacing + (50.0f + LineSpacing) * 5.0f;
-	};
-	Developers.m_Render = [this, LineHeight, LineSpacing, BodySize, ReadOnly](CUIRect Content) {
+	Developers.m_RenderMeasured = [this, Metrics, LineHeight, LineSpacing, BodySize, ReadOnly](CUIRect &Content) {
 		static CButtonContainer s_DiscordButton, s_WebsiteButton, s_GithubButton, s_SupportButton;
+		CSettingsContentLayoutFlow Flow(Content);
 		CUIRect Row, LeftButton, RightButton;
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DiscordButton, "tclient-links-discord", Localize("Discord"), 0, &LeftButton))
-			Client()->ViewLink("https://discord.gg/fBvhH93Bt6");
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_WebsiteButton, "tclient-links-website", Localize("Website"), 0, &RightButton))
-			Client()->ViewLink("https://tclient.app/");
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_GithubButton, "tclient-links-github", Localize("Github"), 0, &LeftButton))
-			Client()->ViewLink("https://github.com/sjrc6/TaterClient-ddnet");
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_SupportButton, "tclient-links-support", Localize("Support ♥"), 0, &RightButton))
-			Client()->ViewLink("https://ko-fi.com/Totar");
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		if(Flow.Control("tclient-developer-actions-0", LineHeight, Row))
+		{
+			// 两枚链接按钮等分整行宽度，与友链卡按钮同栅格。
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DiscordButton, "tclient-links-discord", Localize("Discord"), 0, &LeftButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://discord.gg/fBvhH93Bt6");
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_WebsiteButton, "tclient-links-website", Localize("Website"), 0, &RightButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://tclient.app/");
+		}
+		Flow.Space(LineSpacing);
+		if(Flow.Control("tclient-developer-actions-1", LineHeight, Row))
+		{
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_GithubButton, "tclient-links-github", Localize("Github"), 0, &LeftButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://github.com/sjrc6/TaterClient-ddnet");
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_SupportButton, "tclient-links-support", Localize("Support ♥"), 0, &RightButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://ko-fi.com/Totar");
+		}
+		Flow.Space(LineSpacing);
 
 		struct SDeveloper
 		{
@@ -447,23 +416,50 @@ void CMenus::AppendTClientDeveloperCard(std::vector<SSettingsCardDefinition> &vC
 		};
 		static std::array<CButtonContainer, std::size(s_aDevelopers)> s_aLinkButtons;
 		constexpr float TeeSize = 50.0f;
-		for(size_t Index = 0; Index < std::size(s_aDevelopers); ++Index)
+		// 开发者两列网格：每格 Tee + 名称 + 跳转按钮，名称垂直居中，两列上下对齐。
+		const float CellGap = LineSpacing;
+		const float CellWidth = std::max(0.0f, (Content.w - CellGap) * 0.5f);
+		const size_t DevRowCount = (std::size(s_aDevelopers) + 1) / 2;
+		for(size_t RowIndex = 0; RowIndex < DevRowCount; ++RowIndex)
 		{
-			CUIRect TeeRect, Label, Button;
-			Content.HSplitTop(TeeSize + LineSpacing, &Row, &Content);
-			Row.VSplitLeft(TeeSize + LineSpacing, &TeeRect, &Label);
-			TeeRect.w = TeeSize;
-			Label.VSplitLeft(TextRender()->TextWidth(BodySize, s_aDevelopers[Index].m_pName), &Label, &Button);
-			Button.VSplitLeft(LineSpacing, nullptr, &Button);
-			Button.w = LineHeight;
-			Button.h = LineHeight;
-			Button.y = Label.y + (Label.h - Button.h) * 0.5f;
-			DoSettingsLabel(SETTINGS_CONTRIBUTORS, -1, s_aDevelopers[Index].m_pName, &Label, s_aDevelopers[Index].m_pName, BodySize, TEXTALIGN_ML);
-			if(!ReadOnly && Ui()->DoButton_QmIcon(&s_aLinkButtons[Index], EQmIcon::ARROW_UP_RIGHT_FROM_SQUARE, FONT_ICON_ARROW_UP_RIGHT_FROM_SQUARE, 0, &Button, IGraphics::CORNER_ALL))
-				Client()->ViewLink(s_aDevelopers[Index].m_pUrl);
-			RenderDevSkin(TeeRect.Center(), TeeSize, s_aDevelopers[Index].m_pSkin, s_aDevelopers[Index].m_pUseCustomColors, s_aDevelopers[Index].m_CustomColors, 0, 0, 0, false, true, s_aDevelopers[Index].m_BodyColor, s_aDevelopers[Index].m_FeetColor);
+			char aRowId[40];
+			str_format(aRowId, sizeof(aRowId), "tclient-developer-row-%d", static_cast<int>(RowIndex));
+			if(!Flow.Control(aRowId, TeeSize + LineSpacing, Row))
+				continue;
+			CUIRect Cell = Row;
+			for(size_t Column = 0; Column < 2; ++Column)
+			{
+				const size_t Index = RowIndex * 2 + Column;
+				CUIRect CellRect;
+				if(Column == 0)
+				{
+					Cell.VSplitLeft(CellWidth, &CellRect, &Cell);
+					Cell.VSplitLeft(CellGap, nullptr, &Cell);
+				}
+				else
+					CellRect = Cell;
+				if(Index >= std::size(s_aDevelopers))
+					break;
+				CUIRect TeeRect, Label, Button;
+				CellRect.h = TeeSize;
+				CellRect.VSplitLeft(TeeSize, &TeeRect, &Label);
+				Label.VSplitLeft(LineSpacing, nullptr, &Label);
+				// 名称列按实测宽加余量定宽并启用省略号，避免测量与渲染的亚像素差把末字母挤到下一行。
+				const float NameWidth = std::min(TextRender()->TextWidth(BodySize, s_aDevelopers[Index].m_pName) + 2.0f, std::max(0.0f, Label.w - LineSpacing - LineHeight));
+				Label.VSplitLeft(NameWidth, &Label, &Button);
+				Button.VSplitLeft(LineSpacing, nullptr, &Button);
+				Button.w = LineHeight;
+				Button.h = LineHeight;
+				Button.y = Label.y + (Label.h - Button.h) * 0.5f;
+				DoSettingsLabel(SETTINGS_CONTRIBUTORS, -1, s_aDevelopers[Index].m_pName, &Label, s_aDevelopers[Index].m_pName, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Label.w, .m_EllipsisAtEnd = true, .m_EnableWidthCheck = false});
+				if(Ui()->DoButton_QmIcon(&s_aLinkButtons[Index], EQmIcon::ARROW_UP_RIGHT_FROM_SQUARE, FONT_ICON_ARROW_UP_RIGHT_FROM_SQUARE, 0, &Button, IGraphics::CORNER_ALL) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+					Client()->ViewLink(s_aDevelopers[Index].m_pUrl);
+				if(Flow.Drawing())
+					RenderDevSkin(TeeRect.Center(), TeeSize, s_aDevelopers[Index].m_pSkin, s_aDevelopers[Index].m_pUseCustomColors, s_aDevelopers[Index].m_CustomColors, 0, 0, 0, false, true, s_aDevelopers[Index].m_BodyColor, s_aDevelopers[Index].m_FeetColor);
+			}
 		}
 	};
+	qm_settings_content::UseDeclaredContent(Developers, Ui(), TextRender());
 	vCards.push_back(std::move(Developers));
 }
 
@@ -475,8 +471,7 @@ void CMenus::AppendFriendLinkCards(std::vector<SSettingsCardDefinition> &vCards,
 
 	SSettingsCardDefinition FriendLinks;
 	FriendLinks.m_Spec = {"deck:credits-friend-links", Localize("Friend links"), qm_card_registry::ResolveLocalizedDescription("deck:credits-friend-links")};
-	FriendLinks.m_Measure = [LineHeight, LineSpacing](float) { return ResolveSettingsRowsHeight(4, LineHeight, LineSpacing); };
-	FriendLinks.m_Render = [this, LineHeight, LineSpacing, ReadOnly](CUIRect Content) {
+	FriendLinks.m_RenderMeasured = [this, Metrics, LineHeight, LineSpacing, ReadOnly](CUIRect &Content) {
 		static CButtonContainer s_DdnetWorkshopButton, s_DdnetWebsiteButton, s_QmClientWebsiteButton;
 		static CButtonContainer s_ShengyanButton, s_TeeDataButton, s_DdStatsButton, s_AxiomButton;
 		// 站点图标纹理：首次渲染时各加载一次，失败则回退到 EQmIcon 字形。
@@ -502,9 +497,10 @@ void CMenus::AppendFriendLinkCards(std::vector<SSettingsCardDefinition> &vCards,
 			"qmclient/friendlinks/ddstats.webp",
 			"qmclient/friendlinks/axiom.webp",
 		};
+		CSettingsContentLayoutFlow Flow(Content);
 		for(int i = 0; i < ICON_COUNT; ++i)
 		{
-			if(!s_aSiteIconsAttempted[i])
+			if(Flow.Drawing() && !s_aSiteIconsAttempted[i])
 			{
 				s_aSiteIconsAttempted[i] = true;
 				CImageInfo Image;
@@ -513,36 +509,47 @@ void CMenus::AppendFriendLinkCards(std::vector<SSettingsCardDefinition> &vCards,
 			}
 		}
 		CUIRect Row, LeftButton, RightButton;
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetWorkshopButton, "credits-links-ddnet-workshop", "DDNet Workshop", 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::MAP, FONT_ICON_MAP, &s_aSiteIcons[ICON_DDRACE]))
-			Client()->ViewLink("https://ddrace.cn/");
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetWebsiteButton, "credits-links-ddnet-website", Localize("DDNet Website"), 0, &RightButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::EARTH_AMERICAS, FONT_ICON_EARTH_AMERICAS, &s_aSiteIcons[ICON_DDNET]))
-			Client()->ViewLink("https://ddnet.org");
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_QmClientWebsiteButton, "credits-links-qmclient-website", Localize("QmClient Website"), 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::HOUSE, FONT_ICON_HOUSE, &s_aSiteIcons[ICON_QMCLIENT]))
-			Client()->ViewLink("https://qmclient.icu");
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_ShengyanButton, "credits-links-shengyan", "shengyan 北京服", 0, &RightButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::NETWORK_WIRED, FONT_ICON_NETWORK_WIRED, &s_aSiteIcons[ICON_SHENGYAN]))
-			Client()->ViewLink("https://shengyan.art/");
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_TeeDataButton, "credits-links-teedata", "TeeData 官方资源库", 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::FOLDER_OPEN, FONT_ICON_FOLDER_OPEN, &s_aSiteIcons[ICON_TEEDATA]))
-			Client()->ViewLink("https://teedata.net/");
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdStatsButton, "credits-links-ddstats", "DDStats 官方统计网站", 0, &RightButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::LIST_UL, FONT_ICON_LIST_UL, &s_aSiteIcons[ICON_DDSTATS]))
-			Client()->ViewLink("https://ddstats.tw/");
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_AxiomButton, "credits-links-axiom", "Axiom 社区", 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::EARTH_AMERICAS, FONT_ICON_EARTH_AMERICAS, &s_aSiteIcons[ICON_AXIOM]))
-			Client()->ViewLink("https://axiom.teeworlds.cn/");
+		if(Flow.Control("friend-link-actions-0", LineHeight, Row))
+		{
+			// 每行两枚按钮等分整行宽度，中缝留出行距。
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetWorkshopButton, "credits-links-ddnet-workshop", "DDNet Workshop", 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::MAP, FONT_ICON_MAP, &s_aSiteIcons[ICON_DDRACE]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://ddrace.cn/");
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetWebsiteButton, "credits-links-ddnet-website", Localize("DDNet Website"), 0, &RightButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::EARTH_AMERICAS, FONT_ICON_EARTH_AMERICAS, &s_aSiteIcons[ICON_DDNET]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://ddnet.org");
+		}
+		Flow.Space(LineSpacing);
+		if(Flow.Control("friend-link-actions-1", LineHeight, Row))
+		{
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_QmClientWebsiteButton, "credits-links-qmclient-website", Localize("QmClient Website"), 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::HOUSE, FONT_ICON_HOUSE, &s_aSiteIcons[ICON_QMCLIENT]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://qmclient.icu");
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_ShengyanButton, "credits-links-shengyan", "shengyan 北京服", 0, &RightButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::NETWORK_WIRED, FONT_ICON_NETWORK_WIRED, &s_aSiteIcons[ICON_SHENGYAN]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://shengyan.art/");
+		}
+		Flow.Space(LineSpacing);
+		if(Flow.Control("friend-link-actions-2", LineHeight, Row))
+		{
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_TeeDataButton, "credits-links-teedata", "TeeData 官方资源库", 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::FOLDER_OPEN, FONT_ICON_FOLDER_OPEN, &s_aSiteIcons[ICON_TEEDATA]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://teedata.net/");
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdStatsButton, "credits-links-ddstats", "DDStats 官方统计网站", 0, &RightButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::LIST_UL, FONT_ICON_LIST_UL, &s_aSiteIcons[ICON_DDSTATS]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://ddstats.tw/");
+		}
+		Flow.Space(LineSpacing);
+		if(Flow.Control("friend-link-actions-3", LineHeight, Row))
+		{
+			// 单枚按钮同样占半行，与其余行保持同一栅格。
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_AxiomButton, "credits-links-axiom", "Axiom 社区", 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::EARTH_AMERICAS, FONT_ICON_EARTH_AMERICAS, &s_aSiteIcons[ICON_AXIOM]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://axiom.teeworlds.cn/");
+		}
 	};
+	qm_settings_content::UseDeclaredContent(FriendLinks, Ui(), TextRender());
 	vCards.push_back(std::move(FriendLinks));
 }
 
-void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition> &vCards, const SSettingsContentMetrics &Metrics, bool ReadOnly, int SponsorsRevision, bool HasSponsorDeveloper)
+void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition> &vCards, const SSettingsContentMetrics &Metrics, bool ReadOnly, int /* SponsorsRevision */, bool HasSponsorDeveloper)
 {
 	// 栖梦贡献者内容（社区/赞助支持/赞助头衔）由顶层「贡献者」页统一承载。
 	const float UiScale = Metrics.m_UiScale;
@@ -554,8 +561,8 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 
 	SSettingsCardDefinition Community;
 	Community.m_Spec = {"deck:qmclient-contributors-community", Localize("QmClient Community"), Localize("Official community links")};
-	Community.m_Measure = [LineHeight, LineSpacing](float) { return ResolveSettingsRowsHeight(3, LineHeight, LineSpacing); };
-	Community.m_Render = [this, LineHeight, LineSpacing, TipSize, ReadOnly](CUIRect Content) {
+	Community.m_RenderMeasured = [this, LineHeight, LineSpacing, TipSize, ReadOnly](CUIRect &Content) {
+		CSettingsContentLayoutFlow Flow(Content);
 		CUIRect Row;
 		static int s_QQGroupButtonId;
 		static bool s_QQCopied = false;
@@ -564,102 +571,51 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 		static CButtonContainer s_RecentUpdateButton;
 		static constexpr const char *pQmClientQqGroupLink = "https://qm.qq.com/cgi-bin/qm/qr?k=ntqdhb9_nB5GeWBo8IVMZoypYmbMwCQ1&jump_from=webapi&authKey=e4HiooMF/hxk8UZhTv8qDu7/8bZ9e3xc7rZYaLlyeifWglGT9KDchsQ7zjpinDr7";
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		if(!ReadOnly && Ui()->MouseInside(&Row))
+		const char *pCopyText = s_QQCopied ? Localize("Copied") : Localize("QQ group: 1076765929 (click to copy)");
+		if(Flow.MeasuredControl("community-qq-copy", pCopyText, LineHeight, TipSize, 0.0f, 0.0f, 0.0f, Row,
+			   [this](const SSettingsContentRowDeclaration &Declaration, float Width) { return TextRender()->TextBoundingBox(Declaration.m_FontSize, Declaration.m_Text.c_str(), -1, Width).m_H + Declaration.m_FontSize * 0.25f; }))
 		{
-			Ui()->SetHotItem(&s_QQGroupButtonId);
-			if(Ui()->MouseButtonClicked(0))
+			if(Flow.Input() && !ReadOnly && !Ui()->RenderOnly() && Ui()->MouseInside(&Row))
 			{
-				Input()->SetClipboardText("1076765929");
-				s_QQCopied = true;
-				s_QQCopiedTime = Client()->LocalTime();
+				Ui()->SetHotItem(&s_QQGroupButtonId);
+				if(Ui()->MouseButtonClicked(0))
+				{
+					Input()->SetClipboardText("1076765929");
+					s_QQCopied = true;
+					s_QQCopiedTime = Client()->LocalTime();
+				}
 			}
+			if(Flow.Input() && !ReadOnly && !Ui()->RenderOnly() && s_QQCopied && Client()->LocalTime() - s_QQCopiedTime > 1.5f)
+				s_QQCopied = false;
+			DoSettingsMenuLabel(SETTINGS_CONTRIBUTORS, -1, -1, "qmclient-community-qq-group-copy", &Row, Flow.PublishedText("community-qq-copy", pCopyText), TipSize, TEXTALIGN_ML, {.m_MaxWidth = Row.w, .m_EnableWidthCheck = false}, (int)Row.w);
 		}
-		if(!ReadOnly && s_QQCopied && Client()->LocalTime() - s_QQCopiedTime > 1.5f)
-			s_QQCopied = false;
-		DoSettingsMenuLabel(SETTINGS_CONTRIBUTORS, -1, -1, "qmclient-community-qq-group-copy", &Row, s_QQCopied ? Localize("Copied") : Localize("QQ group: 1076765929 (click to copy)"), TipSize, TEXTALIGN_ML, {}, (int)Row.w);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		Flow.Space(LineSpacing);
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_JoinQqGroupButton, "qmclient-community-join-qq-group", Localize("Join QQ group"), 0, &Row))
-			Client()->ViewLink(pQmClientQqGroupLink);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		if(Flow.Control("community-join-qq", LineHeight, Row))
+		{
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_JoinQqGroupButton, "qmclient-community-join-qq-group", Localize("Join QQ group"), 0, &Row) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink(pQmClientQqGroupLink);
+		}
+		Flow.Space(LineSpacing);
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		if(!ReadOnly && DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_RecentUpdateButton, "qmclient-community-view-latest-updates", Localize("View latest updates"), 0, &Row))
-			Client()->ViewLink("https://qmclient.icu");
+		if(Flow.Control("community-updates", LineHeight, Row))
+		{
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_RecentUpdateButton, "qmclient-community-view-latest-updates", Localize("View latest updates"), 0, &Row) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				Client()->ViewLink("https://qmclient.icu");
+		}
 	};
+	qm_settings_content::UseDeclaredContent(Community, Ui(), TextRender());
 	vCards.push_back(std::move(Community));
 
 	SSettingsCardDefinition Sponsors;
 	Sponsors.m_Spec = {"deck:qmclient-contributors-sponsors", Localize("Sponsor support"), Localize("Thanks for supporting QmClient")};
-	const auto BuildSponsorLines = [this, TipSize, SponsorsRevision](float MaxLineWidth) {
-		static std::vector<std::string> Lines;
-		static float s_CachedMaxLineWidth = -1.0f;
-		static uint64_t s_CachedTextGeneration = UINT64_MAX;
-		static int s_CachedSponsorsRevision = -1;
-		if(std::abs(s_CachedMaxLineWidth - MaxLineWidth) <= 0.01f && s_CachedTextGeneration == m_MenuTextPoolGeneration && s_CachedSponsorsRevision == SponsorsRevision)
-			return std::cref(Lines);
-
-		Lines.clear();
-		Lines.emplace_back();
-		const char *pSeparator = ", ";
-		const float SeparatorWidth = TextRender()->TextWidth(TipSize, pSeparator);
-		float LineWidth = 0.0f;
-		for(const std::string &Name : GameClient()->m_QmClient.QmSponsorNames())
-		{
-			const char *pName = Name.c_str();
-			const float NameWidth = TextRender()->TextWidth(TipSize, pName);
-			if(NameWidth > MaxLineWidth)
-			{
-				if(!Lines.back().empty())
-					Lines.emplace_back();
-				LineWidth = 0.0f;
-				for(const std::string &Glyph : qm_md::SplitUtf8(Name))
-				{
-					const float GlyphWidth = TextRender()->TextWidth(TipSize, Glyph.c_str());
-					if(!Lines.back().empty() && LineWidth + GlyphWidth > MaxLineWidth)
-					{
-						Lines.emplace_back();
-						LineWidth = 0.0f;
-					}
-					Lines.back() += Glyph;
-					LineWidth += GlyphWidth;
-				}
-			}
-			else if(Lines.back().empty())
-			{
-				Lines.back() = pName;
-				LineWidth = NameWidth;
-			}
-			else if(LineWidth + SeparatorWidth + NameWidth > MaxLineWidth)
-			{
-				Lines.emplace_back(pName);
-				LineWidth = NameWidth;
-			}
-			else
-			{
-				Lines.back().append(pSeparator);
-				Lines.back().append(pName);
-				LineWidth += SeparatorWidth + NameWidth;
-			}
-		}
-		s_CachedMaxLineWidth = MaxLineWidth;
-		s_CachedTextGeneration = m_MenuTextPoolGeneration;
-		s_CachedSponsorsRevision = SponsorsRevision;
-		return std::cref(Lines);
-	};
-	Sponsors.m_Measure = [this, UiScale, LineHeight, LineSpacing, BuildSponsorLines, HasSponsorDeveloper](float ContentWidth) {
-		const float ImageHeight = FindMenuImage("sponsor") != nullptr ? std::clamp(ContentWidth * 0.18f, LineHeight * 2.0f, LineHeight * 4.0f) : 0.0f;
-		const float QrHeight = s_ShowSponsorQrCode ? LineHeight * 0.5f + std::clamp(ContentWidth, LineHeight * 8.0f, LineHeight * 12.0f) : 0.0f;
-		const float SponsorLinesHeight = ResolveSettingsRowsHeight((int)BuildSponsorLines(ContentWidth).get().size(), LineHeight, LineSpacing);
-		const float AuthorTeeSize = std::max(LineHeight * 2.0f, 50.0f * UiScale);
-		const float DeveloperHeight = HasSponsorDeveloper ? 2.0f * (LineHeight + LineSpacing) : 0.0f;
-		return ImageHeight + LineHeight + QrHeight + QmSponsorAuthors::RowsHeight(AuthorTeeSize, LineSpacing, LineHeight) + LineSpacing + LineHeight + SponsorLinesHeight + LineSpacing + LineHeight + DeveloperHeight;
-	};
-	Sponsors.m_MeasureRevision = ((uint64_t)SponsorsRevision << 3) | (FindMenuImage("sponsor") != nullptr ? 1u : 0u) | (s_ShowSponsorQrCode ? 2u : 0u) | (HasSponsorDeveloper ? 4u : 0u);
-	Sponsors.m_Render = [this, UiScale, BodySize, LineHeight, LineSpacing, TipSize, ReadOnly, BuildSponsorLines, HasSponsorDeveloper](CUIRect Content) {
+	Sponsors.m_RenderMeasured = [this, Metrics, UiScale, BodySize, LineHeight, LineSpacing, TipSize, ReadOnly, HasSponsorDeveloper](CUIRect &Content) {
+		CSettingsContentLayoutFlow Flow(Content);
 		CUIRect Row;
+		const auto Measure = [this](const char *pText, float Width, float Size) { return TextRender()->TextBoundingBox(Size, pText, -1, Width).m_H + Size * 0.25f; };
+		const auto Text = [&](const char *pId, const char *pValue, float Size, float Spacing) {
+			Flow.Text(pId, pValue, 0.0f, Size, Spacing, Measure, [this, pId, Size](const CUIRect &Rect, const char *pText) { DoSettingsMenuLabel(SETTINGS_CONTRIBUTORS, -1, -1, pId, &Rect, pText, Size, TEXTALIGN_ML, {.m_MaxWidth = Rect.w, .m_EnableWidthCheck = false}, (int)Rect.w); }, LineHeight);
+		};
 		static CButtonContainer s_SponsorButton;
 		static CButtonContainer s_RefreshSponsorsButton;
 		CQmClient &QmClient = GameClient()->m_QmClient;
@@ -672,8 +628,8 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 
 		if(const CMenuImage *pSponsorImage = FindMenuImage("sponsor"))
 		{
-			Content.HSplitTop(std::clamp(Content.w * 0.18f, LineHeight * 2.0f, LineHeight * 4.0f), &Row, &Content);
-			if(!ReadOnly)
+			const bool HasImage = Flow.Control("sponsor-image", std::clamp(Content.w * 0.18f, LineHeight * 2.0f, LineHeight * 4.0f), Row);
+			if(HasImage && Flow.Drawing() && !ReadOnly)
 			{
 				Graphics()->TextureSet(pSponsorImage->m_OrgTexture);
 				Graphics()->QuadsBegin();
@@ -684,15 +640,14 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 			}
 		}
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		if(!ReadOnly && DoButton_Menu(&s_SponsorButton, s_ShowSponsorQrCode ? Localize("Hide sponsor QR code") : Localize("Show sponsor QR code"), 0, &Row))
+		if(Flow.Control("sponsor-qr-toggle", LineHeight, Row) && DoButton_Menu(&s_SponsorButton, s_ShowSponsorQrCode ? Localize("Hide sponsor QR code") : Localize("Show sponsor QR code"), 0, &Row) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
 			s_ShowSponsorQrCode = !s_ShowSponsorQrCode;
 		if(s_ShowSponsorQrCode)
 		{
-			Content.HSplitTop(LineHeight * 0.5f, nullptr, &Content);
+			Flow.Space(LineHeight * 0.5f);
 			const float QrSide = std::clamp(Content.w, LineHeight * 8.0f, LineHeight * 12.0f);
-			Content.HSplitTop(QrSide, &Row, &Content);
-			if(!ReadOnly && EnsureSponsorQrTexture(Graphics()))
+			const bool HasQr = Flow.Control("sponsor-qr-image", QrSide, Row);
+			if(HasQr && Flow.Drawing() && !ReadOnly && EnsureSponsorQrTexture(Graphics()))
 			{
 				CUIRect QrRect = Row;
 				QrRect.Margin(LineHeight * 0.35f, &QrRect);
@@ -712,7 +667,7 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 				}
 				RenderSponsorQrTexture(Graphics(), QrRect, 1.0f);
 			}
-			else if(!ReadOnly)
+			else if(HasQr && Flow.Drawing() && !ReadOnly)
 			{
 				DoSettingsMenuLabel(SETTINGS_CONTRIBUTORS, -1, -1, "qmclient-community-sponsor-qr-decode-failed", &Row, Localize("Could not load sponsor QR code. Check the Base64 data"), TipSize, TEXTALIGN_ML, {}, (int)Row.w);
 			}
@@ -720,11 +675,11 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 
 		const float AuthorTeeSize = std::max(LineHeight * 2.0f, 50.0f * UiScale);
 		CUIRect AuthorsRow;
-		Content.HSplitTop(QmSponsorAuthors::RowsHeight(AuthorTeeSize, LineSpacing, LineHeight), &AuthorsRow, &Content);
+		const bool HasAuthors = Flow.Control("sponsor-authors-preview", QmSponsorAuthors::RowsHeight(AuthorTeeSize, LineSpacing, LineHeight), AuthorsRow);
 		const auto &Authors = QmSponsorAuthors::Authors();
 		const float AuthorGap = LineSpacing;
-		const float AuthorWidth = std::max(0.0f, (AuthorsRow.w - AuthorGap * (Authors.size() - 1)) / Authors.size());
-		for(size_t AuthorIndex = 0; AuthorIndex < Authors.size(); ++AuthorIndex)
+		const float AuthorWidth = HasAuthors ? std::max(0.0f, (AuthorsRow.w - AuthorGap * (Authors.size() - 1)) / Authors.size()) : 0.0f;
+		for(size_t AuthorIndex = 0; HasAuthors && Flow.Drawing() && AuthorIndex < Authors.size(); ++AuthorIndex)
 		{
 			const QmSponsorAuthors::SAuthor &Author = Authors[AuthorIndex];
 			CUIRect AuthorColumn{AuthorsRow.x + AuthorIndex * (AuthorWidth + AuthorGap), AuthorsRow.y, AuthorWidth, AuthorsRow.h};
@@ -735,61 +690,74 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 			Label.HSplitTop(LineHeight, &Label, nullptr);
 			DoSettingsMenuLabel(SETTINGS_CONTRIBUTORS, -1, -1, Author.m_pTextId, &Label, Author.m_pName, BodySize, TEXTALIGN_MC, {}, (int)Label.w);
 		}
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		CUIRect RefreshRect;
-		Row.VSplitRight(std::min(Row.w * 0.35f, 110.0f * UiScale), &Row, &RefreshRect);
-		Row.VSplitRight(LineSpacing, &Row, nullptr);
-		DoSettingsMenuLabel(SETTINGS_CONTRIBUTORS, -1, -1, "qmclient-community-sponsors-label", &Row, Localize("Sponsors:"), TipSize, TEXTALIGN_ML, {}, (int)Row.w);
-		if(!ReadOnly && ui_widget::SecondaryButton(Ctx, &s_RefreshSponsorsButton, Localize("Reload"), RefreshRect))
-			QmClient.QmSponsorsRefresh();
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-		TextRender()->TextColor(ColorRGBA(0.95f, 0.8f, 0.2f, 1.0f));
-		const std::vector<std::string> &SponsorLines = BuildSponsorLines(Content.w).get();
-		if(QmClient.QmSponsorNames().empty())
+		Flow.Space(LineSpacing);
+		static ui_widget::SSettingsActionGroupState s_RefreshWidths;
+		const char *apReload[] = {Localize("Reload")};
+		const auto RefreshActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_RefreshWidths, {0, 0, Content.w, LineHeight}, apReload, 1, Metrics, ESettingsActionGroupWidth::CONTENT);
+		const float RefreshWidth = RefreshActions.m_aButtons[0].w;
+		if(Flow.MeasuredControl("sponsor-list-header", Localize("Sponsors:"), LineHeight, TipSize, RefreshWidth + LineSpacing, 0.0f, 0.0f, Row,
+			   [&](const SSettingsContentRowDeclaration &Declaration, float Width) { return Measure(Declaration.m_Text.c_str(), Width, Declaration.m_FontSize); }))
 		{
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			const char *pMessage = QmClient.QmSponsorsStatus() == CQmClient::ESponsorsStatus::IDLE ? Localize("Loading") : Localize("None");
-			Ui()->DoLabel(&Row, pMessage, TipSize, TEXTALIGN_ML);
+			CUIRect RefreshRect;
+			Row.VSplitRight(RefreshWidth, &Row, &RefreshRect);
+			Row.VSplitRight(LineSpacing, &Row, nullptr);
+			DoSettingsMenuLabel(SETTINGS_CONTRIBUTORS, -1, -1, "qmclient-community-sponsors-label", &Row, Localize("Sponsors:"), TipSize, TEXTALIGN_ML, {.m_MaxWidth = Row.w, .m_EnableWidthCheck = false}, (int)Row.w);
+			if(ui_widget::SecondaryButton(Ctx, &s_RefreshSponsorsButton, Localize("Reload"), RefreshRect) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				QmClient.QmSponsorsRefresh();
 		}
-		else
+		Flow.Space(LineSpacing);
+		static int s_NamesRevision = -1;
+		static std::string s_Names;
+		if(s_NamesRevision != QmClient.QmSponsorsRevision())
 		{
-			for(size_t Index = 0; Index < SponsorLines.size(); ++Index)
+			s_Names.clear();
+			for(const std::string &Name : QmClient.QmSponsorNames())
 			{
-				Content.HSplitTop(LineHeight, &Row, &Content);
-				Ui()->DoLabel(&Row, SponsorLines[Index].c_str(), TipSize, TEXTALIGN_ML);
-				if(Index + 1 < SponsorLines.size())
-					Content.HSplitTop(LineSpacing, nullptr, &Content);
+				if(!s_Names.empty())
+					s_Names += ", ";
+				s_Names += Name;
 			}
+			s_NamesRevision = QmClient.QmSponsorsRevision();
 		}
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoSettingsMenuLabel(SETTINGS_CONTRIBUTORS, -1, -1, "qmclient-community-thanks", &Row, Localize("Thank you for your company and trust. This is what gives me the courage to keep going."), BodySize, TEXTALIGN_ML, {}, (int)Row.w);
-		TextRender()->TextColor(TextRender()->DefaultTextColor());
+		const ColorRGBA PreviousColor = TextRender()->GetTextColor();
+		if(Flow.Drawing())
+			TextRender()->TextColor(ColorRGBA(0.95f, 0.8f, 0.2f, 1.0f));
+		const char *pNames = !QmClient.QmSponsorNames().empty() ? s_Names.c_str() : QmClient.QmSponsorsStatus() == CQmClient::ESponsorsStatus::IDLE ? Localize("Loading") :
+																			      Localize("None");
+		const float NamesLineSpacing = std::max(LineSpacing, TipSize * 0.25f);
+		if(Flow.MeasuredControl("sponsor-names", pNames, LineHeight, TipSize, 0.0f, NamesLineSpacing, TipSize * 0.125f, Row,
+			   [this](const SSettingsContentRowDeclaration &Declaration, float Width) { return MeasureSettingsParagraph(TextRender(), Declaration.m_Text.c_str(), std::max(1.0f, Width - Declaration.m_TextPadding * 2.0f), Declaration.m_FontSize, Declaration.m_TextLineSpacing); }) &&
+			Flow.Drawing())
+		{
+			static SSettingsParagraphState s_SponsorNamesParagraph;
+			Row.Margin(TipSize * 0.125f, &Row);
+			DrawSettingsParagraph(Ui(), s_SponsorNamesParagraph, Row, Flow.PublishedText("sponsor-names", pNames), TipSize, NamesLineSpacing);
+		}
+		Flow.Space(LineSpacing);
+		Text("qmclient-community-thanks", Localize("Thank you for your company and trust. This is what gives me the courage to keep going."), BodySize, 0.0f);
+		if(Flow.Drawing())
+			TextRender()->TextColor(PreviousColor);
 
 		if(HasSponsorDeveloper)
 		{
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			const float ButtonWidth = std::max(0.0f, (Row.w - 2.0f * LineSpacing) / 3.0f);
-			CUIRect ReloadDraftRect, PublishRect, OpenFolderRect;
-			Row.VSplitLeft(ButtonWidth, &ReloadDraftRect, &Row);
-			Row.VSplitLeft(LineSpacing, nullptr, &Row);
-			Row.VSplitLeft(ButtonWidth, &PublishRect, &Row);
-			Row.VSplitLeft(LineSpacing, nullptr, &OpenFolderRect);
-			static CButtonContainer s_ReloadSponsorsDraftButton;
-			static CButtonContainer s_PublishSponsorsButton;
-			static CButtonContainer s_OpenSponsorsFolderButton;
-			const bool Publishing = QmClient.QmSponsorsPublishing();
-			if(!ReadOnly && ui_widget::SecondaryButton(Ctx, &s_ReloadSponsorsDraftButton, Localize("Reload"), ReloadDraftRect, Publishing))
-				QmClient.QmSponsorsReloadDraft();
-			if(!ReadOnly && ui_widget::PrimaryButton(Ctx, &s_PublishSponsorsButton, Localize("Publish"), PublishRect, Publishing || QmClient.QmSponsorsDraft()[0] == '\0'))
-				QmClient.QmSponsorsPublishDraft();
-			if(!ReadOnly && ui_widget::SecondaryButton(Ctx, &s_OpenSponsorsFolderButton, Localize("Open folder"), OpenFolderRect))
+			Flow.Space(LineSpacing);
+			if(Flow.Control("sponsor-developer-actions", LineHeight, Row))
 			{
-				char aFolder[IO_MAX_PATH_LENGTH];
-				Storage()->GetCompletePath(IStorage::TYPE_SAVE, "qmclient", aFolder, sizeof(aFolder));
-				Client()->ViewFile(aFolder);
+				static ui_widget::SSettingsActionGroupState s_DeveloperWidths;
+				const char *apActions[] = {Localize("Reload"), Localize("Publish"), Localize("Open folder")};
+				const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_DeveloperWidths, Row, apActions, 3, Metrics);
+				static CButtonContainer s_ReloadSponsorsDraftButton, s_PublishSponsorsButton, s_OpenSponsorsFolderButton;
+				const bool Publishing = QmClient.QmSponsorsPublishing();
+				if(ui_widget::SecondaryButton(Ctx, &s_ReloadSponsorsDraftButton, apActions[0], Actions.m_aButtons[0], Publishing) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+					QmClient.QmSponsorsReloadDraft();
+				if(ui_widget::PrimaryButton(Ctx, &s_PublishSponsorsButton, apActions[1], Actions.m_aButtons[1], Publishing || QmClient.QmSponsorsDraft()[0] == '\0') && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+					QmClient.QmSponsorsPublishDraft();
+				if(ui_widget::SecondaryButton(Ctx, &s_OpenSponsorsFolderButton, apActions[2], Actions.m_aButtons[2]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				{
+					char aFolder[IO_MAX_PATH_LENGTH];
+					Storage()->GetCompletePath(IStorage::TYPE_SAVE, "qmclient", aFolder, sizeof(aFolder));
+					Client()->ViewFile(aFolder);
+				}
 			}
 			const char *pDevStatus = nullptr;
 			switch(QmClient.QmSponsorsStatus())
@@ -804,16 +772,29 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 					pDevStatus = Localize("Draft file is empty");
 				break;
 			}
-			char aDraftStatus[256];
-			if(pDevStatus)
-				str_format(aDraftStatus, sizeof(aDraftStatus), "sponsors_draft.md: %s", pDevStatus);
+			Flow.Space(LineSpacing);
+			const char *pDraftLabel = pDevStatus ? "sponsors_draft.md:" : "sponsors_draft.md";
+			const float LabelWidth = TextRender()->TextWidth(TipSize, pDraftLabel);
+			const float Gap = TextRender()->TextWidth(TipSize, " ");
+			if(pDevStatus && Content.w > LabelWidth + Gap + TipSize)
+			{
+				const float Fraction = (LabelWidth + Gap) / Content.w;
+				Flow.TextColumns("qmclient-community-sponsors-draft-status", pDraftLabel, pDevStatus, TipSize, LineHeight, Fraction, Gap, 0.0f, Measure,
+					[this, TipSize](const CUIRect &Rect, const char *pText) { Ui()->DoLabel(&Rect, pText, TipSize, TEXTALIGN_ML, {.m_MaxWidth = Rect.w, .m_EnableWidthCheck = false}); });
+			}
 			else
-				str_copy(aDraftStatus, "sponsors_draft.md");
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			DoSettingsMenuLabel(SETTINGS_CONTRIBUTORS, -1, -1, "qmclient-community-sponsors-draft-status", &Row, aDraftStatus, TipSize, TEXTALIGN_ML, {}, (int)Row.w);
+			{
+				std::string DraftStatus = pDraftLabel;
+				if(pDevStatus)
+				{
+					DraftStatus += " ";
+					DraftStatus += pDevStatus;
+				}
+				Text("qmclient-community-sponsors-draft-status", DraftStatus.c_str(), TipSize, 0.0f);
+			}
 		}
 	};
+	qm_settings_content::UseDeclaredContent(Sponsors, Ui(), TextRender());
 	vCards.push_back(std::move(Sponsors));
 
 	qm_card_catalog::SQmCardBuildContext CardBuild;

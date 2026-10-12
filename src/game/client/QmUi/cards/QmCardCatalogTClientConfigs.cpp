@@ -25,16 +25,15 @@
 #include <game/client/QmUi/QmDropdown.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsFontSelection.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
 #include <game/client/QmUi/UiSurface.h>
-#include <game/client/QmUi/UiSurfaceText.h>
 #include <game/client/QmUi/cards/QmCardCatalog.h>
 #include <game/client/QmUi/cards/QmCardCatalogTClientInternal.h>
-#include <game/client/QmUi/cards/TClientConfigSource.h>
 #include <game/client/animstate.h>
 #include <game/client/components/binds.h>
 #include <game/client/components/chat.h>
@@ -83,9 +82,16 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 	const bool ReadOnly = Ctx.m_ReadOnly || Pass != qm_card_catalog::ETClientCardPass::RENDER;
 	const float UiScale = SettingsPageUiScale(MainView.w);
 	const SSettingsContentMetrics ConfigMetrics = ResolveSettingsContentMetrics(MainView.w);
+	const SSettingsPageLayoutFrame Page = Ctx.m_Page;
 	std::unique_ptr<CUiRenderOnlyGuard> pRenderOnlyGuard;
 	if(ReadOnly && !Ui()->RenderOnly())
 		pRenderOnlyGuard = std::make_unique<CUiRenderOnlyGuard>(Ui());
+	IUiContext ConfigsCtx = SettingsUiContext("settings_tclient_configs", UiScale);
+	if(ReadOnly)
+	{
+		ConfigsCtx.m_pAnim = nullptr;
+		ConfigsCtx.m_pTree = nullptr;
+	}
 	// hi hello, this is a relatively self-contained mess, sorry if you're forking or need to modify this -Tater
 	// 你好, 这是一个相对独立的混乱，如果你要分叉或需要修改它，抱歉 -Tater
 	struct SIntStage
@@ -118,8 +124,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 	};
 	struct SStrState
 	{
-		std::vector<char> m_vBuffer;
-		CLineInput m_Input;
+		CLineInputBuffered<512> m_Input;
 		bool m_Inited = false;
 	};
 	struct SColState
@@ -139,11 +144,6 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 	auto &ColInputs = ReadOnly ? s_ReadOnlyColInputs : s_ColInputs;
 
 	auto ClearStagedAndCaches = [&]() {
-		// 先解除行输入的全局活动指针，避免缓存销毁后帧末 IME 校验访问旧对象。
-		for(auto &[pVariable, State] : s_IntInputs)
-			State.m_Input.Deactivate();
-		for(auto &[pVariable, State] : s_StrInputs)
-			State.m_Input.Deactivate();
 		s_StagedInts.clear();
 		s_StagedStrs.clear();
 		s_StagedCols.clear();
@@ -177,49 +177,27 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 	static int s_TcUiTagMisc = 0;
 
 	ChangesCount = s_StagedInts.size() + s_StagedStrs.size() + s_StagedCols.size();
-	auto RenderActions = [&](CUIRect &Content, bool Draw) {
+	auto RenderActions = [&](CUIRect ApplyBar) {
 		CPerfTimer ActionsTimer;
-		char aBuf[64];
-		str_format(aBuf, sizeof(aBuf), Localize("Changes: %d"), (int)ChangesCount);
-		const std::array<const char *, 3> aLabels = {aBuf, Localize("Apply Changes"), Localize("Clear Changes")};
-		std::array<SSettingsToggleSize, 3> aSizes;
-		for(size_t Index = 0; Index < aLabels.size(); ++Index)
-			aSizes[Index] = ResolveSettingsToggleButtonSize(TextRender()->TextWidth(TCLIENT_BODY_FONT_SIZE, aLabels[Index]), TCLIENT_BODY_FONT_SIZE, LineSize, MarginSmall * 2.0f, MarginSmall);
-		auto Grid = ResolveSettingsToggleGrid(Content.w, aSizes, MarginSmall);
-		for(size_t Index = 0; Index < aLabels.size(); ++Index)
-		{
-			const float Width = std::max(1.0f, Grid.m_aColumnWidths[Index % Grid.m_Columns] - MarginSmall * 4.0f);
-			aSizes[Index].m_Height = std::max(LineSize, TextRender()->TextBoundingBox(TCLIENT_BODY_FONT_SIZE, aLabels[Index], -1, Width).m_H + MarginSmall * 2.0f);
-		}
-		Grid.SetItemHeights(aSizes);
-		CUIRect Area;
-		Content.HSplitTop(Grid.Height(), &Area, &Content);
-		if(!Draw)
-			return;
-		const CUIRect Counter = Grid.Cell(Area, 0);
-		const CUIRect ApplyBtn = Grid.Cell(Area, 1);
-		const CUIRect ClearBtn = Grid.Cell(Area, 2);
+		CUIRect Row = ApplyBar;
+		Row.HMargin(MarginSmall, &Row);
+		Row.h = LineSize;
+		Row.y = ApplyBar.y + (ApplyBar.h - LineSize) / 2.0f;
+
+		CUIRect ApplyBtn, ClearBtn, Counter;
+		static ui_widget::SSettingsActionGroupState s_ConfigActions;
+		const char *apActionLabels[] = {Localize("Apply Changes"), Localize("Clear Changes")};
+		CUIRect Actions = Row;
+		Actions.w = std::max(0.0f, Row.w - ResolveSettingsCardLabelWidth(Row.w, ConfigMetrics) - ConfigMetrics.m_LineSpacing);
+		const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_ConfigActions, Actions, apActionLabels, 2, ConfigMetrics, ESettingsActionGroupWidth::CONTENT);
+		ApplyBtn = ActionLayout.m_aButtons[0];
+		ClearBtn = ActionLayout.m_aButtons[1];
+		const float CounterX = std::min(Row.x + std::max(0.0f, Row.w), ClearBtn.x + ClearBtn.w + ConfigMetrics.m_LineSpacing);
+		Counter = {CounterX, Row.y, std::max(0.0f, Row.x + Row.w - CounterX), Row.h};
+
 		static CButtonContainer s_ApplyBtn, s_ClearBtn;
-		const auto ActionButton = [&](CButtonContainer &Button, const CUIRect &Rect, const char *pTextId, const char *pLabel, bool Primary) {
-			const bool Enabled = ChangesCount > 0 && !ReadOnly && !m_MenuTextPlanCollecting;
-			const IUiContext Context = SettingsUiContext("settings-config-actions", UiScale);
-			ui_widget::SButtonSurfaceOptions Options;
-			Options.m_Enabled = Enabled;
-			Options.m_Role = Primary ? EUiButtonRole::PRIMARY : EUiButtonRole::SECONDARY;
-			Options.m_Radius *= UiScale;
-			ColorRGBA Fill(0.0f, 0.0f, 0.0f, 0.0f);
-			if(!m_MenuTextPlanCollecting)
-				Fill = ui_widget::DrawButtonSurface(Context, Enabled ? &Button : nullptr, Rect, Options);
-			const CUiScopedSurfaceText SurfaceText(TextRender(), Fill);
-			const CUIRect Label = ResolveSettingsToggleButtonLabel(Rect, MarginSmall * 2.0f, MarginSmall);
-			SLabelProperties Props;
-			Props.m_MaxWidth = Label.w;
-			Props.m_EnableWidthCheck = false;
-			Props.m_MinimumFontSize = TCLIENT_BODY_FONT_SIZE;
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, pTextId, &Label, pLabel, TCLIENT_BODY_FONT_SIZE, TEXTALIGN_MC, Props);
-			return Enabled && Ui()->DoButtonLogic(&Button, 0, &Rect, BUTTONFLAG_LEFT);
-		};
-		const bool ApplyClicked = ActionButton(s_ApplyBtn, ApplyBtn, "tclient-config-apply-changes", Localize("Apply Changes"), true);
+		int DisabledStyle = ChangesCount > 0 ? 0 : -1;
+		const bool ApplyClicked = DoTClientSettingsButton_Menu(&s_ApplyBtn, "tclient-config-apply-changes", Localize("Apply Changes"), DisabledStyle, &ApplyBtn);
 		if(ChangesCount > 0 && ApplyClicked)
 		{
 			for(const SConfigVariable *pVar : SortStagedKeys(s_StagedInts))
@@ -234,10 +212,13 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 			{
 				const auto Entry = s_StagedStrs.find(pVar);
 				dbg_assert(Entry != s_StagedStrs.end(), "missing staged string");
-				const auto *pString = static_cast<const SStringConfigVariable *>(pVar);
-				std::vector<char> vCommand(pString->MaxSerializedSize());
-				pString->Serialize(vCommand.data(), vCommand.size(), Entry->second.m_Value.c_str());
-				Console()->ExecuteLine(vCommand.data());
+				char aEsc[1024];
+				aEsc[0] = '\0';
+				char *pDst = aEsc;
+				str_escape(&pDst, Entry->second.m_Value.c_str(), aEsc + sizeof(aEsc));
+				char aCmd[1200];
+				str_format(aCmd, sizeof(aCmd), "%s \"%s\"", pVar->m_pScriptName, aEsc);
+				Console()->ExecuteLine(aCmd);
 			}
 			for(const SConfigVariable *pVar : SortStagedKeys(s_StagedCols))
 			{
@@ -249,57 +230,48 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 			}
 			ClearStagedAndCaches();
 		}
-		const bool ClearClicked = ActionButton(s_ClearBtn, ClearBtn, "tclient-config-clear-changes", Localize("Clear Changes"), false);
+		const bool ClearClicked = DoTClientSettingsButton_Menu(&s_ClearBtn, "tclient-config-clear-changes", Localize("Clear Changes"), DisabledStyle, &ClearBtn);
 		if(ChangesCount > 0 && ClearClicked)
 		{
 			ClearStagedAndCaches();
 		}
 
-		const CUIRect CounterLabel = ResolveSettingsToggleButtonLabel(Counter, MarginSmall * 2.0f, MarginSmall);
-		SLabelProperties CounterProps;
-		CounterProps.m_MaxWidth = CounterLabel.w;
-		CounterProps.m_EnableWidthCheck = false;
-		CounterProps.m_MinimumFontSize = TCLIENT_BODY_FONT_SIZE;
-		Ui()->DoLabel(&CounterLabel, aBuf, TCLIENT_BODY_FONT_SIZE, TEXTALIGN_ML, CounterProps);
+		char aBuf[64];
+		str_format(aBuf, sizeof(aBuf), Localize("Changes: %d"), (int)ChangesCount);
+		DoTClientLabel(Ui(), &Counter, aBuf, TCLIENT_BODY_FONT_SIZE, TEXTALIGN_ML);
 		LogTClientPerfStageEx("tclient_configs", "actions", ETClientSettingsPerfStage::INTERACTIVE_LAYER, ActionsTimer.ElapsedMs(), false, aBuf);
 	};
 
-	// 测量和绘制消费相同的分组布局，长译文与窄卡片不另走固定列数分支。
-	auto RenderFilters = [&](CUIRect &Content, bool Draw) {
-		const auto TogglePass = Draw ? ESettingsToggleGroupPass::RENDER : ESettingsToggleGroupPass::LAYOUT;
-		CUIRect Search;
-		Content.HSplitTop(ConfigMetrics.m_InputHeight, &Search, &Content);
-		Content.HSplitTop(ConfigMetrics.m_SectionGap, nullptr, &Content);
-		if(Draw)
-		{
-			IUiContext SearchCtx = SettingsUiContext("settings_tclient_config_search", UiScale);
-			s_SearchInput.SetEmptyText(Localize("Search"));
-			ui_widget::InputField(SearchCtx, &s_SearchInput, Search, EditBoxFontSize, !Ui()->IsPopupOpen() && !GameClient()->m_GameConsole.IsActive());
-		}
-		auto Heading = [&](const char *pId, const char *pLabel) {
-			const float Height = std::max(ConfigMetrics.m_LineHeight, TextRender()->TextBoundingBox(FontSize, pLabel, -1, std::max(1.0f, Content.w)).m_H);
-			CUIRect Row;
-			Content.HSplitTop(Height, &Row, &Content);
-			Content.HSplitTop(MarginSmall, nullptr, &Content);
-			if(Draw)
-				DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, pId, &Row, pLabel, FontSize, TEXTALIGN_ML);
+	auto RenderFilters = [&](CUIRect &Content) {
+		CSettingsContentLayoutFlow Flow(Content);
+		auto RenderSearch = [&](CUIRect Row) {
+			CUIRect SearchLabel, SearchEdit;
+			SplitSettingsControlRow(Row, ConfigMetrics, &SearchLabel, &SearchEdit);
+			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, nullptr, &SearchLabel, Localize("Search"), FontSize, TEXTALIGN_ML);
+			IUiContext TClientConfigSearchCtx;
+			TClientConfigSearchCtx.m_pUi = Ui();
+			TClientConfigSearchCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
+			TClientConfigSearchCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
+			TClientConfigSearchCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_config_search");
+			TClientConfigSearchCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
+			ui_widget::InputField(TClientConfigSearchCtx, &s_SearchInput, SearchEdit, EditBoxFontSize, !Ui()->IsPopupOpen() && !GameClient()->m_GameConsole.IsActive());
 		};
-		Heading("tclient-config-filters-heading", Localize("Config Filters"));
+		CUIRect SearchRow;
+		if(Flow.Control("tclient-config-search", LineSize, SearchRow, MarginSmall))
+			RenderSearch(SearchRow);
 		DoSettingsToggleGroup(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, Content,
 			{
 				{&g_Config.m_QmUiShowDDNet, "DDNet", Localize("DDNet")},
 				{&g_Config.m_QmUiShowTClient, "TClient", Localize("TClient")},
 				{&g_Config.m_QmUiShowQm, "QmClient", Localize("QmClient")},
 			},
-			ConfigMetrics, Draw && !ReadOnly, TogglePass);
+			ConfigMetrics, Flow.Input() && !ReadOnly);
 		DoSettingsToggleGroup(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, Content,
 			{
 				{&g_Config.m_QmUiCompactList, "Compact", Localize("Compact")},
 				{&g_Config.m_QmUiOnlyModified, "Modified", Localize("Modified")},
 			},
-			ConfigMetrics, Draw && !ReadOnly, TogglePass);
-		Content.HSplitTop(MarginSmall, nullptr, &Content);
-		Heading("tclient-config-tags-heading", Localize("Tags"));
+			ConfigMetrics, Flow.Input() && !ReadOnly);
 		DoSettingsToggleGroup(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, Content,
 			{
 				{&s_TcUiTagVisual, "Visual", Localize("Visual")},
@@ -313,8 +285,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 				{&s_TcUiTagGameplay, "Gameplay", Localize("Gameplay")},
 				{&s_TcUiTagMisc, "Misc", Localize("Misc")},
 			},
-			ConfigMetrics, Draw && !ReadOnly, TogglePass);
-		Content.HSplitTop(ConfigMetrics.m_SectionGap, nullptr, &Content);
+			ConfigMetrics, Flow.Input() && !ReadOnly);
 	};
 
 	auto RenderList = [&](CUIRect ListArea) {
@@ -350,12 +321,12 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		}
 
 		auto GetConfigSource = [&](const SConfigVariable *pVar) {
-			// TClient 配置也使用 qm_ 前缀，先按定义清单区分来源。
+			// v3 起所有变量合并进单一 QMCLIENT 域，按前缀区分来源
 			const char *pName = pVar->m_pScriptName ? pVar->m_pScriptName : "";
-			if(IsTClientConfigVariable(pName) || str_startswith(pName, "tc_"))
-				return EConfigSource::TCLIENT;
 			if(str_startswith(pName, "qm_"))
 				return EConfigSource::QM;
+			if(str_startswith(pName, "tc_"))
+				return EConfigSource::TCLIENT;
 			return EConfigSource::DDNET;
 		};
 
@@ -460,25 +431,31 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		const int DomainMask = (g_Config.m_QmUiShowDDNet != 0 ? 1 : 0) |
 				       (g_Config.m_QmUiShowTClient != 0 ? 2 : 0) |
 				       (g_Config.m_QmUiShowQm != 0 ? 4 : 0);
-		static std::vector<const SConfigVariable *> s_vCandidateConfigs;
+		static std::vector<const SConfigVariable *> s_vFilteredConfigs;
 		static std::string s_CachedConfigSearch;
 		static int s_CachedConfigDomainMask = -1;
+		static int s_CachedConfigChangesCount = -1;
+		static int s_CachedConfigOnlyModified = -1;
 		static unsigned int s_CachedConfigTagMask = 0;
 		static size_t s_CachedConfigVarCount = 0;
 		static uint64_t s_CachedConfigLanguageHash = 0;
 		const uint64_t ConfigLanguageHash = str_quickhash(g_Config.m_ClLanguagefile);
 		if(s_CachedConfigSearch != (pSearch ? pSearch : "") ||
 			s_CachedConfigDomainMask != DomainMask ||
+			s_CachedConfigChangesCount != ChangesCount ||
+			s_CachedConfigOnlyModified != g_Config.m_QmUiOnlyModified ||
 			s_CachedConfigTagMask != SelectedTagMask ||
 			s_CachedConfigVarCount != s_vAllClientVars.size() ||
 			s_CachedConfigLanguageHash != ConfigLanguageHash)
 		{
-			s_vCandidateConfigs.clear();
-			s_vCandidateConfigs.reserve(s_vAllClientVars.size());
+			s_vFilteredConfigs.clear();
+			s_vFilteredConfigs.reserve(s_vAllClientVars.size());
 			for(size_t i = 0; i < s_vAllClientVars.size(); ++i)
 			{
 				const SConfigVariable *pVar = s_vAllClientVars[i];
 				if(!SourceEnabled(GetConfigSource(pVar)))
+					continue;
+				if(g_Config.m_QmUiOnlyModified && IsEffectiveDefaultVar(pVar))
 					continue;
 				if(pSearch && pSearch[0])
 				{
@@ -494,24 +471,17 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 					if((VarTagMask & SelectedTagMask) == 0 && !(VarTagMask == 0 && (SelectedTagMask & MiscTagMask) != 0))
 						continue;
 				}
-				s_vCandidateConfigs.push_back(pVar);
+				s_vFilteredConfigs.push_back(pVar);
 			}
 			s_CachedConfigSearch = pSearch ? pSearch : "";
 			s_CachedConfigDomainMask = DomainMask;
+			s_CachedConfigChangesCount = ChangesCount;
+			s_CachedConfigOnlyModified = g_Config.m_QmUiOnlyModified;
 			s_CachedConfigTagMask = SelectedTagMask;
 			s_CachedConfigVarCount = s_vAllClientVars.size();
 			s_CachedConfigLanguageHash = ConfigLanguageHash;
 		}
-		// 搜索和标签候选可缓存；是否为默认值取决于暂存值及其他卡片的实时修改。
-		static std::vector<const SConfigVariable *> s_vModifiedConfigs;
-		if(g_Config.m_QmUiOnlyModified)
-		{
-			s_vModifiedConfigs.clear();
-			for(const SConfigVariable *pVar : s_vCandidateConfigs)
-				if(!IsEffectiveDefaultVar(pVar))
-					s_vModifiedConfigs.push_back(pVar);
-		}
-		const auto &vpFiltered = g_Config.m_QmUiOnlyModified ? s_vModifiedConfigs : s_vCandidateConfigs;
+		const std::vector<const SConfigVariable *> &vpFiltered = s_vFilteredConfigs;
 
 		static CScrollRegion s_ConfigListScrollRegion;
 		static CScrollRegion s_ConfigListReadOnlyScrollRegion;
@@ -519,9 +489,12 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		vec2 ScrollOffset(0.0f, 0.0f);
 		SQmScrollRequest ConfigListScrollRequest;
 		ConfigListScrollRequest.m_Profile = EQmScrollProfile::SETTINGS_INNER;
-		const float ConfigHelpHeight = ConfigMetrics.m_SmallSize;
-		const float ResetWidth = TextRender()->TextWidth(FontSize, Localize("Reset")) + MarginSmall * 4.0f;
-		ConfigListScrollRequest.m_RowExtent = ResolveSettingsConfigEntryLayout(ListArea, ConfigMetrics, g_Config.m_QmUiCompactList != 0, ResetWidth, ConfigHelpHeight).m_Height;
+		const float ConfigInlineMinWidth = ResolveSettingsInlineRowMinimumWidth(ConfigMetrics.m_LabelWidth + 2.0f * ConfigMetrics.m_ButtonHeight, ConfigMetrics.m_SectionGap, 1);
+		const bool StackedConfigRows = ListArea.w < ConfigInlineMinWidth;
+		const float ConfigHelpHeight = std::max(MarginSmall, FontSize - 2.0f);
+		const SSettingsConfigRowMetrics ConfigRowMetrics = ResolveSettingsConfigRowMetrics(g_Config.m_QmUiCompactList != 0, StackedConfigRows, LineSize, MarginSmall, ConfigHelpHeight, ColorPickerLineSize, ConfigMetrics.m_LineSpacing);
+		const float ConfigRowHeight = ConfigRowMetrics.m_RowHeight;
+		ConfigListScrollRequest.m_RowExtent = ConfigRowHeight;
 		CScrollRegionParams ScrollParams = QmScrollRegionParamsFromPolicy(QmResolveScrollPolicy(ConfigListScrollRequest, UiScale, 0.0f));
 		CPerfTimer ListTimer;
 		static float s_PrevConfigsScrollY = 0.0f;
@@ -544,19 +517,6 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 			}
 		};
 
-		// 说明只在宽度、字号或语言变化后重新测量，滚动时复用高度。
-		static std::unordered_map<const SConfigVariable *, float> s_DescriptionHeights;
-		static float s_DescriptionWidth = -1.0f;
-		static float s_DescriptionFontSize = -1.0f;
-		static uint64_t s_DescriptionLanguageHash = 0;
-		const float DescriptionWidth = ResolveSettingsConfigEntryLayout(Content, ConfigMetrics, false, ResetWidth, 0.0f).m_Description.w;
-		if(s_DescriptionWidth != DescriptionWidth || s_DescriptionFontSize != ConfigHelpHeight || s_DescriptionLanguageHash != ConfigLanguageHash)
-		{
-			s_DescriptionHeights.clear();
-			s_DescriptionWidth = DescriptionWidth;
-			s_DescriptionFontSize = ConfigHelpHeight;
-			s_DescriptionLanguageHash = ConfigLanguageHash;
-		}
 		bool HasCurrentSource = false;
 		EConfigSource CurrentSource = EConfigSource::DDNET;
 		for(const SConfigVariable *pVar : vpFiltered)
@@ -573,57 +533,70 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 				Content.HSplitTop(MarginSmall, nullptr, &Content);
 			}
 
-			const bool Compact = g_Config.m_QmUiCompactList != 0;
-			auto Layout = ResolveSettingsConfigEntryLayout(Content, ConfigMetrics, Compact, ResetWidth, 0.0f);
-			float DescriptionHeight = 0.0f;
-			if(!Compact)
-			{
-				auto It = s_DescriptionHeights.find(pVar);
-				if(It == s_DescriptionHeights.end())
-				{
-					const std::string Help = BuildLocalizedConfigHelpText(pVar);
-					DescriptionHeight = std::max(ConfigHelpHeight, TextRender()->TextBoundingBox(ConfigHelpHeight, Help.c_str(), -1, std::max(1.0f, Layout.m_Description.w)).m_H);
-					s_DescriptionHeights.emplace(pVar, DescriptionHeight);
-				}
-				else
-					DescriptionHeight = It->second;
-			}
-			Layout = ResolveSettingsConfigEntryLayout(Content, ConfigMetrics, Compact, ResetWidth, DescriptionHeight);
 			CUIRect RowItem;
-			Content.HSplitTop(Layout.m_Height, &RowItem, &Content);
-			Content.HSplitTop(MarginSmall, nullptr, &Content);
-			if(!ConfigListScrollRegion.AddRect(RowItem))
+			const float RowHeight = ConfigRowHeight;
+			ConsumeSettingsMeasuredRow(Content, RowHeight, &RowItem);
+			Content.HSplitTop(MarginExtraSmall, nullptr, &Content);
+			const bool Visible = ConfigListScrollRegion.AddRect(RowItem);
+			if(!Visible)
 				continue;
 
 			const bool Modified = !IsEffectiveDefaultVar(pVar);
-			const bool Staged = s_StagedInts.count(pVar) != 0 || s_StagedStrs.count(pVar) != 0 || s_StagedCols.count(pVar) != 0;
-			RowItem.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, Staged ? 0.35f : 0.22f), IGraphics::CORNER_ALL, ui_token::radius::BASE);
-			if(Modified || Staged)
-			{
-				CUIRect Marker = RowItem;
-				Marker.w = std::min(3.0f * UiScale, Marker.w);
-				Marker.Draw(Staged ? color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)) : ColorRGBA(1.0f, 0.8f, 0.0f, 0.65f), IGraphics::CORNER_L, ui_token::radius::BASE);
-			}
-			CUIRect NameLine = Layout.m_Name;
-			CUIRect Controls = Layout.m_Editor;
-			CUIRect ResetRect = Layout.m_Reset;
-			CUIRect Right{Controls.x, Controls.y, ResetRect.x + ResetRect.w - Controls.x, Controls.h};
+			const ColorRGBA BgModified = ColorRGBA(1.0f, 0.8f, 0.0f, 0.15f);
+			const ColorRGBA BgNormal = ColorRGBA(0.0f, 0.0f, 0.0f, 0.25f);
+			RowItem.Draw(Modified ? BgModified : BgNormal, IGraphics::CORNER_ALL, ui_token::radius::BASE);
+
+			CUIRect RowContent;
+			RowItem.Margin(5.0f, &RowContent);
+
+			CUIRect TopLine, Below;
 			IUiContext TClientConfigTextInputCtx;
 			TClientConfigTextInputCtx.m_pUi = Ui();
 			TClientConfigTextInputCtx.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
 			TClientConfigTextInputCtx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
 			TClientConfigTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_tclient_config_text_inputs");
 			TClientConfigTextInputCtx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-			DoTClientLabel(Ui(), &NameLine, pVar->m_pScriptName, FontSize, TEXTALIGN_ML);
-			GameClient()->m_Tooltips.DoToolTipForRect(pVar, &NameLine, pVar->m_pScriptName);
-			if(!Compact)
+			if(g_Config.m_QmUiCompactList)
 			{
-				const std::string Help = BuildLocalizedConfigHelpText(pVar);
-				SLabelProperties Props;
-				Props.m_MaxWidth = Layout.m_Description.w;
-				Props.m_EnableWidthCheck = false;
-				Props.m_MinimumFontSize = ConfigHelpHeight;
-				Ui()->DoLabel(&Layout.m_Description, Help.c_str(), ConfigHelpHeight, TEXTALIGN_ML, Props);
+				const float UsedHeight = ConfigRowMetrics.m_ControlBlockHeight;
+				TopLine = RowContent;
+				TopLine.h = UsedHeight;
+				TopLine.y = round_to_int(RowContent.y + (RowContent.h - UsedHeight) / 2.0f);
+				Below = RowContent;
+			}
+			else
+			{
+				RowContent.HSplitTop(ConfigRowMetrics.m_ControlBlockHeight, &TopLine, &Below);
+			}
+			CUIRect NameLine, Right;
+			if(StackedConfigRows)
+			{
+				TopLine.HSplitTop(LineSize, &NameLine, &TopLine);
+				TopLine.HSplitTop(MarginSmall, nullptr, &TopLine);
+				TopLine.HSplitTop(ConfigRowMetrics.m_ControlLineHeight, &Right, nullptr);
+			}
+			else
+				TopLine.VSplitRight(std::clamp(TopLine.w * 0.46f, 170.0f, 320.0f), &NameLine, &Right);
+			NameLine.VSplitLeft(std::min(10.0f, NameLine.w), nullptr, &NameLine);
+
+			Ui()->DoLabel(&NameLine, pVar->m_pScriptName, FontSize, TEXTALIGN_ML);
+
+			CUIRect Controls, ResetRect;
+			Right.VSplitRight(std::min(100.0f, std::max(0.0f, Right.w * 0.25f)), &Controls, &ResetRect);
+			Controls.h = LineSize;
+			Controls.y = Right.y + (Right.h - LineSize) / 2.0f;
+			ResetRect.h = LineSize;
+			ResetRect.y = Controls.y;
+			Controls.VSplitRight(MarginSmall, &Controls, nullptr);
+
+			if(!g_Config.m_QmUiCompactList)
+			{
+				CUIRect Help;
+				Below.HSplitTop(ConfigRowMetrics.m_HelpGap, nullptr, &Below);
+				Help = Below;
+				Help.VSplitLeft(10.0f, nullptr, &Help);
+				const std::string LocalizedHelp = BuildLocalizedConfigHelpText(pVar);
+				Ui()->DoLabel(&Help, LocalizedHelp.c_str(), ConfigHelpHeight, TEXTALIGN_ML);
 			}
 
 			static std::unordered_map<const SConfigVariable *, CButtonContainer> s_ResetBtns;
@@ -681,7 +654,10 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 						State.m_LastValue = Effective;
 					}
 
-					if(ui_widget::InputField(TClientConfigTextInputCtx, &State.m_Input, Controls, nullptr, EditBoxFontSize))
+					CUIRect InputBox, Dummy;
+					Controls.VSplitLeft(60.0f, &InputBox, &Dummy);
+
+					if(ui_widget::InputField(TClientConfigTextInputCtx, &State.m_Input, InputBox, nullptr, EditBoxFontSize))
 					{
 						int NewVal = State.m_Input.GetInteger();
 						bool InRange = true;
@@ -713,8 +689,6 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 				const char *Effective = StagedStr != s_StagedStrs.end() ? StagedStr->second.m_Value.c_str() : pStr->m_pStr;
 				if(!State.m_Inited)
 				{
-					State.m_vBuffer.resize(pStr->m_MaxSize);
-					State.m_Input.SetBuffer(State.m_vBuffer.data(), State.m_vBuffer.size());
 					State.m_Input.Set(Effective);
 					State.m_Inited = true;
 				}
@@ -736,8 +710,13 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 			else if(pVar->m_Type == SConfigVariable::VAR_COLOR)
 			{
 				const SColorConfigVariable *pCol = static_cast<const SColorConfigVariable *>(pVar);
+				CUIRect ColorRect;
 				Ui()->DoConfigTooltip(pVar, &Right, pCol->m_pVariable);
 				GameClient()->m_Tooltips.DoToolTipForRect(pVar, &Right, BuildLocalizedConfigHelpText(pVar).c_str());
+				ColorRect.x = Controls.x;
+				ColorRect.h = ColorPickerLineSize;
+				ColorRect.y = Right.y + (Right.h - ColorPickerLineSize) / 2.0f;
+				ColorRect.w = ColorPickerLineSize + 8.0f + 60.0f;
 				const ColorRGBA DefaultColor = color_cast<ColorRGBA>(ColorHSLA(pCol->m_Default, true).UnclampLighting(pCol->m_DarkestLighting));
 				static std::unordered_map<const SConfigVariable *, CButtonContainer> s_ColorResetIds;
 				CButtonContainer &ResetId = s_ColorResetIds[pVar];
@@ -761,11 +740,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 					}
 				}
 
-				CUIRect ColorRect = Controls;
-				ColorRect.w = std::min(ColorRect.w, ColorRect.h);
-				DoButton_ColorPicker(&ColorRect, &ColState.m_Working, pCol->m_Alpha);
-				if(DoTClientSettingsButton_Menu(&ResetId, "tclient-config-reset", Localize("Reset"), 0, &ResetRect))
-					ColState.m_Working = color_cast<ColorHSLA>(DefaultColor).Pack(pCol->m_Alpha);
+				DoLine_ColorPicker(&ResetId, CurrentSettingsContentMetrics(), &ColorRect, "", &ColState.m_Working, DefaultColor, false, nullptr, pCol->m_Alpha);
 				if(ColState.m_Working != Effective)
 				{
 					if(ColState.m_Working == *pCol->m_pVariable)
@@ -785,31 +760,39 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		LogTClientPerfStageEx("tclient_configs", "list", ETClientSettingsPerfStage::STATIC_LAYER, ListTimer.ElapsedMs(), false, aExtra);
 	};
 
-	const auto RunConfigLayout = [&](CUIRect Content, bool Draw) {
-		const float StartY = Content.y;
-		RenderFilters(Content, Draw);
-		const float ListHeight = std::max(LineSize * 4.0f, std::min(Content.w * 0.42f, 260.0f * UiScale));
-		CUIRect List;
-		Content.HSplitTop(ListHeight, &List, &Content);
-		Content.HSplitTop(ConfigMetrics.m_SectionGap, nullptr, &Content);
-		CUIRect ChangesHeading;
-		const float ChangesHeadingHeight = std::max(HeadlineHeight, TextRender()->TextBoundingBox(HeadlineFontSize, Localize("Config Changes"), -1, std::max(1.0f, Content.w)).m_H);
-		Content.HSplitTop(ChangesHeadingHeight, &ChangesHeading, &Content);
-		Content.HSplitTop(MarginSmall, nullptr, &Content);
-		if(Draw)
-		{
-			RenderList(List);
-			DoSettingsMenuLabel(SETTINGS_TCLIENT, m_TClientSettingsTab, m_TClientSettingsTab, "tclient-config-changes-heading", &ChangesHeading, Localize("Config Changes"), HeadlineFontSize, TEXTALIGN_ML);
-		}
-		ChangesCount = s_StagedInts.size() + s_StagedStrs.size() + s_StagedCols.size();
-		RenderActions(Content, Draw);
-		return Content.y - StartY;
+	const float SectionGap = MarginSmall * 2.0f;
+	const auto ConfigListViewportHeightForWidth = [ConfigMetrics](float ContentWidth) {
+		const float ConfigInlineMinWidth = ResolveSettingsInlineRowMinimumWidth(ConfigMetrics.m_LabelWidth + 2.0f * ConfigMetrics.m_ButtonHeight, ConfigMetrics.m_SectionGap, 1);
+		const bool StackedRows = ContentWidth < ConfigInlineMinWidth;
+		const float HelpHeight = std::max(MarginSmall, FontSize - 2.0f);
+		const SSettingsConfigRowMetrics RowMetrics = ResolveSettingsConfigRowMetrics(g_Config.m_QmUiCompactList != 0, StackedRows, ConfigMetrics.m_LineHeight, ConfigMetrics.m_LineSpacing, HelpHeight, ConfigMetrics.m_ButtonHeight, ConfigMetrics.m_LineSpacing);
+		return std::max(RowMetrics.m_RowHeight * 2.0f, ContentWidth * 0.52f);
 	};
-	// 暂存数量会改变底部计数的宽度；页面和搜索卡片使用相同的重测条件。
-	const uint64_t CardRevision = (static_cast<uint64_t>(ChangesCount) << 1) | static_cast<uint64_t>(g_Config.m_QmUiCompactList != 0);
+	const auto RenderConfigCard = [&](CUIRect &Content) {
+		CSettingsContentLayoutFlow Flow(Content);
+		CUIRect Row;
+		if(Flow.Control("tclient-config-changes-heading", HeadlineHeight, Row))
+			DoSettingsMenuLabel(g_Config.m_UiSettingsPage, m_TClientSettingsTab, -1, "tclient-config-changes-heading", &Row, Localize("Config Changes"), HeadlineFontSize, TEXTALIGN_ML);
+		Flow.Space(MarginSmall);
+		if(Flow.Control("tclient-config-actions", LineSize, Row))
+			RenderActions(Row);
+		Flow.Space(SectionGap);
+		if(Flow.Control("tclient-config-filters-heading", HeadlineHeight, Row))
+			DoSettingsMenuLabel(g_Config.m_UiSettingsPage, m_TClientSettingsTab, -1, "tclient-config-filters-heading", &Row, Localize("Config Filters"), HeadlineFontSize, TEXTALIGN_ML);
+		Flow.Space(MarginSmall);
+		RenderFilters(Content);
+		Flow.Space(SectionGap);
+		if(Flow.Control("tclient-config-list", ConfigListViewportHeightForWidth(Content.w), Row))
+			RenderList(Row);
+	};
+	const uint64_t CardRevision = static_cast<uint64_t>(g_Config.m_QmUiCompactList != 0);
 	if(Pass == qm_card_catalog::ETClientCardPass::REVISION)
 		return {0.0f, CardRevision};
 	if(str_comp(pStableId, "deck:tclient-configs-actions") == 0)
-		return {RunConfigLayout(Content, Pass == qm_card_catalog::ETClientCardPass::RENDER), CardRevision};
+	{
+		const float SavedY = Content.y;
+		RenderConfigCard(Content);
+		return {Content.y - SavedY, CardRevision};
+	}
 	return {0.0f, CardRevision};
 }

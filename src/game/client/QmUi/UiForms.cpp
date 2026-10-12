@@ -3,6 +3,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "UiForms.h"
 
+#include "SettingsPageLayout.h"
 #include "UiButtons.h"
 #include "UiDiscreteSliderStyle.h"
 #include "UiFormLogic.h"
@@ -31,6 +32,12 @@ namespace ui_widget
 
 	namespace
 	{
+		// 表单外观共享父层显隐语义，不再把页面背景透明度乘入控件颜色。
+		void DrawControlSurface(const IUiContext &Ctx, const CUIRect &Rect, ColorRGBA Fill, ColorRGBA Border, float Radius, float BorderWidth = 0.0f, int Corners = IGraphics::CORNER_ALL)
+		{
+			DrawRoundedSurface(Ctx, Rect, Ctx.m_pUi->ScaleControlAlpha(Fill), Ctx.m_pUi->ScaleControlAlpha(Border), Radius, BorderWidth, Corners);
+		}
+
 		void DrawTextFieldFocusBorder(const IUiContext &Ctx, const CUIRect &Rect, float Alpha);
 		void DrawTextFieldFocusBorder(const IUiContext &Ctx, CLineInput *pInput, const CUIRect &Rect);
 		void DrawTextFieldFocusBorder(const IUiContext &Ctx, CLineInput *pInput, const CUIRect &Rect, bool Multiline);
@@ -55,7 +62,7 @@ namespace ui_widget
 			ColorRGBA Border = pBorderColorOverride != nullptr ? *pBorderColorOverride : Theme.m_Border;
 			if(pBorderColorOverride == nullptr)
 				Border.a = std::max(Border.a, 0.24f);
-			DrawRoundedSurface(Ctx, Rect, Fill, Ctx.m_pUi->ScaleBackgroundAlpha(Border), Radius, BorderWidthOverride, Corners);
+			DrawControlSurface(Ctx, Rect, Fill, Border, Radius, BorderWidthOverride, Corners);
 		}
 
 		bool NumericFieldTextIsInfinite(const char *pText)
@@ -76,7 +83,7 @@ namespace ui_widget
 			ColorRGBA RingColor = Theme.m_FocusRing;
 			RingColor.a *= Alpha;
 			// 激活态直接把外壳边框画粗并换成强调色，不做外扩光圈。
-			DrawRoundedSurface(Ctx, Rect, ResolveConfiguredInputSurface(), Ctx.m_pUi->ScaleBackgroundAlpha(RingColor), ui_token::radius::BASE, Theme.m_FocusRingWidth);
+			DrawControlSurface(Ctx, Rect, ResolveConfiguredInputSurface(), RingColor, ui_token::radius::BASE, Theme.m_FocusRingWidth);
 		}
 
 		void DrawTextFieldFocusBorder(const IUiContext &Ctx, CLineInput *pInput, const CUIRect &Rect)
@@ -178,32 +185,19 @@ namespace ui_widget
 			TrailingRect = InlineLayout.m_TrailingRect;
 		}
 		const int TextAlign = InlineTrailingText ? TEXTALIGN_MR : ResolveInputFieldTextAlign(Options);
-		if(Ctx.m_pUi->RenderOnly())
-		{
-			// 文本计划只收集稳定文本，不绘制输入框 chrome，也不修改输入、焦点或动画状态。
-			const char *pPlaceholder = Options.m_pPlaceholder != nullptr ? Options.m_pPlaceholder : (Search ? Localize("Search") : nullptr);
-			if(WasEmpty && pPlaceholder != nullptr)
-				Ctx.m_pUi->DoLabel(&TextRect, pPlaceholder, FontSize, TextAlign);
-			else if(!WasEmpty && !pInput->IsHidden())
-			{
-				const CQmCardLabelHintScope PreserveInput(Ctx.m_pUi, false);
-				Ctx.m_pUi->DoLabel(&TextRect, pInput->GetString(), FontSize, TextAlign);
-			}
-			if(Options.m_pTrailingText != nullptr && TrailingRect.w > 0.0f)
-				Ctx.m_pUi->DoLabel(&TrailingRect, Options.m_pTrailingText, FontSize * 0.82f, TEXTALIGN_MC);
-			return {};
-		}
+		const bool RenderOnly = Ctx.m_pUi->RenderOnly();
+		const bool ProcessInput = Options.m_ProcessInput && !RenderOnly;
 		const ColorRGBA PlateColor = ResolveConfiguredInputSurface(Options.m_ProcessInput);
 		CUiScopedSurfaceText SurfaceText(Ctx.m_pUi->TextRender(), PlateColor);
 		// 激活态边框单层绘制：颜色与粗细随聚焦动画在常规边框与强调色环之间过渡，
 		// 不再叠加第二层描边——半透明强调环叠在常规边框上会让灰边透出（叠色）。
 		float FocusAlpha = 0.0f;
-		if(Options.m_ProcessInput && Ctx.m_pAnim != nullptr)
+		if(ProcessInput && Ctx.m_pAnim != nullptr)
 		{
 			const bool FocusActive = InputFieldFocusActive(Ctx, pInput, Layout.m_ShellRect, Options.m_Mode == EInputFieldMode::MULTILINE);
 			FocusAlpha = AnimateStateValue(Ctx, pInput, EUiAnimProperty::ALPHA, FocusActive ? 1.0f : 0.0f, ui_curve::DECELERATE);
 		}
-		if(FocusAlpha > 0.01f)
+		if(!Ctx.m_pUi->MeasurementOnly() && FocusAlpha > 0.01f)
 		{
 			const SUiTheme Theme = ThemeFor(Ctx);
 			ColorRGBA NormalBorder = Theme.m_Border;
@@ -217,23 +211,16 @@ namespace ui_widget
 			const float BorderWidth = 1.0f + T * (Theme.m_FocusRingWidth - 1.0f);
 			DrawTextFieldShell(Ctx, Layout.m_ShellRect, PlateColor, Options.m_Corners, ui_token::radius::BASE, &FocusBorder, BorderWidth);
 		}
-		else
+		else if(!Ctx.m_pUi->MeasurementOnly())
 		{
 			DrawTextFieldShell(Ctx, Layout.m_ShellRect, PlateColor, Options.m_Corners, ui_token::radius::BASE);
 		}
+		const char *pPreviousPlaceholder = pInput->GetEmptyText();
 		pInput->SetEmptyText(Options.m_pPlaceholder != nullptr ? Options.m_pPlaceholder : (Search ? Localize("Search") : nullptr));
-		if(!Options.m_ProcessInput)
-		{
+		if(!Options.m_ProcessInput && !RenderOnly)
 			pInput->Deactivate();
-			Ctx.m_pUi->ClipEnable(&TextRect);
-			pInput->Render(&TextRect, FontSize, TextAlign, false, -1.0f, 0.0f);
-			Ctx.m_pUi->ClipDisable();
-			if(Options.m_pTrailingText != nullptr && TrailingRect.w > 0.0f)
-				Ctx.m_pUi->DoLabel(&TrailingRect, Options.m_pTrailingText, FontSize * 0.82f, TEXTALIGN_MC);
-			return {};
-		}
 
-		if(Options.m_SearchHotkeyEnabled && Search && Ctx.m_pUi->Input()->ModifierIsPressed() && Ctx.m_pUi->Input()->KeyPress(KEY_F))
+		if(ProcessInput && Options.m_SearchHotkeyEnabled && Search && Ctx.m_pUi->Input()->ModifierIsPressed() && Ctx.m_pUi->Input()->KeyPress(KEY_F))
 		{
 			Ctx.m_pUi->SetActiveItem(pInput);
 			pInput->SelectAll();
@@ -242,9 +229,11 @@ namespace ui_widget
 		const ColorRGBA InputIconColor = ResolveUiSurfaceIconColor(PlateColor, Ctx.m_pUi->TextRender()->GetTextColor());
 		const char *pLeadingIcon = Options.m_pLeadingIcon != nullptr ? Options.m_pLeadingIcon : (Search ? FontIcons::FONT_ICON_MAGNIFYING_GLASS : nullptr);
 		const int LeadingQmIcon = Options.m_LeadingQmIcon >= 0 ? Options.m_LeadingQmIcon : (Search ? static_cast<int>(EQmIcon::SEARCH) : -1);
-		DrawInputFieldIcon(Ctx, Layout.m_IconRect, pLeadingIcon, InputIconColor, LeadingQmIcon);
+		if(!Ctx.m_pUi->MeasurementOnly())
+			DrawInputFieldIcon(Ctx, Layout.m_IconRect, pLeadingIcon, InputIconColor, LeadingQmIcon);
 		CUi::SEditBoxRenderOptions RenderOptions;
 		RenderOptions.m_DrawBackground = false;
+		RenderOptions.m_ProcessInput = ProcessInput;
 		CUIRect InputHitRect = Layout.m_ShellRect;
 		if(Options.m_Clearable && Layout.m_ClearRect.w > 0.0f)
 			InputHitRect.VSplitRight(Layout.m_ClearRect.w, &InputHitRect, nullptr);
@@ -252,12 +241,18 @@ namespace ui_widget
 			InputHitRect.VSplitRight(TrailingRect.w, &InputHitRect, nullptr);
 		RenderOptions.m_pHitRect = &InputHitRect;
 		bool Changed = false;
-		if(Options.m_Mode == EInputFieldMode::MULTILINE)
-			Changed = Ctx.m_pUi->DoEditBoxMultiLine(pInput, &TextRect, FontSize, Options.m_LineSpacing, TextAlign, RenderOptions);
-		else
-			Changed = Ctx.m_pUi->DoEditBox(pInput, &TextRect, FontSize, Options.m_Corners, {}, TextAlign, RenderOptions);
+		if(!pInput->IsHidden() || !Ctx.m_pUi->MeasurementOnly())
+		{
+			const CQmCardLabelHintScope PreserveInput(Ctx.m_pUi, !RenderOnly && Ctx.m_pUi->CardLabelHintsEnabled());
+			if(Options.m_Mode == EInputFieldMode::MULTILINE)
+				Changed = Ctx.m_pUi->DoEditBoxMultiLine(pInput, &TextRect, FontSize, Options.m_LineSpacing, TextAlign, RenderOptions);
+			else
+				Changed = Ctx.m_pUi->DoEditBox(pInput, &TextRect, FontSize, Options.m_Corners, {}, TextAlign, RenderOptions);
+		}
+		if(RenderOnly)
+			pInput->SetEmptyText(pPreviousPlaceholder);
 
-		if(Options.m_Clearable)
+		if(Options.m_Clearable && !Ctx.m_pUi->MeasurementOnly())
 		{
 			const CUIRect &ClearRect = Layout.m_ClearRect;
 			SButtonSurfaceOptions ActionOptions;
@@ -266,7 +261,7 @@ namespace ui_widget
 			ActionOptions.m_Corners = IGraphics::CORNER_R;
 			DrawButtonSurface(Ctx, pInput->GetClearButtonId(), ClearRect, ActionOptions);
 			DrawInputFieldIcon(Ctx, ClearRect, FontIcons::FONT_ICON_XMARK, InputIconColor, static_cast<int>(EQmIcon::CLOSE));
-			if(Ctx.m_pUi->DoButtonLogic(pInput->GetClearButtonId(), 0, &ClearRect, BUTTONFLAG_LEFT))
+			if(ProcessInput && Ctx.m_pUi->DoButtonLogic(pInput->GetClearButtonId(), 0, &ClearRect, BUTTONFLAG_LEFT))
 			{
 				pInput->Clear();
 				Ctx.m_pUi->SetActiveItem(pInput);
@@ -274,7 +269,7 @@ namespace ui_widget
 			}
 		}
 		bool TrailingAction = false;
-		if(HasTrailingAction && TrailingRect.w > 0.0f)
+		if(HasTrailingAction && TrailingRect.w > 0.0f && !Ctx.m_pUi->MeasurementOnly())
 		{
 			SButtonSurfaceOptions ActionOptions;
 			ActionOptions.m_Role = EUiButtonRole::ICON;
@@ -282,11 +277,13 @@ namespace ui_widget
 			ActionOptions.m_Corners = Options.m_Clearable ? IGraphics::CORNER_NONE : IGraphics::CORNER_R;
 			DrawButtonSurface(Ctx, Options.m_pTrailingActionId, TrailingRect, ActionOptions);
 			DrawInputFieldIcon(Ctx, TrailingRect, Options.m_pTrailingActionIcon, InputIconColor, Options.m_TrailingActionQmIcon);
-			TrailingAction = Ctx.m_pUi->DoButtonLogic(Options.m_pTrailingActionId, 0, &TrailingRect, BUTTONFLAG_LEFT) != 0;
+			TrailingAction = ProcessInput && Ctx.m_pUi->DoButtonLogic(Options.m_pTrailingActionId, 0, &TrailingRect, BUTTONFLAG_LEFT) != 0;
 		}
 		if(Options.m_pTrailingText != nullptr && TrailingRect.w > 0.0f)
 			Ctx.m_pUi->DoLabel(&TrailingRect, Options.m_pTrailingText, FontSize * 0.82f, TEXTALIGN_MC);
 
+		if(!ProcessInput)
+			return {};
 		SInputFieldResult Result = BuildInputFieldResult(Ctx, pInput, Changed, WasActive, WasEmpty, Options.m_Clearable);
 		Result.m_TrailingAction = TrailingAction;
 		return Result;
@@ -332,26 +329,34 @@ namespace ui_widget
 		if(Ctx.m_pUi == nullptr || pInput == nullptr)
 			return;
 
+		// 只读字段前后台共用文字引擎，保留占位字颜色、内边距和裁剪。
+		const char *pPreviousPlaceholder = pInput->GetEmptyText();
 		pInput->SetEmptyText(pPlaceholder);
-		CUIRect TextRect = Rect;
-		TextRect.VMargin(2.0f, &TextRect);
-		Ctx.m_pUi->ClipEnable(&Rect);
-		pInput->Render(&TextRect, FontSize, TEXTALIGN_ML, false, -1.0f, 0.0f);
-		Ctx.m_pUi->ClipDisable();
-		DrawTextFieldFocusBorder(Ctx, pInput, Rect);
+		CUi::SEditBoxRenderOptions RenderOptions;
+		RenderOptions.m_DrawBackground = false;
+		RenderOptions.m_ProcessInput = false;
+		Ctx.m_pUi->DoEditBox(pInput, &Rect, FontSize, IGraphics::CORNER_ALL, {}, TEXTALIGN_ML, RenderOptions);
+		if(Ctx.m_pUi->RenderOnly())
+			pInput->SetEmptyText(pPreviousPlaceholder);
+		else
+			DrawTextFieldFocusBorder(Ctx, pInput, Rect);
 	}
 
 	SInputFieldResult IntegerField(const IUiContext &Ctx, CLineInputNumber *pInput, int *pValue, int Min, int Max, const CUIRect &Rect, const STextFieldOptions &Options)
 	{
 		if(Ctx.m_pUi == nullptr || pInput == nullptr || pValue == nullptr)
 			return {};
+		SInputFieldOptions FieldOptions;
+		FieldOptions.m_pPlaceholder = Options.m_pPlaceholder;
+		FieldOptions.m_FontSize = Options.m_FontSize;
+		FieldOptions.m_Corners = Options.m_Corners;
+		FieldOptions.m_TextAlign = Options.m_TextAlign;
 		if(Ctx.m_pUi->RenderOnly())
 		{
-			char aValue[32];
-			str_format(aValue, sizeof(aValue), "%d", std::clamp(*pValue, Min, Max));
-			const float FontSize = std::min(Options.m_FontSize, Rect.h * CUi::ms_FontmodHeight * 0.8f);
-			Ctx.m_pUi->DoLabel(&Rect, aValue, FontSize, Options.m_TextAlign);
-			return {};
+			CLineInputNumber PreviewInput;
+			PreviewInput.SetInteger(std::clamp(*pValue, Min, Max));
+			// 测量使用提交值；可见后台保留未提交文本，包括全选删除后的空文本。
+			return InputField(Ctx, Ctx.m_pUi->MeasurementOnly() ? &PreviewInput : pInput, Rect, FieldOptions);
 		}
 
 		const int ClampedValue = std::clamp(*pValue, Min, Max);
@@ -364,11 +369,6 @@ namespace ui_widget
 			pInput->SelectAll();
 		}
 
-		SInputFieldOptions FieldOptions;
-		FieldOptions.m_pPlaceholder = Options.m_pPlaceholder;
-		FieldOptions.m_FontSize = Options.m_FontSize;
-		FieldOptions.m_Corners = Options.m_Corners;
-		FieldOptions.m_TextAlign = Options.m_TextAlign;
 		const SInputFieldResult Result = InputField(Ctx, pInput, Rect, FieldOptions);
 		if(!pInput->IsActive())
 		{
@@ -395,9 +395,7 @@ namespace ui_widget
 			return Label;
 		}
 
-		const float LabelWidth = std::clamp(Rect.w * 0.25f, 108.0f, 180.0f);
-		Rect.VSplitLeft(LabelWidth, &Label, nullptr);
-		return Label;
+		return ResolveSettingsControlRowLayout(Rect, ResolveSettingsContentMetrics(Rect.w)).m_LabelRect;
 	}
 
 	bool NumericField(const IUiContext &Ctx, SNumericFieldState *pState, const void *pId, int *pValue, int Min, int Max, const CUIRect &Rect, const SNumericFieldOptions &Options)
@@ -430,9 +428,7 @@ namespace ui_widget
 		}
 		else if(HasLabel)
 		{
-			Label = SliderInputFieldLabelRect(Rect, true, Options.m_Flags);
-			Rect.VSplitLeft(Label.w, nullptr, &Controls);
-			Controls.VMargin(std::min(10.0f, Controls.w * 0.025f), &Controls);
+			SplitSettingsControlRow(Rect, ResolveSettingsContentMetrics(Rect.w), &Label, &Controls);
 		}
 		else
 		{
@@ -441,8 +437,7 @@ namespace ui_widget
 
 		const bool HasSuffix = Options.m_pSuffix != nullptr && Options.m_pSuffix[0] != '\0';
 		const float SuffixWidth = HasSuffix ? std::max(18.0f, Options.m_TrailingWidth) : 0.0f;
-		const float MinimumValueWidth = 52.0f + SuffixWidth + 22.0f;
-		const float ValueWidth = std::clamp((MultiLine ? ValueRect.w : Controls.w) * 0.26f, MinimumValueWidth, 128.0f);
+		const float ValueWidth = ResolveSettingsControlWidth(MultiLine ? ValueRect.w : Controls.w, ResolveSettingsContentMetrics(Rect.w), ESettingsControlWidth::NUMBER, SuffixWidth);
 		const bool HasSlider = MultiLine || Controls.w > ValueWidth + 42.0f;
 		if(!MultiLine && HasSlider)
 			Controls.VSplitRight(ValueWidth, &ScrollBar, &InputField);
@@ -462,14 +457,14 @@ namespace ui_widget
 			Props.m_MinimumFontSize = 6.0f;
 			if(Options.m_pLabelElement != nullptr)
 			{
-				Ctx.m_pUi->DoLabelStreamed(*Options.m_pLabelElement->Rect(0), &Label, Options.m_pLabel, LabelFontSize, Options.m_LabelAlign, Props, -1, nullptr, !Ctx.m_pUi->RenderOnly());
+				Ctx.m_pUi->DoLabelStreamed(*Options.m_pLabelElement->Rect(0), &Label, Options.m_pLabel, LabelFontSize, Options.m_LabelAlign, Props, -1, nullptr, !Ctx.m_pUi->MeasurementOnly());
 			}
 			else
 				Ctx.m_pUi->DoLabel(&Label, Options.m_pLabel, LabelFontSize, Options.m_LabelAlign, Props);
 		}
 		if(RenderOnly)
 		{
-			const int PreviewStoredValue = *pValue;
+			const int PreviewStoredValue = !Ctx.m_pUi->MeasurementOnly() && pState->m_HasPendingValue ? pState->m_PendingStoredValue : *pValue;
 			const bool IsInfinite = SliderInputIsInfiniteValue(PreviewStoredValue, Infinite);
 			int StoredValue = PreviewStoredValue;
 			if(!IsInfinite && !NoClampValue)
@@ -482,16 +477,26 @@ namespace ui_widget
 				str_copy(aValue, Options.m_pMaxText);
 			else
 				str_format(aValue, sizeof(aValue), "%d", DisplayValue);
-			const float FieldFontSize = std::min(Options.m_FontSize, InputField.h * CUi::ms_FontmodHeight * 0.8f);
-			if(HasSuffix)
+			if(!Ctx.m_pUi->MeasurementOnly())
 			{
-				const SInputFieldLayout FieldLayout = ResolveInputFieldLayout(InputField, false, false, Ctx.m_UiScale);
-				const SInlineTrailingTextLayout InlineLayout = ResolveInlineTrailingTextLayout(FieldLayout.m_ContentRect, Ctx.m_pUi->TextRender()->TextWidth(FieldFontSize, aValue), Ctx.m_pUi->TextRender()->TextWidth(FieldFontSize * 0.82f, Options.m_pSuffix), Ctx.m_UiScale);
-				Ctx.m_pUi->DoLabel(&InlineLayout.m_TextRect, aValue, FieldFontSize, TEXTALIGN_MR);
-				Ctx.m_pUi->DoLabel(&InlineLayout.m_TrailingRect, Options.m_pSuffix, FieldFontSize * 0.82f, TEXTALIGN_MC);
+				if(HasSlider)
+					RenderHorizontalSlider(Ctx, pId, ScrollBar, IsInfinite ? 1.0f : std::clamp(pScale->ToRelative(StoredValue, SliderMin, FiniteSliderMax), 0.0f, 1.0f) * (Infinite ? NumericFieldInfiniteEndpointStart(ScrollBar.w, Ctx.m_UiScale) : 1.0f));
 			}
-			else
-				Ctx.m_pUi->DoLabel(&InputField, aValue, FieldFontSize, TEXTALIGN_MC);
+			// 数字不能在后台改用 DoLabel：输入框的内边距、字体缩放、后缀排版
+			// 和未提交文本都必须沿前台的同一条渲染路径。
+			CLineInputNumber PreviewInput;
+			PreviewInput.Set(aValue);
+			char aNumericValue[32];
+			str_format(aNumericValue, sizeof(aNumericValue), "%d", DisplayValue);
+			const bool ShowMaxText = !pInput->IsActive() && !IsInfinite && Options.m_pMaxText != nullptr && DisplayValue == Max && str_comp(pInput->GetString(), aNumericValue) == 0;
+			CLineInput *pVisibleInput = !Ctx.m_pUi->MeasurementOnly() && pState->m_HasSyncedValue && !ShowMaxText ? pInput : &PreviewInput;
+			SInputFieldOptions FieldOptions;
+			FieldOptions.m_FontSize = std::min(Options.m_FontSize, InputField.h * CUi::ms_FontmodHeight * 0.8f);
+			FieldOptions.m_TextAlign = TEXTALIGN_MC;
+			FieldOptions.m_pTrailingText = HasSuffix ? Options.m_pSuffix : nullptr;
+			FieldOptions.m_InlineTrailingText = HasSuffix;
+			FieldOptions.m_ProcessInput = !Ctx.m_pUi->CheckActiveItem(pId);
+			ui_widget::InputField(Ctx, pVisibleInput, InputField, FieldOptions);
 			return false;
 		}
 
@@ -645,10 +650,10 @@ namespace ui_widget
 
 	void DrawToggle(const IUiContext &Ctx, const void *pId, bool Value, const CUIRect &Rect, bool Enabled, bool Animate, const CUIRect *pHitRect)
 	{
-		if(Ctx.m_pUi == nullptr)
+		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->DrawingSuppressed())
 			return;
 		Ctx.m_pUi->DoConfigTooltip(pId, pHitRect != nullptr ? pHitRect : &Rect, pId);
-		if(Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi->MeasurementOnly())
 			return;
 		CUiScopedGaussianBlurSuppression GaussianBlurSuppression(Ctx.m_pUi);
 		const SUiTheme Theme = ThemeFor(Ctx);
@@ -657,7 +662,7 @@ namespace ui_widget
 		ColorRGBA Track = Style.m_Track;
 		float Progress = Value ? 1.0f : 0.0f;
 		CUiV2AnimationRuntime *pAnim = Ctx.m_pAnim != nullptr ? Ctx.m_pAnim : Ctx.m_pUi->QmAnimationRuntime();
-		if(Animate && Enabled && pAnim != nullptr)
+		if(Animate && Enabled && pAnim != nullptr && !Ctx.m_pUi->RenderOnly())
 		{
 			const uint64_t TrackKey = BuildUiAnimNodeKey(Ctx.m_ScopeHash ^ 0xA5A5ull, reinterpret_cast<uint64_t>(pId));
 			Track = ResolveUiAnimValueColor(*pAnim, TrackKey, Track, ui_token::motion::BTN_HOVER.m_DurationSec, ui_token::motion::BTN_HOVER.m_Easing);
@@ -665,11 +670,11 @@ namespace ui_widget
 			Progress = ResolveUiAnimSpringValue(*pAnim, KnobKey, EUiAnimProperty::COLOR_MIX, Progress, ui_token::motion::TOGGLE);
 		}
 		const SToggleLayout Layout = ResolveToggleLayout(Rect, Progress);
-		const bool Hovered = Enabled && Ctx.m_pUi->Enabled() && Ctx.m_pUi->MouseHovered(pHitRect != nullptr ? pHitRect : &Rect);
+		const bool Hovered = !Ctx.m_pUi->RenderOnly() && Enabled && Ctx.m_pUi->Enabled() && Ctx.m_pUi->MouseHovered(pHitRect != nullptr ? pHitRect : &Rect);
 		const bool Pressed = Hovered && Ctx.m_pUi->CheckActiveItem(pId) && Ctx.m_pUi->MouseButton(0);
 		const auto Feedback = ResolveUiToggleFeedbackStyle(Style, Track, Backdrop, Enabled, Hovered, Pressed);
-		DrawRoundedSurface(Ctx, Layout.m_Track, Feedback.m_Track, Feedback.m_Border, ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
-		DrawRoundedSurface(Ctx, Layout.m_Knob, Feedback.m_Knob, ColorRGBA(), ui_token::radius::PILL);
+		DrawControlSurface(Ctx, Layout.m_Track, Feedback.m_Track, Feedback.m_Border, ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
+		DrawControlSurface(Ctx, Layout.m_Knob, Feedback.m_Knob, ColorRGBA(), ui_token::radius::PILL);
 	}
 
 	void DrawMarkedControl(const IUiContext &Ctx, const void *pId, const char *pMark, const CUIRect &Rect, const CUIRect *pHitRect)
@@ -688,38 +693,41 @@ namespace ui_widget
 
 	bool Toggle(const IUiContext &Ctx, const void *pId, bool *pValue, const CUIRect &Rect, bool ProcessInput, bool Animate)
 	{
-		if(Ctx.m_pUi == nullptr || pValue == nullptr || Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi == nullptr || pValue == nullptr)
 			return false;
-		const bool Clicked = ProcessInput && Ctx.m_pUi->DoButtonLogic(pId, 0, &Rect, BUTTONFLAG_LEFT) != 0;
+		const bool Clicked = !Ctx.m_pUi->RenderOnly() && ProcessInput && Ctx.m_pUi->DoButtonLogic(pId, 0, &Rect, BUTTONFLAG_LEFT) != 0;
 		if(Clicked)
 			*pValue = !*pValue;
 		DrawToggle(Ctx, pId, *pValue, Rect, true, Animate);
 		return Clicked;
 	}
 
-	void DrawScrollbarHandle(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, bool Enabled, const ColorRGBA *pColorInner)
+	void DrawScrollbarHandle(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, bool Enabled, const ColorRGBA *pColorInner, const ColorRGBA *pHandleColorOverride)
 	{
-		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->MeasurementOnly())
 			return;
-		const SUiSliderStyle Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), Ctx.m_pUi->HotItem() == pId, Ctx.m_pUi->CheckActiveItem(pId), Enabled);
+		SUiSliderStyle Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->HotItem() == pId, !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->CheckActiveItem(pId), Enabled);
+		// 宿主显式指定的滑块色优先于对比度兜底，供弹窗与设置页保持同一强调色。
+		if(pHandleColorOverride != nullptr)
+			Style.m_Handle = *pHandleColorOverride;
 		// 滑块是前景反馈，背景透明度仅作用于轨道；保留强调色自身 alpha 和禁用态。
-		DrawRoundedSurface(Ctx, Rect, Style.m_Handle, Style.m_Border, ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
+		DrawControlSurface(Ctx, Rect, Style.m_Handle, Style.m_Border, ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
 		if(pColorInner != nullptr)
 		{
 			CUIRect Inner;
 			Rect.Margin(std::min(2.0f, std::min(Rect.w, Rect.h) * 0.25f), &Inner);
-			DrawRoundedSurface(Ctx, Inner, *pColorInner, ColorRGBA(), ui_token::radius::PILL);
+			DrawControlSurface(Ctx, Inner, *pColorInner, ColorRGBA(), ui_token::radius::PILL);
 		}
 	}
 
 	void RenderHorizontalSlider(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, float Current, const ColorRGBA *pColorInner)
 	{
-		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->MeasurementOnly())
 			return;
 		const auto Layout = ResolveHorizontalSliderLayout(Rect, Current);
-		const auto Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), Ctx.m_pUi->HotItem() == pId, Ctx.m_pUi->CheckActiveItem(pId));
-		DrawRoundedSurface(Ctx, Layout.m_Track, Ctx.m_pUi->ScaleBackgroundAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
-		DrawRoundedSurface(Ctx, Layout.m_Fill, Ctx.m_pUi->ScaleBackgroundAlpha(Style.m_Fill), ColorRGBA(), ui_token::radius::PILL);
+		const auto Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->HotItem() == pId, !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->CheckActiveItem(pId));
+		DrawControlSurface(Ctx, Layout.m_Track, Ctx.m_pUi->ScaleControlAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
+		DrawControlSurface(Ctx, Layout.m_Fill, Style.m_Fill, ColorRGBA(), ui_token::radius::PILL);
 		DrawScrollbarHandle(Ctx, pId, Layout.m_Handle, true, pColorInner);
 	}
 
@@ -733,10 +741,13 @@ namespace ui_widget
 		Track.VSplitRight(ui_token::spacing::SM, &Track, nullptr);
 
 		const float Normalized = std::clamp((*pValue - Min) / (Max - Min), 0.0f, 1.0f);
-		const float NewNormalized = Ctx.m_pUi->DoScrollbarH(pId, &Track, Normalized);
+		if(Ctx.m_pUi->RenderOnly())
+			RenderHorizontalSlider(Ctx, pId, Track, Normalized);
+		const float NewNormalized = Ctx.m_pUi->RenderOnly() ? Normalized : Ctx.m_pUi->DoScrollbarH(pId, &Track, Normalized);
 		const float NewValue = Min + NewNormalized * (Max - Min);
-		const bool Changed = std::abs(NewValue - *pValue) > 1e-4f;
-		*pValue = NewValue;
+		const bool Changed = !Ctx.m_pUi->RenderOnly() && std::abs(NewValue - *pValue) > 1e-4f;
+		if(!Ctx.m_pUi->RenderOnly())
+			*pValue = NewValue;
 
 		char aBuf[32];
 		if(pSuffix != nullptr && pSuffix[0] != '\0')

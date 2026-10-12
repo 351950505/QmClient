@@ -87,6 +87,8 @@ struct SUiTheme
 	ColorRGBA m_FocusRing;
 	ColorRGBA m_Accent;
 	ColorRGBA m_Selected;
+	// 旋钮是独立的前景角色，默认保持白色，不借用自动文本对比色。
+	ColorRGBA m_ToggleKnob = ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f);
 	ColorRGBA m_TextTitle;
 	ColorRGBA m_TextBody;
 	ColorRGBA m_TextSmall;
@@ -101,11 +103,11 @@ struct SUiToggleStyle
 	ColorRGBA m_Border;
 };
 
-inline SUiToggleStyle ResolveUiToggleStyle(const SUiTheme &Theme, ColorRGBA ControlSurface, ColorRGBA Backdrop, bool Value, bool Enabled)
+inline SUiToggleStyle ResolveUiToggleStyle(const SUiTheme &Theme, ColorRGBA ControlSurface, ColorRGBA, bool Value, bool Enabled)
 {
 	SUiToggleStyle Style;
 	Style.m_Track = Value ? Theme.m_Accent : ControlSurface;
-	Style.m_Knob = ResolveUiSurfaceForeground(Style.m_Track, Backdrop);
+	Style.m_Knob = Theme.m_ToggleKnob;
 	if(!Enabled)
 	{
 		Style.m_Track.a *= 0.65f;
@@ -172,9 +174,11 @@ inline SUiTheme ResolveUiTheme(const ColorHSLA BaseColor, float Opacity, const C
 }
 
 // 二级面板统一读取独立背景色与透明度，边框沿用全局卡片配置。
+// 强调色/焦点/选中跟随用户配置：弹窗内的主按钮、滚动条与设置页共享同一套强调色，不回落到硬编码默认值。
 inline SUiTheme ResolveSecondaryPanelTheme(unsigned BackgroundColor, int Opacity, unsigned BorderColor)
 {
-	SUiTheme Theme = ResolveUiTheme(ColorHSLA(BackgroundColor), 1.0f);
+	SUiTheme Theme = ResolveUiTheme(ColorHSLA(BackgroundColor), 1.0f, ColorHSLA(g_Config.m_QmUiFocusColor),
+		ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f), ColorHSLA(g_Config.m_QmUiSelectedColor));
 	Theme.m_Surface = Theme.m_Surface.WithAlpha(std::clamp(Opacity / 100.0f, 0.0f, 1.0f));
 	Theme.m_Border = color_cast<ColorRGBA>(ColorHSLA(BorderColor, true));
 	Theme.m_TextTitle = ResolveConfiguredTextColor(Theme.m_Surface);
@@ -191,6 +195,7 @@ inline ColorRGBA ResolveDropdownSurface(unsigned BackgroundColor, int Opacity)
 }
 
 // 普通按钮与下拉触发器沿用已保存配置键。
+// 表面只使用自身透明度与禁用衰减；父层入场透明度由绘制层应用，界面背景透明度不属于按钮角色。
 inline ColorRGBA ResolveUiControlSurface(unsigned BackgroundColor, int Opacity, bool Enabled = true)
 {
 	return ResolveDropdownSurface(BackgroundColor, Opacity).WithMultipliedAlpha(Enabled ? 1.0f : 0.65f);

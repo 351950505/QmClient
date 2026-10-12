@@ -533,7 +533,7 @@ void CConfigManager::Init()
 {
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
-	// 在加载配置前登记磁盘基线；强制保存也不能覆盖其他实例之后写出的设置。
+	// 在加载前记录可读性，避免加载失败后用默认设置覆盖损坏的配置。
 	for(ConfigDomain Domain = ConfigDomain::START; Domain < ConfigDomain::NUM; ++Domain)
 		ReadConfigFileState(s_aConfigDomains[Domain].m_aConfigPath, m_aSaveState[Domain]);
 
@@ -728,19 +728,24 @@ bool CConfigManager::ReadConfigFileState(const char *pPath, SConfigFileState &St
 	return State.m_Readable;
 }
 
-bool CConfigManager::ConfigFilesUnchanged() const
+bool CConfigManager::CheckConfigFiles(bool RefreshBaseline)
 {
+	SConfigFileState aCurrent[ConfigDomain::NUM];
 	for(ConfigDomain Domain = ConfigDomain::START; Domain < ConfigDomain::NUM; ++Domain)
 	{
-		SConfigFileState Current;
+		SConfigFileState &Current = aCurrent[Domain];
 		const SConfigFileState &Expected = m_aSaveState[Domain];
 		if(!Expected.m_Readable || !ReadConfigFileState(s_aConfigDomains[Domain].m_aConfigPath, Current) ||
-			Current.m_Exists != Expected.m_Exists || Current.m_Content != Expected.m_Content)
+			(Expected.m_Exists && !Current.m_Exists) ||
+			(!RefreshBaseline && (Current.m_Exists != Expected.m_Exists || Current.m_Content != Expected.m_Content)))
 		{
 			log_error("config", "ERROR: %s is unreadable or changed since loading/last saving; refusing to overwrite it", s_aConfigDomains[Domain].m_aConfigPath);
 			return false;
 		}
 	}
+	if(RefreshBaseline)
+		for(ConfigDomain Domain = ConfigDomain::START; Domain < ConfigDomain::NUM; ++Domain)
+			m_aSaveState[Domain] = std::move(aCurrent[Domain]);
 	return true;
 }
 
@@ -763,7 +768,9 @@ bool CConfigManager::Save(bool Force)
 		log_error("config", "ERROR: could not lock client configs for saving");
 		return false;
 	}
-	if(!ConfigFilesUnchanged())
+	// 锁内以最新磁盘内容为本次保存基线，允许多个实例依次保存，最后成功保存者生效。
+	// 序列化期间仍检查外部修改；不可读文件和实际写盘错误继续返回失败。
+	if(!CheckConfigFiles(true))
 		return false;
 
 	bool aFailedError[ConfigDomain::NUM] = {};
@@ -863,7 +870,7 @@ bool CConfigManager::Save(bool Force)
 	for(ConfigDomain Domain = ConfigDomain::START; Domain < ConfigDomain::NUM; ++Domain)
 		Failed |= m_aFailed[Domain];
 	// 所有文件完成写入后才替换，写入失败或写入期间发生外部修改都保留原配置。
-	if(Failed || !ConfigFilesUnchanged())
+	if(Failed || !CheckConfigFiles())
 	{
 		for(ConfigDomain Domain = ConfigDomain::START; Domain < ConfigDomain::NUM; ++Domain)
 			if(aaConfigFileTmp[Domain][0] != '\0')
@@ -907,7 +914,10 @@ void CConfigManager::StoreUnknownCommand(const char *pCommand, ConfigDomain Conf
 {
 	// 已移除的界面开关不再作为未知命令写回旧配置。
 	std::string_view Command(pCommand);
-	if(str_comp_nocase(QmRemovedConfig::ReadToken(Command).c_str(), "qm_new_ui") == 0)
+	const std::string Token = QmRemovedConfig::ReadToken(Command);
+	if(str_comp_nocase(Token.c_str(), "qm_new_ui") == 0 ||
+		str_comp_nocase(Token.c_str(), "qm_enhanced_blur") == 0 ||
+		str_comp_nocase(Token.c_str(), "qm_ui_popup_blur") == 0)
 		return;
 	m_avpUnknownCommands[ConfigDomain].push_back(m_ConfigHeap.StoreString(pCommand));
 }

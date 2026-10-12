@@ -11,6 +11,7 @@
 
 #include <game/client/component.h>
 
+#include <algorithm>
 #include <deque>
 #include <vector>
 
@@ -65,22 +66,19 @@ inline void ComputeCountryFlagEntryRect(float x, float y, float w, float h, floa
 	OutY = y + (h - OutH) * 0.5f;
 }
 
-// 判定国旗入场动画的起始时刻（重现即重放）：
-// - 动画关闭或测量通道（RenderOnly 收集/预温，非真实显示）返回 0 表示不做动画计时；
-// - 显式 CustomStartTime > 0 优先（弹窗交错动画、Tee 预览、计分板打开时刻等自带重放时机的界面）；
-// - 否则在「重新出现」时重放：从未真实渲染过（LastRenderTimestamp <= 0）或距上次真实渲染
-//   超过去抖间隔，动画从当前时间开始——首次显示和每次重新显示都能播入场动画；
-// - 持续可见时不重放，维持纹理加载时刻（Elapsed 早已超出时长，表现为静止）。
-inline int64_t ComputeCountryFlagAnimStartTime(bool AnimEnabled, bool MeasurePass, int64_t CustomStartTime, int64_t LoadedTimestamp, int64_t LastRenderTimestamp, int64_t Now, float ReappearGapSeconds, int64_t Frequency)
+enum class EQmCountryFlagRenderPass
 {
-	if(!AnimEnabled || MeasurePass)
-		return 0;
-	if(CustomStartTime > 0)
-		return CustomStartTime;
-	const int64_t Gap = Now - LastRenderTimestamp;
-	const bool Reappeared = LastRenderTimestamp <= 0 || Gap >= (int64_t)(ReappearGapSeconds * Frequency);
-	return Reappeared ? Now : LoadedTimestamp;
-}
+	INTERACTIVE,
+	BACKGROUND,
+	MEASUREMENT,
+};
+
+struct SCountryFlagEntryVisual
+{
+	bool m_Visible = true;
+	float m_Scale = 1.0f;
+	float m_Alpha = 1.0f;
+};
 
 class CCountryFlags : public CComponent
 {
@@ -94,8 +92,48 @@ public:
 		int64_t m_LoadedTimestamp = 0;
 		// 动画起始时间，支持持续播放并在重现时重置；mutable 因 Render 持 const 引用。
 		mutable int64_t m_AnimStartTimestamp = 0;
-		// 上次被真实渲染（非 RenderOnly 测量通道）的时刻，用于重现检测；mutable 因 Render 持 const 引用。
+		// 后台显示也算可见；仅测量不更新时刻。mutable 因 Render 持 const 引用。
 		mutable int64_t m_LastRenderTimestamp = 0;
+
+		// Render 与行为测试共用的生命周期入口；时钟由调用方提供。
+		SCountryFlagEntryVisual ResolveEntryAnimation(EQmCountryFlagRenderPass Pass, bool Enabled, int MotionLevel, int64_t CustomStartTime, int64_t Now, int64_t Frequency) const
+		{
+			SCountryFlagEntryVisual Visual;
+			if(Pass == EQmCountryFlagRenderPass::MEASUREMENT)
+				return Visual;
+
+			Frequency = std::max<int64_t>(1, Frequency);
+			const bool Reappeared = m_LastRenderTimestamp <= 0 || Now - m_LastRenderTimestamp >= (int64_t)(COUNTRY_FLAG_ANIM_REAPPEAR_GAP * Frequency);
+			m_LastRenderTimestamp = Now;
+			if(!Enabled || MotionLevel <= 0)
+			{
+				// 禁用时仍维持可见性，重新启用不能恢复已取消的动画。
+				m_AnimStartTimestamp = 0;
+				return Visual;
+			}
+
+			// 自定义错层动画只覆盖本次输出，不污染该纹理的自动入场进度。
+			if(CustomStartTime <= 0 && Reappeared)
+				m_AnimStartTimestamp = Now;
+			const int64_t AnimationStartTime = CustomStartTime > 0 ? CustomStartTime : m_AnimStartTimestamp;
+			if(AnimationStartTime <= 0)
+				return Visual;
+			if(Now < AnimationStartTime)
+			{
+				Visual.m_Visible = false;
+				return Visual;
+			}
+
+			const float Duration = MotionLevel == 1 ? 0.16f : COUNTRY_FLAG_ANIM_DURATION;
+			const float Elapsed = (Now - AnimationStartTime) / (float)Frequency;
+			if(Elapsed < Duration)
+			{
+				const float Progress = Elapsed / Duration;
+				Visual.m_Scale = ComputeCountryFlagEntryScale(Progress, MotionLevel == 1 ? 1.4f : COUNTRY_FLAG_ANIM_OVERSHOOT);
+				Visual.m_Alpha = ComputeCountryFlagEntryAlpha(Progress);
+			}
+			return Visual;
+		}
 
 		bool operator<(const CCountryFlag &Other) const { return str_comp(m_aCountryCodeString, Other.m_aCountryCodeString) < 0; }
 	};

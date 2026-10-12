@@ -45,7 +45,6 @@ inline SSettingsCardFrame ResolveSettingsCardHeaderActions(SSettingsCardFrame Fr
 		ActionLeft = Frame.m_LeadingHeaderActionRect.x;
 	}
 	Frame.m_TitleRect.w = std::min(Frame.m_TitleRect.w, std::max(0.0f, ActionLeft - Gap - Frame.m_TitleRect.x));
-	Frame.m_SubtitleRect.w = Frame.m_TitleRect.w;
 	return Frame;
 }
 

@@ -250,6 +250,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - Désactivé, 1-9999 minutes
 
+0 = auto
+== 0 = automatique
+
 0 disables timed rotation; skins only switch on random start events
 == 0 désactive la rotation temporisée ; les skins ne changent que lors d'un départ aléatoire
 
@@ -623,6 +626,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == Effet de rémanence
 
+AGC, experimental
+== CAG, expérimental
+
 Agree
 == Accepter
 
@@ -722,9 +728,6 @@ Alpha
 Also apply to dummy
 == Appliquer également au dummy
 
-Also send the original text when translating outgoing messages
-== Envoyer aussi le texte original lors de la traduction des messages sortants
-
 Always show
 == Toujours afficher
 
@@ -806,6 +809,9 @@ Anti Ping Smoothing
 Anti-spoof specific rate limit (0 = unlimited).
 == Limite de débit spécifique anti-spoof (0 = illimité).
 
+AntiPing
+== AntiPing
+
 AntiPing (latency compensation)
 == AntiPing (compensation de latence)
 
@@ -869,9 +875,6 @@ Apply a writable preset and edit first
 Apply Changes
 == Appliquer les modifications
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== Flouter le fond des fenêtres secondaires et listes déroulantes
-
 Apply input early before next tick for prediction
 == Appliquer l'entrée tôt avant le prochain tick pour la prédiction
 
@@ -886,6 +889,12 @@ Apply squishy Tee deformation to other players
 
 Apply this preset
 == Appliquer ce préréglage
+
+Apply to dummy
+== Appliquer au dummy
+
+Apply to player
+== Appliquer au joueur
 
 Apply watermark
 == Appliquer le filigrane
@@ -1069,6 +1078,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == Récupérer automatiquement les informations de replay lors du rafraîchissement
+
+Auto gain control for mic
+== Contrôle automatique du gain pour le micro
 
 Auto gain control for mic (AGC, experimental)
 == Contrôle automatique du gain pour le micro (CAG, expérimental)
@@ -1988,6 +2000,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == Les triches sont activées sur ce serveur
 
+Check again
+== Vérifier à nouveau
+
 check ddnet-saves.txt in config_directory.
 == Consultez ddnet-saves.txt dans config_directory.
 
@@ -2006,6 +2021,9 @@ Check output device, confirm headphones/speakers are still online
 Checking for existing player with your name
 == Vérification de l'existence d'un joueur avec votre nom
 
+Checking for updates...
+== Recherche de mises à jour…
+
 Checking Steam...
 == Vérification de Steam…
 
@@ -2020,9 +2038,6 @@ Chinese font:
 
 CHN
 == CHN
-
-Choose a GPU for this app in system graphics settings, then restart the client.
-== Choisissez un GPU pour cette application dans les paramètres graphiques du système, puis redémarrez le client.
 
 Choose colors for weapons and entity lasers
 == Choose colors for weapons and entity lasers
@@ -2288,6 +2303,12 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == Couleur de la ligne du crochet ne touchant rien
 
+Color picker saturation/value area shape: 0=square, 1=wheel
+== Forme de la zone saturation/valeur : 0=carré, 1=roue
+
+Color picker saved swatches (format: name|#hex entries separated by semicolons)
+== Nuanciers enregistrés (format : nom|#hex, entrées séparées par des points-virgules)
+
 Color tee outlines by team for spectating
 == Colorer le contour du tee par équipe pour les spectateurs
 
@@ -2383,6 +2404,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == Seuil du compresseur (%)
+
+Concurrency
+== Concurrence
 
 Concurrency (0 = auto)
 == Concurrence (0 = automatique)
@@ -2912,17 +2936,29 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == La coupe actuelle est invalide ou déjà ajoutée
 
+Current driver
+== Pilote actuel
+
 Current file
 == Fichier actuel
 
 Current GPU
 == GPU actuel
 
+Current graphics backend
+== Backend graphique actuel
+
 Current rescue mode: %s
 == Mode de sauvetage actuel : %s
 
 Current status
 == Statut actuel
+
+Current version: %s
+== Version actuelle : %s
+
+Current version: %s (up to date)
+== Version actuelle : %s (à jour)
 
 Current: Ranks
 == Actuel : Classements
@@ -3482,6 +3518,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == Annuler les modifications
 
+Discard update
+== Supprimer la mise à jour
+
 Disconnect
 == Déconnexion
 
@@ -3644,8 +3683,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == Télécharger cette ressource ?
 
+Download update
+== Télécharger la mise à jour
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== Téléchargement vérifié. « Quitter et installer » remplace cette version et conserve vos paramètres. Avec « Plus tard », la mise à jour sera installée lorsque vous quitterez le client.
+
 Downloaded
 == Téléchargé
+
+Downloaded: %.1f MiB (total size unknown)
+== Téléchargé : %.1f MiB (taille totale inconnue)
 
 Downloading map
 == Téléchargement de la carte
@@ -4145,8 +4193,8 @@ Enable fat skin
 Enable freeze call sound
 == Activer le son d'appel de freeze
 
-Enable frosted glass blur behind secondary popups and dropdowns
-== Activer le flou derrière les fenêtres secondaires et listes
+Enable FTAPI auto-translate
+== Activer la traduction automatique FTAPI
 
 Enable FTAPI auto-translate (may overload the service)
 == Activer la traduction automatique FTAPI (peut surcharger le service)
@@ -4364,6 +4412,9 @@ Enable tee trails
 Enable the finished indicator and wait for player data
 == Activez l’indicateur de réussite et attendez les données du joueur
 
+Enable thinking mode
+== Activer le mode de réflexion
+
 Enable thinking mode (slower)
 == Activer le mode de réflexion (plus lent)
 
@@ -4580,6 +4631,9 @@ Execute the specified file
 Existing Player
 == Joueur existant
 
+Exit and install
+== Quitter et installer
+
 Exit replay view
 == Quitter la vue de la démo
 
@@ -4594,6 +4648,9 @@ Expanded dropdown background color
 
 Expanded dropdown background opacity percentage
 == Couleur de fond de la liste déroulée — opacité en pourcentage
+
+Experimental
+== expérimental
 
 Export
 == Exporter
@@ -4730,6 +4787,9 @@ Fake CTF flags
 Fallback simple noise reduction strength
 == Force de réduction de bruit simple de repli
 
+Fast input
+== Entrée rapide
+
 Fast input (reduce visual latency)
 == Entrée rapide (réduit la latence visuelle)
 
@@ -4765,6 +4825,9 @@ Favorites
 
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood : tokens + 12 widgets
+
+Feature guide and announcements
+== Guide des fonctionnalités et annonces
 
 Feature Search
 == Recherche de fonctionnalités
@@ -4951,6 +5014,9 @@ Font store:
 
 Font weight:
 == Graisse de la police :
+
+For Gores
+== pour les Gores
 
 For more info: /cmdlist
 == Plus d'infos : /cmdlist
@@ -5707,6 +5773,9 @@ High Detail
 
 High to low
 == Élevé à faible
+
+Higher input latency
+== latence d'entrée plus élevée
 
 Higher values make the wave move faster. Zero stops the movement.
 == Des valeurs élevées accélèrent la vague. Zéro arrête le mouvement.
@@ -6632,6 +6701,9 @@ Last viewed client release notes
 Latency
 == Latence
 
+Latency compensation
+== compensation de latence
+
 Latency Jitter
 == Gigue de latence
 
@@ -6664,6 +6736,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == Apprendre
+
+Leave empty to detect automatically
+== vide pour la détection automatique
 
 Leave empty to disable
 == Laissez vide pour désactiver
@@ -7190,6 +7265,9 @@ Map uploaded successfully.
 Mapper
 == Créateur
 
+Maps
+== Cartes
+
 Maps finished
 == Cartes terminées
 
@@ -7349,6 +7427,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == peut causer un délai
 
+May overload the service
+== peut surcharger le service
+
 Memory
 == Mémoire
 
@@ -7447,6 +7528,9 @@ Milliseconds to apply quick input early
 
 Min size
 == Taille minimale
+
+Mini debug
+== mini débogage
 
 Mini features
 == Mini fonctionnalités
@@ -7850,6 +7934,9 @@ Native scale (1.0)
 Need to have started the map to swap with a player.
 == Vous devez avoir commencé la carte pour échanger avec un joueur.
 
+Negative stability buffer
+== Tampon de stabilité négative
+
 Negative stability buffer (for Gores)
 == Tampon de stabilité négative (pour les Gores)
 
@@ -7873,9 +7960,6 @@ Netversion
 
 Network
 == Réseau
-
-Network error
-== Erreur réseau
 
 Network timeout
 == Délai d'expiration réseau
@@ -7918,6 +8002,9 @@ New preset name
 
 New random timeout code
 == Nouveau code de timeout aléatoire
+
+New version available
+== Nouvelle version disponible
 
 Newest first
 == Plus récentes d’abord
@@ -8600,6 +8687,9 @@ Overwrite clan even if empty
 Own hook line width
 == Largeur de sa propre ligne de crochet
 
+Own team only
+== propre équipe uniquement
+
 p = Ping latency
 == p = Latence de ping
 
@@ -9143,14 +9233,8 @@ Polished
 Pop wave
 == Vague d’agrandissement
 
-Popup & dropdown blur
-== Flou des fenêtres et listes déroulantes
-
 Popup animation
 == Animation contextuelle
-
-Popup blur
-== Flou des panneaux contextuels
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == Port pour la connexion client au serveur (0=aléatoire, >=1024 définit un port manuel)
@@ -9199,6 +9283,9 @@ Predict client movement
 
 Predict dummy movement
 == Prédire le mouvement du Dummy
+
+Predict events
+== Prédire les événements
 
 Predict events (experimental)
 == Prédire les événements (expérimental)
@@ -9563,6 +9650,9 @@ Quads are used for background decoration
 Query current map info
 == Consulter les informations de la carte actuelle
 
+Query isolated serverlist consumer state
+== Consulter l’état du consommateur isolé de la liste des serveurs
+
 Query map info for %s
 == Consulter les informations de la carte %s
 
@@ -9860,6 +9950,9 @@ Reduce antiping and player prediction when frozen
 Reduce prediction while frozen
 == Réduire la prédiction en cas de gel
 
+Reduce visual latency
+== réduit la latence visuelle
+
 Reduced
 == Réduit
 
@@ -9874,6 +9967,9 @@ Refresh
 
 Refresh interval
 == Intervalle d'actualisation
+
+Refresh isolated serverlist consumer
+== Actualiser le consommateur isolé de la liste des serveurs
 
 Refresh Rate
 == Taux de rafraîchissement
@@ -9913,6 +10009,9 @@ Release date
 
 Release notes
 == Notes de version
+
+Release page
+== Page de la version
 
 Reload
 == Recharger
@@ -10664,6 +10763,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == Sauvegarder les noms des joueurs dans la rediffusion
 
+Save power by lowering update rate
+== Économisez l'énergie en réduisant le taux de rafraîchissement
+
 Save power by lowering update rate (higher input latency)
 == Économisez l'énergie en réduisant le taux de rafraîchissement (latence d'entrée plus élevée)
 
@@ -10792,6 +10894,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == Transparence du tableau des scores
+
+Scoreboard, chat, spectating
+== tableau des scores, chat, spectateur
 
 Scores are private on this server
 == Les scores sont privés sur ce serveur
@@ -10937,6 +11042,9 @@ Select a map
 Select a player to manage
 == Sélectionnez un joueur à gérer
 
+Select a preset, then apply it to player or dummy
+== Choisissez un préréglage, puis appliquez-le au joueur ou au dummy
+
 Select a saved .map file (client limit: 64 MiB).
 == Choisissez un fichier .map enregistré (limite du client : 64 MiB).
 
@@ -10979,6 +11087,9 @@ Selected text color
 Selected timertype is not supported by your client
 == Le type de chronomètre sélectionné n'est pas pris en charge par votre client
 
+Selecting download source...
+== Sélection de la source de téléchargement…
+
 Selection
 == Sélection
 
@@ -11014,9 +11125,6 @@ Send emote when entering freeze
 
 Send emoticon in water
 == Envoyer une émoticône dans l'eau
-
-Send original text with translation
-== Envoyer le texte original avec la traduction
 
 Send probability
 == Probabilité d'envoi
@@ -11207,9 +11315,6 @@ Set voice input device
 Set voice output device
 == Définir le périphérique de sortie vocale
 
-Set whether a friend is pinned
-== Définir si un ami est épinglé
-
 Set your checkpoints based on another player
 == Définir vos checkpoints en fonction d'un autre joueur
 
@@ -11398,6 +11503,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == Afficher l'ID client sur une ligne séparée dans la plaque nominative
+
+Show client IDs
+== Afficher les ID clients
 
 Show client IDs (scoreboard, chat, spectating)
 == Afficher les ID clients (tableau des scores, chat, spectateur)
@@ -11870,6 +11978,9 @@ Show only servers with unfinished maps
 Show only team chat messages
 == Afficher uniquement les messages de discussion d'équipe
 
+Show original text below outgoing translation
+== Afficher le texte original sous la traduction des messages sortants
+
 Show other players' coordinates
 == Afficher les coordonnées des autres joueurs
 
@@ -11984,6 +12095,9 @@ Show player Tee
 Show players' key presses
 == Afficher les pressions de touches des joueurs
 
+Show position and angle
+== Afficher la position et l'angle
+
 Show position and angle (mini debug)
 == Afficher la position et l'angle (mini débogage)
 
@@ -12092,6 +12206,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == Afficher les styles de chat synchronisés des soutiens
 
+Show system fonts
+== Afficher les polices système
+
 Show system media info on HUD
 == Afficher les informations média système sur le HUD
 
@@ -12148,6 +12265,9 @@ Show the number of tees still alive
 
 Show the occasional sponsor reminder in the main menu
 == Afficher occasionnellement le rappel dans le menu principal
+
+Show the original text locally below translated outgoing messages
+== Afficher le texte original uniquement en local sous les messages traduits envoyés, sans envoyer l’original au serveur
 
 Show the pet
 == Afficher l'animal
@@ -12298,6 +12418,9 @@ Shrink
 
 Shrug:
 == Haussement d'épaules :
+
+Shuffle skin queue
+== Mélanger la file de skins
 
 Shut down
 == Éteindre
@@ -12469,6 +12592,9 @@ Slide left
 
 Slow down the demo
 == Ralentir la démo
+
+Slower
+== plus lent
 
 Small Tee size
 == Taille du petit Tee
@@ -12841,6 +12967,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == Schéma d'état :
+
+Steam client path
+== Chemin du client Steam
 
 Steam client path (leave empty to detect automatically)
 == Chemin du client Steam (vide pour la détection automatique)
@@ -13268,6 +13397,9 @@ Tee 0.7
 Tee appearance
 == Apparence du Tee
 
+Tee collision
+== Collision des Tee
+
 Tee collision (Tee to Tee)
 == Collision des Tee (Tee contre Tee)
 
@@ -13279,6 +13411,9 @@ Tee cry
 
 Tee death probe
 == Détection de mort du Tee
+
+Tee freeze probe
+== Détection du gel du Tee
 
 Tee freeze probe (Tee to Freeze)
 == Détection du gel du Tee (Tee contre Freeze)
@@ -13294,6 +13429,12 @@ Tee size
 
 Tee status bar
 == Barre d'état du tee
+
+Tee to Freeze
+== Tee contre Freeze
+
+Tee to Tee
+== Tee contre Tee
 
 Tee trail color
 == Couleur de la traînée du tee
@@ -13501,9 +13642,6 @@ The server is running a non-standard tuning on a pure game type.
 
 The server rejected the map upload.
 == Le serveur a refusé l’envoi de la carte.
-
-The update is ready and will be installed when you exit.
-== La mise à jour est prête et sera installée à la fermeture.
 
 The watermarked screenshot was saved next to the original
 == La capture avec filigrane a été enregistrée à côté de l'originale
@@ -14018,6 +14156,9 @@ Translate:
 Translated chat text size as a percentage of the original text (50-100)
 == Taille du texte traduit du chat en pourcentage de la taille du texte original (50-100)
 
+Translated message could not be queued; original was not sent
+== Impossible d’ajouter le message traduit à la file d’envoi ; l’original n’a pas été envoyé
+
 Translated text hidden due to streamer mode
 == Texte traduit masqué en raison du mode streamer
 
@@ -14027,14 +14168,14 @@ Translated text size
 Translating to %s...
 == Traduction en %s...
 
-Translation backend invalid, sending original
-== Moteur de traduction invalide, envoi de l'original
-
 Translation button active color
 == Couleur du bouton de traduction lorsqu’il est activé
 
 Translation button cancel color
 == Couleur du bouton de traduction lorsqu’il est annulé
+
+Translation canceled because the sender changed
+== Traduction annulée car l’expéditeur a changé
 
 Translation color alpha migration completed flag
 == Indicateur de migration alpha des couleurs de traduction terminée
@@ -14053,9 +14194,6 @@ Translation menu selected color
 
 Translation model was not found. Check the model name.
 == Modèle de traduction introuvable. Vérifiez son nom.
-
-Translation queue full, sending original
-== File d'attente de traduction pleine, envoi de l'original
 
 Translation service
 == Service de traduction
@@ -14426,11 +14564,11 @@ Update notice
 Update or add a specific war group
 == Mettre à jour ou ajouter un groupe ennemi spécifique
 
-Update package available
-== Un paquet de mise à jour est disponible pour cette version
-
 Update Rate
 == Taux de rafraîchissement
+
+Update ready to install
+== Mise à jour prête à être installée
 
 Upload .map files. Server and admin passwords: s.
 == Envoyez des fichiers .map. Mots de passe du serveur et admin : s.
@@ -14530,9 +14668,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == Utiliser la liste des ennemis pour piloter les indicateurs de joueur
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== Utiliser le pipeline de flou gaussien lorsque le rendu amélioré est actif
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == Utiliser le mode haute bande passante (double la bande passante du serveur, LAN uniquement)
@@ -14662,6 +14797,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == Vitesse
+
+Verifying downloaded update...
+== Vérification de la mise à jour téléchargée…
 
 Version
 == Version

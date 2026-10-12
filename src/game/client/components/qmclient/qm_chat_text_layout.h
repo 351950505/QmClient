@@ -1,9 +1,35 @@
 #ifndef GAME_CLIENT_COMPONENTS_QMCLIENT_QM_CHAT_TEXT_LAYOUT_H
 #define GAME_CLIENT_COMPONENTS_QMCLIENT_QM_CHAT_TEXT_LAYOUT_H
 
+#include "streamer_word_filter.h"
+
 #include <engine/textrender.h>
 
 #include <algorithm>
+#include <string>
+
+// 隐私隐藏与词表遮蔽分别处理；过滤副本不能使未命中的本地原文消失。
+inline std::string QmChatTranslationDisplayText(const std::string &Text, bool Hidden, bool FilterWords)
+{
+	if(Hidden)
+		return {};
+	std::string Display = Text;
+	QmStreamerWordFilter::Filter(Display, FilterWords);
+	return Display;
+}
+
+struct SQmChatTranslationTextBlocks
+{
+	const char *m_pPrimary;
+	const char *m_pSecondary;
+	bool m_PrimaryIsNetworkText;
+};
+
+// 收到的译文和发送回显统一以译文为正文，原文作为辅助文本。
+inline SQmChatTranslationTextBlocks QmChatTranslationTextBlocks(const char *pNetworkText, const char *pTranslationOrLocalOriginal, bool Outgoing)
+{
+	return Outgoing ? SQmChatTranslationTextBlocks{pNetworkText, pTranslationOrLocalOriginal, true} : SQmChatTranslationTextBlocks{pTranslationOrLocalOriginal, pNetworkText, false};
+}
 
 struct SQmChatTextBlockLayout
 {

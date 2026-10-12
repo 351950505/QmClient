@@ -353,7 +353,7 @@ class CConfigManager : public IConfigManager
 	};
 	SConfigFileState m_aSaveState[ConfigDomain::NUM];
 	bool ReadConfigFileState(const char *pPath, SConfigFileState &State) const;
-	bool ConfigFilesUnchanged() const;
+	bool CheckConfigFiles(bool RefreshBaseline = false);
 
 	struct SCallback
 	{

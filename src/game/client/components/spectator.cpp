@@ -719,6 +719,7 @@ void CSpectator::OnRender()
 
 	Graphics()->MapScreen(0, 0, Width, Height);
 
+	Ui()->RenderGaussianBlur(SpectatorRect, PanelAlpha, IGraphics::CORNER_ALL, 20.0f);
 	SpectatorRect.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.3f * PanelAlpha), IGraphics::CORNER_ALL, 20.0f);
 
 	// clamp mouse position to selector area

@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdlib>
+#include <ctime>
 #include <memory>
 #include <optional>
 #include <string>
@@ -25,32 +26,7 @@ TEST(QmUpdateHttp, RetryAfterHttpDateUsesRemainingTimeAndClampsPastDate)
 	EXPECT_EQ(CHttpRequestCurl::ParseRetryAfter(pDate, 1445412600), 0);
 }
 
-// 仅提供真实后端回调的输入入口，不复写响应处理或完成状态逻辑。
-class CHttpRequestCurlTestPeer
-{
-public:
-	static bool Prepare(CHttpRequestCurl &Request, CURL *pHandle)
-	{
-		Request.m_aErr[0] = '\0';
-		if(!Request.ConfigureHandle(pHandle))
-			return false;
-		Request.m_State = EHttpState::RUNNING;
-		return true;
-	}
-	static size_t Header(CHttpRequestCurl &Request, std::string Text)
-	{
-		return Request.OnHeader(Text.data(), Text.size());
-	}
-	static size_t Body(CHttpRequestCurl &Request, std::string Text)
-	{
-		return CHttpRequestCurl::WriteCallback(Text.data(), 1, Text.size(), &Request);
-	}
-	static void Complete(CHttpRequestCurl &Request, CURL *pHandle = nullptr, CURLcode Code = CURLE_OK)
-	{
-		Request.m_aErr[0] = '\0';
-		Request.OnCompletionInternal(pHandle, Code);
-	}
-};
+#include <test/support/http_curl_test_peer.h>
 
 TEST(QmUpdateHttp, CancellationWinsOverSuccessfulTransportCompletion)
 {
@@ -395,4 +371,123 @@ TEST_F(QmUpdateHttpEnvironment, NonemptyLowercaseTakesPriorityOverUppercase)
 	EXPECT_STREQ(Request.ProxyUrl(), "http://proxy.test:8080");
 }
 #endif
+TEST(QmServerListHttp, EncryptedDnsConfigurationUsesSeparateCachePerRequestAndBootstrapOnlyForResolver)
+{
+	CHttpRequestCurl First("https://master1.ddnet.org/ddnet/15/servers.json");
+	CHttpRequestCurl Second("https://master2.ddnet.org/ddnet/15/servers.json");
+	CHttpRequestCurl Custom("https://master1.ddnet.org.evil.test/ddnet/15/servers.json");
+	ASSERT_TRUE(First.ServerListDnsFallback());
+	ASSERT_TRUE(Second.ServerListDnsFallback());
+	EXPECT_FALSE(Custom.ServerListDnsFallback());
+	CURL *pFirst = curl_easy_init();
+	CURL *pSecond = curl_easy_init();
+	ASSERT_NE(pFirst, nullptr);
+	ASSERT_NE(pSecond, nullptr);
+	EXPECT_TRUE(CHttpRequestCurlTestPeer::Prepare(First, pFirst));
+	EXPECT_TRUE(CHttpRequestCurlTestPeer::Prepare(Second, pSecond));
+	EXPECT_NE(CHttpRequestCurlTestPeer::DnsShare(First), nullptr);
+	EXPECT_NE(CHttpRequestCurlTestPeer::DnsShare(First), CHttpRequestCurlTestPeer::DnsShare(Second));
+	ASSERT_NE(CHttpRequestCurlTestPeer::DnsBootstrap(First), nullptr);
+	EXPECT_STREQ(CHttpRequestCurlTestPeer::DnsBootstrap(First)->data, "dns.alidns.com:443:223.5.5.5,223.6.6.6");
+	EXPECT_EQ(CHttpRequestCurlTestPeer::DnsBootstrap(First)->next, nullptr);
+	curl_easy_cleanup(pFirst);
+	curl_easy_cleanup(pSecond);
+	CHttpRequestCurlTestPeer::Complete(First, nullptr, CURLE_ABORTED_BY_CALLBACK);
+	CHttpRequestCurlTestPeer::Complete(Second, nullptr, CURLE_ABORTED_BY_CALLBACK);
+}
+
+TEST(QmHttpFreshness, AgeHeaderWithoutLastModifiedSurvivesRealHeaderParsing)
+{
+	CHttpRequestCurl Request("https://mirror.test/list");
+	CHttpRequestCurlTestPeer::Header(Request, "HTTP/1.1 200 OK\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "aGe:\t42 \r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "\r\n");
+	CHttpRequestCurlTestPeer::Complete(Request);
+	ASSERT_TRUE(Request.ResultAgeSeconds().has_value());
+	EXPECT_GE(*Request.ResultAgeSeconds(), 42);
+	EXPECT_LE(*Request.ResultAgeSeconds(), 43);
+}
+
+TEST(QmHttpFreshness, InvalidAgeValuesAreUnknownAndLargeKnownAgeRemainsLarge)
+{
+	for(const char *pAge : {"-1", "+10", "garbage", "10oops", ""})
+	{
+		SCOPED_TRACE(pAge);
+		CHttpRequestCurl Request("https://mirror.test/list");
+		CHttpRequestCurlTestPeer::Header(Request, "HTTP/1.1 200 OK\r\n");
+		CHttpRequestCurlTestPeer::Header(Request, std::string("Age: ") + pAge + "\r\n");
+		CHttpRequestCurlTestPeer::Complete(Request);
+		EXPECT_FALSE(Request.ResultAgeSeconds().has_value());
+	}
+	CHttpRequestCurl Request("https://mirror.test/list");
+	CHttpRequestCurlTestPeer::Header(Request, "Age: 9223372036854775808\r\n");
+	CHttpRequestCurlTestPeer::Complete(Request);
+	EXPECT_EQ(Request.ResultAgeSeconds(), INT64_MAX);
+}
+
+TEST(QmHttpFreshness, RedirectAgeAndLastModifiedCannotLeakIntoFinalResponse)
+{
+	CHttpRequestCurl Request("https://mirror.test/redirect");
+	CHttpRequestCurlTestPeer::Header(Request, "HTTP/1.1 302 Found\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Age: 90000\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Date: Wed, 21 Oct 2015 07:28:00 GMT\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Last-Modified: Wed, 21 Oct 2015 07:27:00 GMT\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "HTTP/1.1 200 OK\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Age: 5\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "\r\n");
+	CHttpRequestCurlTestPeer::Complete(Request);
+	EXPECT_FALSE(Request.ResultLastModified().has_value());
+	ASSERT_TRUE(Request.ResultAgeSeconds().has_value());
+	EXPECT_GE(*Request.ResultAgeSeconds(), 5);
+	EXPECT_LE(*Request.ResultAgeSeconds(), 6);
+}
+
+TEST(QmHttpFreshness, OlderDateAndLastModifiedTakePrecedenceOverSmallerAge)
+{
+	CHttpRequestCurl Request("https://mirror.test/list");
+	CHttpRequestCurlTestPeer::Header(Request, "HTTP/1.1 200 OK\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Age: 2\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Date: Wed, 21 Oct 2015 07:28:00 GMT\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Last-Modified: Wed, 21 Oct 2015 07:27:00 GMT\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "\r\n");
+	CHttpRequestCurlTestPeer::Complete(Request);
+	ASSERT_TRUE(Request.ResultAgeSeconds().has_value());
+	EXPECT_GT(*Request.ResultAgeSeconds(), 86400);
+}
+
+TEST(QmHttpFreshness, AgeIncludesResidentTimeAfterHeaderReception)
+{
+	CHttpRequestCurl Request("https://mirror.test/list");
+	CHttpRequestCurlTestPeer::Header(Request, "HTTP/1.1 200 OK\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Age: 40\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "\r\n");
+	CHttpRequestCurlTestPeer::HeadersReceivedAgo(Request, 20);
+	CHttpRequestCurlTestPeer::Complete(Request);
+	ASSERT_TRUE(Request.ResultAgeSeconds().has_value());
+	EXPECT_GE(*Request.ResultAgeSeconds(), 60);
+	EXPECT_LE(*Request.ResultAgeSeconds(), 61);
+}
+
+TEST(QmHttpFreshness, AgeAndModificationAgeAreNotDoubleCounted)
+{
+	const auto HttpDate = [](int64_t Timestamp) {
+		const time_t Value = Timestamp;
+		char aDate[64];
+		std::strftime(aDate, sizeof(aDate), "%a, %d %b %Y %H:%M:%S GMT", std::gmtime(&Value));
+		return std::string(aDate);
+	};
+	CHttpRequestCurl Request("https://mirror.test/list");
+	const int64_t Now = time_timestamp();
+	CHttpRequestCurlTestPeer::Header(Request, "HTTP/1.1 200 OK\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Age: 120\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Date: " + HttpDate(Now) + "\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "Last-Modified: " + HttpDate(Now - 60) + "\r\n");
+	CHttpRequestCurlTestPeer::Header(Request, "\r\n");
+	CHttpRequestCurlTestPeer::Complete(Request);
+	ASSERT_TRUE(Request.ResultAgeSeconds().has_value());
+	EXPECT_GE(*Request.ResultAgeSeconds(), 120);
+	EXPECT_LE(*Request.ResultAgeSeconds(), 121);
+}
+
 #endif

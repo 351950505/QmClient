@@ -82,13 +82,14 @@ namespace ui_token::spacing
 	inline constexpr float XL = 24.0f;
 } // namespace ui_token::spacing
 
-// 圆角标尺：微型 TIGHT / 标准控件 BASE / 卡片容器 CARD。
-// 同一屏内只允许出现这三档加 PILL，禁止再引入字面量半径。
+// 圆角标尺集中保存既有用途的数值；调用点选择用途，不再写字面量半径。
 namespace ui_token::radius
 {
 	inline constexpr float NONE = 0.0f;
 	inline constexpr float TIGHT = 6.0f;
 	inline constexpr float BASE = 8.0f;
+	inline constexpr float SMALL_MENU = 5.0f;
+	inline constexpr float MENU = 10.0f;
 	inline constexpr float CARD = 14.0f;
 	inline constexpr float PILL = 999.0f; // 由绘制层按短边一半裁剪
 } // namespace ui_token::radius
@@ -105,15 +106,41 @@ namespace ui_token::settings
 	inline constexpr float SUB_TAB_GAP = TAB_GAP;
 	inline constexpr float CARD_GAP = 16.0f;
 	inline constexpr float ROW_HEIGHT = 20.0f;
+	inline constexpr float CONTROL_PADDING_Y = 2.0f;
+	inline constexpr float MIN_ROW_HEIGHT = 16.0f;
+	inline constexpr float BADGE_HEIGHT = 16.0f;
 	inline constexpr float ROW_GAP = 5.0f;
 	inline constexpr float TWO_COLUMN_MIN_WIDTH = 760.0f;
 	inline constexpr float CARD_PADDING = 14.0f;
 	inline constexpr float CARD_HEADER_TITLE_HEIGHT = 18.0f;
 	inline constexpr float CARD_HEADER_SUBTITLE_HEIGHT = 12.0f;
+	inline constexpr float CARD_SUMMARY_GAP = spacing::XS;
 	inline constexpr float CARD_HEADER_GAP = 6.0f;
+	inline constexpr float CARD_SUMMARY_ALPHA = 0.72f;
 	inline constexpr float CARD_HANDLE_SIZE = 24.0f;
 	inline constexpr float CARD_RADIUS = radius::CARD;
 } // namespace ui_token::settings
+
+// 沿用既有二级面板数值，集中管理不同内容用途，接入组件时不重新定尺寸。
+namespace ui_token::secondary_panel
+{
+	inline constexpr float BODY_SIZE = 7.5f;
+	inline constexpr float MARGIN = 3.0f;
+	inline constexpr float TITLE_HEIGHT = 16.0f;
+	inline constexpr float ROW_HEIGHT = 16.0f;
+	inline constexpr float LABEL_HEIGHT = 11.0f;
+	inline constexpr float DROPDOWN_HEIGHT = 18.0f;
+	inline constexpr float GAP = 4.0f;
+	inline constexpr float SWITCH_WIDTH = 30.0f;
+	inline constexpr float SWITCH_HEIGHT = 16.0f;
+	inline constexpr float LIBRARY_WIDTH = 780.0f;
+	inline constexpr float LIBRARY_HEIGHT = 470.0f;
+	inline constexpr float LIBRARY_VIEWPORT_FRACTION = 0.74f;
+	inline constexpr float NEWS_WIDTH = 820.0f;
+	inline constexpr float NEWS_ACTION_HEIGHT = 26.0f;
+	inline constexpr float UPDATE_WIDTH = 600.0f;
+	inline constexpr float UPDATE_ACTION_LINE_FACTOR = 2.4f;
+} // namespace ui_token::secondary_panel
 
 namespace ui_token::elevation
 {
