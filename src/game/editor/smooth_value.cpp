@@ -4,7 +4,7 @@
 #include <engine/shared/config.h>
 
 CSmoothValue::CSmoothValue(float InitialValue, float MinValue, float MaxValue) :
-	m_Smoothing(false), m_Value(InitialValue), m_MinValue(MinValue), m_MaxValue(MaxValue) {}
+	m_Smoothing(false), m_Value(InitialValue), m_ValueSmoothing{}, m_ValueSmoothingTarget(InitialValue), m_ValueSmoothingStart(0.0f), m_ValueSmoothingEnd(0.0f), m_MinValue(MinValue), m_MaxValue(MaxValue) {}
 
 void CSmoothValue::SetValue(float Target)
 {

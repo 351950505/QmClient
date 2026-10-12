@@ -2669,8 +2669,8 @@ Console color
 Console color scheme
 == 控制台：配色
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== 控制台：配色：0=现代终端，1=经典 PowerShell, 2=自定义
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== 控制台：配色：0=现代终端，1=经典 PowerShell, 2=自定义，3=PowerShell 7
 
 Console command color
 == 控制台：命令颜色
@@ -4985,6 +4985,9 @@ Follow
 Follow option color
 == 跟随颜色
 
+Follow remote placements in the collaborative editor
+== 协作制图时，将视角移到其他协作者新增或替换的放置区域
+
 Follow server
 == 跨服跟随
 
@@ -6286,6 +6289,9 @@ Interface surface
 
 Interface surface color
 == 界面表面颜色
+
+Interface text size percentage
+== 界面文字大小百分比
 
 Interface transparency
 == 通用界面透明度
@@ -7933,6 +7939,9 @@ Nameplates
 
 Native scale (1.0)
 == 原生缩放 (1.0)
+
+Navigation size percentage
+== 导航大小百分比
 
 Need to have started the map to swap with a player.
 == 你需要先开始地图，才能和其他玩家交换位置
@@ -11357,6 +11366,9 @@ Settings card titles use rainbow colors
 Settings file
 == 设置文件
 
+Settings navigation migration version
+== 设置导航迁移版本
+
 Settings page opacity
 == 设置页不透明度
 
@@ -14348,6 +14360,9 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI 大小
 
+UI scrolling: 0=original, 1=damped
+== 界面滚动：0=原版，1=阻尼
+
 UI server address
 == 界面服务器地址
 
@@ -14722,6 +14737,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == 启用增强渲染时使用程序化圆环管线
+
+Use rounded corners for interface surfaces
+== 在界面区域使用圆角
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == 启用增强渲染时，为灵动岛和圆角矩形使用 SDF 管线
@@ -17569,6 +17587,10 @@ FLAG: Place where red team flag is.
 [Editor]
 folder
 == 文件夹
+
+[Editor]
+Follow remote placements
+== 跟随其他协作者的放置
 
 [Editor]
 Font typer

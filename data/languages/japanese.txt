@@ -2669,8 +2669,8 @@ Console color
 Console color scheme
 == コンソール: 配色
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== コンソール: 配色: 0=モダンターミナル, 1=クラシック PowerShell, 2=カスタム
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== コンソール: 配色: 0=モダンターミナル, 1=クラシック PowerShell, 2=カスタム, 3=PowerShell 7
 
 Console command color
 == コンソール: コマンドの色
@@ -6287,6 +6287,9 @@ Interface surface
 Interface surface color
 == インターフェース表面の色
 
+Interface text size percentage
+== インターフェースの文字サイズの割合
+
 Interface transparency
 == 汎用インターフェース透明度
 
@@ -7933,6 +7936,9 @@ Nameplates
 
 Native scale (1.0)
 == ネイティブスケール (1.0)
+
+Navigation size percentage
+== ナビゲーションのサイズの割合
 
 Need to have started the map to swap with a player.
 == プレイヤーと入れ替えるにはマップを開始する必要があります。
@@ -11357,6 +11363,9 @@ Settings card titles use rainbow colors
 Settings file
 == 設定ファイル
 
+Settings navigation migration version
+== 設定ナビゲーションの移行バージョン
+
 Settings page opacity
 == 設定ページの不透明度
 
@@ -14348,6 +14357,9 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI スケール
 
+UI scrolling: 0=original, 1=damped
+== UI のスクロール：0=標準、1=減衰
+
 UI server address
 == UI サーバーアドレス
 
@@ -14722,6 +14734,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == 拡張レンダリング有効時に手続き型リングパイプラインを使用
+
+Use rounded corners for interface surfaces
+== インターフェースの表示領域に角丸を使用
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == 拡張レンダリング有効時に Dynamic Island と角丸矩形で SDF パイプラインを使用

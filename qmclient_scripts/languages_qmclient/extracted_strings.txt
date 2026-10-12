@@ -888,7 +888,7 @@ Console background color
 Console background opacity
 Console color
 Console color scheme
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
 Console command color
 Console font size
 Console link color
@@ -1660,6 +1660,7 @@ Folder
 Folder Link
 Follow
 Follow option color
+Follow remote placements in the collaborative editor
 Follow server
 Follow Tee
 Following
@@ -2094,6 +2095,7 @@ Interface page
 Interface settings page
 Interface surface
 Interface surface color
+Interface text size percentage
 Interface transparency
 Intermediate
 Internet
@@ -2643,6 +2645,7 @@ Nameplate X alignment hint strict mode
 Nameplate X alignment hint with local player
 Nameplates
 Native scale (1.0)
+Navigation size percentage
 Need to have started the map to swap with a player.
 Negative stability buffer
 Negative stability buffer (for Gores)
@@ -3784,6 +3787,7 @@ Settings card default layout migration version
 Settings card states: stableId for collapsed, !stableId for expanded, separated by semicolons
 Settings card titles use rainbow colors
 Settings file
+Settings navigation migration version
 Settings page opacity
 Settings page right panel opacity
 Settings, binds, profiles, chat binds and the war list are included. Select additional cfg files below.
@@ -4781,6 +4785,7 @@ UI motion level
 UI mouse sens.
 UI rounded corner segments (even numbers recommended)
 UI scale
+UI scrolling: 0=original, 1=damped
 UI server address
 UI size percentage
 Unable to delete %d selected items. The first failing item was '%s'.
@@ -4906,6 +4911,7 @@ Use original style
 Use original style for Dynamic Island
 Use pre-input to predict other players for more accurate input prediction
 Use procedural ring pipeline when enhanced rendering is active
+Use rounded corners for interface surfaces
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 Use server defaults
 Use skin color for frozen Tee's feet
@@ -5705,6 +5711,7 @@ Zoom to current mouse target
 [Editor]	FLAG: Place where blue team flag is.
 [Editor]	FLAG: Place where red team flag is.
 [Editor]	folder
+[Editor]	Follow remote placements
 [Editor]	Font typer
 [Editor]	Force
 [Editor]	Freeze
