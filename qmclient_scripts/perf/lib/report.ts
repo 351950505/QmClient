@@ -201,7 +201,7 @@ export function generateReport(
   const biased = !hasUnifiedFrameSamples(entries) && isSamplingBiased(frameDurations);
   const samplingThresholdMs = inferSamplingThreshold(frameDurations);
   const quality = reportQuality(entries, diagnostics);
-  const verdict = quality.failed ? 'FAIL' : frameTimeEntries.length === 0 || (quality.sampledEntries > 0 && computeVerdict(p, spikes.length) === 'PASS') ? 'WARN' : computeVerdict(p, spikes.length);
+  const verdict = quality.failed ? 'FAIL' : frameTimeEntries.length === 0 || (quality.frameSamplesEstimated && computeVerdict(p, spikes.length) === 'PASS') ? 'WARN' : computeVerdict(p, spikes.length);
   const narrative = generateNarrative(p, spikes, compliance240, compliance120, compliance60, biased, samplingThresholdMs);
   const targetSettingsAcceptanceBlocked = targetSettings.stableTextCoverage.acceptanceBlocked ||
     !targetSettings.verdictAvailable;
@@ -845,6 +845,9 @@ body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-weigh
       <tr><td class="mono">Frame samples</td><td>${quality.sampleCount}</td></tr>
       <tr><td class="mono">Parsed entries</td><td>${quality.totalEntries}</td></tr>
       <tr><td class="mono">Invalid lines</td><td>${quality.invalidLines}</td></tr>
+      <tr><td class="mono">Frame samples omitted</td><td>${quality.sampledFrameEntries ?? 'N/A'}</td></tr>
+      <tr><td class="mono">Detail samples omitted</td><td>${quality.sampledDetailEntries ?? 'N/A'}</td></tr>
+      <tr><td class="mono">Window events omitted</td><td>${quality.droppedEventEntries ?? 'N/A'}</td></tr>
       <tr><td class="mono">Sampling p5 estimate</td><td>${quality.samplingThresholdMs.toFixed(1)}ms</td></tr>
       <tr><td class="mono">Pages</td><td>${escapeHtml(quality.operation.pages.join(', ') || 'N/A')}</td></tr>
       <tr><td class="mono">Systems</td><td>${escapeHtml(quality.operation.systems.join(', ') || 'N/A')}</td></tr>
