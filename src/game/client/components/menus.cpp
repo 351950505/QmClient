@@ -6079,8 +6079,14 @@ bool CMenus::SetSettingsPageFromCardTab(const char *pTab)
 
 void CMenus::NavigateToSettingsCard(const qm_card_registry::SCardNavigationTarget &Target)
 {
+	const bool FromSearch = g_Config.m_UiSettingsPage == SETTINGS_SEARCH;
 	if(Target.m_pStableId == nullptr || Target.m_pStableId[0] == '\0' || !SetSettingsPageFromCardTab(Target.m_pTab))
 		return;
+	if(FromSearch)
+	{
+		m_ReturnToSettingsSearch = true;
+		m_SettingsSearchLocatedPage = g_Config.m_UiSettingsPage;
+	}
 	m_SettingsCardDeck.RequestReveal(Target.m_pStableId);
 }
 
@@ -7815,6 +7821,12 @@ bool CMenus::OnInput(const IInput::CEvent &Event)
 {
 	if(!IsActive() && GameClient()->m_HudEditor.IsActive())
 		return false;
+
+	if(IsActive() && HandleSettingsSearchInput(Event))
+	{
+		MarkMenuInteraction();
+		return true;
+	}
 
 	// Escape key is always handled to activate/deactivate menu
 	if((Event.m_Flags & IInput::FLAG_PRESS && Event.m_Key == KEY_ESCAPE) || IsActive())

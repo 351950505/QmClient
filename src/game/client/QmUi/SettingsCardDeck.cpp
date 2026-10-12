@@ -751,7 +751,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 			// 命中与绘制使用同一动画矩形，且遵守弹层和滚动裁剪的输入隔离。
 			const SSettingsCardFrame FocusFrame = ResolveSettingsCardDrawFrame(Frame, State.m_DrawOffsetX, State.m_DrawOffsetY);
 			m_Focus.Observe(pStableId, Ctx.m_pUi != nullptr && !Ctx.m_pUi->PointerInputBlocked() && PointInRect(ScrollViewport, Input.m_MouseX, Input.m_MouseY) && Ctx.m_pUi->MouseHovered(&FocusFrame.m_Rect));
-			State.m_Focused = m_Focus.IsFocused(pStableId);
+			State.m_Focused = m_Focus.IsFocused(pStableId) || (Input.m_pFocusedStableId != nullptr && str_comp(Input.m_pFocusedStableId, pStableId) == 0);
 			SettingsCard(Ctx, Frame, Card.m_pDefinition->m_Spec, State, VisualOptions,
 				SettingsCardDeckRendersContent(Collapsed) ? Card.m_pDefinition->m_Render : FSettingsCardRender{}, HeaderAction,
 				SettingsCardDeckRendersContent(Collapsed) ? Card.m_pDefinition->m_RenderMeasured : FSettingsCardRenderMeasured{}, &PointerInsideDrawFrame);

@@ -2,6 +2,7 @@
 
 #include <base/system.h>
 
+#include <engine/shared/config.h>
 #include <engine/shared/localization.h>
 
 #include <game/client/QmUi/cards/QmCardCatalogSearch.h>
@@ -341,9 +342,93 @@ namespace qm_card_registry
 
 	namespace
 	{
-		bool SearchTextMatches(const char *pText, const char *pQuery)
+		struct SIndexedSearchCard
 		{
-			return pText != nullptr && pText[0] != '\0' && str_utf8_find_nocase(pText, pQuery) != nullptr;
+			const SCardDefault *m_pDefault;
+			std::string m_Title;
+			std::string m_Description;
+		};
+
+		struct SIndexedSearchDocument
+		{
+			size_t m_CardIndex;
+			const SCardSettingSearch *m_pSetting = nullptr;
+			std::string m_DisplayLabel;
+		};
+
+		struct SRegistrySearchIndex
+		{
+			bool m_Initialized = false;
+			std::string m_LanguageFile;
+			qm_settings_search::CIndex m_Index;
+			std::vector<SIndexedSearchCard> m_vCards;
+			std::vector<SIndexedSearchDocument> m_vDocuments;
+
+			void EnsureCurrentLanguage()
+			{
+				if(m_Initialized && m_LanguageFile == g_Config.m_ClLanguagefile)
+					return;
+				m_LanguageFile = g_Config.m_ClLanguagefile;
+				m_vCards.clear();
+				m_vDocuments.clear();
+				const auto &vDefaults = DefaultsTable();
+				m_vCards.reserve(vDefaults.size());
+				for(const SCardDefault &Default : vDefaults)
+					m_vCards.push_back({&Default, Default.m_pTitle != nullptr ? Localize(Default.m_pTitle) : "", ResolveLocalizedDescription(Default)});
+
+				std::vector<qm_settings_search::SDocument> vDocuments;
+				for(const SCardDefault &Default : vDefaults)
+				{
+					if(Default.m_pStableId == nullptr)
+						continue;
+					const SCardDefault *pCard = Default.m_pNavigationStableId != nullptr ? FindByStableId(Default.m_pNavigationStableId) : &Default;
+					if(pCard == nullptr)
+						pCard = &Default;
+					const size_t CardIndex = static_cast<size_t>(pCard - vDefaults.data());
+					const size_t SourceIndex = static_cast<size_t>(&Default - vDefaults.data());
+					qm_settings_search::SDocument CardDocument;
+					CardDocument.m_CardId = pCard->m_pStableId;
+					CardDocument.m_Label = m_vCards[SourceIndex].m_Title;
+					CardDocument.m_CardTitle = m_vCards[SourceIndex].m_Title;
+					CardDocument.m_Description = m_vCards[SourceIndex].m_Description;
+					CardDocument.m_Aliases = Default.m_pTitle != nullptr ? Default.m_pTitle : "";
+					if(Default.m_pDescription != nullptr)
+						CardDocument.m_Description += std::string(" ") + Default.m_pDescription;
+					CardDocument.m_Keywords = Default.m_pSearchKeywords != nullptr ? Default.m_pSearchKeywords : "";
+					vDocuments.push_back(std::move(CardDocument));
+					m_vDocuments.push_back({CardIndex, nullptr, {}});
+
+					for(size_t SettingIndex = 0; SettingIndex < Default.m_SettingCount; ++SettingIndex)
+					{
+						const SCardSettingSearch &Setting = Default.m_pSettings[SettingIndex];
+						qm_settings_search::SDocument Document;
+						Document.m_CardId = pCard->m_pStableId;
+						Document.m_ConfigName = Setting.m_pConfigName != nullptr ? Setting.m_pConfigName : "";
+						Document.m_SettingId = !Document.m_ConfigName.empty() ? Document.m_ConfigName : Setting.m_pLabel != nullptr ? Setting.m_pLabel : "";
+						if(Document.m_ConfigName.empty() && Setting.m_pContext != nullptr && Setting.m_pContext[0] != '\0')
+							Document.m_SettingId += std::string("[") + Setting.m_pContext + "]";
+						Document.m_Label = Setting.m_pLabel != nullptr ? Localize(Setting.m_pLabel, Setting.m_pContext != nullptr ? Setting.m_pContext : "") : "";
+						Document.m_Aliases = Setting.m_pAliases != nullptr ? Setting.m_pAliases : "";
+						if(Setting.m_pLabel != nullptr)
+							Document.m_Aliases += std::string(" ") + Setting.m_pLabel;
+						Document.m_CardTitle = m_vCards[SourceIndex].m_Title;
+						if(Default.m_pTitle != nullptr)
+							Document.m_CardTitle += std::string(" ") + Default.m_pTitle;
+						// 每项仅继承卡标题作上下文，避免把相邻设置的词拼成同一命中项。
+						m_vDocuments.push_back({CardIndex, &Setting, Document.m_Label});
+						vDocuments.push_back(std::move(Document));
+					}
+				}
+				m_Index.SetDocuments(std::move(vDocuments));
+				m_Initialized = true;
+			}
+		};
+
+		SRegistrySearchIndex &RegistrySearchIndex()
+		{
+			static SRegistrySearchIndex s_Index;
+			s_Index.EnsureCurrentLanguage();
+			return s_Index;
 		}
 	}
 
@@ -372,42 +457,56 @@ namespace qm_card_registry
 		std::vector<SCardSearchResult> vResults;
 		if(pQuery == nullptr || pQuery[0] == '\0')
 			return vResults;
-
-		const std::vector<SCardDefault> &vDefaults = DefaultsTable();
-		vResults.reserve(vDefaults.size());
-		for(const SCardDefault &Default : vDefaults)
+		SRegistrySearchIndex &Cache = RegistrySearchIndex();
+		const auto vMatches = Cache.m_Index.Search(pQuery);
+		const auto &vDocuments = Cache.m_Index.Documents();
+		vResults.reserve(Cache.m_vCards.size());
+		for(const auto &Match : vMatches)
 		{
-			if(Default.m_pStableId == nullptr)
-				continue;
-			const char *pLocalizedTitle = Default.m_pTitle != nullptr ? Localize(Default.m_pTitle) : "";
-			const char *pLocalizedDescription = Default.m_pDescription != nullptr ? Localize(Default.m_pDescription) : "";
-			bool Matches = SearchTextMatches(pLocalizedTitle, pQuery) || SearchTextMatches(Default.m_pTitle, pQuery) ||
-				       SearchTextMatches(pLocalizedDescription, pQuery) || SearchTextMatches(Default.m_pDescription, pQuery) ||
-				       SearchTextMatches(Default.m_pSearchKeywords, pQuery);
-			for(size_t Index = 0; !Matches && Index < Default.m_SettingCount; ++Index)
+			const auto &Metadata = Cache.m_vDocuments[Match.m_DocumentIndex];
+			const auto &Card = Cache.m_vCards[Metadata.m_CardIndex];
+			const SCardDefault &Default = *Card.m_pDefault;
+			auto Result = std::find_if(vResults.begin(), vResults.end(), [&](const SCardSearchResult &Existing) {
+				return Existing.m_pStableId == Default.m_pStableId;
+			});
+			if(Result == vResults.end())
 			{
-				const SCardSettingSearch &Setting = Default.m_pSettings[Index];
-				Matches = SearchTextMatches(Setting.m_pConfigName, pQuery) || SearchTextMatches(Setting.m_pAliases, pQuery) || SearchTextMatches(Setting.m_pLabel, pQuery) ||
-					  (Setting.m_pLabel != nullptr && SearchTextMatches(Localize(Setting.m_pLabel, Setting.m_pContext), pQuery));
+				SCardSearchResult NewResult;
+				NewResult.m_pStableId = Default.m_pStableId;
+				NewResult.m_Title = Card.m_Title;
+				NewResult.m_Description = Card.m_Description;
+				NewResult.m_Target = ResolveCardNavigationTarget(Default, Model);
+				NewResult.m_Score = Match.m_Score;
+				NewResult.m_Kind = Match.m_Kind;
+				vResults.push_back(std::move(NewResult));
+				Result = std::prev(vResults.end());
 			}
-			if(!Matches)
+			if(Match.m_Kind < Result->m_Kind || (Match.m_Kind == Result->m_Kind && Match.m_Score > Result->m_Score))
+			{
+				Result->m_Score = Match.m_Score;
+				Result->m_Kind = Match.m_Kind;
+			}
+			if(Metadata.m_pSetting == nullptr)
 				continue;
-
-			// 旧入口只贡献检索词；命中后展示实际承载设置的卡片，并按该 ID 去重。
-			const SCardDefault *pCard = Default.m_pNavigationStableId != nullptr ? FindByStableId(Default.m_pNavigationStableId) : &Default;
-			if(pCard == nullptr)
-				pCard = &Default;
-			if(std::any_of(vResults.begin(), vResults.end(), [pCard](const SCardSearchResult &Result) {
-				   return str_comp(Result.m_pStableId, pCard->m_pStableId) == 0;
+			const auto &Document = vDocuments[Match.m_DocumentIndex];
+			if(std::any_of(Result->m_vMatchedSettings.begin(), Result->m_vMatchedSettings.end(), [&](const SSettingSearchMatch &Setting) {
+				   return Setting.m_SettingId == Document.m_SettingId;
 			   }))
 				continue;
-			SCardSearchResult Result;
-			Result.m_pStableId = pCard->m_pStableId;
-			Result.m_Title = pCard->m_pTitle != nullptr ? Localize(pCard->m_pTitle) : "";
-			Result.m_Description = ResolveLocalizedDescription(*pCard);
-			Result.m_Target = ResolveCardNavigationTarget(*pCard, Model);
-			vResults.push_back(std::move(Result));
+			SSettingSearchMatch Setting;
+			Setting.m_SettingId = Document.m_SettingId;
+			Setting.m_Label = Metadata.m_pSetting->m_pLabel != nullptr ? Metadata.m_pSetting->m_pLabel : "";
+			Setting.m_DisplayLabel = Metadata.m_DisplayLabel;
+			Setting.m_ConfigName = Document.m_ConfigName;
+			Setting.m_Score = Match.m_Score;
+			Setting.m_Kind = Match.m_Kind;
+			Result->m_vMatchedSettings.push_back(std::move(Setting));
 		}
+		std::stable_sort(vResults.begin(), vResults.end(), [](const SCardSearchResult &Left, const SCardSearchResult &Right) {
+			if(Left.m_Kind != Right.m_Kind)
+				return Left.m_Kind < Right.m_Kind;
+			return Left.m_Score > Right.m_Score;
+		});
 		return vResults;
 	}
 

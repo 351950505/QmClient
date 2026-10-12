@@ -26,6 +26,7 @@
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/QmVoteMenu.h>
 #include <game/client/QmUi/SettingsCardDeck.h>
+#include <game/client/QmUi/SettingsSearchSession.h>
 #include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
@@ -2665,6 +2666,11 @@ public:
 	CLineInputBuffered<128> m_GlobalCardSearchInput;
 	// 进入「搜索」设置页时自动聚焦输入框的一次性请求标志（渲染侧消费）。
 	bool m_FocusSettingsSearchOnEntry = false;
+	CSettingsSearchSession m_SettingsSearchSession;
+	bool m_ReturnToSettingsSearch = false;
+	bool m_SettingsSearchRevealOnRefresh = false;
+	int m_SettingsSearchLocatedPage = -1;
+	bool HandleSettingsSearchInput(const IInput::CEvent &Event);
 	void ClearQmClientSettingsSearchInputs();
 
 	// DDRace

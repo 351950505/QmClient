@@ -14,14 +14,10 @@ namespace qm_card_catalog
 
 		// 标签沿用控件的英文 key；中文别名只供检索，不替代翻译维护源。
 		static constexpr SCardSettingSearch s_adeck_controls_mouse[] = {
-			{Localizable("Ingame mouse sens."), nullptr, "游戏内鼠标灵敏度"},
-			{Localizable("Maximum cursor distance"), nullptr, "最大光标距离"},
-			{Localizable("Minimum cursor distance"), nullptr, "最小光标距离"},
-			{Localizable("UI mouse sens."), nullptr, "鼠标灵敏度（界面）"},
-			{nullptr, "cl_mouse_max_distance", nullptr},
-			{nullptr, "cl_mouse_min_distance", nullptr},
-			{nullptr, "inp_mousesens", nullptr},
-			{nullptr, "ui_mousesens", nullptr},
+			{Localizable("Ingame mouse sens."), "inp_mousesens", "游戏内鼠标灵敏度 鼠标速度"},
+			{Localizable("Maximum cursor distance"), "cl_mouse_max_distance", "最大光标距离"},
+			{Localizable("Minimum cursor distance"), "cl_mouse_min_distance", "最小光标距离"},
+			{Localizable("UI mouse sens."), "ui_mousesens", "鼠标灵敏度（界面）"},
 		};
 
 		static constexpr SCardSettingSearch s_adeck_controls_controller[] = {
@@ -29,21 +25,40 @@ namespace qm_card_catalog
 			{Localizable("Aim bind"), nullptr, "操作轴绑定"},
 			{Localizable("Axis"), nullptr, "轴"},
 			{Localizable("Controller"), nullptr, "手柄"},
-			{Localizable("Controller jitter tolerance"), nullptr, "摇杆死区"},
-			{Localizable("Enable controller"), nullptr, "启用控制器"},
-			{Localizable("Ingame controller mode"), nullptr, "游戏内手柄瞄准模式"},
-			{Localizable("Ingame controller sens."), nullptr, "游戏内摇杆灵敏度"},
+			{Localizable("Controller jitter tolerance"), "inp_controller_tolerance", "摇杆死区"},
+			{Localizable("Enable controller"), "inp_controller_enable", "启用控制器"},
+			{Localizable("Ingame controller mode"), "inp_controller_absolute", "游戏内手柄瞄准模式"},
+			{Localizable("Ingame controller sens."), "inp_controller_sens", "游戏内摇杆灵敏度"},
 			{Localizable("No controller found. Plug in a controller."), nullptr, "未检测到任何手柄。请连接手柄。"},
 			{Localizable("Relative", "Ingame controller mode"), nullptr, "相对", "Ingame controller mode"},
 			{Localizable("Status"), nullptr, "状态"},
-			{Localizable("UI controller sens."), nullptr, "摇杆灵敏度（界面）"},
-			{nullptr, "inp_controller_absolute", nullptr},
-			{nullptr, "inp_controller_enable", nullptr},
-			{nullptr, "inp_controller_sens", nullptr},
-			{nullptr, "inp_controller_tolerance", nullptr},
+			{Localizable("UI controller sens."), "ui_controller_sens", "摇杆灵敏度（界面）"},
 			{nullptr, "inp_controller_x", nullptr},
 			{nullptr, "inp_controller_y", nullptr},
-			{nullptr, "ui_controller_sens", nullptr},
+		};
+
+		static constexpr SCardSettingSearch s_aqm_console[] = {
+			{Localizable("Console font size"), "qm_console_font_size", "控制台字号 控制台字体大小 终端字号"},
+			{Localizable("Console background opacity"), "qm_console_opacity", "控制台背景透明度 终端透明度"},
+			{Localizable("Highlight console commands"), "qm_console_highlight_commands", "控制台命令高亮"},
+			{Localizable("Console color scheme"), "qm_console_color_scheme", "控制台配色方案"},
+			{Localizable("Console background color"), "qm_console_background_color", "控制台背景颜色"},
+			{Localizable("Console text color"), "qm_console_text_color", "控制台文字颜色"},
+			{Localizable("Console command color"), "qm_console_command_color", "控制台命令颜色"},
+			{Localizable("Console parameter color"), "qm_console_parameter_color", "控制台参数颜色"},
+			{Localizable("Console string color"), "qm_console_string_color", "控制台字符串颜色"},
+			{Localizable("Console number color"), "qm_console_number_color", "控制台数字颜色"},
+			{Localizable("Console link color"), "qm_console_link_color", "控制台链接颜色"},
+			{Localizable("Console search match color"), "qm_console_search_color", "控制台搜索命中颜色"},
+			{Localizable("Console selected search match color"), "qm_console_search_selected_color", "控制台搜索选中颜色"},
+		};
+
+		static constexpr SCardSettingSearch s_aqm_chat_completion[] = {
+			{Localizable("Background color"), "qm_chat_completion_bg_color", "聊天补全背景颜色"},
+			{Localizable("Background opacity"), "qm_chat_completion_opacity", "聊天补全背景透明度"},
+			{Localizable("Text color"), "qm_chat_completion_text_color", "聊天补全文字颜色"},
+			{Localizable("Selected text color"), "qm_chat_completion_selected_text_color", "聊天补全选中文字颜色"},
+			{Localizable("Selection background color"), "qm_chat_completion_selected_color", "聊天补全选中背景颜色"},
 		};
 
 		static constexpr SCardSettingSearch s_aqm_gores_actor[] = {
@@ -2059,32 +2074,20 @@ namespace qm_card_catalog
 		};
 
 		static constexpr SCardSettingSearch s_adeck_appearance_chat_settings[] = {
-			{Localizable("Always show chat"), nullptr, "始终显示聊天框"},
-			{Localizable("Auto save chat log"), nullptr, "自动保存聊天记录"},
-			{Localizable("Chat background color"), nullptr, "聊天背景色"},
-			{Localizable("Chat font size"), nullptr, "聊天字体大小"},
-			{Localizable("Chat log retention days"), nullptr, "聊天记录保留天数"},
-			{Localizable("Chat width"), nullptr, "聊天框宽度"},
+			{Localizable("Always show chat"), "cl_showchat", "始终显示聊天框"},
+			{Localizable("Auto save chat log"), "qm_chat_log_auto_save", "自动保存聊天记录"},
+			{Localizable("Chat background color"), "cl_chat_background_color", "聊天背景色 聊天背景透明度 聊天透明度"},
+			{Localizable("Chat font size"), "cl_chat_size", "聊天字体大小 聊天字号"},
+			{Localizable("Chat log retention days"), "qm_chat_log_keep_days", "聊天记录保留天数"},
+			{Localizable("Chat width"), "cl_chat_width", "聊天框宽度"},
 			{Localizable("Days"), nullptr, "天"},
-			{Localizable("Save unsent chat draft"), nullptr, "保存未发送的聊天草稿"},
-			{Localizable("Show chat"), nullptr, "显示聊天框"},
-			{Localizable("Show names in chat in team colors"), nullptr, "以队伍颜色显示玩家昵称"},
-			{Localizable("Show only chat messages from friends"), nullptr, "只显示好友聊天消息"},
-			{Localizable("Show only chat messages from team members"), nullptr, "只显示队伍聊天消息"},
-			{Localizable("Show the chat scrollbar on the right"), nullptr, "聊天滚动条 左侧 右侧"},
-			{nullptr, "qm_chat_scrollbar_right", nullptr},
-			{Localizable("Use old chat style"), nullptr, "旧版聊天框"},
-			{nullptr, "cl_chat_background_color", nullptr},
-			{nullptr, "cl_chat_old", nullptr},
-			{nullptr, "cl_chat_size", nullptr},
-			{nullptr, "cl_chat_teamcolors", nullptr},
-			{nullptr, "cl_chat_width", nullptr},
-			{nullptr, "cl_show_chat_friends", nullptr},
-			{nullptr, "cl_show_chat_team_members_only", nullptr},
-			{nullptr, "cl_showchat", nullptr},
-			{nullptr, "qm_chat_log_auto_save", nullptr},
-			{nullptr, "qm_chat_log_keep_days", nullptr},
-			{nullptr, "qm_chat_save_draft", nullptr},
+			{Localizable("Save unsent chat draft"), "qm_chat_save_draft", "保存未发送的聊天草稿"},
+			{Localizable("Show chat"), "cl_showchat", "显示聊天框"},
+			{Localizable("Show names in chat in team colors"), "cl_chat_teamcolors", "以队伍颜色显示玩家昵称"},
+			{Localizable("Show only chat messages from friends"), "cl_show_chat_friends", "只显示好友聊天消息"},
+			{Localizable("Show only chat messages from team members"), "cl_show_chat_team_members_only", "只显示队伍聊天消息"},
+			{Localizable("Show the chat scrollbar on the right"), "qm_chat_scrollbar_right", "聊天滚动条 左侧 右侧"},
+			{Localizable("Use old chat style"), "cl_chat_old", "旧版聊天框"},
 		};
 
 		static constexpr SCardSettingSearch s_atclient_visual_nameplates[] = {
@@ -3132,6 +3135,8 @@ namespace qm_card_catalog
 		static constexpr SCardMetadata s_aCards[] = {
 			{"deck:controls-mouse", s_adeck_controls_mouse, std::size(s_adeck_controls_mouse)},
 			{"deck:controls-controller", s_adeck_controls_controller, std::size(s_adeck_controls_controller)},
+			{"qm:console", s_aqm_console, std::size(s_aqm_console)},
+			{"qm:chat_completion", s_aqm_chat_completion, std::size(s_aqm_chat_completion)},
 			{"qm:gores_actor", s_aqm_gores_actor, std::size(s_aqm_gores_actor)},
 			{"qm:gores", s_aqm_gores, std::size(s_aqm_gores)},
 			{"qm:key_binds", s_aqm_key_binds, std::size(s_aqm_key_binds)},

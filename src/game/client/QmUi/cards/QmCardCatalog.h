@@ -70,6 +70,7 @@ namespace qm_card_catalog
 	};
 
 	void FillKeywordReplyLayoutState(SQmFunctionCardLayoutState &State);
+	SQmFunctionCardLayoutState ResolveFunctionCardLayoutState(size_t FavoriteMapCount);
 
 	// 卡片构造上下文：页面把自己的 UI 尺度、布局帧、折叠状态与持久化回调注入进来。
 	// 卡片模块只依赖本结构，不依赖任何页面函数局部状态。

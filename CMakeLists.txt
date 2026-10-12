@@ -3236,6 +3236,12 @@ if(CLIENT)
     QmUi/QmCardOrderModel.h
     QmUi/QmCardRegistry.cpp
     QmUi/QmCardRegistry.h
+    QmUi/SettingsSearchIndex.cpp
+    QmUi/SettingsSearchIndex.h
+    QmUi/SettingsSearchHighlight.cpp
+    QmUi/SettingsSearchHighlight.h
+    QmUi/SettingsSearchPage.cpp
+    QmUi/SettingsSearchSession.h
     QmUi/cards/QmCardCatalog.cpp
     QmUi/cards/QmCardCatalog.h
     QmUi/cards/QmCardCatalogIds.cpp
@@ -4621,6 +4627,9 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/music/qm_music_hook_protocol_test.cpp
     src/test/contract/qmclient/ui/qm_ui_presentation_contract_test.cpp
     src/test/unit/qmclient/ui/QmUiTokensTest.cpp
+    src/test/unit/qmclient/ui/settings_search_index_test.cpp
+    src/test/unit/qmclient/settings/settings_search_highlight_test.cpp
+    src/test/unit/qmclient/settings/settings_search_session_test.cpp
     src/test/unit/qmclient/ui/qm_ime_candidate_layout_test.cpp
     src/test/unit/qmclient/ui/qm_input_motion_test.cpp
     src/test/unit/qmclient/ui/qm_color_gradient_test.cpp
@@ -4906,6 +4915,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/integration/qmclient/settings/qm_nameplate_cards_test.cpp
     src/test/integration/qmclient/settings/qm_general_cards_test.cpp
     src/test/integration/qmclient/settings/qm_catalog_search_test.cpp
+    src/test/integration/qmclient/settings/qm_settings_search_ranking_test.cpp
     src/test/integration/qmclient/settings/qm_title_cards_test.cpp
     src/test/integration/qmclient/settings/qm_spectator_cards_test.cpp
     src/test/integration/qmclient/settings/qm_tee_cards_test.cpp
@@ -5103,6 +5113,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/game/client/QmUi/QmScroll.cpp
     src/game/client/QmUi/QmTree.cpp
     src/game/client/QmUi/QmCardRegistry.cpp
+    src/game/client/QmUi/SettingsSearchIndex.cpp
+    src/game/client/QmUi/SettingsSearchHighlight.cpp
     src/game/client/QmUi/cards/QmCardCatalogIds.cpp
     src/game/client/QmUi/cards/QmCardCatalogSearch.cpp
     src/game/client/QmUi/SettingsCardDeckLogic.cpp
@@ -5364,6 +5376,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/test/integration/qmclient/ui/qm_console_button_text_layout_test.cpp
       src/test/integration/qmclient/ui/qm_icon_text_test.cpp
       src/test/integration/qmclient/ui/qm_ui_element_lifetime_test.cpp
+      src/test/integration/qmclient/ui/qm_settings_search_highlight_test.cpp
+      src/game/client/QmUi/SettingsSearchHighlight.cpp
       src/engine/client/text.cpp
       src/game/client/ui.cpp
       src/game/client/ui_popups.cpp

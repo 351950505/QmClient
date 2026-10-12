@@ -4,6 +4,7 @@
 
 #include "QmUi/QmDropdown.h"
 #include "QmUi/QmUiPerf.h"
+#include "QmUi/SettingsSearchHighlight.h"
 #include "QmUi/UiButtons.h"
 #include "QmUi/UiForms.h"
 #include "QmUi/UiSurface.h"
@@ -123,6 +124,7 @@ void CUIElement::SUIElementRect::Reset()
 	m_Corners = -1;
 	m_BackgroundAlphaScale = 1.0f;
 	m_Text.clear();
+	m_SettingsSearchLabel.clear();
 	m_FontSize = -1.0f;
 	m_TextAlign = -1;
 	m_LabelMaxWidth = -2.0f;
@@ -1448,9 +1450,31 @@ const char *CUi::PrepareCardLabel(const CUIRect *pRect, const char *pText, bool 
 		       pText;
 }
 
+void CUi::ObserveSettingsSearchLabel(const CUIRect *pRect, std::string_view Text, bool IconFont) const
+{
+	if(m_pSettingsSearchHighlight == nullptr || pRect == nullptr || RenderOnly() || RenderingPopupMenus() || IconFont || !m_pSettingsSearchHighlight->ObserveLabel(Text, *pRect))
+		return;
+	DrawSettingsSearchHighlight(*pRect);
+}
+
+void CUi::DrawSettingsSearchHighlight(const CUIRect &Rect) const
+{
+	// 预布局只记录命中坐标，最终绘制仍由卡片的正常渲染阶段负责。
+	if(PreLayoutInput() || !m_pSettingsSearchHighlight->TryMarkHighlightDrawn(Rect))
+		return;
+	const ColorRGBA Accent = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(std::clamp(g_Config.m_QmUiAccentOpacity / 100.0f, 0.0f, 1.0f));
+	SRoundedSurfaceParams Params;
+	Params.m_Radius = std::min(ui_token::radius::TIGHT, Rect.h * 0.25f);
+	Params.m_BorderWidth = 1.0f;
+	Params.m_PixelSize = PixelSize();
+	FlushQuadBatch();
+	DrawRoundedSurface(Graphics(), Rect, ScaleBackgroundAlpha(Accent.WithMultipliedAlpha(0.16f)), ScaleBackgroundAlpha(Accent.WithMultipliedAlpha(0.70f)), Params);
+}
+
 CLabelResult CUi::DoLabel(const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps) const
 {
 	pText = PrepareCardLabel(pRect, pText);
+	ObserveSettingsSearchLabel(pRect, pText, TextRender()->GetFontPreset() != EFontPreset::DEFAULT_FONT);
 	const SQmIconLabelGlyphs Icons = QmIconLabelGlyphs(TextRender()->GetFontPreset(), pText);
 	const CQmIconLabelFontScope FontScope(*TextRender(), Icons);
 	if(Icons.m_Count > 0 && pRect->w >= Size * Icons.m_Count && pRect->h >= Size && LabelProps.m_vColorSplits.empty() && LabelProps.m_MaxWidth < 0 && DrawCachedQmIconLabel(*pRect, pText, Size, Align, Icons.m_Count))
@@ -1489,6 +1513,7 @@ void CUi::DoLabel(CUIElement::SUIElementRect &RectEl, const CUIRect *pRect, cons
 	RectEl.m_aQmIcons = Icons.m_aIcons;
 	RectEl.m_NumQmIcons = Icons.m_Count;
 	RectEl.m_FontPreset = TextRender()->GetFontPreset();
+	RectEl.m_SettingsSearchLabel = pReadCursor == nullptr && RectEl.m_FontPreset == EFontPreset::DEFAULT_FONT ? std::string(pText, StrLen < 0 ? std::char_traits<char>::length(pText) : static_cast<size_t>(StrLen)) : std::string();
 	const int Flags = GetFlagsForLabelProperties(LabelProps, pReadCursor);
 	const SCursorAndBoundingBox TextBounds = CalcFontSizeCursorHeightAndBoundingBox(TextRender(), pText, Flags, Size, pRect->w, LabelProps);
 
@@ -1526,6 +1551,7 @@ void CUi::RenderLabelTextContainerAligned(const CUIElement::SUIElementRect &Rect
 {
 	if(pRect == nullptr || !RectEl.m_UITextContainer.Valid())
 		return;
+	ObserveSettingsSearchLabel(pRect, RectEl.m_SettingsSearchLabel, RectEl.m_FontPreset != EFontPreset::DEFAULT_FONT);
 
 	const float *pBiggestCharHeight = RectEl.m_LineCount == 1 ? &RectEl.m_BiggestCharacterHeight : nullptr;
 	const vec2 CursorPos = CalcAlignedCursorPos(pRect, vec2(RectEl.m_Cursor.m_LongestLineWidth, RectEl.m_Cursor.Height()), Align, pBiggestCharHeight);
@@ -1923,6 +1949,15 @@ bool CUi::DoEditBox_Search(CLineInput *pLineInput, const CUIRect *pRect, float F
 
 void CUi::DoConfigTooltip(const void *pId, const CUIRect *pRect, const void *pValue, const void *pSecondValue)
 {
+	if(m_pSettingsSearchHighlight != nullptr && pRect != nullptr && !RenderOnly() && !RenderingPopupMenus())
+	{
+		// 配置地址提供完整行的几何，后续标签绘制共用去重记录。
+		bool Matched = m_pSettingsSearchHighlight->ObserveConfig(pValue, *pRect);
+		Matched = m_pSettingsSearchHighlight->ObserveConfig(pSecondValue, *pRect) || Matched;
+		Matched = m_pSettingsSearchHighlight->ObserveConfig(pId, *pRect) || Matched;
+		if(Matched)
+			DrawSettingsSearchHighlight(*pRect);
+	}
 	if(m_pQmTooltips != nullptr)
 		m_pQmTooltips->DoConfigToolTip(pId, pRect, pValue, pSecondValue);
 }

@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 class CScrollRegion;
@@ -33,6 +34,8 @@ class IKernel;
 class CUiScopedQuadBatch;
 class CUiScopedGaussianBlur;
 class CUiScopedGaussianBlurSuppression;
+class CSettingsSearchHighlight;
+class CUiScopedSettingsSearchHighlight;
 
 inline float QmUiVirtualScreenHeight(int ScalePercent)
 {
@@ -310,6 +313,7 @@ public:
 		float m_BackgroundAlphaScale;
 
 		std::string m_Text;
+		std::string m_SettingsSearchLabel;
 		int m_ReadCursorGlyphCount;
 		std::array<EQmIcon, 8> m_aQmIcons;
 		int m_NumQmIcons;
@@ -714,6 +718,10 @@ private:
 	CUiV2AnimationRuntime *m_pQmAnimationRuntime = nullptr;
 	CTooltips *m_pQmTooltips = nullptr;
 	bool m_CardLabelHintsEnabled = false;
+	CSettingsSearchHighlight *m_pSettingsSearchHighlight = nullptr;
+	void ObserveSettingsSearchLabel(const CUIRect *pRect, std::string_view Text, bool IconFont) const;
+	void DrawSettingsSearchHighlight(const CUIRect &Rect) const;
+	friend class CUiScopedSettingsSearchHighlight;
 	SUiTheme m_QmControlTheme{};
 	std::array<unsigned, 8> m_aQmControlThemeConfig{};
 	bool m_HasQmControlTheme = false;
@@ -979,6 +987,7 @@ public:
 	CUiV2AnimationRuntime *QmAnimationRuntime() const { return m_pQmAnimationRuntime; }
 	void SetQmTooltips(CTooltips *pTooltips) { m_pQmTooltips = pTooltips; }
 	bool CardLabelHintsEnabled() const { return m_CardLabelHintsEnabled; }
+	CSettingsSearchHighlight *SettingsSearchHighlight() const { return m_pSettingsSearchHighlight; }
 	void SetCardLabelHintsEnabled(bool Enabled) { m_CardLabelHintsEnabled = Enabled; }
 	const char *PrepareCardLabel(const CUIRect *pRect, const char *pText, bool Render = true) const;
 	void DoConfigTooltip(const void *pId, const CUIRect *pRect, const void *pValue, const void *pSecondValue = nullptr);
