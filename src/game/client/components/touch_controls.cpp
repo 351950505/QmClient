@@ -839,6 +839,8 @@ void CTouchControls::OnWindowResize()
 
 bool CTouchControls::OnTouchState(std::vector<IInput::CTouchFingerState> &vTouchFingerStates)
 {
+	if(qm_mobile_spectator::Enabled())
+		return false;
 	if(!g_Config.m_ClTouchControls)
 		return false;
 	if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
@@ -864,6 +866,8 @@ bool CTouchControls::OnTouchState(std::vector<IInput::CTouchFingerState> &vTouch
 
 void CTouchControls::OnRender()
 {
+	if(qm_mobile_spectator::Enabled())
+		return;
 	if(!g_Config.m_ClTouchControls)
 		return;
 	if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
