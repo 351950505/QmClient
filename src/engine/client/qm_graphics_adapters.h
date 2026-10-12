@@ -8,42 +8,67 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #if defined(CONF_FAMILY_WINDOWS)
 #include <windows.h>
 
-// Windows COM 的 IStorage 名称不能与引擎存储接口冲突。
-#define IStorage IStorageCOM
-#include <dxgi1_2.h>
-#undef IStorage
+#include <devguid.h>
+#include <setupapi.h>
 
-#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "setupapi.lib")
+#pragma comment(lib, "uuid.lib")
 #endif
+
+// 虚拟显示驱动可能复制实体显卡名称且不设置 DXGI 软件标记，不能只按名称或 Flags 计数。
+inline bool QmIsSystemGraphicsHardwareAdapter(std::wstring_view DevicePath)
+{
+	if(DevicePath.substr(0, 4) == L"\\\\?\\")
+		DevicePath.remove_prefix(4);
+	constexpr std::wstring_view VirtualDisplayPrefix = L"ROOT\\DISPLAY\\";
+	if(DevicePath.size() < VirtualDisplayPrefix.size())
+		return true;
+	for(size_t i = 0; i < VirtualDisplayPrefix.size(); ++i)
+	{
+		wchar_t Character = DevicePath[i];
+		if(Character >= L'a' && Character <= L'z')
+			Character -= L'a' - L'A';
+		if(Character == L'#')
+			Character = L'\\';
+		if(Character != VirtualDisplayPrefix[i])
+			return true;
+	}
+	return false;
+}
 
 inline std::vector<std::string> QmReadSystemGraphicsAdapters()
 {
 	std::vector<std::string> vNames;
 #if defined(CONF_FAMILY_WINDOWS)
-	IDXGIFactory1 *pFactory = nullptr;
-	const HRESULT FactoryResult = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void **>(&pFactory));
-	const auto ReleaseFactory = [](IDXGIFactory1 *pValue) { pValue->Release(); };
-	const std::unique_ptr<IDXGIFactory1, decltype(ReleaseFactory)> Factory(pFactory, ReleaseFactory);
-	if(FAILED(FactoryResult) || !Factory)
+	// PnP 清单提供真实设备实例身份，避免虚拟显示驱动伪装成同名 DXGI GPU。
+	const HDEVINFO Devices = SetupDiGetClassDevsW(&GUID_DEVCLASS_DISPLAY, nullptr, nullptr, DIGCF_PRESENT);
+	if(Devices == INVALID_HANDLE_VALUE)
 		return vNames;
-	for(UINT Index = 0;; ++Index)
+	const auto DestroyDevices = [](void *pDevices) { SetupDiDestroyDeviceInfoList(pDevices); };
+	const std::unique_ptr<void, decltype(DestroyDevices)> DeviceOwner(Devices, DestroyDevices);
+	for(DWORD Index = 0;; ++Index)
 	{
-		IDXGIAdapter1 *pAdapter = nullptr;
-		const HRESULT AdapterResult = Factory->EnumAdapters1(Index, &pAdapter);
-		const auto ReleaseAdapter = [](IDXGIAdapter1 *pValue) { pValue->Release(); };
-		const std::unique_ptr<IDXGIAdapter1, decltype(ReleaseAdapter)> Adapter(pAdapter, ReleaseAdapter);
-		if(FAILED(AdapterResult) || !Adapter)
+		SP_DEVINFO_DATA Device{};
+		Device.cbSize = sizeof(Device);
+		if(!SetupDiEnumDeviceInfo(Devices, Index, &Device))
 			break;
-		DXGI_ADAPTER_DESC1 Description{};
-		if(FAILED(Adapter->GetDesc1(&Description)) || (Description.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) != 0)
+		wchar_t aInstanceId[512] = {};
+		if(!SetupDiGetDeviceInstanceIdW(Devices, &Device, aInstanceId, std::size(aInstanceId), nullptr))
 			continue;
-		char aName[sizeof(Description.Description) * 2];
-		if(WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, Description.Description, -1, aName, sizeof(aName), nullptr, nullptr) > 1)
+		if(!QmIsSystemGraphicsHardwareAdapter(aInstanceId))
+			continue;
+		wchar_t aDescription[512] = {};
+		if(!SetupDiGetDeviceRegistryPropertyW(Devices, &Device, SPDRP_FRIENDLYNAME, nullptr, reinterpret_cast<BYTE *>(aDescription), sizeof(aDescription), nullptr) &&
+			!SetupDiGetDeviceRegistryPropertyW(Devices, &Device, SPDRP_DEVICEDESC, nullptr, reinterpret_cast<BYTE *>(aDescription), sizeof(aDescription), nullptr))
+			continue;
+		char aName[sizeof(aDescription) * 2];
+		if(WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, aDescription, -1, aName, sizeof(aName), nullptr, nullptr) > 1)
 			vNames.emplace_back(aName);
 	}
 #endif

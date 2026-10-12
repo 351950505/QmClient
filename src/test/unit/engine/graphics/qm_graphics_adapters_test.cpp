@@ -2,6 +2,30 @@
 
 #include <gtest/gtest.h>
 
+TEST(QmGraphicsAdapters, VirtualDisplayCopyOfPhysicalGpuDoesNotCountAsSecondAdapter)
+{
+	STWGraphicGpu List;
+	QmPopulateOpenGLGpuList(List, "NVIDIA GeForce RTX 4060 Ti/PCIe/SSE2", [] {
+		std::vector<std::string> Names;
+		for(const auto Path : {L"\\\\?\\PCI#VEN_10DE&DEV_2803#physical", L"\\\\?\\ROOT#DISPLAY#0000"})
+			if(QmIsSystemGraphicsHardwareAdapter(Path))
+				Names.emplace_back("NVIDIA GeForce RTX 4060 Ti");
+		return Names;
+	});
+	ASSERT_EQ(List.m_vGpus.size(), 1u);
+	EXPECT_FALSE(List.m_CanSelect);
+}
+
+TEST(QmGraphicsAdapters, HardwareFilterKeepsSameNamedPhysicalCardsAndUnknownDevicePaths)
+{
+	EXPECT_TRUE(QmIsSystemGraphicsHardwareAdapter(L"\\\\?\\PCI#VEN_10DE#first"));
+	EXPECT_TRUE(QmIsSystemGraphicsHardwareAdapter(L"\\\\?\\PCI#VEN_10DE#second"));
+	EXPECT_TRUE(QmIsSystemGraphicsHardwareAdapter(L""));
+	EXPECT_FALSE(QmIsSystemGraphicsHardwareAdapter(L"\\\\?\\root#display#0000"));
+	EXPECT_FALSE(QmIsSystemGraphicsHardwareAdapter(L"ROOT\\DISPLAY\\0000"));
+	EXPECT_TRUE(QmIsSystemGraphicsHardwareAdapter(L"\\\\?\\ROOT#OTHER#0000"));
+}
+
 TEST(QmGraphicsAdapters, DefaultSelectableListHasInitializedAutomaticDevice)
 {
 	STWGraphicGpu List;

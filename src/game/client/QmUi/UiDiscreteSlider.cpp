@@ -82,11 +82,10 @@ namespace ui_widget
 		// 因此不需要在这里额外兜底；抓取偏移在任一非拖动帧都会归零。
 
 		CUiScopedGaussianBlurSuppression GaussianBlurSuppression(pUi);
-		const float Alpha = pUi->Enabled() ? 1.0f : 0.45f;
-		// 槽底沿用公共样式；由档位填色和刻度表达当前选择。
-		const SUiTheme &Theme = Ctx.m_pTheme != nullptr ? *Ctx.m_pTheme : pUi->QmControlTheme();
-		const auto SharedStyle = ResolveUiSliderStyle(Theme, CUiScopedSurfaceText::CurrentSurface(), Hovered, Active);
-		DrawRoundedSurface(Ctx, Geometry.m_Track, SharedStyle.m_Track.WithMultipliedAlpha(Alpha), ColorRGBA(), ui_token::radius::PILL);
+		// 控制台只接管输入，底下的筛选状态不是被禁用的配置。
+		const float Alpha = pUi->Enabled() || pUi->BackgroundRender() ? 1.0f : 0.45f;
+		// 筛选滑条独立管理颜色与几何，公共表面只负责提交绘制。
+		DrawRoundedSurface(Ctx, Geometry.m_Track, ColorRGBA(0.25f, 0.25f, 0.25f, Alpha), ColorRGBA(), Geometry.m_Track.h * 0.5f);
 
 		const bool HasSelection = *pValue >= Min && *pValue <= Max;
 		const SDiscreteSliderStyle Style = ResolveDiscreteSliderStyle(*pValue, Min, Max);
@@ -113,6 +112,13 @@ namespace ui_widget
 				const float DotAlpha = HasSelection && Stop <= *pValue ? 0.42f : 0.30f;
 				DrawRoundedSurface(Ctx, Dot, ResolveUiSurfaceForeground(CUiScopedSurfaceText::CurrentSurface()).WithAlpha(DotAlpha * Alpha), ColorRGBA(), Dot.w * 0.5f);
 			}
+		}
+
+		if(HasSelection)
+		{
+			const float Emphasis = Active ? 1.0f : (Hovered ? 0.5f : 0.0f);
+			const CUIRect Knob = Geometry.KnobRect(Normalized, Emphasis);
+			DrawRoundedSurface(Ctx, Knob, ColorRGBA(1.0f, 1.0f, 1.0f, Alpha), ColorRGBA(), Knob.w * 0.5f);
 		}
 
 		return Changed;

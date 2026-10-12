@@ -22,6 +22,7 @@
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsIconOptions.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiContext.h>
@@ -30,6 +31,7 @@
 #include <game/client/QmUi/UiSurface.h>
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/QmUi/cards/QmCardCatalog.h>
+#include <game/client/QmUi/cards/QmCardCatalogInternal.h>
 #include <game/client/QmUi/cards/QmCardCatalogTeeMetrics.h>
 #include <game/client/animstate.h>
 #include <game/client/components/chat.h>
@@ -144,47 +146,52 @@ uint64_t CMenus::BuildPlayerSettingsCards(const qm_card_catalog::SQmCardBuildCon
 	const IUiContext PlayerFlagSearchCtx = SettingsUiContext("settings_player_flag_search", UiScale);
 
 	const bool RenderOnly = Ctx.m_ReadOnly;
-	const auto BuildDefinitions = [this, pIdentityDefault, pCountryDefault, DrawAnimatedContent, PlayerIdentityTextInputCtx, PlayerFlagSearchCtx, pCountry, UiScale, BodySize, PlayerMetrics](std::vector<SSettingsCardDefinition> &vCards) {
+	const auto BuildDefinitions = [this, Ctx, pIdentityDefault, pCountryDefault, DrawAnimatedContent, PlayerIdentityTextInputCtx, PlayerFlagSearchCtx, pCountry, UiScale, BodySize, PlayerMetrics](std::vector<SSettingsCardDefinition> &vCards) {
 		vCards.reserve(2);
 		const SSettingsCardSpec IdentitySpec{pIdentityDefault->m_pStableId, Localize(pIdentityDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pIdentityDefault)};
 		const SSettingsCardSpec CountrySpec{pCountryDefault->m_pStableId, Localize(pCountryDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pCountryDefault)};
-		const auto AddCard = [&vCards](const SSettingsCardSpec &Spec, float ContentHeight, FSettingsCardRender Render) {
+		const auto AddCard = [&vCards, &Ctx](const SSettingsCardSpec &Spec, FSettingsCardRender Render) {
 			SSettingsCardDefinition Definition;
 			Definition.m_Spec = Spec;
-			Definition.m_Measure = [ContentHeight](float) { return ContentHeight; };
 			Definition.m_Render = Render;
+			Definition.m_RenderMeasured = [Render](CUIRect &Content) { Render(Content); };
+			qm_card_catalog::UseDeclaredModuleContent(Ctx, Definition);
 			vCards.push_back(Definition);
 		};
-		AddCard(IdentitySpec, ResolveSettingsRowsHeight(2, PlayerMetrics.m_LineHeight, PlayerMetrics.m_LineSpacing), [this, DrawAnimatedContent, PlayerIdentityTextInputCtx, UiScale, BodySize, PlayerMetrics](CUIRect Content) {
+		AddCard(IdentitySpec, [this, DrawAnimatedContent, PlayerIdentityTextInputCtx, UiScale, BodySize, PlayerMetrics](CUIRect Content) {
+			CSettingsContentLayoutFlow Flow(Content);
 			CUIRect Label, NameRow, ClanRow;
 			char aBuf[128];
-			Content.HSplitTop(PlayerMetrics.m_LineHeight, &NameRow, &Content);
-			DrawAnimatedContent(NameRow, [this, &Label, &PlayerIdentityTextInputCtx, &aBuf, UiScale, BodySize](CUIRect Row) {
-				Row.VSplitLeft(80.0f * UiScale, &Label, &Row);
-				Row.VSplitLeft(150.0f * UiScale, &Row, nullptr);
-				str_format(aBuf, sizeof(aBuf), "%s:", Localize("Name"));
-				Ui()->DoLabel(&Label, aBuf, BodySize, TEXTALIGN_ML);
-				if(ui_widget::InputField(PlayerIdentityTextInputCtx, &s_NameInput, Row, Client()->PlayerName(), BodySize))
-					SetNeedSendInfo(m_Dummy);
-			});
-			Content.HSplitTop(PlayerMetrics.m_LineSpacing, nullptr, &Content);
-			Content.HSplitTop(PlayerMetrics.m_LineHeight, &ClanRow, &Content);
-			DrawAnimatedContent(ClanRow, [this, &Label, &PlayerIdentityTextInputCtx, &aBuf, UiScale, BodySize](CUIRect Row) {
-				Row.VSplitLeft(80.0f * UiScale, &Label, &Row);
-				Row.VSplitLeft(150.0f * UiScale, &Row, nullptr);
-				str_format(aBuf, sizeof(aBuf), "%s:", Localize("Clan"));
-				Ui()->DoLabel(&Label, aBuf, BodySize, TEXTALIGN_ML);
-				if(ui_widget::InputField(PlayerIdentityTextInputCtx, &s_ClanInput, Row, "", BodySize))
-					SetNeedSendInfo();
-			});
+			if(Flow.Control("player-name", PlayerMetrics.m_LineHeight, NameRow))
+				DrawAnimatedContent(NameRow, [this, &Label, &PlayerIdentityTextInputCtx, &aBuf, PlayerMetrics, BodySize](CUIRect Row) {
+					SplitSettingsControlRow(Row, PlayerMetrics, &Label, &Row);
+					str_format(aBuf, sizeof(aBuf), "%s:", Localize("Name"));
+					Ui()->DoLabel(&Label, aBuf, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Label.w, .m_EllipsisAtEnd = true});
+					if(ui_widget::InputField(PlayerIdentityTextInputCtx, &s_NameInput, Row, Client()->PlayerName(), BodySize))
+						SetNeedSendInfo(m_Dummy);
+				});
+			Flow.Space(PlayerMetrics.m_LineSpacing);
+			if(Flow.Control("player-clan", PlayerMetrics.m_LineHeight, ClanRow))
+				DrawAnimatedContent(ClanRow, [this, &Label, &PlayerIdentityTextInputCtx, &aBuf, PlayerMetrics, BodySize](CUIRect Row) {
+					SplitSettingsControlRow(Row, PlayerMetrics, &Label, &Row);
+					str_format(aBuf, sizeof(aBuf), "%s:", Localize("Clan"));
+					Ui()->DoLabel(&Label, aBuf, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Label.w, .m_EllipsisAtEnd = true});
+					if(ui_widget::InputField(PlayerIdentityTextInputCtx, &s_ClanInput, Row, "", BodySize))
+						SetNeedSendInfo();
+				});
 		});
-		AddCard(CountrySpec, 520.0f * UiScale, [this, pCountry, PlayerFlagSearchCtx, UiScale, BodySize](CUIRect Content) {
+		AddCard(CountrySpec, [this, pCountry, PlayerFlagSearchCtx, UiScale, BodySize](CUIRect Content) {
+			CSettingsContentLayoutFlow Flow(Content);
+			CUIRect Grid;
+			// 国旗网格保留原先的专用高度，内部行距由列表组件管理。
+			if(!Flow.Control("player-country-grid", 520.0f * UiScale, Grid))
+				return;
+			Content = Grid;
 			const bool MenuUiPerfEnabled = QmPerfEnabled();
 			const auto MenuUiStartTime = MenuUiPerfEnabled ? time_get_nanoseconds() : std::chrono::nanoseconds::zero();
 			CUIRect QuickSearch, Label;
 			Content.HSplitBottom(20.0f * UiScale, &Content, &QuickSearch);
 			Content.HSplitBottom(5.0f * UiScale, &Content, nullptr);
-			QuickSearch.VSplitLeft(minimum(220.0f * UiScale, QuickSearch.w), &QuickSearch, nullptr);
 			int SelectedOld = -1;
 			static CListBox s_ListBox;
 			s_ListBox.SetScrollProfile(EQmScrollProfile::SETTINGS_GRID);

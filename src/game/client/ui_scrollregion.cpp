@@ -52,6 +52,18 @@ vec2 CScrollRegion::ContentScrollOffset() const
 	return m_Params.m_ScrollHorizontal ? vec2(-m_ScrollState.Offset(), 0.0f) : vec2(0.0f, -m_ScrollState.Offset());
 }
 
+void CScrollRegion::ClampBackgroundScrollOffset()
+{
+	if(!Ui()->BackgroundRender() || Ui()->MeasurementOnly())
+		return;
+
+	// 后台只约束失效的尺寸偏移；合法偏移不重设，保留暂停的动画和待处理定位。
+	const float MaxOffset = ContentOverflows() ? MaxScroll() : 0.0f;
+	const float Offset = std::clamp(m_ScrollState.Offset(), 0.0f, MaxOffset);
+	if(Offset != m_ScrollState.Offset())
+		m_ScrollState.SetOffset(Offset, ScrollMetrics(), ScrollConfig());
+}
+
 void CScrollRegion::Begin(CUIRect *pClipRect, vec2 *pOutOffset, const CScrollRegionParams *pParams)
 {
 	m_WheelConsumedThisFrame = false;
@@ -63,8 +75,9 @@ void CScrollRegion::Begin(CUIRect *pClipRect, vec2 *pOutOffset, const CScrollReg
 	// 上一帧尺寸预留滚动条空间，随后本帧再重新测量内容尺寸。
 	CUIRect ScrollbarBg = SplitContentArea();
 	DrawBackground(ScrollbarBg);
+	ClampBackgroundScrollOffset();
 
-	if(!ContentOverflows())
+	if(!ContentOverflows() && !Ui()->RenderOnly())
 		m_ScrollState.ResetForNonScrollableContent(Ui()->IsActiveItem(&m_SliderId) && Ui()->MouseButton(0));
 	m_ContentSize = 0.0f;
 
@@ -77,6 +90,15 @@ void CScrollRegion::Begin(CUIRect *pClipRect, vec2 *pOutOffset, const CScrollReg
 void CScrollRegion::End()
 {
 	Ui()->ClipDisable();
+
+	if(Ui()->RenderOnly())
+	{
+		// 当前帧测量也可能改变内容尺寸；修正越界位置但不消费输入或推进动画。
+		ClampBackgroundScrollOffset();
+		if(ContentOverflows())
+			DoSlider();
+		return;
+	}
 
 	if(!m_Params.m_Interactive)
 	{
@@ -109,7 +131,7 @@ bool CScrollRegion::AddRect(const CUIRect &Rect, bool ShouldScrollHere)
 		m_ContentSize = maximum(std::ceil(Rect.x + Rect.w - (m_ClipRect.x + ContentOffset.x)), m_ContentSize);
 	else
 		m_ContentSize = maximum(Rect.y + Rect.h - (m_ClipRect.y + ContentOffset.y), m_ContentSize);
-	if(ShouldScrollHere)
+	if(ShouldScrollHere && !Ui()->RenderOnly())
 		ScrollHere();
 	return !RectClipped(Rect);
 }
@@ -383,11 +405,15 @@ void CScrollRegion::DoSlider()
 
 	if(!CanScroll || MaxSlider <= 0.0f)
 	{
-		MaintainNoScrollSliderActive();
+		if(!Ui()->RenderOnly())
+			MaintainNoScrollSliderActive();
 		const bool Active = Ui()->IsActiveItem(pId);
 		const float Rounding = m_Params.m_ScrollHorizontal ? Slider.h / 2.0f : Slider.w / 2.0f;
 		if(Ui()->QmAnimationRuntime() != nullptr)
-			ui_widget::DrawScrollbarHandle(ui_widget::ControlContext(Ui()), pId, Slider, m_Params.m_Interactive);
+		{
+			CUiScopedControlAlphaScale SliderAlpha(Ui(), m_Params.m_SliderAlpha);
+			ui_widget::DrawScrollbarHandle(ui_widget::ControlContext(Ui()), pId, Slider, m_Params.m_Interactive, nullptr, m_Params.m_pSliderThemeColor);
+		}
 		else
 			DrawRoundedSurface(Ui(), Slider, m_Params.SliderColor(Active, Ui()->HotItem() == pId), ColorRGBA(), Rounding);
 		return;
@@ -397,9 +423,9 @@ void CScrollRegion::DoSlider()
 
 	const float MousePos = m_Params.m_ScrollHorizontal ? Ui()->MouseX() : Ui()->MouseY();
 	const bool WasActive = Ui()->ActiveItem() == pId;
-	if(m_Params.m_Interactive)
+	if(m_Params.m_Interactive && !Ui()->RenderOnly())
 		Ui()->DoButtonLogic(pId, 0, &m_RailRect, BUTTONFLAG_LEFT); // Result ignored, we only care about the button becoming and being active
-	if(m_Params.m_Interactive && Ui()->CheckActiveItem(pId))
+	if(m_Params.m_Interactive && !Ui()->RenderOnly() && Ui()->CheckActiveItem(pId))
 	{
 		if(!WasActive)
 		{
@@ -408,14 +434,17 @@ void CScrollRegion::DoSlider()
 		}
 		m_ScrollState.SetOffset(m_ScrollState.Offset() + (MousePos - (SliderPos + m_ScrollState.ThumbDragGrabOffset())) / MaxSlider * ScrollMax, Metrics, Config);
 	}
-	else
+	else if(!Ui()->RenderOnly())
 	{
 		m_ScrollState.EndThumbDrag();
 	}
 
 	const float Rounding = m_Params.m_ScrollHorizontal ? Slider.h / 2.0f : Slider.w / 2.0f;
 	if(Ui()->QmAnimationRuntime() != nullptr)
-		ui_widget::DrawScrollbarHandle(ui_widget::ControlContext(Ui()), pId, Slider, m_Params.m_Interactive);
+	{
+		CUiScopedControlAlphaScale SliderAlpha(Ui(), m_Params.m_SliderAlpha);
+		ui_widget::DrawScrollbarHandle(ui_widget::ControlContext(Ui()), pId, Slider, m_Params.m_Interactive, nullptr, m_Params.m_pSliderThemeColor);
+	}
 	else
 		DrawRoundedSurface(Ui(), Slider, m_Params.SliderColor(Ui()->CheckActiveItem(pId), Ui()->HotItem() == pId), ColorRGBA(), Rounding);
 }

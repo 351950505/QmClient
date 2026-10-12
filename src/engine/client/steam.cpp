@@ -311,6 +311,11 @@ ISteam *CreateSteam()
 {
 	if(!SteamAPI_Init())
 	{
+		// SteamAPI_Init 失败时降级为 stub：Steam 侧不会显示运行状态、不计时长，
+		// Rich Presence 与 connect 参数全部不可用。此处打日志避免静默降级难以定位，
+		// 常见原因：CWD 缺 steam_appid.txt（Steam 只在当前工作目录查找）、
+		// Steam 未运行/未登录、进程与 Steam 客户端权限上下文不一致、账号无该 AppID license。
+		dbg_msg("steam", "SteamAPI_Init() failed, steam integration disabled (no presence, no playtime)");
 		return new CSteamStub();
 	}
 	return new CSteam();

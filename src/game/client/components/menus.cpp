@@ -38,6 +38,8 @@
 #include <game/client/QmUi/QmTree.h>
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsLabelMetadata.h>
+#include <game/client/QmUi/ThemeSelectionLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContainers.h>
 #include <game/client/QmUi/UiContext.h>
@@ -59,6 +61,7 @@
 #include <game/client/components/qmclient/modes.h>
 #include <game/client/components/qmclient/perf_logging.h>
 #include <game/client/components/sounds.h>
+#include <game/client/components/theme_scan.h>
 #include <game/client/gameclient.h>
 #include <game/client/qm_icon.h>
 #include <game/client/ui_listbox.h>
@@ -393,25 +396,32 @@ ui_widget::SCapsuleTabBarStyle CMenus::MenuCapsuleTabBarStyle() const
 	return Style;
 }
 
-int CMenus::DoSegmentedChoice(CButtonContainer *pButtons, const char *const *ppLabels, const int Count, const int Current, const CUIRect &Segments, const float Rounding, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle)
+int CMenus::DoSegmentedChoice(CButtonContainer *pButtons, const char *const *ppLabels, const int Count, const int Current, const CUIRect &Segments, const float Rounding, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle, float FontSize, const void *pConfigValue, const void *pSecondConfigValue)
 {
 	int NewValue = Current;
-	if(Count <= 0 || pButtons == nullptr || ppLabels == nullptr)
+	if(pButtons == nullptr)
 		return NewValue;
-	// 胶囊 Tabbar：槽位先算完，再画容器与滑块，最后画分段文字 —— 滑块压在文字之下。
-	// 同一界面可能有多行选择器，行标识带上按钮数组地址，避免共用一条滑块轨道。
-	CUIRect aSegmentSlots[8];
-	const int SegmentCount = std::clamp(Count, 1, (int)std::size(aSegmentSlots));
-	CUIRect SegmentsRemainder = Segments;
-	for(int i = 0; i < SegmentCount; ++i)
-		SegmentsRemainder.VSplitLeft(SegmentsRemainder.w / (SegmentCount - i), &aSegmentSlots[i], &SegmentsRemainder);
+	if(FontSize <= 0.0f)
+		FontSize = std::max(0.0f, Segments.h - 4.0f) * CUi::ms_FontmodHeight;
+	SSettingsRadioState &State = m_SettingsRadioStates[pButtons];
+	const auto Layout = PrepareSettingsChoice(*Ui(), State, Segments, ppLabels, Count, FontSize);
+	if(Count <= 0 || ppLabels == nullptr)
+		return NewValue;
+	if(Layout.m_UseDropdown)
+	{
+		CUIRect Trigger = Segments;
+		CUi::SDropDownProperties Props;
+		Props.m_FontSize = FontSize;
+		return DoSettingsDropDown(&Trigger, Current >= 0 && Current < Count ? Current : -1, ppLabels, Count, State.m_DropDown, Props, pConfigValue, pSecondConfigValue);
+	}
 	const ui_widget::SCapsuleTabBarStyle FallbackStyle = SettingsCapsuleTabBarStyle();
 	const ui_widget::SCapsuleTabBarStyle &Style = pCapsuleStyle != nullptr ? *pCapsuleStyle : FallbackStyle;
 	const uint64_t SegmentGroup = BuildUiAnimNodeKey(MakeUiScopeHash("segmented_choice_capsule"), reinterpret_cast<uint64_t>(pButtons));
-	ui_widget::CapsuleTabBarChrome(TabBarUiContext(), SegmentGroup, aSegmentSlots, SegmentCount, Current >= 0 && Current < SegmentCount ? Current : -1, Style);
-	for(int i = 0; i < SegmentCount; ++i)
+	ui_widget::CapsuleTabBarChrome(TabBarUiContext(), SegmentGroup, Layout.m_aSlots.data(), Layout.m_SegmentCount, Current >= 0 && Current < Count ? Current : -1, Style);
+	for(int i = 0; i < Layout.m_SegmentCount; ++i)
 	{
-		if(DoButton_MenuTab(&pButtons[i], ppLabels[i], Current == i, &aSegmentSlots[i], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, Rounding, nullptr, nullptr, -1.0f, true))
+		Ui()->DoConfigTooltip(&pButtons[i], &Layout.m_aSlots[i], pConfigValue, pSecondConfigValue);
+		if(DoButton_MenuTab(&pButtons[i], ppLabels[i], Current == i, &Layout.m_aSlots[i], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, Rounding, nullptr, nullptr, FontSize, true))
 			NewValue = i;
 	}
 	return NewValue;
@@ -754,7 +764,7 @@ qm_card_order::CModel &CMenus::SettingsCardOrderModel()
 
 qm_card_order::CModel &CMenus::SettingsCardOrderModelForRenderPass()
 {
-	if(!Ui()->RenderOnly())
+	if(!Ui()->MeasurementOnly())
 		return SettingsCardOrderModel();
 	if(!m_SettingsCardRenderOnlyOrderInitialized || m_SettingsCardRenderOnlyOrderSource != g_Config.m_QmGlobalCardOrder)
 	{
@@ -770,7 +780,7 @@ qm_card_order::CModel &CMenus::SettingsCardOrderModelForRenderPass()
 
 CSettingsCardDeck &CMenus::SettingsCardDeckForRenderPass()
 {
-	return Ui()->RenderOnly() ? m_SettingsCardRenderOnlyDeck : m_SettingsCardDeck;
+	return Ui()->MeasurementOnly() ? m_SettingsCardRenderOnlyDeck : m_SettingsCardDeck;
 }
 
 void CMenus::LoadSettingsCardOrderModel()
@@ -1439,6 +1449,16 @@ int CMenus::DoButton_MenuTabInternal(CButtonContainer *pButtonContainer, const c
 		}
 	}
 
+	// 按压反馈复用普通按钮的公共表面策略，覆盖已选中的胶囊滑块。
+	if(Ui()->Enabled() && !Ui()->RenderOnly() && Ui()->MouseHovered(pRect) && Ui()->CheckActiveItem(pButtonContainer) && Ui()->MouseButton(0))
+	{
+		CUIRect FeedbackRect = *pRect;
+		if(CapsuleTab)
+			pRect->Margin(ui_widget::CAPSULE_TAB_INDICATOR_INSET, &FeedbackRect);
+		const ColorRGBA Surface = CapsuleTab && Checked ? MenuTabActiveColor() : MenuTabDefaultColor();
+		DrawRoundedSurface(Ui(), FeedbackRect, ResolveUiIconButtonFeedback(CompositeUiSurface(Surface), true, true, true), ColorRGBA(), CapsuleTab ? ui_token::radius::PILL : EdgeRounding, 0.0f, Corners);
+	}
+
 	if(pAnimator != nullptr)
 	{
 		if(RepositionLabel)
@@ -1789,6 +1809,10 @@ int CMenus::DoSettingsButton_CheckBoxAutoVMarginAndSet(int Page, int Tab, const 
 
 void CMenus::DoSettingsLabel(int Page, int Tab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps, bool Render)
 {
+	const auto Presentation = ResolveSettingsLabelPresentation(pTextId, pText, [](const char *pKey) { return Localize(pKey); });
+	pText = Presentation.m_pText;
+	if(Presentation.m_pTip != nullptr && Render && !m_MenuTextPlanCollecting && !Ui()->RenderOnly() && !Ui()->DrawingSuppressed())
+		GameClient()->m_Tooltips.DoSmallToolTip(Presentation.m_pTipId, pRect, Presentation.m_pTip, CurrentSettingsContentMetrics().m_SmallSize);
 	pText = Ui()->PrepareCardLabel(pRect, pText, Render && !m_MenuTextPlanCollecting);
 	SLabelProperties EffectiveProps = LabelProps;
 	if(Page == SETTINGS_TCLIENT && Size > 0.0f)
@@ -1815,6 +1839,10 @@ void CMenus::DoSettingsLabel(int Page, int Tab, const char *pTextId, const CUIRe
 
 void CMenus::DoSettingsMenuLabel(int Page, int Tab, int Subtab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &Props, int MaxWidth)
 {
+	const auto Presentation = ResolveSettingsLabelPresentation(pTextId, pText, [](const char *pKey) { return Localize(pKey); });
+	pText = Presentation.m_pText;
+	if(Presentation.m_pTip != nullptr && !m_MenuTextPlanCollecting && !Ui()->RenderOnly() && !Ui()->DrawingSuppressed())
+		GameClient()->m_Tooltips.DoSmallToolTip(Presentation.m_pTipId, pRect, Presentation.m_pTip, CurrentSettingsContentMetrics().m_SmallSize);
 	pText = Ui()->PrepareCardLabel(pRect, pText, !m_MenuTextPlanCollecting);
 	SLabelProperties EffectiveProps = Props;
 	if(Page == SETTINGS_TCLIENT && Size > 0.0f)
@@ -2038,40 +2066,6 @@ void CMenus::DoLaserPreview(const CUIRect *pRect, const ColorHSLA LaserOutlineCo
 	}
 }
 
-bool CMenus::DoLine_RadioMenu(CUIRect &View, const char *pLabel, std::vector<CButtonContainer> &vButtonContainers, const std::vector<const char *> &vLabels, const std::vector<int> &vValues, int &Value)
-{
-	dbg_assert(vButtonContainers.size() == vValues.size(), "vButtonContainers and vValues must have the same size");
-	dbg_assert(vButtonContainers.size() == vLabels.size(), "vButtonContainers and vLabels must have the same size");
-	const int N = vButtonContainers.size();
-	const float Spacing = 2.0f;
-	const float ButtonHeight = 20.0f;
-	CUIRect Label, Buttons;
-	View.HSplitTop(Spacing, nullptr, &View);
-	View.HSplitTop(ButtonHeight, &Buttons, &View);
-	Buttons.VSplitMid(&Label, &Buttons, 10.0f);
-	Buttons.HMargin(2.0f, &Buttons);
-	Ui()->DoLabel(&Label, pLabel, 13.0f, TEXTALIGN_ML);
-	const float W = Buttons.w / N;
-	bool Pressed = false;
-	for(int i = 0; i < N; ++i)
-	{
-		CUIRect Button;
-		Buttons.VSplitLeft(W, &Button, &Buttons);
-		Ui()->DoConfigTooltip(&vButtonContainers[i], &Button, &Value);
-		int Corner = IGraphics::CORNER_NONE;
-		if(i == 0)
-			Corner = IGraphics::CORNER_L;
-		if(i == N - 1)
-			Corner = IGraphics::CORNER_R;
-		if(DoButton_Menu(&vButtonContainers[i], vLabels[i], vValues[i] == Value, &Button, BUTTONFLAG_LEFT, nullptr, Corner))
-		{
-			Pressed = true;
-			Value = vValues[i];
-		}
-	}
-	return Pressed;
-}
-
 bool CMenus::DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &View, const char *pLabelTextId, const char *pLabel, std::vector<CButtonContainer> &vButtonContainers, const std::vector<const char *> &vButtonTextIds, const std::vector<const char *> &vLabels, const std::vector<int> &vValues, int &Value, const SSettingsContentMetrics &Metrics, const int *pOverrideSource, const void *pConfigValue, const void *pSecondConfigValue)
 {
 	const void *pBinding = pConfigValue != nullptr ? pConfigValue : pOverrideSource != nullptr ? pOverrideSource :
@@ -2080,8 +2074,13 @@ bool CMenus::DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &Vi
 	dbg_assert(vButtonContainers.size() == vLabels.size(), "vButtonContainers and vLabels must have the same size");
 	dbg_assert(vButtonContainers.size() == vButtonTextIds.size(), "vButtonContainers and vButtonTextIds must have the same size");
 	const int N = vButtonContainers.size();
-	const SSettingsRadioRowLayout Layout = ResolveSettingsRadioRowLayout(View, N, Metrics);
+	if(N == 0)
+		return false;
 	const float FontSize = ResolveSettingsRadioFontSize(Metrics);
+	const void *pRowId = vButtonContainers.data();
+	SSettingsRadioState &RowState = m_SettingsRadioStates[pRowId];
+	const float OptionWidth = RowState.m_Widths.Resolve(vLabels, FontSize, TextRender()->GlyphAtlasRevision(), [this](const char *pText, float Size) { return TextRender()->TextWidth(Size, pText); }) + 2.0f * ui_token::spacing::MD;
+	const SSettingsRadioRowLayout Layout = ResolveSettingsRadioRowLayout(View, N, Metrics, OptionWidth);
 	CUIRect Label = Layout.m_LabelRect;
 	CUIRect Buttons = Layout.m_ButtonsRect;
 	View.HSplitTop(Layout.m_Height, nullptr, &View);
@@ -2106,32 +2105,38 @@ bool CMenus::DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &Vi
 		Ui()->DoButtonLogic(pOverrideSource, 0, &Layout.m_LabelRect, BUTTONFLAG_NONE);
 		GameClient()->m_Tooltips.DoToolTip(pOverrideSource, &Layout.m_LabelRect, pOverrideTooltip);
 	}
-	bool Pressed = false;
-	// 新 UI：分段按钮改胶囊滑块（先画容器与滑块，再画分段文字，滑块压在文字之下）。
-	// 被禅模式/Gores 接管的行保持旧分段渲染 —— 胶囊 chrome 没有整行灰化观感。
 	if(!Locked)
 	{
-		CUIRect aSegmentSlots[16];
-		const int SegmentCount = std::clamp(N, 1, (int)std::size(aSegmentSlots));
-		CUIRect SegmentsRemainder = Buttons;
-		for(int i = 0; i < SegmentCount; ++i)
-			SegmentsRemainder.VSplitLeft(SegmentsRemainder.w / (SegmentCount - i), &aSegmentSlots[i], &SegmentsRemainder);
 		const int CurrentIndex = std::find(vValues.begin(), vValues.end(), Value) - vValues.begin();
-		const bool CurrentValid = CurrentIndex >= 0 && CurrentIndex < SegmentCount;
-		// 行标识带上按钮容器地址，避免同屏多行共用一条滑块轨道。
-		const uint64_t SegmentGroup = BuildUiAnimNodeKey(MakeUiScopeHash("settings_radio_row_capsule"), reinterpret_cast<uint64_t>(&vButtonContainers));
-		ui_widget::CapsuleTabBarChrome(TabBarUiContext(), SegmentGroup, aSegmentSlots, SegmentCount, CurrentValid ? CurrentIndex : -1, SettingsCapsuleTabBarStyle());
-		for(int i = 0; i < SegmentCount; ++i)
+		const int NewIndex = DoSegmentedChoice(vButtonContainers.data(), vLabels.data(), N, CurrentIndex < N ? CurrentIndex : -1, Buttons, ui_token::radius::BASE, nullptr, FontSize, pBinding, pSecondConfigValue);
+		if(NewIndex >= 0 && NewIndex < N && NewIndex != CurrentIndex)
 		{
-			Ui()->DoConfigTooltip(&vButtonContainers[i], &aSegmentSlots[i], pBinding, pSecondConfigValue);
-			if(DoButton_MenuTab(&vButtonContainers[i], vLabels[i], vValues[i] == Value, &aSegmentSlots[i], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 5.0f, nullptr, nullptr, FontSize, true))
-			{
-				Pressed = true;
-				Value = vValues[i];
-			}
+			Value = vValues[NewIndex];
+			return true;
 		}
-		return Pressed;
+		return false;
 	}
+	if(Layout.m_UseDropdown)
+	{
+		CUi::SDropDownState &State = RowState.m_DropDown;
+		CUi::SDropDownProperties Props;
+		Props.m_FontSize = FontSize;
+		Props.m_Enabled = !Locked;
+		const int CurrentIndex = std::find(vValues.begin(), vValues.end(), Value) - vValues.begin();
+		const int NewIndex = DoSettingsDropDown(&Buttons, CurrentIndex < N ? CurrentIndex : -1, vLabels.data(), N, State, Props, pBinding, pSecondConfigValue, &Layout.m_LabelRect);
+		if(Locked && !m_MenuTextPlanCollecting)
+			GameClient()->m_Tooltips.DoToolTip(&State.m_ButtonContainer, &Buttons, pOverrideTooltip);
+		if(!Locked && NewIndex >= 0 && NewIndex < N && NewIndex != CurrentIndex)
+		{
+			Value = vValues[NewIndex];
+			return true;
+		}
+		return false;
+	}
+	// 从下拉恢复胶囊时关闭旧子层，避免隐藏锚点继续接收输入。
+	if(!Ui()->RenderOnly() && !m_MenuTextPlanCollecting)
+		Ui()->ClosePopupMenu(&RowState.m_DropDown.m_SelectionPopupContext, true);
+	bool Pressed = false;
 	const float W = Buttons.w / N;
 	for(int i = 0; i < N; ++i)
 	{
@@ -2142,7 +2147,7 @@ bool CMenus::DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &Vi
 			Corner = IGraphics::CORNER_L;
 		if(i == N - 1)
 			Corner = IGraphics::CORNER_R;
-		if(DoSettingsButton_Menu(Page, Tab, Subtab, &vButtonContainers[i], vButtonTextIds[i], vLabels[i], vValues[i] == Value, &Button, BUTTONFLAG_LEFT, Corner, 5.0f, ButtonColor, 0.0f, FontSize))
+		if(DoSettingsButton_Menu(Page, Tab, Subtab, &vButtonContainers[i], vButtonTextIds[i], vLabels[i], vValues[i] == Value, &Button, BUTTONFLAG_LEFT, Corner, ui_token::radius::BASE, ButtonColor, 0.0f, FontSize))
 		{
 			Pressed = true;
 			if(!Locked)
@@ -2341,6 +2346,14 @@ int CMenus::DoMenuTabV2Internal(CButtonContainer *pButtonContainer, const char *
 	}
 	else
 		DrawRoundedSurface(Ui(), *pRect, Resolved, ColorRGBA(), 7.0f * ContentScale, 0.0f, Corners);
+
+	if(Ui()->Enabled() && !Ui()->RenderOnly() && Ui()->MouseHovered(pRect) && Ui()->CheckActiveItem(pButtonContainer) && Ui()->MouseButton(0))
+	{
+		CUIRect FeedbackRect = *pRect;
+		if(CapsuleTab)
+			pRect->Margin(ui_widget::CAPSULE_TAB_INDICATOR_INSET, &FeedbackRect);
+		DrawRoundedSurface(Ui(), FeedbackRect, ResolveUiIconButtonFeedback(CompositeUiSurface(Active ? ActiveColor : Resolved), true, true, true), ColorRGBA(), CapsuleTab ? ui_token::radius::PILL : 7.0f * ContentScale, 0.0f, Corners);
+	}
 
 	const ColorRGBA PreviousLabelColor = TextRender()->GetTextColor();
 	if(CapsuleTab)
@@ -3284,24 +3297,57 @@ void CMenus::RenderStatistics(CUIRect MainView)
 	Content.HSplitTop(10.0f, nullptr, &Content);
 
 	CUIRect ModePanel, ModeRest;
-	const int ModeColumns = Content.w >= 620.0f ? 2 : 1;
-	const int ModeRows = (static_cast<int>(vDisplayModeStats.size()) + ModeColumns - 1) / ModeColumns;
-	const float ModeRowHeight = ModeColumns == 1 ? 78.0f : 68.0f;
-	const float ModePanelHeight = std::clamp(72.0f + ModeRows * ModeRowHeight, 220.0f, 520.0f);
+	// 图例改为单列表格后，面板高度随模式数量伸缩，不再按两列网格预算。
+	const float ModePanelHeight = std::clamp(120.0f + 26.0f * static_cast<float>(vDisplayModeStats.size()), 240.0f, 420.0f);
 	Content.HSplitTop(ModePanelHeight, &ModePanel, &ModeRest);
-	ModePanel.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, 8.0f);
+	ModePanel.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, ui_token::radius::CARD);
 	CUIRect ModeTitle, ModeBody;
 	ModePanel.Margin(10.0f, &ModePanel);
 	ModePanel.HSplitTop(44.0f, &ModeTitle, &ModeBody);
 	static bool s_ShowTotalHours = false;
-	CUIRect ModeTitleLabel;
-	ModeTitle.HSplitTop(20.0f, &ModeTitleLabel, nullptr);
-	Ui()->DoLabel(&ModeTitleLabel, Localize("Local game mode statistics"), 14.0f, TEXTALIGN_ML);
+	CUIRect TitleRow;
+	ModeTitle.HSplitTop(22.0f, &TitleRow, nullptr);
+	// 操作按钮收进标题行右侧：宽度与设置页操作组同规则（按文本自适应），字号统一体系标准，不再挤占图例排版宽度。
+	CUIRect RefreshButton, UseCurrentNameButton, ModeTitleButton;
+	{
+		CUIRect TitleActions = TitleRow;
+		TitleActions.VSplitRight(minimum(460.0f, TitleRow.w * 0.6f), &TitleRow, &TitleActions);
+		Ui()->DoLabel(&TitleRow, Localize("Local game mode statistics"), ui_token::font::HEADLINE, TEXTALIGN_ML);
+		const char *pRefreshStatsLabel = StatisticsFetching ? Localize("Syncing remote stats") : (StatisticsFailed ? Localize("Retry remote stats") : Localize("Sync remote stats"));
+		const char *apActionLabels[] = {pRefreshStatsLabel, Localize("Use current name"), Localize("Total hours")};
+		static ui_widget::SSettingsActionGroupState s_StatisticsActionWidths;
+		const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_StatisticsActionWidths, TitleActions, apActionLabels, 3, ResolveSettingsContentMetrics(TitleActions.w), ESettingsActionGroupWidth::CONTENT);
+		const float GroupWidth = Actions.m_aButtons[2].x + Actions.m_aButtons[2].w - Actions.m_aButtons[0].x;
+		const float RightAlign = maximum(0.0f, TitleActions.w - GroupWidth);
+		RefreshButton = Actions.m_aButtons[0];
+		UseCurrentNameButton = Actions.m_aButtons[1];
+		ModeTitleButton = Actions.m_aButtons[2];
+		RefreshButton.x += RightAlign;
+		UseCurrentNameButton.x += RightAlign;
+		ModeTitleButton.x += RightAlign;
+		static CButtonContainer s_StatisticsRefreshButton;
+		if(DoButton_Menu(&s_StatisticsRefreshButton, pRefreshStatsLabel, 0, &RefreshButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), nullptr, ui_token::font::BODY))
+			GameClient()->m_QmClient.RefreshQmClientStatistics();
+		static CButtonContainer s_StatisticsUseCurrentNameButton;
+		if(DoButton_Menu(&s_StatisticsUseCurrentNameButton, Localize("Use current name"), 0, &UseCurrentNameButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), nullptr, ui_token::font::BODY))
+			GameClient()->m_QmClient.UseCurrentQmDdnetPlayerName();
+		static CButtonContainer s_TotalHoursButton;
+		if(DoButton_Menu(&s_TotalHoursButton, Localize("Total hours"), s_ShowTotalHours, &ModeTitleButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), nullptr, ui_token::font::BODY))
+			s_ShowTotalHours = !s_ShowTotalHours;
+	}
 	ModeBody.HSplitTop(6.0f, nullptr, &ModeBody);
 	const float ChartRadius = minimum(ModeBody.h * 0.37f, 82.0f);
 	const float ChartInnerRadius = ChartRadius * 0.48f;
 	const vec2 ChartCenter(ModeBody.x + ChartRadius + 8.0f, ModeBody.y + ModeBody.h * 0.5f);
-	const ColorRGBA aModeColors[] = {ColorRGBA(0.22f, 0.70f, 0.95f, 1.0f), ColorRGBA(0.37f, 0.85f, 0.52f, 1.0f), ColorRGBA(0.98f, 0.66f, 0.24f, 1.0f), ColorRGBA(0.86f, 0.38f, 0.62f, 1.0f), ColorRGBA(0.60f, 0.48f, 0.94f, 1.0f)};
+	// 分类色板与饼菜单动作语义色同风格：高饱和、彼此高区分度，按模式顺序固定分配。
+	const ColorRGBA aModeColors[] = {
+		ColorRGBA(0.25f, 0.55f, 0.80f, 1.0f), // 蓝
+		ColorRGBA(0.90f, 0.30f, 0.40f, 1.0f), // 红
+		ColorRGBA(0.30f, 0.75f, 0.50f, 1.0f), // 绿
+		ColorRGBA(0.85f, 0.50f, 0.20f, 1.0f), // 橙
+		ColorRGBA(0.55f, 0.40f, 0.90f, 1.0f), // 紫
+		ColorRGBA(0.40f, 0.78f, 0.78f, 1.0f), // 青
+	};
 	int64_t TotalMaps = 0;
 	int64_t TotalModePlaytime = 0;
 	for(const auto &Stats : vDisplayModeStats)
@@ -3464,6 +3510,30 @@ void CMenus::RenderStatistics(CUIRect MainView)
 		if(!UseProceduralRing)
 			Graphics()->QuadsEnd();
 	}
+	// 环心显示总量，与图例口径一致：仅地图口径时显示完成地图数，否则显示总游玩时长。
+	if(TotalChartWeight > 0)
+	{
+		char aTotalText[64];
+		const char *pTotalLabel;
+		if(ChartUsesMaps)
+		{
+			str_format(aTotalText, sizeof(aTotalText), "%d", TotalMaps);
+			pTotalLabel = Localize("Maps finished");
+		}
+		else
+		{
+			FormatStatsPlaytime(TotalModePlaytime, s_ShowTotalHours, aTotalText, sizeof(aTotalText));
+			pTotalLabel = Localize("Total play time");
+		}
+		const float CenterTextSize = maximum(10.0f, ChartInnerRadius * 0.42f);
+		CUIRect CenterValue{ChartCenter.x - ChartInnerRadius, ChartCenter.y - CenterTextSize * 1.15f, ChartInnerRadius * 2.0f, CenterTextSize * 1.4f};
+		CUIRect CenterLabel{ChartCenter.x - ChartInnerRadius, CenterValue.y + CenterValue.h, ChartInnerRadius * 2.0f, CenterTextSize};
+		const ColorRGBA StatsForeground = TextRender()->GetTextColor();
+		Ui()->DoLabel(&CenterValue, aTotalText, CenterTextSize, TEXTALIGN_MC);
+		TextRender()->TextColor(StatsForeground.WithMultipliedAlpha(0.6f));
+		Ui()->DoLabel(&CenterLabel, pTotalLabel, CenterTextSize * 0.58f, TEXTALIGN_MC);
+		TextRender()->TextColor(StatsForeground);
+	}
 	if(HoveredMode >= 0)
 	{
 		const auto &Stats = vDisplayModeStats[HoveredMode];
@@ -3475,97 +3545,109 @@ void CMenus::RenderStatistics(CUIRect MainView)
 		static int s_ModeTooltipIds[5] = {};
 		GameClient()->m_Tooltips.DoToolTip(&s_ModeTooltipIds[HoveredMode], &ModeBody, s_aModeTooltipText[HoveredMode]);
 	}
-	CUIRect LegendAndActions = ModeBody;
-	LegendAndActions.VSplitLeft(ChartRadius * 2.0f + 28.0f, nullptr, &LegendAndActions);
-	CUIRect Legend, Actions;
-	const float ActionsWidth = LegendAndActions.w >= 860.0f ? 560.0f : minimum(560.0f, maximum(420.0f, LegendAndActions.w * 0.42f));
-	LegendAndActions.VSplitRight(ActionsWidth, &Legend, &Actions);
-	CUIRect RefreshButton, UseCurrentNameButton, ModeTitleButton;
-	// 三个操作按钮上下排列，横排会挤压图例区域的阅读宽度。
-	Actions.HSplitTop(26.0f, &RefreshButton, &Actions);
-	Actions.HSplitTop(8.0f, nullptr, &Actions);
-	Actions.HSplitTop(26.0f, &UseCurrentNameButton, &Actions);
-	Actions.HSplitTop(8.0f, nullptr, &Actions);
-	Actions.HSplitTop(26.0f, &ModeTitleButton, &Actions);
-	static CButtonContainer s_StatisticsRefreshButton;
-	const char *pRefreshStatsLabel = StatisticsFetching ? Localize("Syncing remote stats") : (StatisticsFailed ? Localize("Retry remote stats") : Localize("Sync remote stats"));
-	if(DoButton_Menu(&s_StatisticsRefreshButton, pRefreshStatsLabel, 0, &RefreshButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)))
-		GameClient()->m_QmClient.RefreshQmClientStatistics();
-	static CButtonContainer s_StatisticsUseCurrentNameButton;
-	if(DoButton_Menu(&s_StatisticsUseCurrentNameButton, Localize("Use current name"), 0, &UseCurrentNameButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)))
-		GameClient()->m_QmClient.UseCurrentQmDdnetPlayerName();
-	static CButtonContainer s_TotalHoursButton;
-	if(DoButton_Menu(&s_TotalHoursButton, Localize("Total hours"), s_ShowTotalHours, &ModeTitleButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)))
-		s_ShowTotalHours = !s_ShowTotalHours;
+	CUIRect Legend;
+	ModeBody.VSplitLeft(ChartRadius * 2.0f + 28.0f, nullptr, &Legend);
+	// 图例仿分组用量表：表头 + 单列行（色点、模式名、右对齐的地图/时长/积分），悬浮显示完整统计。
 	Legend.HSplitTop(8.0f, nullptr, &Legend);
-	const int Columns = ModeColumns;
-	const int Rows = (static_cast<int>(vDisplayModeStats.size()) + Columns - 1) / Columns;
-	const float ColumnGap = Columns > 1 ? 10.0f : 0.0f;
-	const float ColumnWidth = (Legend.w - ColumnGap * (Columns - 1)) / Columns;
-	const float LegendRowGap = 8.0f;
-	const float LegendRowHeight = Rows > 0 ? (Legend.h - LegendRowGap * (Rows - 1)) / Rows : 0.0f;
+	// 图例仿分组用量表：表头 + 单列行（色点、模式名、地图/时长/积分列），悬浮显示完整统计。
+	char aScoreTexts[8][128] = {};
+	bool HasScoreText = false;
+	for(size_t Index = 0; Index < vDisplayModeStats.size() && Index < std::size(aScoreTexts); ++Index)
+	{
+		FormatModeScore(vDisplayModeStats[Index], aScoreTexts[Index], sizeof(aScoreTexts[Index]));
+		HasScoreText = HasScoreText || aScoreTexts[Index][0] != '\0';
+	}
+	const bool ShowScoreColumn = HasScoreText && Legend.w >= 380.0f;
+	// 模式名按最宽条目实测定宽，数值组紧随其后，避免名称与数值之间出现大片空白。
+	char aLegendNames[8][256];
+	size_t LegendNameCount = minimum<size_t>(vDisplayModeStats.size(), std::size(aLegendNames));
+	float LegendNameWidth = 0.0f;
+	for(size_t Index = 0; Index < LegendNameCount; ++Index)
+	{
+		const auto &Stats = vDisplayModeStats[Index];
+		const char *pModeName = Stats.m_GameMode == "__other__" ? Localize("Other modes") : Stats.m_GameMode.c_str();
+		const char *pModeSource = ModeSourceText(Stats);
+		if(pModeSource[0])
+			str_format(aLegendNames[Index], sizeof(aLegendNames[Index]), "%s · %s", pModeName, pModeSource);
+		else
+			str_copy(aLegendNames[Index], pModeName);
+		LegendNameWidth = maximum(LegendNameWidth, TextRender()->TextWidth(ui_token::font::BODY, aLegendNames[Index]));
+	}
+	LegendNameWidth = std::clamp(LegendNameWidth, 80.0f, maximum(80.0f, Legend.w * 0.55f));
+	const float LegendCellGap = 12.0f;
+	const float MapsColumnWidth = 52.0f;
+	const float DurationColumnWidth = 110.0f;
+	const float ScoreColumnWidth = 92.0f;
+	// 窄面板时数值组等比压缩，保住名称列可读。
+	const float ValueGroupWidth = MapsColumnWidth + DurationColumnWidth + (ShowScoreColumn ? ScoreColumnWidth : 0.0f) + LegendCellGap * (ShowScoreColumn ? 3.0f : 2.0f);
+	const float ColumnScale = std::clamp((Legend.w - 18.0f - LegendNameWidth - LegendCellGap) / ValueGroupWidth, 0.55f, 1.0f);
+	const float MapsWidth = MapsColumnWidth * ColumnScale;
+	const float DurationWidth = DurationColumnWidth * ColumnScale;
+	const float ScoreWidth = ScoreColumnWidth * ColumnScale;
+	const float LegendHeaderHeight = 14.0f;
+	const float LegendRowHeight = 22.0f;
+	const float LegendRowGap = 5.0f;
+	const ColorRGBA LegendForeground = TextRender()->GetTextColor();
+	// 表头与行共用同一列布局，保证列对齐：色点、名称、地图、时长、积分依次紧随。
+	auto LayoutLegendColumns = [&](const CUIRect &Row, CUIRect *pDot, CUIRect *pName, CUIRect *pMaps, CUIRect *pDuration, CUIRect *pScore) {
+		CUIRect Cursor = Row;
+		Cursor.VSplitLeft(18.0f, pDot, &Cursor);
+		Cursor.VSplitLeft(LegendNameWidth, pName, &Cursor);
+		Cursor.VSplitLeft(LegendCellGap, nullptr, &Cursor);
+		Cursor.VSplitLeft(MapsWidth, pMaps, &Cursor);
+		Cursor.VSplitLeft(LegendCellGap, nullptr, &Cursor);
+		Cursor.VSplitLeft(DurationWidth, pDuration, &Cursor);
+		if(ShowScoreColumn)
+		{
+			Cursor.VSplitLeft(LegendCellGap, nullptr, &Cursor);
+			Cursor.VSplitLeft(ScoreWidth, pScore, &Cursor);
+		}
+	};
+	CUIRect HeaderRow = Legend;
+	HeaderRow.h = LegendHeaderHeight;
+	CUIRect HeaderDot, HeaderName, HeaderMaps, HeaderDuration, HeaderScore = CUIRect();
+	LayoutLegendColumns(HeaderRow, &HeaderDot, &HeaderName, &HeaderMaps, &HeaderDuration, &HeaderScore);
+	TextRender()->TextColor(LegendForeground.WithMultipliedAlpha(0.55f));
+	Ui()->DoLabel(&HeaderName, Localize("Game mode"), ui_token::font::SMALL, TEXTALIGN_ML);
+	Ui()->DoLabel(&HeaderMaps, Localize("Maps"), ui_token::font::SMALL, TEXTALIGN_MR);
+	Ui()->DoLabel(&HeaderDuration, Localize("Play time"), ui_token::font::SMALL, TEXTALIGN_MR);
+	if(ShowScoreColumn)
+		Ui()->DoLabel(&HeaderScore, Localize("Points"), ui_token::font::SMALL, TEXTALIGN_MR);
+	TextRender()->TextColor(LegendForeground);
+	Legend.HSplitTop(LegendHeaderHeight + 6.0f, nullptr, &Legend);
 	for(size_t Index = 0; Index < vDisplayModeStats.size(); ++Index)
 	{
 		const auto &Stats = vDisplayModeStats[Index];
 		const char *pModeName = Stats.m_GameMode == "__other__" ? Localize("Other modes") : Stats.m_GameMode.c_str();
 		const char *pModeSource = ModeSourceText(Stats);
-		const int Column = static_cast<int>(Index) % Columns;
-		const int RowIndex = static_cast<int>(Index) / Columns;
-		CUIRect ColumnRect = Legend;
-		ColumnRect.x += Column * (ColumnWidth + ColumnGap);
-		ColumnRect.w = ColumnWidth;
-		CUIRect Row = ColumnRect;
-		Row.y += RowIndex * (LegendRowHeight + LegendRowGap);
+		CUIRect Row = Legend;
+		Row.y += Index * (LegendRowHeight + LegendRowGap);
 		Row.h = LegendRowHeight;
 		const ColorRGBA Color = aModeColors[Index % std::size(aModeColors)];
-		CUIRect Swatch, Label;
-		Row.VSplitLeft(12.0f, &Swatch, &Label);
-		Swatch.Margin(2.0f, &Swatch);
-		Swatch.Draw(Color, IGraphics::CORNER_ALL, 2.0f);
+		CUIRect Dot, Name, Maps, Duration, Score = CUIRect();
+		LayoutLegendColumns(Row, &Dot, &Name, &Maps, &Duration, &Score);
+		Dot.VSplitLeft(8.0f, &Dot, nullptr);
+		Dot.h = 8.0f;
+		Dot.y = Row.y + (Row.h - Dot.h) * 0.5f;
+		Dot.Draw(Color, IGraphics::CORNER_ALL, 4.0f);
 		char aDuration[64];
 		FormatStatsPlaytime(Stats.m_PlaytimeSeconds, s_ShowTotalHours, aDuration, sizeof(aDuration));
-		char aScoreText[128];
-		FormatModeScore(Stats, aScoreText, sizeof(aScoreText));
 		const int64_t ChartWeight = QmStatisticsChartWeight(Stats.m_Maps, Stats.m_PlaytimeSeconds, ChartUsesMaps);
 		const double ChartPercent = TotalChartWeight > 0 ? 100.0 * ChartWeight / TotalChartWeight : 0.0;
-		CUIRect ModeName, MapDetails, ScoreDetails, DurationDetails;
-		Label.HSplitTop(17.0f, &ModeName, &Label);
-		Label.HSplitTop(16.0f, &MapDetails, &Label);
-		if(aScoreText[0])
-			Label.HSplitTop(16.0f, &ScoreDetails, &Label);
-		else
-			ScoreDetails = CUIRect();
-		Label.HSplitTop(16.0f, &DurationDetails, &Label);
-		char aModeName[256];
-		char aMapDetails[256];
-		char aScoreDetails[256];
-		char aDurationDetails[128];
-		if(pModeSource[0])
-			str_format(aModeName, sizeof(aModeName), "%s：%s · %s", Localize("Game mode"), pModeName, pModeSource);
-		else
-			str_format(aModeName, sizeof(aModeName), "%s：%s", Localize("Game mode"), pModeName);
-		if(ChartUsesMaps)
-			str_format(aMapDetails, sizeof(aMapDetails), "%s：%d (%.1f%%)", Localize("Maps finished"), Stats.m_Maps, ChartPercent);
-		else
-			str_format(aMapDetails, sizeof(aMapDetails), "%s：%d", Localize("Maps finished"), Stats.m_Maps);
-		str_format(aScoreDetails, sizeof(aScoreDetails), "%s：%s", Localize("Score earned"), aScoreText);
-		if(ChartUsesMaps)
-			str_format(aDurationDetails, sizeof(aDurationDetails), "%s：%s", Localize("Total play time"), aDuration);
-		else
-			str_format(aDurationDetails, sizeof(aDurationDetails), "%s：%s (%.1f%%)", Localize("Total play time"), aDuration, ChartPercent);
-		SLabelProperties LabelProps;
-		LabelProps.m_MaxWidth = static_cast<int>(ModeName.w);
-		Ui()->DoLabel(&ModeName, aModeName, 11.0f, TEXTALIGN_ML, LabelProps);
-		LabelProps.m_MaxWidth = static_cast<int>(MapDetails.w);
-		Ui()->DoLabel(&MapDetails, aMapDetails, 10.0f, TEXTALIGN_ML, LabelProps);
-		if(aScoreText[0])
-		{
-			LabelProps.m_MaxWidth = static_cast<int>(ScoreDetails.w);
-			Ui()->DoLabel(&ScoreDetails, aScoreDetails, 10.0f, TEXTALIGN_ML, LabelProps);
-		}
-		LabelProps.m_MaxWidth = static_cast<int>(DurationDetails.w);
-		Ui()->DoLabel(&DurationDetails, aDurationDetails, 10.0f, TEXTALIGN_ML, LabelProps);
-		if(Ui()->MouseInside(&Row))
+		const char *pNameText = Index < LegendNameCount ? aLegendNames[Index] : pModeName;
+		SLabelProperties NameProps;
+		NameProps.m_MaxWidth = static_cast<int>(Name.w);
+		NameProps.m_EllipsisAtEnd = true;
+		Ui()->DoLabel(&Name, pNameText, ui_token::font::BODY, TEXTALIGN_ML, NameProps);
+		char aMapsText[32];
+		str_format(aMapsText, sizeof(aMapsText), "%d", Stats.m_Maps);
+		char aDurationText[96];
+		str_format(aDurationText, sizeof(aDurationText), "%.1f%% · %s", ChartPercent, aDuration);
+		Ui()->DoLabel(&Maps, aMapsText, ui_token::font::SMALL, TEXTALIGN_MR);
+		Ui()->DoLabel(&Duration, aDurationText, ui_token::font::SMALL, TEXTALIGN_MR);
+		if(ShowScoreColumn && Index < std::size(aScoreTexts) && aScoreTexts[Index][0])
+			Ui()->DoLabel(&Score, aScoreTexts[Index], ui_token::font::SMALL, TEXTALIGN_MR);
+		if(Ui()->MouseInside(&Row) && Index < std::size(s_aModeTooltipText))
 		{
 			FormatModeTooltip(Stats, pModeName, pModeSource, aDuration, s_aModeTooltipText[Index], sizeof(s_aModeTooltipText[Index]));
 			static int s_ModeTooltipIds[5] = {};
@@ -3588,8 +3670,8 @@ void CMenus::RenderStatistics(CUIRect MainView)
 		BottomSection.HSplitTop(164.0f, &BottomLeft, &BottomRight);
 		BottomRight.HSplitTop(8.0f, nullptr, &BottomRight);
 	}
-	BottomLeft.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, 8.0f);
-	BottomRight.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, 8.0f);
+	BottomLeft.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, ui_token::radius::CARD);
+	BottomRight.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.23f), IGraphics::CORNER_ALL, ui_token::radius::CARD);
 
 	auto RenderInfoRow = [this](CUIRect &View, const char *pLabel, const char *pValue) {
 		CUIRect Row;
@@ -3733,11 +3815,11 @@ void CMenus::RenderStatistics(CUIRect MainView)
 	str_copy(aDdstatsButtonText, Localize("ddstats.tw ID stats"), sizeof(aDdstatsButtonText));
 	str_copy(aDdnetButtonText, Localize("DDNet.org map stats"), sizeof(aDdnetButtonText));
 	const bool HasPlayerName = pPlayerName && pPlayerName[0] != '\0';
-	if(DoButton_Menu(&s_DdstatsLinkButton, aDdstatsButtonText, 0, &DdstatsButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, HasPlayerName ? 0.5f : 0.2f), nullptr, 12.0f) && HasPlayerName)
+	if(DoButton_Menu(&s_DdstatsLinkButton, aDdstatsButtonText, 0, &DdstatsButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, HasPlayerName ? 0.5f : 0.2f), nullptr, 12.0f) && HasPlayerName)
 	{
 		Client()->ViewLink(aDdstatsUrl);
 	}
-	if(DoButton_Menu(&s_DdnetLinkButton, aDdnetButtonText, 0, &DdnetButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, 4.0f, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, HasPlayerName ? 0.5f : 0.2f), nullptr, 12.0f) && HasPlayerName)
+	if(DoButton_Menu(&s_DdnetLinkButton, aDdnetButtonText, 0, &DdnetButton, BUTTONFLAG_LEFT, nullptr, IGraphics::CORNER_ALL, ui_token::radius::BASE, 0.0f, ColorRGBA(1.0f, 1.0f, 1.0f, HasPlayerName ? 0.5f : 0.2f), nullptr, 12.0f) && HasPlayerName)
 	{
 		Client()->ViewLink(aDdnetUrl);
 	}
@@ -4066,6 +4148,64 @@ void CMenus::Render()
 		Screen.Margin(8.0f, &Screen);
 	}
 
+	if(ClientState == IClient::STATE_OFFLINE && QmNewsShouldAnnounce(true, m_ShowStart, m_Popup != POPUP_NONE,
+							    str_comp(g_Config.m_QmNewsReadRelease, CLIENT_RELEASE_VERSION) != 0, GameClient()->m_QmClient.HasUnreadQmNews()))
+		ShowQmNewFeaturesPopup();
+	// 业务只请求面板，输入、父子关闭、动画与焦点由公共弹层栈管理。
+	static SPopupMenuId s_QmNewsPanel, s_QmUpdatePanel;
+	const bool PanelState = ClientState == IClient::STATE_OFFLINE || ClientState == IClient::STATE_ONLINE || ClientState == IClient::STATE_DEMOPLAYBACK;
+	if(!Ui()->RenderOnly())
+	{
+		if(Ui()->IsPopupOpen(&s_QmNewsPanel) && (m_Popup != POPUP_QM_NEW_FEATURES || !PanelState))
+			Ui()->ClosePopupMenu(&s_QmNewsPanel, true, false);
+		if(Ui()->IsPopupOpen(&s_QmUpdatePanel) && (m_Popup != POPUP_QM_UPDATE || !PanelState))
+			Ui()->ClosePopupMenu(&s_QmUpdatePanel, true, false);
+		if(PanelState && (m_Popup == POPUP_QM_NEW_FEATURES || m_Popup == POPUP_QM_UPDATE))
+		{
+			const int RequestedPopup = m_Popup;
+			const SPopupMenuId *pId = RequestedPopup == POPUP_QM_NEW_FEATURES ? &s_QmNewsPanel : &s_QmUpdatePanel;
+			if(!Ui()->IsPopupVisible(pId))
+			{
+				// 新业务面板是独立根层，结束旧页面的弹层，避免来源失效时连带新层。
+				Ui()->ClosePopupMenus(false);
+			}
+			{
+				SPopupMenuProperties Props = CUi::SecondaryPanelProperties();
+				Props.m_ContentInset = 0.0f;
+				Props.m_RequireSourceRefresh = true;
+				Props.m_SourceFrame = Ui()->PopupSourceFrame();
+				Props.m_OnClosed = [this, RequestedPopup]() {
+					if(m_Popup == RequestedPopup)
+						m_Popup = POPUP_NONE;
+					if(RequestedPopup == POPUP_QM_UPDATE)
+						GameClient()->m_TClient.m_UpdatePopupRequested = false;
+				};
+				const float Scale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
+				const auto Kind = RequestedPopup == POPUP_QM_NEW_FEATURES ? ESettingsSecondaryPanelKind::NEWS : ESettingsSecondaryPanelKind::UPDATE;
+				const CUIRect Panel = ResolveSettingsSecondaryPanelRect(Screen, Kind, Scale);
+				Ui()->DoPopupMenu(pId, Panel.x, Panel.y, Panel.w, Panel.h, this, RequestedPopup == POPUP_QM_NEW_FEATURES ? +[](void *pContext, CUIRect View, bool Active) {
+							auto *pMenus = static_cast<CMenus *>(pContext);
+							std::optional<CUiScopedBackgroundRender> Background;
+							if(!Active)
+								Background.emplace(pMenus->Ui());
+							pMenus->RenderQmNewFeaturesPopup(View);
+							return pMenus->m_Popup == POPUP_QM_NEW_FEATURES ? CUi::POPUP_KEEP_OPEN : CUi::POPUP_CLOSE_CURRENT; } : +[](void *pContext, CUIRect View, bool Active) {
+							auto *pMenus = static_cast<CMenus *>(pContext);
+							std::optional<CUiScopedBackgroundRender> Background;
+							if(!Active)
+								Background.emplace(pMenus->Ui());
+							pMenus->RenderQmUpdatePopup(View);
+							return pMenus->m_Popup == POPUP_QM_UPDATE ? CUi::POPUP_KEEP_OPEN : CUi::POPUP_CLOSE_CURRENT; }, Props);
+			}
+			Ui()->RefreshPopupMenuSource(pId, true, Ui()->PopupSourceFrame());
+		}
+	}
+	const bool SecondaryOverlay = (m_Popup == POPUP_QM_NEW_FEATURES || m_Popup == POPUP_QM_UPDATE) &&
+				      (ClientState == IClient::STATE_OFFLINE || ClientState == IClient::STATE_ONLINE || ClientState == IClient::STATE_DEMOPLAYBACK);
+	std::optional<CUiScopedBackgroundRender> BackgroundRender;
+	if(SecondaryOverlay)
+		BackgroundRender.emplace(Ui());
+
 	switch(ClientState)
 	{
 	case IClient::STATE_QUITTING:
@@ -4095,10 +4235,7 @@ void CMenus::Render()
 	break;
 
 	case IClient::STATE_OFFLINE:
-		if(QmNewsShouldAnnounce(true, m_ShowStart, m_Popup != POPUP_NONE,
-			   str_comp(g_Config.m_QmNewsReadRelease, CLIENT_RELEASE_VERSION) != 0, GameClient()->m_QmClient.HasUnreadQmNews()))
-			ShowQmNewFeaturesPopup();
-		if(m_Popup != POPUP_NONE)
+		if(m_Popup != POPUP_NONE && !SecondaryOverlay)
 		{
 			CPerfTimer StageTimer;
 			RenderPopupFullscreen(Screen);
@@ -4208,7 +4345,7 @@ void CMenus::Render()
 			RenderDemoPlayer(Screen);
 			break;
 		}
-		if(m_Popup != POPUP_NONE)
+		if(m_Popup != POPUP_NONE && !SecondaryOverlay)
 		{
 			CPerfTimer StageTimer;
 			RenderPopupFullscreen(Screen);
@@ -4359,7 +4496,7 @@ void CMenus::Render()
 		break;
 
 	case IClient::STATE_DEMOPLAYBACK:
-		if(m_Popup != POPUP_NONE)
+		if(m_Popup != POPUP_NONE && !SecondaryOverlay)
 		{
 			CPerfTimer StageTimer;
 			RenderPopupFullscreen(Screen);
@@ -4373,6 +4510,8 @@ void CMenus::Render()
 		}
 		break;
 	}
+
+	BackgroundRender.reset();
 
 	// 启动赞助提醒浮层：只在主菜单静止时出现，避免盖住交互中的菜单内容。
 	if(ClientState == IClient::STATE_OFFLINE && m_Popup == POPUP_NONE && !m_ShowStart)
@@ -4417,13 +4556,11 @@ void CMenus::RenderPopupFullscreen(CUIRect Screen)
 #endif
 	if(m_Popup == POPUP_QM_UPDATE)
 	{
-		RenderQmUpdatePopup(Screen);
 		return;
 	}
-	// QmClient 新功能弹窗自带完整布局(标题/滚动条目/按钮)，不复用通用弹窗骨架。
+	// 公告内容使用公共二级面板外壳，业务滚动区由公告模块维护。
 	if(m_Popup == POPUP_QM_NEW_FEATURES)
 	{
-		RenderQmNewFeaturesPopup(Screen);
 		return;
 	}
 
@@ -5658,7 +5795,7 @@ void CMenus::RenderThemeSelection(CUIRect MainView, const SSettingsContentMetric
 	int SelectedTheme = -1;
 	for(int i = 0; i < (int)vThemes.size(); i++)
 	{
-		if(str_comp(vThemes[i].m_Name.c_str(), g_Config.m_ClMenuMap) == 0)
+		if(str_comp(vThemes[i].m_Name.c_str(), g_Config.m_ClMenuMap) == 0 || (IsThemeFileCandidate(g_Config.m_ClMenuMap) && vThemes[i].m_Name == ThemeBaseName(g_Config.m_ClMenuMap)))
 		{
 			SelectedTheme = i;
 			break;
@@ -5677,11 +5814,13 @@ void CMenus::RenderThemeSelection(CUIRect MainView, const SSettingsContentMetric
 			continue;
 		Ui()->DoConfigTooltip(&Theme.m_Name, &Item.m_Rect, g_Config.m_ClMenuMap);
 
-		CUIRect Icon, Label;
-		Item.m_Rect.VSplitLeft(Item.m_Rect.h * 2.0f, &Icon, &Label);
+		const std::string Name = ThemeDisplayName(Theme.m_Name.c_str());
+		const auto RowLayout = ResolveThemeSelectionRowLayout(Item.m_Rect, TextRender()->TextWidth(Metrics.m_BodySize, Name.c_str()), Metrics.m_LineSpacing);
+		CUIRect Icon = RowLayout.m_Icon;
+		const CUIRect Label = RowLayout.m_Label;
 
 		// draw icon if it exists
-		if(Theme.m_IconTexture.IsValid())
+		if(Theme.m_IconTexture.IsValid() && Icon.w > 12.0f && Icon.h > 6.0f)
 		{
 			Icon.VMargin(6.0f, &Icon);
 			Icon.HMargin(3.0f, &Icon);
@@ -5693,22 +5832,12 @@ void CMenus::RenderThemeSelection(CUIRect MainView, const SSettingsContentMetric
 			Graphics()->QuadsEnd();
 		}
 
-		char aName[IO_MAX_PATH_LENGTH];
-		if(Theme.m_Name.empty())
-			str_copy(aName, "(none)");
-		else if(str_comp(Theme.m_Name.c_str(), "auto") == 0)
-			str_copy(aName, "(seasons)");
-		else if(str_comp(Theme.m_Name.c_str(), "rand") == 0)
-			str_copy(aName, "(random)");
-		else
-			str_copy(aName, Theme.m_Name.c_str());
-
-		Ui()->DoLabel(&Label, aName, Metrics.m_BodySize, TEXTALIGN_ML);
+		DrawThemeSelectionLabel(Ui(), Label, Name.c_str(), Metrics.m_BodySize);
 	}
 
 	SelectedTheme = s_ListBox.DoEnd();
 
-	if(OldSelected != SelectedTheme)
+	if(!Ui()->RenderOnly() && OldSelected != SelectedTheme && SelectedTheme >= 0 && SelectedTheme < (int)vThemes.size())
 	{
 		const CTheme &Theme = vThemes[SelectedTheme];
 		str_copy(g_Config.m_ClMenuMap, Theme.m_Name.c_str());
@@ -5750,7 +5879,7 @@ void CMenus::SetActive(bool Active)
 		CommitSettingsTeeSkinEdits();
 		if(g_Config.m_UiSettingsPage == SETTINGS_TEE)
 			FinalizeTeeListDrainPerfSession();
-		ClearQmClientSettingsSearchInputs();
+		ReleaseQmClientSettingsSearchInput();
 
 		if(m_NeedSendinfo)
 		{
@@ -6195,7 +6324,7 @@ void CMenus::OnReset()
 		m_pScreenshotWatermarkJob->Cancel();
 	m_TranslateProbe.Cancel();
 	ResetDemoScreenshotPreview();
-	ClearQmClientSettingsSearchInputs();
+	ReleaseQmClientSettingsSearchInput();
 	InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
 }
 
@@ -7322,13 +7451,13 @@ bool CMenus::SettingsMenuTextPrebuildReady(const char *pOperationOverride) const
 {
 	const char *pOperation = pOperationOverride != nullptr ? pOperationOverride : SettingsPerfActiveOperation();
 	return Ui()->Screen() != nullptr &&
-		s_LastPlanCollectionScreenBucket == round_to_int(Ui()->Screen()->w) &&
-		!m_SettingsMenuTextPlanCollectionDirty && !m_SettingsMenuTextPlanMetadataDirty &&
-		m_SettingsMenuTextPlanCollectionGeneration == m_MenuTextPoolGeneration &&
-		m_SettingsMenuTextPlanGeneration == m_MenuTextPoolGeneration &&
-		m_SettingsMenuTextPlanCollectionOperation == (pOperation != nullptr ? pOperation : "") &&
-		m_SettingsMenuTextPlanCollectionComplete &&
-		m_SettingsMenuTextPlanCursor >= m_vSettingsMenuTextPrebuildPlan.size();
+	       s_LastPlanCollectionScreenBucket == round_to_int(Ui()->Screen()->w) &&
+	       !m_SettingsMenuTextPlanCollectionDirty && !m_SettingsMenuTextPlanMetadataDirty &&
+	       m_SettingsMenuTextPlanCollectionGeneration == m_MenuTextPoolGeneration &&
+	       m_SettingsMenuTextPlanGeneration == m_MenuTextPoolGeneration &&
+	       m_SettingsMenuTextPlanCollectionOperation == (pOperation != nullptr ? pOperation : "") &&
+	       m_SettingsMenuTextPlanCollectionComplete &&
+	       m_SettingsMenuTextPlanCursor >= m_vSettingsMenuTextPrebuildPlan.size();
 }
 
 void CMenus::PrebuildSettingsMenuTextPool(int Budget, const char *pScopeOverride, const char *pOperationOverride)
@@ -8223,7 +8352,7 @@ void CMenus::SetMenuPage(int NewPage)
 		MarkMenuInteraction();
 	if(OldPage == PAGE_SETTINGS && NewPage != PAGE_SETTINGS)
 	{
-		ClearQmClientSettingsSearchInputs();
+		ReleaseQmClientSettingsSearchInput();
 	}
 	if(PerfDebugEnabled() && OldPage != NewPage)
 	{
@@ -8432,8 +8561,8 @@ void CMenus::ShowQmUpdatePopup()
 	m_QmUpdateScrollReset = true;
 	m_QmUpdatePopupState = -1;
 	auto &Update = GameClient()->m_TClient;
-	if(!Update.m_FetchedQmClientUpdateInfo && !Update.m_UpdateCheckFailed && !Update.m_UpdateReady && !Update.IsUpdateChecking() && !Update.IsUpdateDownloading())
-		Update.RequestQmClientUpdateCheckAndUpdate();
+	if(ShouldStartQmClientUpdateCheckOnOpen(Update.m_QmClientUpdateCheckAttempted, Update.IsUpdateChecking() || Update.IsUpdateDownloading(), Update.m_UpdateReady, Update.m_UpdateInstallerStarted))
+		Update.RequestQmClientUpdateCheck();
 	m_Popup = POPUP_QM_UPDATE;
 }
 

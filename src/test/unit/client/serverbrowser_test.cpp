@@ -3,6 +3,7 @@
 
 #include <engine/client/friends.h>
 #include <engine/client/serverbrowser.h>
+#include <engine/client/serverbrowser_http.h>
 #include <engine/client/serverbrowser_http_parse.h>
 #include <engine/client/serverbrowser_ping_cache.h>
 #include <engine/console.h>
@@ -212,6 +213,12 @@ public:
 	static void SetFirstInfo(CServerBrowser &Browser, const CServerInfo &Info)
 	{
 		Browser.SetInfo(Browser.m_vpServerlist[0], Info);
+	}
+	static void SetHttp(CServerBrowser &Browser, IServerBrowserHttp *pHttp)
+	{
+		Browser.m_pHttp = pHttp;
+		Browser.m_ServerlistType = IServerBrowser::TYPE_INTERNET;
+		Browser.m_RefreshingHttp = false;
 	}
 	static void Sort(CServerBrowser &Browser) { Browser.Sort(); }
 	static void CleanUp(CServerBrowser &Browser) { Browser.CleanUp(); }
@@ -794,4 +801,50 @@ TEST(ServerBrowserHttpParse, EmptySuccessReplacesOldListAndSkipsInvalidInfo)
 	ASSERT_FALSE(ParseHttpListForTest(Text, vServers));
 	ASSERT_EQ(vServers.size(), 1u);
 	EXPECT_EQ(vServers[0].m_aAddresses[0].port, 8304);
+}
+
+namespace
+{
+	class CPublishedHttpList : public IServerBrowserHttp
+	{
+	public:
+		uint64_t m_Revision = 0;
+		CServerInfo m_Info{};
+		void Shutdown() override {}
+		void Update() override {}
+		uint64_t Revision() const override { return m_Revision; }
+		bool IsRefreshing() const override { return false; }
+		bool IsError() const override { return false; }
+		bool IsStale() const override { return false; }
+		void Refresh() override {}
+		bool GetBestUrl(const char **ppUrl) const override
+		{
+			*ppUrl = nullptr;
+			return true;
+		}
+		int NumServers() const override { return m_Revision ? 1 : 0; }
+		const CServerInfo &Server(int) const override { return m_Info; }
+	};
+}
+
+TEST_F(CServerBrowserStateTest, AutomaticallyPublishedHttpRevisionUpdatesVisibleListWithoutManualRefresh)
+{
+	str_copy(g_Config.m_BrLocation, "auto");
+	auto *pHttp = new CPublishedHttpList;
+	auto *pPings = new CTestPingCache;
+	CServerBrowserTestAccess::SetHttp(m_Browser, pHttp);
+	CServerBrowserTestAccess::SetPingCache(m_Browser, pPings);
+	pHttp->m_Info.m_NumAddresses = 1;
+	ASSERT_EQ(net_addr_from_str(&pHttp->m_Info.m_aAddresses[0], "127.0.0.1:8303"), 0);
+	pHttp->m_Info.m_MaxClients = pHttp->m_Info.m_MaxPlayers = 16;
+	str_copy(pHttp->m_Info.m_aName, "Recovered");
+	pHttp->m_Revision = 1;
+	m_Browser.Update();
+	ASSERT_EQ(m_Browser.NumServers(), 1);
+	EXPECT_STREQ(m_Browser.SortedGet(0)->m_aName, "Recovered");
+	str_copy(pHttp->m_Info.m_aName, "Newer");
+	pHttp->m_Revision = 2;
+	m_Browser.Update();
+	ASSERT_EQ(m_Browser.NumServers(), 1);
+	EXPECT_STREQ(m_Browser.SortedGet(0)->m_aName, "Newer");
 }

@@ -22,6 +22,7 @@
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
 #include <game/client/QmUi/SettingsIconOptions.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiContext.h>
@@ -125,19 +126,11 @@ namespace
 
 uint64_t CMenus::BuildDDNetSettingsCards(const qm_card_catalog::SQmCardBuildContext &Ctx, std::vector<SSettingsCardDefinition> *pCards)
 {
-	const CUIRect MainView = Ctx.m_Page.m_ContentViewport;
 	CPerfTimer ShellTimer;
-	CUIRect Button, Left, Right, LeftLeft, Label;
 	LogPerfStage(Client(), "ddnet_tab_shell", ShellTimer.ElapsedMs(), false, "page=ddnet");
 
 	const SSettingsContentMetrics DDNetMetrics = Ctx.m_Metrics;
-	const float UiScale = DDNetMetrics.m_UiScale;
 	const float BodySize = DDNetMetrics.m_BodySize;
-	const float DDNetRowPitch = DDNetMetrics.m_LineHeight + DDNetMetrics.m_LineSpacing;
-	const auto SplitDDNetRow = [DDNetMetrics](CUIRect &View, CUIRect *pRow) {
-		View.HSplitTop(DDNetMetrics.m_LineHeight, pRow, &View);
-		View.HSplitTop(DDNetMetrics.m_LineSpacing, nullptr, &View);
-	};
 	const IUiContext DDNetCardCtx = Ctx.m_UiContext;
 	const auto DoDDNetNumericField = [this, DDNetCardCtx, BodySize](const char *pTextId, const void *pId, int *pOption, const CUIRect &Rect, const char *pLabel, int Min, int Max, const IScrollbarScale *pScale = &CUi::ms_LinearScrollbarScale, unsigned Flags = 0u, const char *pSuffix = "", const char *pMaxText = nullptr) {
 		ui_widget::SNumericFieldOptions Options;
@@ -160,7 +153,6 @@ uint64_t CMenus::BuildDDNetSettingsCards(const qm_card_catalog::SQmCardBuildCont
 	dbg_assert(pDemoDefault != nullptr && pGameplayDefault != nullptr && pBackgroundDefault != nullptr && pMiscellaneousDefault != nullptr, "DDNet settings cards must be registered");
 	if(pDemoDefault == nullptr || pGameplayDefault == nullptr || pBackgroundDefault == nullptr || pMiscellaneousDefault == nullptr)
 		return 0;
-	const float CardChromeHeight = BuildSettingsCardFrame({0.0f, 0.0f, 1.0f, 0.0f}, {nullptr, nullptr, "subtitle"}, 0.0f, UiScale).m_Rect.h;
 	const bool RenderOnly = Ctx.m_ReadOnly;
 	const auto BuildDefinitions = [=, this](std::vector<SSettingsCardDefinition> &vCards) {
 		vCards.reserve(4);
@@ -168,400 +160,372 @@ uint64_t CMenus::BuildDDNetSettingsCards(const qm_card_catalog::SQmCardBuildCont
 		const SSettingsCardSpec GameplaySpec{pGameplayDefault->m_pStableId, Localize(pGameplayDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pGameplayDefault)};
 		const SSettingsCardSpec BackgroundSpec{pBackgroundDefault->m_pStableId, Localize(pBackgroundDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pBackgroundDefault)};
 		const SSettingsCardSpec MiscellaneousSpec{pMiscellaneousDefault->m_pStableId, Localize(pMiscellaneousDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pMiscellaneousDefault)};
-		const auto AddCard = [&vCards](const SSettingsCardSpec &Spec, float MinHeight, float ChromeHeight, FSettingsCardRender Render) {
+		const auto AddCard = [this, &vCards, RenderOnly](const SSettingsCardSpec &Spec, FSettingsCardRenderMeasured Render) {
 			SSettingsCardDefinition Definition;
 			Definition.m_Spec = Spec;
-			// MinHeight 已经按当前开关状态计算，测量阶段不能依赖上一帧绘制结果。
-			Definition.m_Measure = [MinHeight, ChromeHeight](float) { return maximum(0.0f, MinHeight - ChromeHeight); };
-			Definition.m_Render = std::move(Render);
-			Definition.m_MeasureRevision = static_cast<uint64_t>(maximum(0.0f, MinHeight) * 1000.0f);
+			Definition.m_RenderMeasured = std::move(Render);
+			qm_settings_content::UseDeclaredContent(Definition, Ui(), TextRender());
+			if(RenderOnly)
+				Definition.m_ContentLayoutInput = {};
 			vCards.push_back(std::move(Definition));
 		};
-		const auto ProcessDemoPreLayoutInput = [this, SplitDDNetRow](CUIRect ContentRect) {
-			if(m_MenuTextPlanCollecting)
-				return false;
-			CUIRect Left = ContentRect;
-			CUIRect Right;
+		AddCard(DemoSpec, [=, this](CUIRect &ContentRect) {
+			CSettingsContentLayoutFlow Flow(ContentRect);
+			const bool CanCommit = Flow.Input() && !RenderOnly && !Ui()->RenderOnly();
 			CUIRect Button;
-			bool Changed = false;
-			SplitDDNetRow(Left, &Button);
-			SplitDDNetRow(Left, &Button);
-			if(Ui()->DoButtonLogic(&g_Config.m_ClReplays, 0, &Button, BUTTONFLAG_LEFT))
-			{
-				g_Config.m_ClReplays ^= 1;
-				if(Client()->State() == IClient::STATE_ONLINE)
-					Client()->DemoRecorder_UpdateReplayRecorder();
-				Changed = true;
-			}
-			if(g_Config.m_ClReplays)
-			{
-				SplitDDNetRow(Left, &Button);
-				SplitDDNetRow(Left, &Button);
-			}
-			Right = Left;
-			SplitDDNetRow(Right, &Button);
-			if(Ui()->DoButtonLogic(&g_Config.m_ClRaceGhost, 0, &Button, BUTTONFLAG_LEFT))
-			{
-				g_Config.m_ClRaceGhost ^= 1;
-				Changed = true;
-			}
-			if(g_Config.m_ClRaceGhost)
-			{
-				SplitDDNetRow(Right, &Button);
-				SplitDDNetRow(Right, &Button);
-				SplitDDNetRow(Right, &Button);
-				if(Ui()->DoButtonLogic(&g_Config.m_ClRaceSaveGhost, 0, &Button, BUTTONFLAG_LEFT))
-				{
-					g_Config.m_ClRaceSaveGhost ^= 1;
-					Changed = true;
-				}
-			}
-			return Changed;
-		};
-		const auto ProcessGameplayPreLayoutInput = [this, SplitDDNetRow, DDNetMetrics, UiScale](CUIRect ContentRect) {
-			if(m_MenuTextPlanCollecting)
-				return false;
-			CUIRect Gameplay = ContentRect;
-			CUIRect PreLayoutButton;
-			CUIRect GameplayRow;
-			CUIRect TextEntitiesLabel;
-			SplitDDNetRow(Gameplay, &PreLayoutButton);
-			SplitDDNetRow(Gameplay, &GameplayRow);
-			GameplayRow.VSplitLeft(std::clamp(GameplayRow.w * 0.38f, 140.0f * UiScale, 240.0f * UiScale), &TextEntitiesLabel, &PreLayoutButton);
-			PreLayoutButton.VSplitLeft(DDNetMetrics.m_LineSpacing, nullptr, &PreLayoutButton);
-			if(Ui()->DoButtonLogic(&g_Config.m_ClTextEntities, 0, &TextEntitiesLabel, BUTTONFLAG_LEFT))
-			{
-				g_Config.m_ClTextEntities ^= 1;
-				return true;
-			}
-			for(int Row = 0; Row < 6; ++Row)
-				SplitDDNetRow(Gameplay, &PreLayoutButton);
-			SplitDDNetRow(Gameplay, &PreLayoutButton);
-			if(!Ui()->DoButtonLogic(&g_Config.m_ClAntiPing, 0, &PreLayoutButton, BUTTONFLAG_LEFT))
-				return false;
-			g_Config.m_ClAntiPing ^= 1;
-			return true;
-		};
-
-		// demo
-		const bool ReplaysLayout = g_Config.m_ClReplays != 0;
-		const bool RaceGhostLayout = g_Config.m_ClRaceGhost != 0;
-		const bool RaceSaveGhostLayout = g_Config.m_ClRaceSaveGhost != 0;
-		const float DemoRows = ResolveDDNetDemoRows(ReplaysLayout, RaceGhostLayout, RaceSaveGhostLayout);
-		const float DemoMinCardHeight = CardChromeHeight + DDNetRowPitch * DemoRows;
-		AddCard(DemoSpec, DemoMinCardHeight, CardChromeHeight, [=, this](CUIRect ContentRect) mutable {
 			CPerfTimer DemoSectionTimer;
-			CUIRect Demo = ContentRect;
-			Left = Demo;
 
-			SplitDDNetRow(Left, &Button);
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAutoRaceRecord, "Save the best demo of each race", Localize("Save the best demo of each race"), g_Config.m_ClAutoRaceRecord, &Button))
+			if(Flow.Control("auto-race-record", DDNetMetrics.m_LineHeight, Button))
 			{
-				g_Config.m_ClAutoRaceRecord ^= 1;
-			}
-
-			SplitDDNetRow(Left, &Button);
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClReplays, "Enable replays", Localize("Enable replays"), g_Config.m_ClReplays, &Button))
-			{
-				g_Config.m_ClReplays ^= 1;
-				if(Client()->State() == IClient::STATE_ONLINE)
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAutoRaceRecord, "Save the best demo of each race", Localize("Save the best demo of each race"), g_Config.m_ClAutoRaceRecord, &Button) && CanCommit)
 				{
-					Client()->DemoRecorder_UpdateReplayRecorder();
+					g_Config.m_ClAutoRaceRecord ^= 1;
 				}
 			}
-
-			if(g_Config.m_ClReplays)
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(Flow.Control("replays", DDNetMetrics.m_LineHeight, Button))
 			{
-				SplitDDNetRow(Left, &Button);
-				DoDDNetNumericField("ddnet-replay-default-length", &g_Config.m_ClReplayLength, &g_Config.m_ClReplayLength, Button, Localize("Default length"), 10, 600, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
-
-				SplitDDNetRow(Left, &Button);
-				DoDDNetNumericField("ddnet-esc-replay-minutes", &g_Config.m_ClEscReplayLengthMinutes, &g_Config.m_ClEscReplayLengthMinutes, Button, Localize("ESC replay minutes"), 1, 60, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
-			}
-
-			// 回放与幽灵选项属于同一组，沿同一列排列，避免窄列截断中文标签。
-			Right = Left;
-			SplitDDNetRow(Right, &Button);
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClRaceGhost, "Enable ghost", Localize("Enable ghost"), g_Config.m_ClRaceGhost, &Button))
-			{
-				g_Config.m_ClRaceGhost ^= 1;
-			}
-			GameClient()->m_Tooltips.DoToolTip(&g_Config.m_ClRaceGhost, &Button, Localize("When you cross the start line, show a ghost tee replicating the movements of your best time"));
-
-			if(g_Config.m_ClRaceGhost)
-			{
-				SplitDDNetRow(Right, &Button);
-				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClRaceShowGhost, "Show ghost", Localize("Show ghost"), g_Config.m_ClRaceShowGhost, &Button))
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClReplays, "Enable replays", Localize("Enable replays"), g_Config.m_ClReplays, &Button) && CanCommit)
 				{
-					g_Config.m_ClRaceShowGhost ^= 1;
-				}
-
-				SplitDDNetRow(Right, &Button);
-				DoDDNetNumericField("ddnet-race-ghost-opacity", &g_Config.m_ClRaceGhostAlpha, &g_Config.m_ClRaceGhostAlpha, Button, Localize("Opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0u, "%");
-
-				SplitDDNetRow(Right, &Button);
-				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClRaceSaveGhost, "Save ghost", Localize("Save ghost"), g_Config.m_ClRaceSaveGhost, &Button))
-				{
-					g_Config.m_ClRaceSaveGhost ^= 1;
-				}
-
-				if(g_Config.m_ClRaceSaveGhost)
-				{
-					SplitDDNetRow(Right, &Button);
-					if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClRaceGhostSaveBest, "Only save improvements", Localize("Only save improvements"), g_Config.m_ClRaceGhostSaveBest, &Button))
+					g_Config.m_ClReplays ^= 1;
+					if(Client()->State() == IClient::STATE_ONLINE)
 					{
-						g_Config.m_ClRaceGhostSaveBest ^= 1;
+						Client()->DemoRecorder_UpdateReplayRecorder();
 					}
 				}
 			}
-			LogPerfStage(Client(), "ddnet_demo_section", DemoSectionTimer.ElapsedMs(), false, "page=ddnet section=demo");
-		});
-		vCards.back().m_Measure = [DDNetRowPitch](float) {
-			return DDNetRowPitch * ResolveDDNetDemoRows(g_Config.m_ClReplays != 0, g_Config.m_ClRaceGhost != 0, g_Config.m_ClRaceSaveGhost != 0);
-		};
-		vCards.back().m_MeasureRevision =
-			((uint64_t)(g_Config.m_ClReplays != 0) << 0) |
-			((uint64_t)(g_Config.m_ClRaceGhost != 0) << 1) |
-			((uint64_t)(g_Config.m_ClRaceSaveGhost != 0) << 2);
-		vCards.back().m_PreLayoutInput = ProcessDemoPreLayoutInput;
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(g_Config.m_ClReplays)
+			{
+				if(Flow.Control("replay-length", DDNetMetrics.m_LineHeight, Button))
+				{
+					DoDDNetNumericField("ddnet-replay-default-length", &g_Config.m_ClReplayLength, &g_Config.m_ClReplayLength, Button, Localize("Default length"), 10, 600, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+				}
+				Flow.Space(DDNetMetrics.m_LineSpacing);
+				if(Flow.Control("esc-replay-length", DDNetMetrics.m_LineHeight, Button))
+				{
+					DoDDNetNumericField("ddnet-esc-replay-minutes", &g_Config.m_ClEscReplayLengthMinutes, &g_Config.m_ClEscReplayLengthMinutes, Button, Localize("ESC replay minutes"), 1, 60, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE);
+				}
+				Flow.Space(DDNetMetrics.m_LineSpacing);
+			}
 
-		// gameplay
-		const bool TextEntitiesLayout = g_Config.m_ClTextEntities != 0;
-		const bool AntiPingLayout = g_Config.m_ClAntiPing != 0;
-		const float GameplayMinCardHeight = CardChromeHeight + DDNetRowPitch * ResolveDDNetGameplayRows(TextEntitiesLayout, AntiPingLayout);
-		AddCard(GameplaySpec, GameplayMinCardHeight, CardChromeHeight, [=, this](CUIRect ContentRect) mutable {
+			// 回放与幽灵选项属于同一组，沿同一列排列，避免窄列截断中文标签。
+
+			if(Flow.Control("race-ghost", DDNetMetrics.m_LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClRaceGhost, "Enable ghost", Localize("Enable ghost"), g_Config.m_ClRaceGhost, &Button) && CanCommit)
+				{
+					g_Config.m_ClRaceGhost ^= 1;
+				}
+				GameClient()->m_Tooltips.DoToolTip(&g_Config.m_ClRaceGhost, &Button, Localize("When you cross the start line, show a ghost tee replicating the movements of your best time"));
+			}
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(g_Config.m_ClRaceGhost)
+			{
+				if(Flow.Control("show-ghost", DDNetMetrics.m_LineHeight, Button))
+				{
+					if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClRaceShowGhost, "Show ghost", Localize("Show ghost"), g_Config.m_ClRaceShowGhost, &Button) && CanCommit)
+					{
+						g_Config.m_ClRaceShowGhost ^= 1;
+					}
+				}
+				Flow.Space(DDNetMetrics.m_LineSpacing);
+				if(Flow.Control("ghost-opacity", DDNetMetrics.m_LineHeight, Button))
+				{
+					DoDDNetNumericField("ddnet-race-ghost-opacity", &g_Config.m_ClRaceGhostAlpha, &g_Config.m_ClRaceGhostAlpha, Button, Localize("Opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0u, "%");
+				}
+				Flow.Space(DDNetMetrics.m_LineSpacing);
+				if(Flow.Control("save-ghost", DDNetMetrics.m_LineHeight, Button))
+				{
+					if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClRaceSaveGhost, "Save ghost", Localize("Save ghost"), g_Config.m_ClRaceSaveGhost, &Button) && CanCommit)
+					{
+						g_Config.m_ClRaceSaveGhost ^= 1;
+					}
+				}
+				Flow.Space(DDNetMetrics.m_LineSpacing);
+				if(g_Config.m_ClRaceSaveGhost)
+				{
+					if(Flow.Control("ghost-save-best", DDNetMetrics.m_LineHeight, Button))
+					{
+						if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClRaceGhostSaveBest, "Only save improvements", Localize("Only save improvements"), g_Config.m_ClRaceGhostSaveBest, &Button) && CanCommit)
+						{
+							g_Config.m_ClRaceGhostSaveBest ^= 1;
+						}
+					}
+					Flow.Space(DDNetMetrics.m_LineSpacing);
+				}
+			}
+			if(CanCommit)
+				LogPerfStage(Client(), "ddnet_demo_section", DemoSectionTimer.ElapsedMs(), false, "page=ddnet section=demo");
+		});
+
+		AddCard(GameplaySpec, [=, this](CUIRect &ContentRect) {
+			CSettingsContentLayoutFlow Flow(ContentRect);
+			const bool CanCommit = Flow.Input() && !RenderOnly && !Ui()->RenderOnly();
+			CUIRect Button, LeftLeft;
 			CPerfTimer GameplaySectionTimer;
-			CUIRect Gameplay = ContentRect;
+
 			CUIRect GameplayRow;
 
-			SplitDDNetRow(Gameplay, &Button);
-			DoDDNetNumericField("ddnet-overlay-entities", &g_Config.m_ClOverlayEntities, &g_Config.m_ClOverlayEntities, Button, Localize("Overlay entities"), 0, 100);
-
-			SplitDDNetRow(Gameplay, &GameplayRow);
-			GameplayRow.VSplitLeft(std::clamp(GameplayRow.w * 0.38f, 140.0f * UiScale, 240.0f * UiScale), &LeftLeft, &Button);
-			Button.VSplitLeft(DDNetMetrics.m_LineSpacing, nullptr, &Button);
-
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClTextEntities, "Show text entities", Localize("Show text entities"), g_Config.m_ClTextEntities, &LeftLeft))
-				g_Config.m_ClTextEntities ^= 1;
-
-			if(g_Config.m_ClTextEntities)
+			if(Flow.Control("overlay-entities", DDNetMetrics.m_LineHeight, Button))
 			{
-				if(DoDDNetNumericField("ddnet-text-entities-size", &g_Config.m_ClTextEntitiesSize, &g_Config.m_ClTextEntitiesSize, Button, Localize("Size"), 20, 100, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_DELAYUPDATE))
-					GameClient()->m_MapImages.SetTextureScale(g_Config.m_ClTextEntitiesSize);
+				DoDDNetNumericField("ddnet-overlay-entities", &g_Config.m_ClOverlayEntities, &g_Config.m_ClOverlayEntities, Button, Localize("Overlay entities"), 0, 100);
 			}
-
-			SplitDDNetRow(Gameplay, &GameplayRow);
-			GameplayRow.VSplitLeft(std::clamp(GameplayRow.w * 0.38f, 140.0f * UiScale, 240.0f * UiScale), &LeftLeft, &Button);
-			Button.VSplitLeft(DDNetMetrics.m_LineSpacing, nullptr, &Button);
-
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClShowOthers, "Show others", Localize("Show others"), g_Config.m_ClShowOthers == SHOW_OTHERS_ON, &LeftLeft))
-				g_Config.m_ClShowOthers = g_Config.m_ClShowOthers != SHOW_OTHERS_ON ? SHOW_OTHERS_ON : SHOW_OTHERS_OFF;
-
-			DoDDNetNumericField("ddnet-show-others-opacity", &g_Config.m_ClShowOthersAlpha, &g_Config.m_ClShowOthersAlpha, Button, Localize("Opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0u, "%");
-
-			GameClient()->m_Tooltips.DoToolTip(&g_Config.m_ClShowOthersAlpha, &Button, Localize("Adjust the opacity of entities belonging to other teams, such as tees and name plates"));
-
-			SplitDDNetRow(Gameplay, &Button);
-			static int s_ShowOwnTeamId = 0;
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &s_ShowOwnTeamId, "Show others (own team only)", Localize("Show others (own team only)"), g_Config.m_ClShowOthers == SHOW_OTHERS_ONLY_TEAM, &Button))
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(Flow.Control("text-entities", DDNetMetrics.m_LineHeight, GameplayRow))
 			{
-				g_Config.m_ClShowOthers = g_Config.m_ClShowOthers != SHOW_OTHERS_ONLY_TEAM ? SHOW_OTHERS_ONLY_TEAM : SHOW_OTHERS_OFF;
-			}
+				SplitSettingsControlRow(GameplayRow, DDNetMetrics, &LeftLeft, &Button);
 
-			SplitDDNetRow(Gameplay, &Button);
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClShowQuads, "Show background quads", Localize("Show background quads"), g_Config.m_ClShowQuads, &Button))
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClTextEntities, "Show text entities", Localize("Show text entities"), g_Config.m_ClTextEntities, &LeftLeft) && CanCommit)
+					g_Config.m_ClTextEntities ^= 1;
+
+				if(g_Config.m_ClTextEntities)
+				{
+					if(DoDDNetNumericField("ddnet-text-entities-size", &g_Config.m_ClTextEntitiesSize, &g_Config.m_ClTextEntitiesSize, Button, Localize("Size"), 20, 100, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_DELAYUPDATE) && CanCommit)
+						GameClient()->m_MapImages.SetTextureScale(g_Config.m_ClTextEntitiesSize);
+				}
+			}
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+
+			if(Flow.Control("show-others", DDNetMetrics.m_LineHeight, GameplayRow))
 			{
-				g_Config.m_ClShowQuads ^= 1;
+				SplitSettingsControlRow(GameplayRow, DDNetMetrics, &LeftLeft, &Button);
+
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClShowOthers, "Show others", Localize("Show others"), g_Config.m_ClShowOthers == SHOW_OTHERS_ON, &LeftLeft) && CanCommit)
+					g_Config.m_ClShowOthers = g_Config.m_ClShowOthers != SHOW_OTHERS_ON ? SHOW_OTHERS_ON : SHOW_OTHERS_OFF;
+
+				DoDDNetNumericField("ddnet-show-others-opacity", &g_Config.m_ClShowOthersAlpha, &g_Config.m_ClShowOthersAlpha, Button, Localize("Opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0u, "%");
+
+				GameClient()->m_Tooltips.DoToolTip(&g_Config.m_ClShowOthersAlpha, &Button, Localize("Adjust the opacity of entities belonging to other teams, such as tees and name plates"));
 			}
-			GameClient()->m_Tooltips.DoToolTip(&g_Config.m_ClShowQuads, &Button, Localize("Quads are used for background decoration"));
-
-			SplitDDNetRow(Gameplay, &Button);
-			if(DoDDNetNumericField("ddnet-default-zoom", &g_Config.m_ClDefaultZoom, &g_Config.m_ClDefaultZoom, Button, Localize("Default zoom"), 0, 20))
-				GameClient()->m_Camera.SetZoom(CCamera::ZoomStepsToValue(g_Config.m_ClDefaultZoom - 10), g_Config.m_ClSmoothZoomTime, true);
-
-			SplitDDNetRow(Gameplay, &Button);
-			DoDDNetNumericField("ddnet-prediction-margin", &g_Config.m_ClPredictionMargin, &g_Config.m_ClPredictionMargin, Button, Localize("Prediction margin"), 1, 300, &CUi::ms_LinearScrollbarScale, 0u, "");
-
-			SplitDDNetRow(Gameplay, &Button);
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClPredictEvents, "Predict events (experimental)", Localize("Predict events (experimental)"), g_Config.m_ClPredictEvents, &Button))
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(Flow.Control("own-team", DDNetMetrics.m_LineHeight, Button))
 			{
-				g_Config.m_ClPredictEvents ^= 1;
+				static int s_ShowOwnTeamId = 0;
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &s_ShowOwnTeamId, "Show others (own team only)", Localize("Show others (own team only)"), g_Config.m_ClShowOthers == SHOW_OTHERS_ONLY_TEAM, &Button) && CanCommit)
+				{
+					g_Config.m_ClShowOthers = g_Config.m_ClShowOthers != SHOW_OTHERS_ONLY_TEAM ? SHOW_OTHERS_ONLY_TEAM : SHOW_OTHERS_OFF;
+				}
 			}
+			Flow.Space(DDNetMetrics.m_LineSpacing);
 
-			SplitDDNetRow(Gameplay, &Button);
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAntiPing, "AntiPing (latency compensation)", Localize("AntiPing (latency compensation)"), g_Config.m_ClAntiPing, &Button))
+			if(Flow.Control("background-quads", DDNetMetrics.m_LineHeight, Button))
 			{
-				g_Config.m_ClAntiPing ^= 1;
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClShowQuads, "Show background quads", Localize("Show background quads"), g_Config.m_ClShowQuads, &Button) && CanCommit)
+				{
+					g_Config.m_ClShowQuads ^= 1;
+				}
+				GameClient()->m_Tooltips.DoToolTip(&g_Config.m_ClShowQuads, &Button, Localize("Quads are used for background decoration"));
 			}
-			GameClient()->m_Tooltips.DoToolTip(&g_Config.m_ClAntiPing, &Button, Localize("Try to predict other entities to reduce lag feeling at high latency"));
-
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(Flow.Control("default-zoom", DDNetMetrics.m_LineHeight, Button))
+			{
+				if(DoDDNetNumericField("ddnet-default-zoom", &g_Config.m_ClDefaultZoom, &g_Config.m_ClDefaultZoom, Button, Localize("Default zoom"), 0, 20) && CanCommit)
+					GameClient()->m_Camera.SetZoom(CCamera::ZoomStepsToValue(g_Config.m_ClDefaultZoom - 10), g_Config.m_ClSmoothZoomTime, true);
+			}
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(Flow.Control("prediction-margin", DDNetMetrics.m_LineHeight, Button))
+			{
+				DoDDNetNumericField("ddnet-prediction-margin", &g_Config.m_ClPredictionMargin, &g_Config.m_ClPredictionMargin, Button, Localize("Prediction margin"), 1, 300, &CUi::ms_LinearScrollbarScale, 0u, "");
+			}
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(Flow.Control("predict-events", DDNetMetrics.m_LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClPredictEvents, "Predict events (experimental)", Localize("Predict events (experimental)"), g_Config.m_ClPredictEvents, &Button) && CanCommit)
+				{
+					g_Config.m_ClPredictEvents ^= 1;
+				}
+			}
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(Flow.Control("anti-ping", DDNetMetrics.m_LineHeight, Button))
+			{
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAntiPing, "AntiPing (latency compensation)", Localize("AntiPing (latency compensation)"), g_Config.m_ClAntiPing, &Button) && CanCommit)
+				{
+					g_Config.m_ClAntiPing ^= 1;
+				}
+				GameClient()->m_Tooltips.DoToolTip(&g_Config.m_ClAntiPing, &Button, Localize("Try to predict other entities to reduce lag feeling at high latency"));
+			}
+			Flow.Space(DDNetMetrics.m_LineSpacing);
 			if(g_Config.m_ClAntiPing)
 			{
-				SplitDDNetRow(Gameplay, &Button);
-				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAntiPingPlayers, "AntiPing: predict other players", Localize("AntiPing: predict other players"), g_Config.m_ClAntiPingPlayers, &Button))
+				if(Flow.Control("anti-ping-players", DDNetMetrics.m_LineHeight, Button))
 				{
-					g_Config.m_ClAntiPingPlayers ^= 1;
+					if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAntiPingPlayers, "AntiPing: predict other players", Localize("AntiPing: predict other players"), g_Config.m_ClAntiPingPlayers, &Button) && CanCommit)
+					{
+						g_Config.m_ClAntiPingPlayers ^= 1;
+					}
 				}
-
-				SplitDDNetRow(Gameplay, &Button);
-				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAntiPingWeapons, "AntiPing: predict weapons", Localize("AntiPing: predict weapons"), g_Config.m_ClAntiPingWeapons, &Button))
+				Flow.Space(DDNetMetrics.m_LineSpacing);
+				if(Flow.Control("anti-ping-weapons", DDNetMetrics.m_LineHeight, Button))
 				{
-					g_Config.m_ClAntiPingWeapons ^= 1;
+					if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAntiPingWeapons, "AntiPing: predict weapons", Localize("AntiPing: predict weapons"), g_Config.m_ClAntiPingWeapons, &Button) && CanCommit)
+					{
+						g_Config.m_ClAntiPingWeapons ^= 1;
+					}
 				}
-
-				SplitDDNetRow(Gameplay, &Button);
-				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAntiPingGrenade, "AntiPing: predict grenade path", Localize("AntiPing: predict grenade path"), g_Config.m_ClAntiPingGrenade, &Button))
+				Flow.Space(DDNetMetrics.m_LineSpacing);
+				if(Flow.Control("anti-ping-grenade", DDNetMetrics.m_LineHeight, Button))
 				{
-					g_Config.m_ClAntiPingGrenade ^= 1;
+					if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClAntiPingGrenade, "AntiPing: predict grenade path", Localize("AntiPing: predict grenade path"), g_Config.m_ClAntiPingGrenade, &Button) && CanCommit)
+					{
+						g_Config.m_ClAntiPingGrenade ^= 1;
+					}
 				}
+				Flow.Space(DDNetMetrics.m_LineSpacing);
 			}
-			LogPerfStage(Client(), "ddnet_gameplay_section", GameplaySectionTimer.ElapsedMs(), false, "page=ddnet section=gameplay");
+			if(CanCommit)
+				LogPerfStage(Client(), "ddnet_gameplay_section", GameplaySectionTimer.ElapsedMs(), false, "page=ddnet section=gameplay");
 		});
-		vCards.back().m_Measure = [DDNetRowPitch](float) {
-			return DDNetRowPitch * ResolveDDNetGameplayRows(g_Config.m_ClTextEntities != 0, g_Config.m_ClAntiPing != 0);
-		};
-		vCards.back().m_MeasureRevision =
-			((uint64_t)(g_Config.m_ClTextEntities != 0) << 0) |
-			((uint64_t)(g_Config.m_ClAntiPing != 0) << 1);
-		vCards.back().m_PreLayoutInput = ProcessGameplayPreLayoutInput;
 
-		const float DDNetColorPickerRowHeight = DDNetMetrics.m_ButtonHeight + DDNetMetrics.m_LineSpacing;
-		const float BackgroundMinCardHeight = CardChromeHeight + DDNetColorPickerRowHeight * 2.0f + DDNetRowPitch * 3.0f + 2.0f;
-		CPerfTimer ControlsSectionTimer;
-		AddCard(BackgroundSpec, BackgroundMinCardHeight, CardChromeHeight, [=, this](CUIRect ContentRect) mutable {
-			CUIRect Background = ContentRect;
+		AddCard(BackgroundSpec, [=, this](CUIRect &ContentRect) {
+			CSettingsContentLayoutFlow Flow(ContentRect);
+			const bool CanCommit = Flow.Input() && !RenderOnly && !Ui()->RenderOnly();
+			bool BackgroundChanged = false;
+			CUIRect Button, Label;
+
+			CUIRect ColorRow;
+			const float ColorHeight = ResolveSettingsColorRowLayout(ContentRect, DDNetMetrics, false).m_ConsumedHeight;
 
 			// background
 			ColorRGBA GreyDefault(0.5f, 0.5f, 0.5f, 1);
 
 			static CButtonContainer s_ResetId1;
-			DoLine_ColorPicker(&s_ResetId1, DDNetMetrics, &Background, Localize("Regular background color"), &g_Config.m_ClBackgroundColor, GreyDefault, false);
+			if(Flow.Control("background-color", ColorHeight, ColorRow))
+				DoLine_ColorPicker(&s_ResetId1, DDNetMetrics, &ColorRow, Localize("Regular background color"), &g_Config.m_ClBackgroundColor, GreyDefault, false);
 
 			static CButtonContainer s_ResetId2;
-			DoLine_ColorPicker(&s_ResetId2, DDNetMetrics, &Background, Localize("Entities background color"), &g_Config.m_ClBackgroundEntitiesColor, GreyDefault, false);
+			if(Flow.Control("background-entities-color", ColorHeight, ColorRow))
+				DoLine_ColorPicker(&s_ResetId2, DDNetMetrics, &ColorRow, Localize("Entities background color"), &g_Config.m_ClBackgroundEntitiesColor, GreyDefault, false);
 
-			CUIRect EditBox, ReloadButton;
-			SplitDDNetRow(Background, &Label);
-			Background.HSplitTop(2.0f, nullptr, &Background);
-			Label.VSplitLeft(100.0f, &Label, &EditBox);
-			EditBox.VSplitRight(60.0f, &EditBox, &Button);
-			Button.VSplitMid(&ReloadButton, &Button, 5.0f);
-			EditBox.VSplitRight(5.0f, &EditBox, nullptr);
-
-			DoSettingsMenuLabel(SETTINGS_DDNET, -1, -1, "ddnet-background-map-label", &Label, Localize("Map"), BodySize, TEXTALIGN_ML);
-
+			CUIRect EditBox, ReloadButton, MapRowRect, CurrentMapRow, TileLayersRow;
+			const bool HasMapRow = Flow.Control("background-map", DDNetMetrics.m_LineHeight, MapRowRect);
+			Flow.Space(DDNetMetrics.m_LineSpacing + 2.0f);
+			const bool HasCurrentMapRow = Flow.Control("background-current-map", DDNetMetrics.m_LineHeight, CurrentMapRow);
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			const bool HasTileLayersRow = Flow.Control("background-tile-layers", DDNetMetrics.m_LineHeight, TileLayersRow);
+			Flow.Space(DDNetMetrics.m_LineSpacing);
+			if(Flow.Declaring())
+				return;
 			static CLineInput s_BackgroundEntitiesInput(g_Config.m_ClBackgroundEntities, sizeof(g_Config.m_ClBackgroundEntities));
 			static char s_aBackgroundEntitiesSync[sizeof(g_Config.m_ClBackgroundEntities)] = "";
-			const bool WasInputActive = s_BackgroundEntitiesInput.IsActive();
-			IUiContext DDNetBackgroundEntitiesTextInputCtx;
-			DDNetBackgroundEntitiesTextInputCtx.m_pUi = Ui();
-			DDNetBackgroundEntitiesTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_ddnet_background_entities_text_input");
-			const bool InputCommitted = ui_widget::InputField(DDNetBackgroundEntitiesTextInputCtx, &s_BackgroundEntitiesInput, EditBox, nullptr, BodySize);
-			bool BackgroundChanged = false;
-			if(InputCommitted)
-				BackgroundChanged = ApplyBackgroundEntitiesInputValue(s_BackgroundEntitiesInput);
-			else if(ShouldCommitBackgroundEntitiesInputOnBlur(WasInputActive, s_BackgroundEntitiesInput.IsActive(), s_BackgroundEntitiesInput.GetString(), s_aBackgroundEntitiesSync))
-				BackgroundChanged = ApplyBackgroundEntitiesInputValue(s_BackgroundEntitiesInput);
-			SyncBackgroundEntitiesInput(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
 
-			static CButtonContainer s_BackgroundEntitiesMapPicker, s_BackgroundEntitiesReload;
-
-			if(Ui()->DoButton_QmIcon(&s_BackgroundEntitiesReload, EQmIcon::ARROW_ROTATE_RIGHT, FONT_ICON_ARROW_ROTATE_RIGHT, 0, &ReloadButton, BUTTONFLAG_LEFT))
+			if(HasMapRow)
 			{
-				CommitBackgroundEntitiesInputIfActive(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
-				g_Config.m_ClBackgroundEntities[0] = '\0';
-				s_BackgroundEntitiesInput.Set("");
-				s_aBackgroundEntitiesSync[0] = '\0';
-				BackgroundChanged = true;
-			}
+				Label = MapRowRect;
+				SplitSettingsControlRow(Label, DDNetMetrics, &Label, &EditBox);
+				const auto MapRow = ResolveSettingsInputActionsLayout(EditBox, 2, DDNetMetrics);
+				EditBox = MapRow.m_Input;
+				ReloadButton = MapRow.m_Actions.m_aButtons[0];
+				Button = MapRow.m_Actions.m_aButtons[1];
 
-			if(Ui()->DoButton_QmIcon(&s_BackgroundEntitiesMapPicker, EQmIcon::FOLDER, FONT_ICON_FOLDER, 0, &Button, BUTTONFLAG_LEFT))
+				DoSettingsMenuLabel(SETTINGS_DDNET, -1, -1, "ddnet-background-map-label", &Label, Localize("Map"), BodySize, TEXTALIGN_ML);
+
+				const bool WasInputActive = s_BackgroundEntitiesInput.IsActive();
+				IUiContext DDNetBackgroundEntitiesTextInputCtx;
+				DDNetBackgroundEntitiesTextInputCtx.m_pUi = Ui();
+				DDNetBackgroundEntitiesTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_ddnet_background_entities_text_input");
+				const bool InputCommitted = ui_widget::InputField(DDNetBackgroundEntitiesTextInputCtx, &s_BackgroundEntitiesInput, EditBox, nullptr, BodySize);
+				if(CanCommit && InputCommitted)
+					BackgroundChanged = ApplyBackgroundEntitiesInputValue(s_BackgroundEntitiesInput);
+				else if(CanCommit && ShouldCommitBackgroundEntitiesInputOnBlur(WasInputActive, s_BackgroundEntitiesInput.IsActive(), s_BackgroundEntitiesInput.GetString(), s_aBackgroundEntitiesSync))
+					BackgroundChanged = ApplyBackgroundEntitiesInputValue(s_BackgroundEntitiesInput);
+				if(CanCommit)
+					SyncBackgroundEntitiesInput(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
+
+				static CButtonContainer s_BackgroundEntitiesMapPicker, s_BackgroundEntitiesReload;
+
+				if(Ui()->DoButton_QmIcon(&s_BackgroundEntitiesReload, EQmIcon::ARROW_ROTATE_RIGHT, FONT_ICON_ARROW_ROTATE_RIGHT, 0, &ReloadButton, BUTTONFLAG_LEFT) && CanCommit)
+				{
+					CommitBackgroundEntitiesInputIfActive(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
+					g_Config.m_ClBackgroundEntities[0] = '\0';
+					s_BackgroundEntitiesInput.Set("");
+					s_aBackgroundEntitiesSync[0] = '\0';
+					BackgroundChanged = true;
+				}
+
+				if(Ui()->DoButton_QmIcon(&s_BackgroundEntitiesMapPicker, EQmIcon::FOLDER, FONT_ICON_FOLDER, 0, &Button, BUTTONFLAG_LEFT) && CanCommit)
+				{
+					BackgroundChanged |= CommitBackgroundEntitiesInputIfActive(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
+					static SPopupMenuId s_PopupMapPickerId;
+					static CPopupMapPickerContext s_PopupMapPickerContext;
+					s_PopupMapPickerContext.m_pMenus = this;
+					s_PopupMapPickerContext.m_aCurrentMapFolder[0] = '\0';
+					str_copy(s_PopupMapPickerContext.m_aRootPath, "maps", sizeof(s_PopupMapPickerContext.m_aRootPath));
+					str_copy(s_PopupMapPickerContext.m_aFallbackRootPath, "mapres", sizeof(s_PopupMapPickerContext.m_aFallbackRootPath));
+					s_PopupMapPickerContext.m_aValuePrefix[0] = '\0';
+					str_copy(s_PopupMapPickerContext.m_aFallbackValuePrefix, "mapres", sizeof(s_PopupMapPickerContext.m_aFallbackValuePrefix));
+					s_PopupMapPickerContext.m_pTargetConfig = g_Config.m_ClBackgroundEntities;
+					s_PopupMapPickerContext.m_TargetConfigSize = sizeof(g_Config.m_ClBackgroundEntities);
+					s_PopupMapPickerContext.MapListPopulate();
+					const SQmDropdownPopupPolicy PopupPolicy = QmResolveDropdownPopupPolicy((int)s_PopupMapPickerContext.m_vMaps.size(), 20.0f, 0.0f, false, 0.0f, CUi::PopupMenuContentInset(), 1);
+					SPopupMenuProperties PopupProps = ui_widget::SecondaryPanelProperties(ui_widget::ESecondaryPanelPlacement::ANCHORED);
+					Ui()->DoPopupMenu(&s_PopupMapPickerId, Ui()->MouseX(), Ui()->MouseY(), 300.0f, PopupPolicy.m_PreferredHeight, &s_PopupMapPickerContext, PopupMapPicker, PopupProps);
+				}
+			}
+			if(HasCurrentMapRow)
 			{
-				BackgroundChanged |= CommitBackgroundEntitiesInputIfActive(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
-				static SPopupMenuId s_PopupMapPickerId;
-				static CPopupMapPickerContext s_PopupMapPickerContext;
-				s_PopupMapPickerContext.m_pMenus = this;
-				s_PopupMapPickerContext.m_aCurrentMapFolder[0] = '\0';
-				str_copy(s_PopupMapPickerContext.m_aRootPath, "maps", sizeof(s_PopupMapPickerContext.m_aRootPath));
-				str_copy(s_PopupMapPickerContext.m_aFallbackRootPath, "mapres", sizeof(s_PopupMapPickerContext.m_aFallbackRootPath));
-				s_PopupMapPickerContext.m_aValuePrefix[0] = '\0';
-				str_copy(s_PopupMapPickerContext.m_aFallbackValuePrefix, "mapres", sizeof(s_PopupMapPickerContext.m_aFallbackValuePrefix));
-				s_PopupMapPickerContext.m_pTargetConfig = g_Config.m_ClBackgroundEntities;
-				s_PopupMapPickerContext.m_TargetConfigSize = sizeof(g_Config.m_ClBackgroundEntities);
-				s_PopupMapPickerContext.MapListPopulate();
-				const SQmDropdownPopupPolicy PopupPolicy = QmResolveDropdownPopupPolicy((int)s_PopupMapPickerContext.m_vMaps.size(), 20.0f, 0.0f, false, 0.0f, CUi::PopupMenuContentInset(), 1);
-				SPopupMenuProperties PopupProps;
-				PopupProps.m_BlockUnderlyingScroll = true;
-				PopupProps.m_CenterInViewport = true;
-				PopupProps.m_BlockUnderlyingPointerInput = true;
-				PopupProps.m_Animate = true;
-				Ui()->DoPopupMenu(&s_PopupMapPickerId, Ui()->MouseX(), Ui()->MouseY(), 300.0f, PopupPolicy.m_PreferredHeight, &s_PopupMapPickerContext, PopupMapPicker, PopupProps);
+				Button = CurrentMapRow;
+				const bool UseCurrentMap = IsCurrentMapBackgroundEntitiesValue(g_Config.m_ClBackgroundEntities);
+				static int s_UseCurrentMapId = 0;
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &s_UseCurrentMapId, "Use current map as background", Localize("Use current map as background"), UseCurrentMap, &Button) && CanCommit)
+				{
+					BackgroundChanged |= CommitBackgroundEntitiesInputIfActive(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
+					BackgroundChanged |= ToggleCurrentMapBackground(s_BackgroundEntitiesInput);
+					SyncBackgroundEntitiesInput(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
+				}
 			}
-
-			SplitDDNetRow(Background, &Button);
-			const bool UseCurrentMap = IsCurrentMapBackgroundEntitiesValue(g_Config.m_ClBackgroundEntities);
-			static int s_UseCurrentMapId = 0;
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &s_UseCurrentMapId, "Use current map as background", Localize("Use current map as background"), UseCurrentMap, &Button))
-			{
-				BackgroundChanged |= CommitBackgroundEntitiesInputIfActive(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
-				BackgroundChanged |= ToggleCurrentMapBackground(s_BackgroundEntitiesInput);
-				SyncBackgroundEntitiesInput(s_BackgroundEntitiesInput, s_aBackgroundEntitiesSync, sizeof(s_aBackgroundEntitiesSync));
-			}
-
-			if(BackgroundChanged)
+			if(CanCommit && BackgroundChanged)
 				GameClient()->m_Background.LoadBackground();
 
-			SplitDDNetRow(Background, &Button);
-			if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClBackgroundShowTilesLayers, "Show tiles layers from BG map", Localize("Show tiles layers from BG map"), g_Config.m_ClBackgroundShowTilesLayers, &Button))
-				g_Config.m_ClBackgroundShowTilesLayers ^= 1;
+			if(HasTileLayersRow)
+			{
+				Button = TileLayersRow;
+				if(DoSettingsButton_CheckBox(SETTINGS_DDNET, -1, &g_Config.m_ClBackgroundShowTilesLayers, "Show tiles layers from BG map", Localize("Show tiles layers from BG map"), g_Config.m_ClBackgroundShowTilesLayers, &Button) && CanCommit)
+					g_Config.m_ClBackgroundShowTilesLayers ^= 1;
+			}
 		});
 
-		float MiscellaneousMinContentHeight = DDNetRowPitch * 3.0f + 5.0f + 2.0f;
-#if defined(CONF_FAMILY_WINDOWS)
-		MiscellaneousMinContentHeight += DDNetRowPitch + 10.0f;
-#endif
-		const float MiscellaneousMinCardHeight = CardChromeHeight + MiscellaneousMinContentHeight;
-		AddCard(MiscellaneousSpec, MiscellaneousMinCardHeight, CardChromeHeight, [=, this](CUIRect ContentRect) mutable {
-			CUIRect Miscellaneous = ContentRect;
-			// miscellaneous
+		AddCard(MiscellaneousSpec, [=, this](CUIRect &ContentRect) {
+			CSettingsContentLayoutFlow Flow(ContentRect);
+			const bool CanCommit = Flow.Input() && !RenderOnly && !Ui()->RenderOnly();
+			CUIRect Button, Label;
 			static CButtonContainer s_ButtonTimeout;
-			SplitDDNetRow(Miscellaneous, &Button);
-			if(DoSettingsButton_Menu(SETTINGS_DDNET, -1, -1, &s_ButtonTimeout, "ddnet-new-random-timeout-code", Localize("New random timeout code"), 0, &Button))
+			if(Flow.Control("timeout-code", DDNetMetrics.m_LineHeight, Button))
 			{
-				Client()->GenerateTimeoutSeed();
+				if(DoSettingsButton_Menu(SETTINGS_DDNET, -1, -1, &s_ButtonTimeout, "ddnet-new-random-timeout-code", Localize("New random timeout code"), 0, &Button) && CanCommit)
+					Client()->GenerateTimeoutSeed();
 			}
-
-			Miscellaneous.HSplitTop(5.0f, nullptr, &Miscellaneous);
-			SplitDDNetRow(Miscellaneous, &Label);
-			Miscellaneous.HSplitTop(2.0f, nullptr, &Miscellaneous);
-			CUIElement &RunOnJoinLabelElement = SettingsTextElement(SETTINGS_DDNET, -1, "ddnet-run-on-join-label");
-			DoSettingsLabelStreamed(RunOnJoinLabelElement, &Label, Localize("Run on join"), BodySize, TEXTALIGN_ML);
-			SplitDDNetRow(Miscellaneous, &Button);
-			static CLineInput s_RunOnJoinInput(g_Config.m_ClRunOnJoin, sizeof(g_Config.m_ClRunOnJoin));
-			s_RunOnJoinInput.SetEmptyText(Localize("Chat command (e.g. showall 1)"));
-			IUiContext DDNetRunOnJoinTextInputCtx;
-			DDNetRunOnJoinTextInputCtx.m_pUi = Ui();
-			DDNetRunOnJoinTextInputCtx.m_ScopeHash = MakeUiScopeHash("settings_ddnet_run_on_join_text_input");
-			ui_widget::InputField(DDNetRunOnJoinTextInputCtx, &s_RunOnJoinInput, Button, nullptr, BodySize);
-
+			Flow.Space(DDNetMetrics.m_LineSpacing + 5.0f);
+			if(Flow.Control("run-on-join-label", DDNetMetrics.m_LineHeight, Label))
+			{
+				CUIElement &Element = SettingsTextElement(SETTINGS_DDNET, -1, "ddnet-run-on-join-label");
+				DoSettingsLabelStreamed(Element, &Label, Localize("Run on join"), BodySize, TEXTALIGN_ML);
+			}
+			Flow.Space(DDNetMetrics.m_LineSpacing + 2.0f);
+			if(Flow.Control("run-on-join-input", DDNetMetrics.m_LineHeight, Button))
+			{
+				static CLineInput s_RunOnJoinInput(g_Config.m_ClRunOnJoin, sizeof(g_Config.m_ClRunOnJoin));
+				if(CanCommit)
+					s_RunOnJoinInput.SetEmptyText(Localize("Chat command (e.g. showall 1)"));
+				IUiContext InputCtx;
+				InputCtx.m_pUi = Ui();
+				InputCtx.m_ScopeHash = MakeUiScopeHash("settings_ddnet_run_on_join_text_input");
+				ui_widget::InputField(InputCtx, &s_RunOnJoinInput, Button, nullptr, BodySize);
+			}
+			Flow.Space(DDNetMetrics.m_LineSpacing);
 #if defined(CONF_FAMILY_WINDOWS)
-			static CButtonContainer s_ButtonUnregisterShell;
-			Miscellaneous.HSplitTop(10.0f, nullptr, &Miscellaneous);
-			SplitDDNetRow(Miscellaneous, &Button);
-			if(DoSettingsButton_Menu(SETTINGS_DDNET, -1, -1, &s_ButtonUnregisterShell, "ddnet-unregister-protocol-file-extensions", Localize("Unregister protocol and file extensions"), 0, &Button))
+			Flow.Space(10.0f);
+			if(Flow.Control("unregister-shell", DDNetMetrics.m_LineHeight, Button))
 			{
-				Client()->ShellUnregister();
+				static CButtonContainer s_ButtonUnregisterShell;
+				if(DoSettingsButton_Menu(SETTINGS_DDNET, -1, -1, &s_ButtonUnregisterShell, "ddnet-unregister-protocol-file-extensions", Localize("Unregister protocol and file extensions"), 0, &Button) && CanCommit)
+					Client()->ShellUnregister();
 			}
+			Flow.Space(DDNetMetrics.m_LineSpacing);
 #endif
 		});
-		LogPerfStage(Client(), "ddnet_controls_section", ControlsSectionTimer.ElapsedMs(), false, "page=ddnet section=background_misc");
 	};
-	uint64_t DDNetLayoutRevision = static_cast<uint64_t>(RenderOnly ? 1 : 0);
-	DDNetLayoutRevision = DDNetLayoutRevision * 1099511628211ULL ^ static_cast<uint64_t>(g_Config.m_ClReplays != 0);
-	DDNetLayoutRevision = DDNetLayoutRevision * 1099511628211ULL ^ static_cast<uint64_t>(g_Config.m_ClRaceGhost != 0);
-	DDNetLayoutRevision = DDNetLayoutRevision * 1099511628211ULL ^ static_cast<uint64_t>(g_Config.m_ClRaceSaveGhost != 0);
-	DDNetLayoutRevision = DDNetLayoutRevision * 1099511628211ULL ^ static_cast<uint64_t>(g_Config.m_ClTextEntities != 0);
-	DDNetLayoutRevision = DDNetLayoutRevision * 1099511628211ULL ^ static_cast<uint64_t>(g_Config.m_ClAntiPing != 0);
+	const uint64_t DDNetLayoutRevision = RenderOnly;
 	if(pCards != nullptr)
 	{
 		BuildDefinitions(*pCards);

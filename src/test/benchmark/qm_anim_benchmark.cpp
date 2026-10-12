@@ -14,11 +14,19 @@
 #include <game/client/QmUi/QmAnimResolve.h>
 #include <game/client/QmUi/QmScroll.h>
 #include <game/client/QmUi/QmTree.h>
+#include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsCardGeometry.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsLabelMetadata.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiButtonStyle.h>
+#include <game/client/QmUi/UiSurface.h>
 #include <game/client/QmUi/UiTheme.h>
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/QmUi/cards/QmCardMeasureRevision.h>
 #include <game/client/components/qmclient/console_selection.h>
+#include <game/client/components/qmclient/spectator_hud_layout.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/qm_icon.h>
 #include <game/client/qm_icon_label.h>
@@ -409,6 +417,25 @@ static void BM_SecondaryButtonStyle(benchmark::State &State)
 }
 BENCHMARK(BM_SecondaryButtonStyle)->Arg(0)->Arg(1)->Arg(2)->Arg(3);
 
+static void BM_SelectedButtonBorderStyle(benchmark::State &State)
+{
+	// 测量公共选中按钮离开／悬浮／按压／禁用时的实际样式解析，准备不计时。
+	const ColorRGBA Surface(0.2f, 0.4f, 0.6f, 0.25f), Backdrop(0.1f, 0.1f, 0.1f, 1);
+	const SUiTheme Theme = ResolveUiTheme(ColorHSLA(0.0f, 0.0f, 0.3f, 1.0f), 1.0f);
+	const SUiButtonState ButtonState{State.range(0) != 3, State.range(0) == 1 || State.range(0) == 2, State.range(0) == 2, true};
+	for(auto _ : State)
+	{
+		benchmark::DoNotOptimize(Surface);
+		benchmark::DoNotOptimize(Backdrop);
+		benchmark::DoNotOptimize(Theme);
+		benchmark::DoNotOptimize(ButtonState);
+		const auto Style = ResolveUiButtonStyle(EUiButtonRole::SECONDARY, Surface, Backdrop, Theme, ButtonState);
+		benchmark::DoNotOptimize(Style);
+	}
+	State.SetItemsProcessed(State.iterations());
+}
+BENCHMARK(BM_SelectedButtonBorderStyle)->Arg(0)->Arg(1)->Arg(2)->Arg(3);
+
 // 每轮解析一个真实标签：正文快速拒绝、单图标与组合图标，计时包含识别与布局。
 static void BM_IconLabelResolve(benchmark::State &State)
 {
@@ -565,3 +592,183 @@ static void BM_QmConsoleCaretFrame(benchmark::State &State)
 	State.SetItemsProcessed(State.iterations());
 }
 BENCHMARK(BM_QmConsoleCaretFrame)->Arg(0)->Arg(1);
+
+// 生产不可变内容布局：稳定帧键比较与宽度变化重建分别计时，不含真实字体或 GPU。
+static void BM_CardContentLayoutStable(benchmark::State &State)
+{
+	CSettingsContentLayoutCache Cache;
+	std::vector<SSettingsContentRowDeclaration> Rows;
+	for(int i = 0; i < State.range(0); ++i)
+		Rows.push_back({std::to_string(i), "Settings description", 20, 12, 0, 4, true});
+	int Measures = 0;
+	const auto Measure = [&](const char *, float, float) { ++Measures; return 24.0f; };
+	const auto Layout = Cache.Resolve(Rows, 320, 1, Measure);
+	if(Cache.Resolve(Rows, 320, 1, Measure) != Layout || Measures != State.range(0))
+	{
+		State.SkipWithError("Stable layout must reuse geometry and text measurements");
+		return;
+	}
+	for(auto _ : State)
+	{
+		benchmark::DoNotOptimize(Rows.data());
+		benchmark::ClobberMemory();
+		benchmark::DoNotOptimize(Cache.Resolve(Rows, 320, 1, Measure));
+	}
+	State.SetItemsProcessed(State.iterations() * State.range(0));
+}
+BENCHMARK(BM_CardContentLayoutStable)->Arg(8)->Arg(32)->Arg(64);
+
+static void BM_CardContentLayoutWidthChange(benchmark::State &State)
+{
+	CSettingsContentLayoutCache Cache;
+	std::vector<SSettingsContentRowDeclaration> Rows;
+	for(int i = 0; i < State.range(0); ++i)
+		Rows.push_back({std::to_string(i), "Settings description", 20, 12, 0, 4, true});
+	const auto Measure = [](const char *, float, float) { return 24.0f; };
+	float Width = 320;
+	for(auto _ : State)
+	{
+		Width = Width == 320 ? 160 : 320;
+		benchmark::DoNotOptimize(Rows.data());
+		benchmark::ClobberMemory();
+		benchmark::DoNotOptimize(Cache.Resolve(Rows, Width, 1, Measure));
+	}
+	State.SetItemsProcessed(State.iterations() * State.range(0));
+}
+BENCHMARK(BM_CardContentLayoutWidthChange)->Arg(8)->Arg(32)->Arg(64);
+
+// 只测生产选项宽度缓存的元数据路径；固定测量回调不代表真实字体成本。
+static void BM_CardChoiceWidthCacheStable(benchmark::State &State)
+{
+	CSettingsChoiceWidthCache Cache;
+	std::vector<const char *> Labels(State.range(0), "Display option");
+	int Measures = 0;
+	const auto Measure = [&](const char *, float) { ++Measures; return 90.0f; };
+	Cache.Resolve(Labels, 12, 1, Measure);
+	Cache.Resolve(Labels, 12, 1, Measure);
+	if(Measures != State.range(0))
+	{
+		State.SkipWithError("stable choice cache must not repeat text measurement");
+		return;
+	}
+	for(auto _ : State)
+	{
+		benchmark::DoNotOptimize(Cache);
+		benchmark::ClobberMemory();
+		benchmark::DoNotOptimize(Cache.Resolve(Labels, 12, 1, Measure));
+	}
+	State.SetItemsProcessed(State.iterations());
+}
+BENCHMARK(BM_CardChoiceWidthCacheStable)->Arg(1)->Arg(4)->Arg(16);
+
+static void BM_CardChoiceWidthCacheFontChange(benchmark::State &State)
+{
+	CSettingsChoiceWidthCache Cache;
+	std::vector<const char *> Labels(State.range(0), "Display option");
+	float FontSize = 12;
+	const auto Measure = [](const char *, float Size) { return Size * 8; };
+	for(auto _ : State)
+	{
+		FontSize = FontSize == 12 ? 13 : 12;
+		benchmark::DoNotOptimize(Cache);
+		benchmark::ClobberMemory();
+		benchmark::DoNotOptimize(Cache.Resolve(Labels, FontSize, 1, Measure));
+	}
+	State.SetItemsProcessed(State.iterations());
+}
+BENCHMARK(BM_CardChoiceWidthCacheFontChange)->Arg(1)->Arg(4)->Arg(16);
+
+// 已登记首项/尾项和普通未知标签，测量公共元数据查询；不包含真实字体与气泡绘制。
+static void BM_SettingsLabelPresentation(benchmark::State &State)
+{
+	static constexpr const char *apIds[] = {"appearance-show-client-ids", "qm-steam-client-path", "unknown-settings-label"};
+	const char *pId = apIds[State.range(0)];
+	for(auto _ : State)
+	{
+		const auto Presentation = ResolveSettingsLabelPresentation(pId, "Label (unit)", [](const char *pSource) { return pSource; });
+		benchmark::DoNotOptimize(Presentation);
+	}
+	State.SetItemsProcessed(State.iterations());
+}
+BENCHMARK(BM_SettingsLabelPresentation)->Arg(0)->Arg(1)->Arg(2);
+
+// 双列正文分别按真实列宽测量；稳定帧与宽度交替重建分开计时，准备工作在循环外。
+static void BM_CardTextColumnsLayout(benchmark::State &State)
+{
+	CSettingsContentLayoutCache Cache;
+	std::vector<SSettingsContentRowDeclaration> vRows;
+	for(int Index = 0; Index < 16; ++Index)
+	{
+		SSettingsContentRowDeclaration Row;
+		Row.m_Id = std::to_string(Index);
+		Row.m_Text = "Setting label";
+		Row.m_SecondaryText = "Current value and its explanation";
+		Row.m_MinimumHeight = 20;
+		Row.m_FontSize = 12;
+		Row.m_TextColumns = true;
+		Row.m_PrimaryFraction = 0.62f;
+		Row.m_ColumnGap = 4;
+		vRows.push_back(std::move(Row));
+	}
+	int Measures = 0;
+	const auto Measure = [&](const char *, float Width, float Size) { ++Measures; return Width < 120 ? Size * 3 : Size; };
+	const auto pLayout = Cache.Resolve(vRows, 320, 1, Measure);
+	if(Measures != 32 || Cache.Resolve(vRows, 320, 1, Measure) != pLayout)
+	{
+		State.SkipWithError("Text columns must measure both columns once and reuse stable geometry");
+		return;
+	}
+	float Width = 320;
+	for(auto _ : State)
+	{
+		if(State.range(0) != 0)
+			Width = Width == 320 ? 220 : 320;
+		benchmark::DoNotOptimize(Cache.Resolve(vRows, Width, 1, Measure));
+	}
+	State.SetItemsProcessed(State.iterations() * 16);
+}
+BENCHMARK(BM_CardTextColumnsLayout)->Arg(0)->Arg(1);
+
+static void BM_RoundedSurfaceBorderMesh(benchmark::State &State)
+{
+	SRoundedSurfaceParams Params;
+	Params.m_Radius = 8;
+	Params.m_BorderWidth = 2;
+	const auto Plan = ResolveRoundedSurfacePlan({20, 30, 160, 24}, Params, false);
+	for(auto _ : State)
+	{
+		const auto Mesh = ResolveRoundedSurfaceBorderMesh(Plan, IGraphics::CORNER_ALL);
+		benchmark::DoNotOptimize(Mesh);
+	}
+	State.SetItemsProcessed(State.iterations());
+}
+BENCHMARK(BM_RoundedSurfaceBorderMesh);
+
+static void BM_SettingsToggleGroupGeometry(benchmark::State &State)
+{
+	// 固定八个不同文本宽度的同组开关，测量每次真实解析的分列与行高成本。
+	const std::array<SSettingsToggleSize, 8> aItems = {{{80, 24}, {120, 24}, {90, 24}, {180, 24}, {110, 24}, {70, 24}, {130, 24}, {100, 24}}};
+	for(auto _ : State)
+	{
+		const auto Grid = ResolveSettingsToggleGrid(static_cast<float>(State.range(0)), aItems, 4);
+		benchmark::DoNotOptimize(Grid);
+	}
+	State.SetItemsProcessed(State.iterations() * aItems.size());
+}
+BENCHMARK(BM_SettingsToggleGroupGeometry)->Arg(200)->Arg(400)->Arg(800);
+
+static void BM_SpectatorHudContentLayout(benchmark::State &State)
+{
+	// 三种文案长度测量实际布局接口，输入屏障避免常量折叠。
+	float Width = 400.0f;
+	float TextWidth = static_cast<float>(State.range(0));
+	for(auto _ : State)
+	{
+		benchmark::DoNotOptimize(Width);
+		benchmark::DoNotOptimize(TextWidth);
+		const auto Layout = QmSpectatorHudLayout(Width, TextWidth, 40.0f);
+		benchmark::DoNotOptimize(Layout);
+	}
+	State.SetItemsProcessed(State.iterations());
+}
+BENCHMARK(BM_SpectatorHudContentLayout)->Arg(32)->Arg(160)->Arg(600);

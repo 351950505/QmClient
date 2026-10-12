@@ -74,7 +74,7 @@ def main() -> int:
 	payload = build / "release/setup-source"
 	installer_output = build / "release/windows-installer"
 	installer_output.mkdir(parents=True, exist_ok=True)
-	prepare(build, REPO_ROOT / "data", payload)
+	prepare(build, REPO_ROOT / "data", payload, steam_appid_file=REPO_ROOT / "steam_appid.txt")
 	result = subprocess.run([compiler, f"/DSourceDir={payload}", f"/DOutputDir={installer_output}", f"/DAppVersion={args.version}", str(REPO_ROOT / "qmclient_scripts/installer/QmClient.iss")], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
 	log = build / "release/windows-installer.log"
 	log.write_bytes(result.stdout)

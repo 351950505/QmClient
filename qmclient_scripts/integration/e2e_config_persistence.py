@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""使用 Windows 隔离测试客户端验证多开冲突和坏配置保护。"""
+"""使用 Windows 隔离测试客户端验证多开顺序保存和坏配置保护。"""
 
 from __future__ import annotations
 
@@ -37,8 +37,8 @@ def start_client(binary: Path, root: Path, name: str) -> Process:
 	)
 
 
-def scenario_stale_client_preserves_newer_settings(binary: Path, workspace: Path) -> None:
-	root = workspace / "shared"
+def scenario_sequential_clients_save_last_writer(binary: Path, workspace: Path, reverse_order: bool = False) -> None:
+	root = workspace / ("reverse" if reverse_order else "shared")
 	settings = root / MANAGED_PATHS[0]
 	settings.parent.mkdir(parents=True)
 	settings.write_text('player_name "CfgSeed"\nqm_sponsor_nudge_at 100000000\n', encoding="utf-8")
@@ -52,21 +52,19 @@ def scenario_stale_client_preserves_newer_settings(binary: Path, workspace: Path
 			client.command(f"player_name {player}")
 			client.command(f"echo cfg_ready_{player}")
 			client.wait_for(lambda line: f"cfg_ready_{player}" in line, "name update", 10)
-		first.command("quit")
-		if first.wait_for_exit(30) != 0:
-			raise AssertionError("first client did not exit normally")
-		saved = {path: (root / path).read_bytes() for path in MANAGED_PATHS}
-		if b"CfgWriterA" not in saved[MANAGED_PATHS[0]]:
-			raise AssertionError("first client's settings were not saved")
-		stale.command("quit")
-		stale.wait_for(lambda line: "refusing to overwrite" in line, "stale save rejection", 20)
-		if not stale.is_alive():
-			raise AssertionError("stale client exited unexpectedly instead of reporting its save failure")
-		for path, content in saved.items():
-			if (root / path).read_bytes() != content:
-				raise AssertionError(f"stale client modified {path}")
-		# 保存错误弹窗等待玩家确认；验证失败日志与文件后只结束本场景的实例。
-		stale.kill()
+		writers = ((first, "CfgWriterA"), (stale, "CfgWriterB"))
+		if reverse_order:
+			writers = tuple(reversed(writers))
+		for client, player in writers:
+			client.command("quit")
+			if client.wait_for_exit(30) != 0:
+				raise AssertionError(f"{player} did not exit normally")
+			if f'player_name "{player}"' not in settings.read_text(encoding="utf-8"):
+				raise AssertionError(f"{player}'s settings were not saved")
+			for path in MANAGED_PATHS:
+				(root / path).read_text(encoding="utf-8")
+			if any("refusing to overwrite" in line or "Error saving settings" in line for line in client._lines):
+				raise AssertionError(f"{player} reported a sequential save failure")
 	finally:
 		first.stop()
 		if stale is not None:
@@ -104,9 +102,14 @@ def main() -> None:
 		parser.error("client executable must be built inside this workspace")
 	if not binary.is_file():
 		parser.error(f"client executable does not exist: {binary}")
+	cache = args.build_dir.resolve() / "CMakeCache.txt"
+	cache_lines = cache.read_text(encoding="utf-8").splitlines() if cache.is_file() else []
+	if "DEV:BOOL=ON" not in cache_lines or "QMCLIENT_TEST_STORAGE:BOOL=ON" not in cache_lines:
+		parser.error("requires DEV=ON and QMCLIENT_TEST_STORAGE=ON; refusing to use real user storage")
 	workspace = REPO_ROOT / "tmp" / f"config-persistence-{uuid.uuid4().hex}"
 	workspace.mkdir(parents=True)
-	scenario_stale_client_preserves_newer_settings(binary, workspace)
+	scenario_sequential_clients_save_last_writer(binary, workspace)
+	scenario_sequential_clients_save_last_writer(binary, workspace, reverse_order=True)
 	scenario_invalid_utf8_preserves_original_config(binary, workspace)
 	print(f"configuration persistence scenarios passed; artifacts: {workspace}")
 

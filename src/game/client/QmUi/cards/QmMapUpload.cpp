@@ -4,6 +4,11 @@
 #include <engine/shared/config.h>
 #include <engine/storage.h>
 
+#include <game/client/QmUi/SecondaryPanel.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/UiButtons.h>
+#include <game/client/QmUi/UiSurfaceText.h>
 #include <game/client/components/menus.h>
 #include <game/client/gameclient.h>
 #include <game/localization.h>
@@ -80,7 +85,16 @@ CUi::EPopupMenuFunctionResult CMenus::PopupQmMapUploadPicker(void *pContext, CUI
 		return CUi::POPUP_CLOSE_CURRENT;
 
 	const SSettingsContentMetrics Metrics = pMenus->CurrentSettingsContentMetrics();
-	View.Margin(Metrics.m_LineSpacing, &View);
+	const SUiTheme Theme = ResolveConfiguredSecondaryPanelTheme();
+	IUiContext Ctx = pMenus->SettingsUiContext("qm-map-upload-picker", Metrics.m_UiScale);
+	Ctx.m_pTheme = &Theme;
+	CUiScopedSurfaceText SurfaceText(pMenus->TextRender(), Theme.m_Surface);
+	static ui_widget::SSecondaryPanelLabel s_Title;
+	static CButtonContainer s_Close;
+	ui_widget::CSecondaryPanel Panel(Ctx, View, Active, ui_widget::ResolveSecondaryPanelMetrics(pMenus->Ui()->Screen()->w, ESettingsSecondaryPanelKind::LIBRARY, Metrics.m_UiScale), {});
+	if(Panel.Header(s_Title, s_Close, Localize("Select map")))
+		return CUi::POPUP_CLOSE_CURRENT;
+	View = Panel.ContentRect();
 	CUIRect Path, Search, Scope, Footer;
 	View.HSplitTop(Metrics.m_LineHeight, &Path, &View);
 	View.HSplitTop(Metrics.m_LineHeight, &Search, &View);
@@ -116,7 +130,7 @@ CUi::EPopupMenuFunctionResult CMenus::PopupQmMapUploadPicker(void *pContext, CUI
 		}
 	}
 	pMenus->Ui()->DoLabel(&Scope, Searching && pPicker->m_SearchIndex.Busy() ? Localize("Searching all map folders...") : Localize("Search maps and downloadedmaps, including subfolders"), Metrics.m_SmallSize, TEXTALIGN_ML, SingleLine);
-	if(pMenus->Ui()->DoButton_PopupMenu(&pPicker->m_CancelButton, Localize("Cancel"), &Footer, Metrics.m_BodySize, TEXTALIGN_MC) ||
+	if(ui_widget::SecondaryButton(Ctx, &pPicker->m_CancelButton, Localize("Cancel"), Footer, !Active) ||
 		(Active && pMenus->Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE)))
 	{
 		pMenus->Ui()->ReleaseActiveTextInput(&pPicker->m_SearchInput);
@@ -192,67 +206,69 @@ CUi::EPopupMenuFunctionResult CMenus::PopupQmMapUploadPicker(void *pContext, CUI
 
 void CMenus::RenderQmFunctionMapUploadContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, bool PrewarmOnly)
 {
-	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();
+	CSettingsContentLayoutFlow Flow(Content);
+	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly() || Flow.Declaring();
 	const bool Busy = m_QmMapUpload.Busy();
-	auto NextRow = [&](float Height) {
-		CUIRect Row;
-		Content.HSplitTop(Height, &Row, &Content);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-		return Row;
-	};
 	SLabelProperties SingleLine;
 	SingleLine.m_MaxWidth = Content.w;
 	SingleLine.m_DisallowNewline = true;
 	SingleLine.m_EllipsisAtEnd = true;
 	SingleLine.m_EnableWidthCheck = false;
 	char aText[IO_MAX_PATH_LENGTH + 128];
-	CUIRect Row = NextRow(LineHeight);
+	CUIRect Row;
+	const auto LabelRow = [&](const char *pId, const char *pValue) {
+		if(Flow.Control(pId, LineHeight, Row))
+			DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, pId, &Row, pValue, BodySize, TEXTALIGN_ML, SingleLine);
+		Flow.Space(LineSpacing);
+	};
 	str_format(aText, sizeof(aText), Localize("Target server: %s"), g_Config.m_QmMapUploadEndpoint[0] ? g_Config.m_QmMapUploadEndpoint : Localize("None"));
-	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-map-upload-server", &Row, aText, BodySize, TEXTALIGN_ML, SingleLine);
-	Row = NextRow(LineHeight);
+	LabelRow("qmclient-map-upload-server", aText);
 	str_format(aText, sizeof(aText), Localize("File: %s"), m_aQmMapUploadPath[0] ? m_aQmMapUploadPath : Localize("No map selected"));
-	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-map-upload-file", &Row, aText, BodySize, TEXTALIGN_ML, SingleLine);
-	Row = NextRow(LineHeight);
+	LabelRow("qmclient-map-upload-file", aText);
 	str_format(aText, sizeof(aText), Localize("Player: %s"), Busy ? m_aQmMapUploadPlayer : QmMapUploadPlayerName());
-	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-map-upload-player", &Row, aText, BodySize, TEXTALIGN_ML, SingleLine);
+	LabelRow("qmclient-map-upload-player", aText);
 
-	Row = NextRow(LineHeight);
-	CUIRect SelectButton, ActionButton;
-	Row.VSplitMid(&SelectButton, &ActionButton, LineSpacing);
-	static CButtonContainer s_SelectButton, s_UploadButton, s_CancelButton;
-	if(DoSettingsButton_Menu(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, &s_SelectButton, "qmclient-map-upload-select", Localize("Select map"), Busy || ReadOnly ? -1 : 0, &SelectButton) && !Busy && !ReadOnly)
+	if(Flow.Control("qmclient-map-upload-actions", LineHeight, Row))
 	{
-		m_QmMapUploadPicker.m_pMenus = this;
-		m_QmMapUploadPicker.m_SearchInput.Clear();
-		m_QmMapUploadPicker.m_SearchIndex.Reset(Storage()->NumPaths());
-		PopulateQmMapUploadPicker();
-		const CUIRect Screen = *Ui()->Screen();
-		const float Width = std::min(520.0f, Screen.w - 20.0f);
-		const float Height = std::min(360.0f, Screen.h - 20.0f);
-		SPopupMenuProperties Props;
-		Props.m_BlockUnderlyingScroll = true;
-		Props.m_BlockUnderlyingPointerInput = true;
-		Ui()->DoPopupMenu(&m_QmMapUploadPicker, Screen.x + (Screen.w - Width) * 0.5f, Screen.y + (Screen.h - Height) * 0.5f, Width, Height, &m_QmMapUploadPicker, PopupQmMapUploadPicker, Props);
-	}
-	if(Busy)
-	{
-		const bool CanCancel = !ReadOnly && m_QmMapUpload.Status() == QmMapUpload::EStatus::UPLOADING;
-		if(DoSettingsButton_Menu(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, &s_CancelButton, "qmclient-map-upload-cancel", Localize("Cancel"), CanCancel ? 0 : -1, &ActionButton) && CanCancel)
-			m_QmMapUpload.Cancel();
-	}
-	else
-	{
-		const bool CanUpload = !ReadOnly && m_aQmMapUploadPath[0] != '\0';
-		if(DoSettingsButton_Menu(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, &s_UploadButton, "qmclient-map-upload-submit", Localize("Upload map"), CanUpload ? 0 : -1, &ActionButton) && CanUpload)
+		static ui_widget::SSettingsActionGroupState s_ActionWidths;
+		const char *apActions[] = {Localize("Select map"), Busy ? Localize("Cancel") : Localize("Upload map")};
+		const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_ActionWidths, Row, apActions, 2, CurrentSettingsContentMetrics());
+		const CUIRect SelectButton = Actions.m_aButtons[0], ActionButton = Actions.m_aButtons[1];
+		static CButtonContainer s_SelectButton, s_UploadButton, s_CancelButton;
+		if(DoSettingsButton_Menu(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, &s_SelectButton, "qmclient-map-upload-select", Localize("Select map"), Busy || PrewarmOnly ? -1 : 0, &SelectButton) && Flow.Input() && !Busy && !ReadOnly)
 		{
-			// 提交时快照当前控制角色的服务端名字，随后切换分身不会改变本次上传。
-			str_copy(m_aQmMapUploadPlayer, QmMapUploadPlayerName());
-			// 本地差异：远程的 CUpload::Start 已去掉 endpoint 参数（内部固定），
-			// 本地保留「endpoint 可由用户配置」（g_Config.m_QmMapUploadEndpoint，界面上可填），
-			// 故此处按本地 7 参签名补上该参数，不牺牲本地能力。
-			m_QmMapUpload.Start(Storage(), Http(), Engine(), g_Config.m_QmMapUploadEndpoint, m_aQmMapUploadPath, m_QmMapUploadStorageType, m_aQmMapUploadPlayer);
+			m_QmMapUploadPicker.m_pMenus = this;
+			m_QmMapUploadPicker.m_SearchInput.Clear();
+			m_QmMapUploadPicker.m_SearchIndex.Reset(Storage()->NumPaths());
+			PopulateQmMapUploadPicker();
+			const CUIRect Screen = *Ui()->Screen();
+			const float Width = std::max(0.0f, std::min(520.0f, Screen.w - 20.0f));
+			const float Height = std::max(0.0f, std::min(360.0f, Screen.h - 20.0f));
+			auto Props = ui_widget::SecondaryPanelProperties();
+			Props.m_OnClosed = [this] { Ui()->ReleaseActiveTextInput(&m_QmMapUploadPicker.m_SearchInput); };
+			Ui()->DoPopupMenu(&m_QmMapUploadPicker, Screen.x + (Screen.w - Width) * 0.5f, Screen.y + (Screen.h - Height) * 0.5f, Width, Height, &m_QmMapUploadPicker, PopupQmMapUploadPicker, Props);
+		}
+		if(Busy)
+		{
+			const bool CanCancel = !PrewarmOnly && m_QmMapUpload.Status() == QmMapUpload::EStatus::UPLOADING;
+			if(DoSettingsButton_Menu(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, &s_CancelButton, "qmclient-map-upload-cancel", Localize("Cancel"), CanCancel ? 0 : -1, &ActionButton) && Flow.Input() && CanCancel && !ReadOnly)
+				m_QmMapUpload.Cancel();
+		}
+		else
+		{
+			const bool CanUpload = !PrewarmOnly && m_aQmMapUploadPath[0] != '\0';
+			if(DoSettingsButton_Menu(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, &s_UploadButton, "qmclient-map-upload-submit", Localize("Upload map"), CanUpload ? 0 : -1, &ActionButton) && Flow.Input() && CanUpload && !ReadOnly)
+			{
+				// 提交时快照当前控制角色的服务端名字，随后切换分身不会改变本次上传。
+				str_copy(m_aQmMapUploadPlayer, QmMapUploadPlayerName());
+				// 本地差异：远程的 CUpload::Start 已去掉 endpoint 参数（内部固定），
+				// 本地保留「endpoint 可由用户配置」（g_Config.m_QmMapUploadEndpoint，界面上可填），
+				// 故此处按本地 7 参签名补上该参数，不牺牲本地能力。
+				m_QmMapUpload.Start(Storage(), Http(), Engine(), g_Config.m_QmMapUploadEndpoint, m_aQmMapUploadPath, m_QmMapUploadStorageType, m_aQmMapUploadPlayer);
+			}
 		}
 	}
+	Flow.Space(LineSpacing);
 
 	const char *pStatus = Localize("Select a saved .map file (client limit: 64 MiB).");
 	switch(m_QmMapUpload.Status())
@@ -277,29 +293,23 @@ void CMenus::RenderQmFunctionMapUploadContent(CUIRect &Content, float LineHeight
 		str_format(aStatus, sizeof(aStatus), "%s (HTTP %d)", pStatus, m_QmMapUpload.StatusCode());
 		pStatus = aStatus;
 	}
-	SLabelProperties Wrapped;
-	Wrapped.m_MaxWidth = Content.w;
-	Wrapped.m_EnableWidthCheck = false;
-	Row = NextRow(LineHeight * 2.0f);
-	Ui()->ClipEnable(&Row);
-	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-map-upload-status", &Row, pStatus, BodySize, TEXTALIGN_TL, Wrapped);
-	Ui()->ClipDisable();
-	Row = NextRow(LineHeight * 2.0f);
-	// 服务端消息只按普通文本显示，固定区域允许换行并裁剪过长内容。
-	if(!m_QmMapUpload.Detail().empty())
-	{
-		char aDetail[768];
-		str_copy(aDetail, m_QmMapUpload.Detail().c_str());
-		Ui()->ClipEnable(&Row);
-		DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-map-upload-detail", &Row, aDetail, BodySize, TEXTALIGN_TL, Wrapped);
-		Ui()->ClipDisable();
-	}
+	const auto TextRow = [&](const char *pId, const char *pValue, float MinimumHeight) {
+		Flow.Text(pId, pValue, 0.0f, BodySize, LineSpacing, [this](const char *pText, float Width, float Size) { return TextRender()->TextBoundingBox(Size, pText, -1, Width).m_H + Size * 0.25f; }, [this, pId, BodySize](const CUIRect &TextRect, const char *pText) {
+				SLabelProperties Wrapped;
+				Wrapped.m_MaxWidth = TextRect.w;
+				Wrapped.m_EnableWidthCheck = false;
+				DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, pId, &TextRect, pText, BodySize, TEXTALIGN_TL, Wrapped); }, MinimumHeight);
+	};
+	TextRow("qmclient-map-upload-status", pStatus, LineHeight * 2.0f);
+	// 服务端详情保留旧两行最小区域，超出时按真实正文换行测高，不能永久裁剪掉错误原因。
+	char aDetail[768];
+	str_copy(aDetail, m_QmMapUpload.Detail().c_str());
+	TextRow("qmclient-map-upload-detail", aDetail, LineHeight * 2.0f);
 	const auto Instructions = qm_card_catalog::QmMapUploadInstructions();
 	for(size_t Index = 0; Index < Instructions.size(); ++Index)
 	{
-		Row = NextRow(qm_card_catalog::QmMapUploadHelpLineHeight(TextRender(), Instructions[Index], Content.w, BodySize, LineHeight));
 		char aId[64];
 		str_format(aId, sizeof(aId), "qmclient-map-upload-help-%d", (int)Index);
-		DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, aId, &Row, Instructions[Index], BodySize, TEXTALIGN_TL, Wrapped);
+		TextRow(aId, Instructions[Index], LineHeight);
 	}
 }

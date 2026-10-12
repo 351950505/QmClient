@@ -5,32 +5,10 @@
 TEST(ThemeScan, FileCandidateDetection)
 {
 	EXPECT_TRUE(IsThemeFileCandidate("heavens.map"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.png"));
-	EXPECT_TRUE(IsThemeFileCandidate("HEAVENS.PNG"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.webp"));
-#if defined(CONF_VIDEORECORDER)
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.jpg"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.jpeg"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.jfif"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.bmp"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.tga"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.tif"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.tiff"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.gif"));
-#else
-	EXPECT_FALSE(IsThemeFileCandidate("heavens.jpg"));
-	EXPECT_FALSE(IsThemeFileCandidate("heavens.jpeg"));
-	EXPECT_FALSE(IsThemeFileCandidate("heavens.jfif"));
-	EXPECT_FALSE(IsThemeFileCandidate("heavens.bmp"));
-	EXPECT_FALSE(IsThemeFileCandidate("heavens.tga"));
-	EXPECT_FALSE(IsThemeFileCandidate("heavens.tif"));
-	EXPECT_FALSE(IsThemeFileCandidate("heavens.tiff"));
-	EXPECT_FALSE(IsThemeFileCandidate("heavens.gif"));
-#endif
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.mp4"));
-	EXPECT_TRUE(IsThemeFileCandidate("heavens.webm"));
-	EXPECT_FALSE(IsThemeFileCandidate("heavens.txt"));
-	EXPECT_FALSE(IsThemeFileCandidate("themes"));
+	EXPECT_TRUE(IsThemeFileCandidate("HEAVENS.MAP"));
+	for(const char *pName : {"heavens.png", "heavens.webp", "heavens.jpg", "heavens.mp4", "heavens.webm", "none.png", "auto.png", "rand.png", "heavens.txt", "themes", ".map", ""})
+		EXPECT_FALSE(IsThemeFileCandidate(pName)) << pName;
+	EXPECT_FALSE(IsThemeFileCandidate(nullptr));
 }
 
 TEST(ThemeScan, CandidatePathBuilding)
@@ -75,4 +53,81 @@ TEST(ThemeScan, IconPathMapping)
 #endif
 	EXPECT_EQ(ThemeIconPathFromName("autumn.mp4"), "themes/autumn.png");
 	EXPECT_EQ(ThemeIconPathFromName("autumn_day.mp4"), "themes/autumn.png");
+}
+
+TEST(ThemeScan, PreviewOnlyDirectoryDoesNotProduceSelectableThemes)
+{
+	std::vector<SThemeFileEntry> Entries;
+	AppendThemeFileEntry(Entries, "none.png", false);
+	AppendThemeFileEntry(Entries, "auto.png", false);
+	AppendThemeFileEntry(Entries, "rand.png", false);
+	AppendThemeFileEntry(Entries, "autumn.png", false);
+	AppendThemeFileEntry(Entries, "folder.map", true);
+	EXPECT_TRUE(Entries.empty());
+}
+
+TEST(ThemeScan, DayAndNightMapsMergeWithoutPreviewDuplicates)
+{
+	std::vector<SThemeFileEntry> Entries;
+	AppendThemeFileEntry(Entries, "autumn_night.map", false);
+	ASSERT_EQ(Entries.size(), 1u);
+	EXPECT_FALSE(Entries[0].m_HasDay);
+	EXPECT_TRUE(Entries[0].m_HasNight);
+	AppendThemeFileEntry(Entries, "autumn_day.map", false);
+	AppendThemeFileEntry(Entries, "autumn.png", false);
+	AppendThemeFileEntry(Entries, "autumn_day.map", false);
+	ASSERT_EQ(Entries.size(), 1u);
+	EXPECT_EQ(Entries[0].m_Name, "autumn");
+	EXPECT_TRUE(Entries[0].m_HasDay);
+	EXPECT_TRUE(Entries[0].m_HasNight);
+	EXPECT_EQ(Entries[0].m_IconPath, "themes/autumn.png");
+	EXPECT_EQ(ResolveThemeMapFileName(Entries[0].m_aMapNames, true), "autumn_day.map");
+	EXPECT_EQ(ResolveThemeMapFileName(Entries[0].m_aMapNames, false), "autumn_night.map");
+}
+
+TEST(ThemeScan, ExactCasePathsRemainLoadableAndMissingVariantFallsBack)
+{
+	std::vector<SThemeFileEntry> Entries;
+	AppendThemeFileEntry(Entries, "Desert_DAY.MAP", false);
+	ASSERT_EQ(Entries.size(), 1u);
+	EXPECT_EQ(Entries[0].m_Name, "Desert");
+	EXPECT_EQ(ResolveThemeMapFileName(Entries[0].m_aMapNames, false), "Desert_DAY.MAP");
+	AppendThemeFileEntry(Entries, "Desert.MAP", false);
+	EXPECT_EQ(ResolveThemeMapFileName(Entries[0].m_aMapNames, false), "Desert.MAP");
+	EXPECT_EQ(ResolveThemeMapFileName(Entries[0].m_aMapNames, true), "Desert_DAY.MAP");
+}
+
+TEST(ThemeScan, FreshScanDropsRemovedVariantsAndPreservesOnlyExistingPaths)
+{
+	std::vector<SThemeFileEntry> Before;
+	AppendThemeFileEntry(Before, "autumn_day.map", false);
+	AppendThemeFileEntry(Before, "autumn_night.map", false);
+	std::vector<SThemeFileEntry> Refreshed;
+	AppendThemeFileEntry(Refreshed, "autumn_night.map", false);
+	ASSERT_EQ(Refreshed.size(), 1u);
+	EXPECT_FALSE(Refreshed[0].m_HasDay);
+	EXPECT_TRUE(Refreshed[0].m_HasNight);
+	EXPECT_EQ(ResolveThemeMapFileName(Refreshed[0].m_aMapNames, true), "autumn_night.map");
+	EXPECT_TRUE(Before[0].m_HasDay);
+}
+
+TEST(ThemeScan, DisplayNamesPreserveBuiltinsAndRemoveMapVariantSuffixes)
+{
+	EXPECT_EQ(ThemeDisplayName(""), "(none)");
+	EXPECT_EQ(ThemeDisplayName("auto"), "(seasons)");
+	EXPECT_EQ(ThemeDisplayName("rand"), "(random)");
+	EXPECT_EQ(ThemeDisplayName("autumn_day.map"), "autumn");
+	EXPECT_EQ(ThemeDisplayName("Desert_NIGHT.MAP"), "Desert");
+	EXPECT_EQ(ThemeDisplayName("My (theme)"), "My (theme)");
+}
+
+TEST(ThemeScan, DisplayDoesNotNormalizeAnAlreadyMergedNameAgain)
+{
+	std::vector<SThemeFileEntry> Entries;
+	AppendThemeFileEntry(Entries, "foo_day_day.map", false);
+	ASSERT_EQ(Entries.size(), 1u);
+	EXPECT_EQ(Entries[0].m_Name, "foo_day");
+	EXPECT_EQ(ThemeDisplayName(Entries[0].m_Name.c_str()), "foo_day");
+	EXPECT_EQ(ThemeDisplayName("foo_day_day.map"), "foo_day");
+	EXPECT_EQ(ThemeDisplayName("custom_night"), "custom_night");
 }

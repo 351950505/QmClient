@@ -206,6 +206,46 @@ TEST(ToggleStyle, OnUsesAccentAndOffPreservesConfiguredControlSurface)
 	EXPECT_LT(Disabled.m_Knob.a, On.m_Knob.a);
 }
 
+TEST(ToggleStyle, DefaultKnobStaysWhiteAcrossTrackColorsOpacitiesAndBackdrops)
+{
+	for(const ColorRGBA Backdrop : {ColorRGBA(0, 0, 0, 1), ColorRGBA(1, 1, 1, 1)})
+	{
+		for(const ColorRGBA Surface : {ColorRGBA(0, 0, 0, 1), ColorRGBA(1, 1, 1, 1), ColorRGBA(0.2f, 0.7f, 0.4f, 0.25f), ColorRGBA(1, 0, 0, 0)})
+		{
+			SCOPED_TRACE(::testing::Message() << "backdrop=" << Backdrop.r << " surface=" << Surface.r << "," << Surface.g << "," << Surface.b << "," << Surface.a);
+			SUiTheme Theme{};
+			Theme.m_Accent = Surface;
+			for(const bool Value : {false, true})
+			{
+				SCOPED_TRACE(Value);
+				const auto Style = ResolveUiToggleStyle(Theme, Surface, Backdrop, Value, true);
+				EXPECT_EQ(Style.m_Track, Surface);
+				EXPECT_EQ(Style.m_Knob, ColorRGBA(1, 1, 1, 1));
+			}
+		}
+	}
+}
+
+TEST(ToggleStyle, ThemeKnobRolePreservesColorAndOwnOpacityWhenDisabled)
+{
+	SUiTheme Theme{};
+	Theme.m_Accent = ColorRGBA(0.2f, 0.6f, 0.4f, 0.8f);
+	Theme.m_ToggleKnob = ColorRGBA(0.9f, 0.8f, 0.7f, 0.6f);
+	const ColorRGBA Surface(0.8f, 0.2f, 0.4f, 0.4f);
+	for(const bool Value : {false, true})
+	{
+		SCOPED_TRACE(Value);
+		const auto Enabled = ResolveUiToggleStyle(Theme, Surface, ColorRGBA(1, 1, 1, 1), Value, true);
+		const auto Disabled = ResolveUiToggleStyle(Theme, Surface, ColorRGBA(1, 1, 1, 1), Value, false);
+		EXPECT_EQ(Enabled.m_Knob, Theme.m_ToggleKnob);
+		EXPECT_FLOAT_EQ(Disabled.m_Knob.r, 0.9f);
+		EXPECT_FLOAT_EQ(Disabled.m_Knob.g, 0.8f);
+		EXPECT_FLOAT_EQ(Disabled.m_Knob.b, 0.7f);
+		EXPECT_FLOAT_EQ(Disabled.m_Knob.a, 0.39f);
+		EXPECT_FLOAT_EQ(Disabled.m_Track.a, Value ? 0.52f : 0.26f);
+	}
+}
+
 TEST(ToggleStyle, HoverAndPressKeepKnobColorAcrossForegroundThreshold)
 {
 	const ColorRGBA Backdrop(0, 0, 0, 1);
@@ -221,7 +261,7 @@ TEST(ToggleStyle, HoverAndPressKeepKnobColorAcrossForegroundThreshold)
 			const auto Idle = ResolveUiToggleFeedbackStyle(Base, Base.m_Track, Backdrop, true, false, false);
 			const auto Hover = ResolveUiToggleFeedbackStyle(Base, Base.m_Track, Backdrop, true, true, false);
 			const auto Press = ResolveUiToggleFeedbackStyle(Base, Base.m_Track, Backdrop, true, true, true);
-			EXPECT_EQ(Idle.m_Knob, Gray < 0.45f ? ColorRGBA(1, 1, 1, 1) : ColorRGBA(0, 0, 0, 1));
+			EXPECT_EQ(Idle.m_Knob, ColorRGBA(1, 1, 1, 1));
 			EXPECT_EQ(Hover.m_Knob, Idle.m_Knob);
 			EXPECT_EQ(Press.m_Knob, Idle.m_Knob);
 			EXPECT_NE(Hover.m_Track, Idle.m_Track);
@@ -295,7 +335,7 @@ TEST(UiThemeAccent, OpacityPreservesRgbAndAllowsFullyTransparentAccent)
 	}
 }
 
-TEST(UiThemeAccent, TransparentEnabledTrackKeepsKnobVisibleAgainstBackdrop)
+TEST(UiThemeAccent, TransparentEnabledTrackPreservesDefaultKnobAcrossBackdrops)
 {
 	const auto Theme = ResolveUiTheme(ColorHSLA(0), 1, ColorHSLA(0), ColorHSLA(0, 0, 1, 0));
 	const auto Dark = ResolveUiToggleStyle(Theme, ColorRGBA(), ColorRGBA(0, 0, 0, 1), true, true);
@@ -303,7 +343,7 @@ TEST(UiThemeAccent, TransparentEnabledTrackKeepsKnobVisibleAgainstBackdrop)
 	EXPECT_FLOAT_EQ(Dark.m_Track.a, 0.0f);
 	EXPECT_FLOAT_EQ(Light.m_Track.a, 0.0f);
 	EXPECT_EQ(Dark.m_Knob, ColorRGBA(1, 1, 1, 1));
-	EXPECT_EQ(Light.m_Knob, ColorRGBA(0, 0, 0, 1));
+	EXPECT_EQ(Light.m_Knob, ColorRGBA(1, 1, 1, 1));
 }
 
 class CUiAccentConfigTest : public ::testing::Test
