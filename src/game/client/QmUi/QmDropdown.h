@@ -78,6 +78,7 @@ struct SQmDropdownInput
 	bool m_KeyDown = false;
 	bool m_KeyEnter = false;
 	bool m_KeyEscape = false;
+	bool m_KeepOpenWhenEmpty = false;
 	int m_HoveredIndex = -1;
 	bool m_MouseSelectPressed = false;
 };
@@ -106,6 +107,22 @@ bool QmDropdownActiveItemShouldScrollIntoView(bool ScrollRequested, bool ActiveE
 bool QmDropdownShouldRequestActiveScroll(bool PopupOpen, int PreviousActiveIndex, int ActiveIndex);
 bool QmDropdownEntriesMatch(const std::vector<std::string> &vEntries, const char *const *pEntries, int ItemCount);
 int QmResolveDropdownSelection(int CurrentSelection, int PopupSelection, const std::vector<std::string> &vPopupEntries, const char *const *pEntries, int ItemCount);
+
+// 搜索保留原始索引，过滤后的键盘/鼠标选择不能误选原列表同一位置的字体。
+class CQmDropdownSearch
+{
+public:
+	bool Update(const std::vector<std::string> &vEntries, const char *pQuery);
+	int SourceIndex(int VisibleIndex) const;
+	const std::vector<int> &Indices() const { return m_vIndices; }
+	void Reset();
+
+private:
+	std::vector<std::string> m_vSource;
+	std::string m_Query;
+	std::vector<int> m_vIndices;
+	bool m_Initialized = false;
+};
 
 // 子弹层拥有键盘选择；父触发控件失活时不影响活动子层。
 SQmDropdownUpdateResult QmUpdateDropdownPopupSelection(const SQmDropdownInput &Input, int ItemCount, bool Active, int &ActiveIndex);

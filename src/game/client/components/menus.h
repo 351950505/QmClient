@@ -26,6 +26,7 @@
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/QmVoteMenu.h>
 #include <game/client/QmUi/SettingsCardDeck.h>
+#include <game/client/QmUi/SettingsChoice.h>
 #include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
@@ -171,7 +172,7 @@ public:
 	ui_widget::SCapsuleTabBarStyle CapsuleTabBarStyleFor(const ColorRGBA &SurfaceColor) const;
 	// 多选一胶囊选择器：槽位在 Segments 内均分，先画容器与滑块，再画文字。
 	// 返回点击后的新下标，无点击返回 Current；缺省配色使用 SettingsCapsuleTabBarStyle()。
-	int DoSegmentedChoice(CButtonContainer *pButtons, const char *const *ppLabels, int Count, int Current, const CUIRect &Segments, float Rounding = 5.0f, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle = nullptr);
+	int DoSegmentedChoice(CButtonContainer *pButtons, const char *const *ppLabels, int Count, int Current, const CUIRect &Segments, float Rounding = 5.0f, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle = nullptr, float FontSize = -1.0f, const void *pConfigValue = nullptr, const void *pSecondConfigValue = nullptr);
 	ColorRGBA MenuPanelColor(float AlphaScale = 1.0f) const;
 	ColorRGBA MenuPanelElevatedColor(float AlphaScale = 1.0f) const;
 	ColorRGBA BrowserPanelColor(float AlphaScale = 1.0f) const;
@@ -189,7 +190,6 @@ public:
 	int DoButton_CheckBox_Number(const void *pId, const char *pText, int Checked, const CUIRect *pRect);
 
 	bool DoSliderWithScaledValue(const void *pId, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, int Scale, const IScrollbarScale *pScale, unsigned Flags = 0u, const char *pSuffix = "");
-	bool DoLine_RadioMenu(CUIRect &View, const char *pLabel, std::vector<CButtonContainer> &vButtonContainers, const std::vector<const char *> &vLabels, const std::vector<int> &vValues, int &Value);
 	bool DoLine_KeyReader(CUIRect &View, CButtonContainer &ReaderButton, CButtonContainer &ClearButton, const char *pName, const char *pCommand);
 
 private:
@@ -1705,6 +1705,9 @@ protected:
 	int m_CallvoteSelectedOption;
 	int m_CallvoteSelectedPlayer;
 	ECallvoteMapSort m_CallvoteMapSort = ECallvoteMapSort::ALL;
+	// 稳定行标识持有下拉状态，窗口缩放不改变当前选择或弹层 owner。
+	using SSettingsRadioState = SSettingsChoiceState;
+	std::unordered_map<const void *, SSettingsRadioState> m_SettingsRadioStates;
 	SQmVoteMenuState m_QmVoteMenu;
 	SQmPlayersMenuState m_QmPlayersMenu;
 	CUi::SDropDownState m_CallvoteMapSortDropDownState;
@@ -2513,7 +2516,6 @@ public:
 	const char *CurrentQmUiPerfPage() const;
 	const char *CurrentQmUiPerfOperation() const;
 	int IdleRenderFrameRate() const;
-	uint64_t TranslationTestLayoutRevision() const;
 	SSettingsResourceFrameContext SettingsResourceFrameContext() const { return {m_SettingsScrollActive, false, m_SettingsPostScrollRecoveryFrames, m_SettingsHighPrioritySettled}; }
 	const SSettingsAdaptiveBudgetOutput &CurrentSettingsUiFrameBudget() const { return m_CurrentSettingsUiFrameBudget; }
 	void SetActive(bool Active);
@@ -2665,7 +2667,7 @@ public:
 	CLineInputBuffered<128> m_GlobalCardSearchInput;
 	// 进入「搜索」设置页时自动聚焦输入框的一次性请求标志（渲染侧消费）。
 	bool m_FocusSettingsSearchOnEntry = false;
-	void ClearQmClientSettingsSearchInputs();
+	void ReleaseQmClientSettingsSearchInput();
 
 	// DDRace
 	int DoButton_CheckBox_Tristate(const void *pId, const char *pText, TRISTATE Checked, const CUIRect *pRect);
@@ -3008,17 +3010,6 @@ private:
 		float m_FinalOffsetY = 0.0f;
 	};
 
-	struct SSettingsQmScrollFrame
-	{
-		vec2 m_Offset = vec2(0.0f, 0.0f);
-		CUIRect m_ViewRect;
-		CUIRect m_ClipRect;
-		SQmScrollContainerStyle m_Style;
-		SQmScrollContainerFrame m_Frame;
-		float m_PreviousOffsetY = 0.0f;
-		bool m_Enabled = false;
-	};
-
 	struct SQmSettingsCardStyle
 	{
 		float m_Padding = 14.0f;
@@ -3049,8 +3040,6 @@ private:
 
 	SSettingsScrollRegionFrame BeginSettingsScrollRegion(CScrollRegion &ScrollRegion, CUIRect *pView, const CScrollRegionParams &Params, float PreviousOffsetY);
 	void FinishSettingsScrollRegion(CScrollRegion &ScrollRegion, SSettingsScrollRegionFrame &Frame, const CUIRect *pEndRect = nullptr, int Page = -1, bool TrackScrollActive = true);
-	SSettingsQmScrollFrame BeginSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, CUIRect *pView, float ContentHeight, const SQmSettingsCardStyle &CardStyle, float UiScale, float PreviousOffsetY, bool Enabled);
-	void FinishSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, SSettingsQmScrollFrame &Frame, const CUIRect &EndRect, float *pContentHeight, float *pPreviousOffsetY, bool TrackScrollActive = true);
 	SQmSettingsCardStyle QmSettingsCardStyle(float UiScale) const;
 	CScrollRegionParams QmSettingsScrollRegionParams(float UiScale) const;
 	float SettingsPageUiScale(float ContentWidth) const;

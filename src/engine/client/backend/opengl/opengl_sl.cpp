@@ -34,6 +34,7 @@ bool CGLSL::LoadShader(CGLSLCompiler *pCompiler, IStorage *pStorage, const char 
 	std::vector<std::string> vLines;
 	if(!LineReader.OpenFile(pStorage->OpenFile(pFile, IOFLAG_READ, IStorage::TYPE_ALL)))
 	{
+		log_error("gfx/opengl/shader", "Failed to read shader file '%s'.", pFile);
 		return false;
 	}
 

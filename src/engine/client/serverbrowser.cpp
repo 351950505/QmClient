@@ -159,6 +159,14 @@ void CServerBrowser::RegisterCommands()
 	m_pConsole->Register("add_excluded_type", "s[community_id] s[type]", CFGFLAG_CLIENT, Con_AddExcludedType, this, "Add a type to the exclusion filter for a specific community");
 	m_pConsole->Register("remove_excluded_type", "s[community_id] s[type]", CFGFLAG_CLIENT, Con_RemoveExcludedType, this, "Remove a type from the exclusion filter for a specific community");
 	m_pConsole->Register("leak_ip_address_to_all_servers", "", CFGFLAG_CLIENT, Con_LeakIpAddress, this, "Leaks your IP address to all servers by pinging each of them, also acquiring the latency in the process");
+#if defined(CONF_QMCLIENT_TEST_STORAGE)
+	// 隔离进程测试查询实际消费者；普通发布客户端不注册测试命令。
+	m_pConsole->Register("qm_serverlist_status", "i[token]", CFGFLAG_CLIENT, [](IConsole::IResult *pResult, void *pUserData) {
+		auto *pThis = static_cast<CServerBrowser *>(pUserData);
+		const auto *pFirst = pThis->Get(0);
+		log_info("test/serverlist", "token=%d count=%d revision=%llu stale=%d error=%d name=%s", pResult->GetInteger(0), pThis->NumServers(), (unsigned long long)pThis->m_HttpRevision, pThis->m_pHttp->IsStale(), pThis->m_pHttp->IsError(), pFirst ? pFirst->m_aName : ""); }, this, "Query isolated serverlist consumer state");
+	m_pConsole->Register("qm_serverlist_refresh", "", CFGFLAG_CLIENT, [](IConsole::IResult *, void *pUserData) { static_cast<CServerBrowser *>(pUserData)->Refresh(TYPE_INTERNET, true); }, this, "Refresh isolated serverlist consumer");
+#endif
 }
 
 void CServerBrowser::ConfigSaveCallback(IConfigManager *pConfigManager, void *pUserData)
@@ -1430,17 +1438,17 @@ void CServerBrowser::Update()
 	int64_t Now = time_get();
 
 	const char *pHttpBestUrl;
-	if(!m_pHttp->GetBestUrl(&pHttpBestUrl) && pHttpBestUrl != m_pHttpPrevBestUrl)
+	if(!m_pHttp->GetBestUrl(&pHttpBestUrl) && str_comp(pHttpBestUrl, g_Config.m_BrCachedBestServerinfoUrl) != 0)
 	{
 		str_copy(g_Config.m_BrCachedBestServerinfoUrl, pHttpBestUrl);
-		m_pHttpPrevBestUrl = pHttpBestUrl;
 	}
 
 	m_pHttp->Update();
 
-	if(m_ServerlistType != TYPE_LAN && m_RefreshingHttp && !m_pHttp->IsRefreshing())
+	if(m_ServerlistType != TYPE_LAN && ((m_RefreshingHttp && !m_pHttp->IsRefreshing()) || m_HttpRevision != m_pHttp->Revision()))
 	{
 		m_RefreshingHttp = false;
+		m_HttpRevision = m_pHttp->Revision();
 		CleanUp();
 		UpdateFromHttp();
 		// TODO: move this somewhere else

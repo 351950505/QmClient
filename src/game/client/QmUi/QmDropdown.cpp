@@ -2,8 +2,38 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "QmDropdown.h"
 
+#include <base/system.h>
+
 #include <algorithm>
 #include <cmath>
+
+bool CQmDropdownSearch::Update(const std::vector<std::string> &vEntries, const char *pQuery)
+{
+	const std::string Query = pQuery != nullptr ? pQuery : "";
+	if(m_Initialized && m_vSource == vEntries && m_Query == Query)
+		return false;
+	m_Initialized = true;
+	m_vSource = vEntries;
+	m_Query = Query;
+	m_vIndices.clear();
+	for(size_t Index = 0; Index < vEntries.size(); ++Index)
+		if(Query.empty() || str_utf8_find_nocase(vEntries[Index].c_str(), Query.c_str()))
+			m_vIndices.push_back(Index);
+	return true;
+}
+
+int CQmDropdownSearch::SourceIndex(int VisibleIndex) const
+{
+	return VisibleIndex >= 0 && VisibleIndex < static_cast<int>(m_vIndices.size()) ? m_vIndices[VisibleIndex] : -1;
+}
+
+void CQmDropdownSearch::Reset()
+{
+	m_Initialized = false;
+	m_vSource.clear();
+	m_Query.clear();
+	m_vIndices.clear();
+}
 
 namespace
 {
@@ -213,9 +243,14 @@ SQmDropdownUpdateResult QmUpdateDropdownPopupSelection(const SQmDropdownInput &I
 	SQmDropdownUpdateResult Result;
 	if(!Active)
 		return Result;
-	if(ItemCount <= 0 || Input.m_KeyEscape || Input.m_ClickOutside || Input.m_TogglePressed)
+	if((ItemCount <= 0 && !Input.m_KeepOpenWhenEmpty) || Input.m_KeyEscape || Input.m_ClickOutside || Input.m_TogglePressed)
 	{
 		Result.m_Closed = true;
+		return Result;
+	}
+	if(ItemCount <= 0)
+	{
+		ActiveIndex = -1;
 		return Result;
 	}
 

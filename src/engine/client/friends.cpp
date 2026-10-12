@@ -109,6 +109,12 @@ void CFriends::ConSetFriendCategory(IConsole::IResult *pResult, void *pUserData)
 	pSelf->SetFriendCategory(pResult->GetString(0), pResult->GetString(1), pResult->GetString(2));
 }
 
+void CFriends::ConSetFriendPinned(IConsole::IResult *pResult, void *pUserData)
+{
+	CFriends *pSelf = (CFriends *)pUserData;
+	pSelf->SetFriendPinned(pResult->GetString(0), pResult->GetString(1), pResult->GetInteger(2) != 0);
+}
+
 void CFriends::ConSetFriendNote(IConsole::IResult *pResult, void *pUserData)
 {
 	CFriends *pSelf = (CFriends *)pUserData;
@@ -154,6 +160,7 @@ void CFriends::Init(bool Foes)
 	pConsole->Register("friend_category_rename", "s[old_category] s[new_category]", CFGFLAG_CLIENT, ConRenameFriendCategory, this, "Rename a friend category");
 	pConsole->Register("friend_category_remove", "s[category]", CFGFLAG_CLIENT, ConRemoveFriendCategory, this, "Remove a friend category");
 	pConsole->Register("set_friend_category", "s[name] s[clan] s[category]", CFGFLAG_CLIENT, ConSetFriendCategory, this, "Set friend category");
+	pConsole->Register("qm_friend_pin", "s[name] s[clan] i[pinned]", CFGFLAG_CLIENT, ConSetFriendPinned, this, "Set whether a friend is pinned");
 	pConsole->Register("set_friend_note", "s[name] s[clan] r[note]", CFGFLAG_CLIENT, ConSetFriendNote, this, "Set friend note");
 	pConsole->Register("clear_friend_note", "s[name] s[clan]", CFGFLAG_CLIENT, ConClearFriendNote, this, "Clear friend note");
 	pConsole->Register("friends", "", CFGFLAG_CLIENT, ConFriends, this, "List friends");
@@ -199,6 +206,23 @@ bool CFriends::IsFriend(const char *pName, const char *pClan, bool PlayersOnly) 
 			return true;
 	}
 	return false;
+}
+
+bool CFriends::IsFriendPinned(const char *pName, const char *pClan) const
+{
+	const int FriendIndex = FindFriend(pName, pClan);
+	return FriendIndex >= 0 && m_aFriends[FriendIndex].m_aName[0] != '\0' && m_aFriends[FriendIndex].m_Pinned;
+}
+
+bool CFriends::SetFriendPinned(const char *pName, const char *pClan, bool Pinned)
+{
+	const int FriendIndex = FindFriend(pName, pClan);
+	if(FriendIndex < 0 || m_aFriends[FriendIndex].m_aName[0] == '\0' || m_aFriends[FriendIndex].m_Pinned == Pinned)
+		return false;
+
+	m_aFriends[FriendIndex].m_Pinned = Pinned;
+	++m_Revision;
+	return true;
 }
 
 const char *CFriends::GetFriendCategory(const char *pName, const char *pClan) const
@@ -455,6 +479,7 @@ void CFriends::AddFriend(const char *pName, const char *pClan, const char *pCate
 	m_aFriends[m_NumFriends].m_aNote[0] = '\0';
 	m_aFriends[m_NumFriends].m_NameHash = NameHash;
 	m_aFriends[m_NumFriends].m_ClanHash = ClanHash;
+	m_aFriends[m_NumFriends].m_Pinned = false;
 	++m_NumFriends;
 	++m_Revision;
 }
@@ -547,6 +572,18 @@ void CFriends::ConfigSaveCallback(IConfigManager *pConfigManager, void *pUserDat
 		}
 
 		pConfigManager->WriteLine(aBuf);
+
+		if(!pSelf->m_Foes && pSelf->m_aFriends[i].m_Pinned)
+		{
+			str_copy(aBuf, "qm_friend_pin \"");
+			char *pPinDst = aBuf + str_length(aBuf);
+			str_escape(&pPinDst, pSelf->m_aFriends[i].m_aName, pEnd);
+			str_append(aBuf, "\" \"");
+			pPinDst = aBuf + str_length(aBuf);
+			str_escape(&pPinDst, pSelf->m_aFriends[i].m_aClan, pEnd);
+			str_append(aBuf, "\" 1");
+			pConfigManager->WriteLine(aBuf);
+		}
 
 		if(!pSelf->m_Foes && pSelf->m_aFriends[i].m_aNote[0] != '\0')
 		{

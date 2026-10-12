@@ -82,6 +82,7 @@
 /times needs 0, 1 or 2 parameter. 1. = name, 2. = start number
 /top5team needs 0, 1 or 2 parameter. 1. = name, 2. = start number
 0 - Disabled, 1-9999 minutes
+0 = auto
 0 disables timed rotation; skins only switch on random start events
 1 star
 1% low
@@ -206,6 +207,7 @@ After hammer fly, whether dummy switches back to previous weapon
 After Load
 After uploading again, use: reload or hot_reload
 Afterimage pop
+AGC, experimental
 Agree
 Aim
 Aim bind
@@ -240,7 +242,6 @@ Allow voting to pause players (instead of moving to spectators)
 Allows maps to render with more detail
 Alpha
 Also apply to dummy
-Also send the original text when translating outgoing messages
 Always show
 Always show chat
 Always show local time
@@ -268,6 +269,7 @@ Anti Latency Tools
 Anti latency tools
 Anti Ping Smoothing
 Anti-spoof specific rate limit (0 = unlimited).
+AntiPing
 AntiPing (latency compensation)
 Antiping prediction offset, ignored when using antiping limit
 AntiPing: predict grenade path
@@ -289,12 +291,13 @@ Apply a random skin from the queue
 Apply a saved profile by 1-based index to the current tee
 Apply a writable preset and edit first
 Apply Changes
-Apply frosted glass blur behind secondary popups and dropdowns
 Apply input early before next tick for prediction
 Apply Qm recommended appearance
 Apply quick input to other Tees as well
 Apply squishy Tee deformation to other players
 Apply this preset
+Apply to dummy
+Apply to player
 Apply watermark
 Applying this preset changes the appearance settings listed below.
 Arabic
@@ -356,6 +359,7 @@ Auto enable in Gores mode
 Auto enable/disable IME on text focus
 Auto execute
 Auto fetch replay info on refresh
+Auto gain control for mic
 Auto gain control for mic (AGC, experimental)
 Auto greet friend on map join
 Auto greet friend text
@@ -662,18 +666,19 @@ Chat word filtering
 Chat word list file
 Cheats are disabled on this server
 Cheats are enabled on this server
+Check again
 check ddnet-saves.txt in config_directory.
 Check for updates
 Check if voice server address is reachable
 Check input device, system default mic, and mic permission first
 Check output device, confirm headphones/speakers are still online
 Checking for existing player with your name
+Checking for updates...
 Checking Steam...
 Chinese (Simplified)
 Chinese (Traditional)
 Chinese font:
 CHN
-Choose a GPU for this app in system graphics settings, then restart the client.
 Choose colors for weapons and entity lasers
 Choose country flag
 Choose default eyes when joining a server
@@ -762,6 +767,8 @@ Color of hook collision line tip segment
 Color of hook line hitting hookable tile
 Color of hook line hitting tee
 Color of hook line not hitting anything
+Color picker saturation/value area shape: 0=square, 1=wheel
+Color picker saved swatches (format: name|#hex entries separated by semicolons)
 Color tee outlines by team for spectating
 Colorize ping on scoreboard
 Colors
@@ -794,6 +801,7 @@ Compressor makeup gain (percent)
 Compressor ratio (x10)
 Compressor release time (ms)
 Compressor threshold (percent)
+Concurrency
 Concurrency (0 = auto)
 Concurrent requests when refreshing server browser
 Config
@@ -970,10 +978,14 @@ Current
 Current aspect ratio:
 Current aspect ratio: Show default
 Current cut is invalid or already added
+Current driver
 Current file
 Current GPU
+Current graphics backend
 Current rescue mode: %s
 Current status
+Current version: %s
+Current version: %s (up to date)
 Current: Ranks
 Current: Score
 Current: Time
@@ -1160,6 +1172,7 @@ Disallow chat from blacklisted addresses
 Discard
 Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
+Discard update
 Disconnect
 Disconnect dummy
 Disconnect from the server
@@ -1214,7 +1227,10 @@ Download skins
 Download skins immediately from cl_skin_download_url
 Download the rank 1 demo for this map
 Download this asset?
+Download update
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
 Downloaded
+Downloaded: %.1f MiB (total size unknown)
 Downloading map
 Downloading rank 1 demo
 Downloading update...
@@ -1381,7 +1397,7 @@ Enable fast input in Gores mode
 Enable fast map download
 Enable fat skin
 Enable freeze call sound
-Enable frosted glass blur behind secondary popups and dropdowns
+Enable FTAPI auto-translate
 Enable FTAPI auto-translate (may overload the service)
 Enable game sounds
 Enable ghost
@@ -1454,6 +1470,7 @@ Enable team chat sound
 Enable Tee trail
 Enable tee trails
 Enable the finished indicator and wait for player data
+Enable thinking mode
 Enable thinking mode (slower)
 Enable tile outlines
 Enable UDP KCP transport negotiation (old clients keep legacy UDP, hot-switch fallback)
@@ -1526,11 +1543,13 @@ Execute on connect
 Execute on join
 Execute the specified file
 Existing Player
+Exit and install
 Exit replay view
 Exit spectating on both tees when either is hammered awake by another player
 Expand console
 Expanded dropdown background color
 Expanded dropdown background opacity percentage
+Experimental
 Export
 Export configuration package
 Export cut as a separate demo
@@ -1576,6 +1595,7 @@ Failed to save video
 Failed to write PNG export.
 Fake CTF flags
 Fallback simple noise reduction strength
+Fast input
 Fast input (reduce visual latency)
 Fast input others
 Fast practice
@@ -1588,6 +1608,7 @@ Favorite map
 Favorite maps
 Favorites
 feat-003 dogfood: tokens + 12 widgets
+Feature guide and announcements
 Feature Search
 Feet
 Fetch Info
@@ -1650,6 +1671,7 @@ Font size
 Font store
 Font store:
 Font weight:
+For Gores
 For more info: /cmdlist
 Force a vote to yes/no
 Force a voting option
@@ -1902,6 +1924,7 @@ Hide weapon fire effects in Zen Mode
 Hide weapon muzzle flashes
 High Detail
 High to low
+Higher input latency
 Higher values make the wave move faster. Zero stops the movement.
 Highlight Color
 Highlight console commands
@@ -2210,6 +2233,7 @@ Last viewed announcement content revision
 Last viewed announcement version
 Last viewed client release notes
 Latency
+Latency compensation
 Latency Jitter
 Latin font
 Latin font weight
@@ -2221,6 +2245,7 @@ Layout
 Leak IP
 Leaks your IP address to all servers by pinging each of them, also acquiring the latency in the process
 Learn
+Leave empty to detect automatically
 Leave empty to disable
 Leave empty to join public room
 Leave empty to show everyone
@@ -2396,6 +2421,7 @@ Map upload in progress...
 Map upload network error.
 Map uploaded successfully.
 Mapper
+Maps
 Maps finished
 Margin when notification is docked
 Mark demo
@@ -2449,6 +2475,7 @@ Maximum rows
 Maximum team size.
 Maximum undo steps in editor history (editor, envelope editor, and server settings editor are independent)
 may cause delay
+May overload the service
 Memory
 Mention
 Mention option color
@@ -2482,6 +2509,7 @@ Microphone volume
 Microphone volume (percent)
 Milliseconds to apply quick input early
 Min size
+Mini debug
 Mini features
 Mini voting UI
 Minimize the client
@@ -2616,6 +2644,7 @@ Nameplate X alignment hint with local player
 Nameplates
 Native scale (1.0)
 Need to have started the map to swap with a player.
+Negative stability buffer
 Negative stability buffer (for Gores)
 Net
 Netease hook heartbeat timeout (milliseconds)
@@ -2624,7 +2653,6 @@ Netlimit: exponential moving average alpha
 Netlimit: maximum traffic allowed per client (kb/s)
 Netversion
 Network
-Network error
 Network timeout
 Network timeout protection
 new
@@ -2639,6 +2667,7 @@ New name
 New name:
 New preset name
 New random timeout code
+New version available
 Newest first
 News
 Next
@@ -2866,6 +2895,7 @@ Override Selected
 Overview
 Overwrite clan even if empty
 Own hook line width
+Own team only
 p = Ping latency
 Pack name
 Panel opacity
@@ -2928,6 +2958,7 @@ Pie menu highlight tint
 Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
+Pin friend
 Ping
 Ping the current server
 Pistol
@@ -3046,9 +3077,7 @@ Points
 Points unavailable
 Polished
 Pop wave
-Popup & dropdown blur
 Popup animation
-Popup blur
 Port for client to server connection (0=random, >=1024 sets manual port)
 Port for dummy connection to server (0=random, >=1024 sets manual port)
 Port for master server registration, useful if behind NAT, otherwise just use sv_port
@@ -3065,6 +3094,7 @@ Practice mode is disabled
 Pre-warm settings page on startup and menu idle
 Predict client movement
 Predict dummy movement
+Predict events
 Predict events (experimental)
 Predict events (sounds, particles)
 Predict fire and show predicted weapon physics (requires cl_antiping_grenade 1 and cl_antiping_weapons 1)
@@ -3186,6 +3216,7 @@ QQ Music hook heartbeat timeout (milliseconds)
 QQ Music hook helper path (empty=beside QmClient)
 Quads are used for background decoration
 Query current map info
+Query isolated serverlist consumer state
 Query map info for %s
 Query points for %s
 Query rank for %s
@@ -3285,11 +3316,13 @@ Redeem your code and customize your title
 Redeem your sponsor code to unlock a custom title, shown in chat and on your nameplate.
 Reduce antiping and player prediction when frozen
 Reduce prediction while frozen
+Reduce visual latency
 Reduced
 Reduced: uses shorter transitions and disables presentation animations
 Reflected gradient
 Refresh
 Refresh interval
+Refresh isolated serverlist consumer
 Refresh Rate
 Refresh the demo list
 Regex
@@ -3303,6 +3336,7 @@ Relative X position of the draggable back button
 Relative Y position of the draggable back button
 Release date
 Release notes
+Release page
 Reload
 Reload map when empty (1 = once, 2 = each time)
 Reload the announcements
@@ -3553,6 +3587,7 @@ Save last %d min
 Save loaded; local record removed.
 Save loaded; the local record could not be removed.
 Save player names in replay
+Save power by lowering update rate
 Save power by lowering update rate (higher input latency)
 Save replay of best time per game
 Save restore dismissed.
@@ -3596,6 +3631,7 @@ Scoreboard sort mode (0=Score, 1=Points)
 Scoreboard surface
 Scoreboard surface color
 Scoreboard transparency
+Scoreboard, chat, spectating
 Scores are private on this server
 Scores are public on this server
 Screen
@@ -3644,6 +3680,7 @@ See you at the next checkpoint.
 Select a configuration package to preview its contents.
 Select a map
 Select a player to manage
+Select a preset, then apply it to player or dummy
 Select a saved .map file (client limit: 64 MiB).
 Select all chat
 Select button by touch
@@ -3658,6 +3695,7 @@ Selected item color
 Selected part: %d
 Selected text color
 Selected timertype is not supported by your client
+Selecting download source...
 Selection
 Selection background color
 Self
@@ -3670,7 +3708,6 @@ Send aim data with sub-tick precision
 Send client input to others before correct input (increases server bandwidth)
 Send emote when entering freeze
 Send emoticon in water
-Send original text with translation
 Send probability
 Send Rate
 Send sampling and token limit parameters
@@ -3734,6 +3771,7 @@ Set timeout protection code s
 Set up Kugou lyrics
 Set voice input device
 Set voice output device
+Set whether a friend is pinned
 Set your checkpoints based on another player
 Sets one of the two rescue modes (auto or manual). Prints current mode if no arguments provided
 Sets your tee's eye emote
@@ -3797,6 +3835,7 @@ Show clan on nameplates for enemies
 Show client ID
 Show client ID in scoreboard, chat and spectator menu
 Show client ID on a separate line in nametag
+Show client IDs
 Show client IDs (scoreboard, chat, spectating)
 Show client IDs in name plates
 Show client IDs on a separate line
@@ -3954,6 +3993,7 @@ Show only frozen Tees in indicators
 Show only modified config variables
 Show only servers with unfinished maps
 Show only team chat messages
+Show original text below outgoing translation
 Show other players' coordinates
 Show other players' hook collision lines
 Show other players' hook collision lines (2 always shown)
@@ -3992,6 +4032,7 @@ Show player stats HUD
 Show player target angle
 Show player Tee
 Show players' key presses
+Show position and angle
 Show position and angle (mini debug)
 Show position and angle debug info
 Show predicted position as ghost, original as unpredictable player
@@ -4028,6 +4069,7 @@ Show status bar
 Show strength/weakness in nametag (0=off, 1=icon, 2=icon+number)
 Show swap option
 Show synchronized sponsor chat styles
+Show system fonts
 Show system media info on HUD
 Show TClient config variables
 Show team
@@ -4047,6 +4089,7 @@ Show the Gores team drown board
 Show the number of frozen tees
 Show the number of tees still alive
 Show the occasional sponsor reminder in the main menu
+Show the original text locally below translated outgoing messages
 Show the pet
 Show the screen center line
 Show the server rules
@@ -4097,6 +4140,7 @@ Shows the team rank of player with name r (your team rank by default)
 Shows the top ranks of the global and regional ladder beginning with rank i (1 by default, -1 for worst)
 Shrink
 Shrug:
+Shuffle skin queue
 Shut down
 Shutdown server when empty
 Silently disconnect from the current server while keeping Tee timeout protection
@@ -4154,6 +4198,7 @@ Skip the weapon switch animation for hammer switches in Gores mode
 Skip Tutorial
 Slide left
 Slow down the demo
+Slower
 Small Tee size
 Smaller tees
 Smart
@@ -4278,6 +4323,7 @@ Status bar text color
 Status bar text opacity
 Status normal, check details below if still experiencing issues
 Status Scheme:
+Steam client path
 Steam client path (leave empty to detect automatically)
 Steam integration
 Steam is installed
@@ -4420,15 +4466,19 @@ Teams are not available on this server; if the team is locked, any team member d
 Tee
 Tee 0.7
 Tee appearance
+Tee collision
 Tee collision (Tee to Tee)
 Tee color
 Tee cry
 Tee death probe
+Tee freeze probe
 Tee freeze probe (Tee to Freeze)
 Tee hitbox color
 Tee icon size in frozen Tee HUD (default 15)
 Tee size
 Tee status bar
+Tee to Freeze
+Tee to Tee
 Tee trail color
 Tee trail color mode (1=Solid, 2=Current Tee color, 3=Rainbow, 4=Tee speed, 5=Random)
 Tee trail style (0=Original, 1=Manga, 2=Magic, 3=Pixel, 4=Legacy manga, 5=Legacy magic)
@@ -4498,7 +4548,6 @@ The selected button is overlapping with other buttons.
 The selected part stays highlighted while you adjust its color.
 The server is running a non-standard tuning on a pure game type.
 The server rejected the map upload.
-The update is ready and will be installed when you exit.
 The watermarked screenshot was saved next to the original
 The width of texture %s is not divisible by %d, or the height is not divisible by %d, which might cause visual bugs.
 Theme
@@ -4670,19 +4719,19 @@ Translate received messages to
 Translate UI
 Translate:
 Translated chat text size as a percentage of the original text (50-100)
+Translated message could not be queued; original was not sent
 Translated text hidden due to streamer mode
 Translated text size
 Translating to %s...
-Translation backend invalid, sending original
 Translation button active color
 Translation button cancel color
+Translation canceled because the sender changed
 Translation color alpha migration completed flag
 Translation diagnostics
 Translation menu background color
 Translation menu normal color
 Translation menu selected color
 Translation model was not found. Check the model name.
-Translation queue full, sending original
 Translation service
 Translation service authentication failed. Check the API key and service address.
 Translation service is not configured correctly.
@@ -4792,6 +4841,7 @@ Unmute player with IP address
 Unmute player with list index
 Unmute:
 Unmuted
+Unpin friend
 Unpredictable ghost opacity (0-100)
 Unpredictable shadow tee transparency (0 invisible, 100 fully visible)
 Unpredicted ghost opacity
@@ -4805,8 +4855,8 @@ Update failed. Please try again
 Update keyframe
 Update notice
 Update or add a specific war group
-Update package available
 Update Rate
+Update ready to install
 Upload .map files. Server and admin passwords: s.
 Upload a saved map to the public test server
 Upload map
@@ -4840,7 +4890,6 @@ Use embedded HUD progress bar
 Use emote
 Use enemy color instead of frozen color
 Use enemy list to drive player indicators
-Use Gaussian blur pipeline when enhanced rendering is active
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 Use k key to kill (restart), q to pause and watch other players. See settings for other key binds.
 Use large emote
@@ -4884,6 +4933,7 @@ Vanilla skins only
 Variable custom font weight for Chinese/CJK text
 Variable custom font weight for Latin text
 Velocity
+Verifying downloaded update...
 Version
 Version performing the analysis
 Vertical position
@@ -5331,6 +5381,7 @@ Zoom to current mouse target
 [Editor]	Align coordinates of the quad points.
 [Editor]	Align quads
 [Editor]	All combined
+[Editor]	All commands
 [Editor]	Allow all unknown settings
 [Editor]	Allow quad alignment to other quads/points when moving quads.
 [Editor]	Allow the fade tool to randomly erase to air.
@@ -5559,7 +5610,7 @@ Zoom to current mouse target
 [Editor]	ENDLESS HOOK OFF: Deactivates endless hook.
 [Editor]	ENDLESS HOOK: Activates endless hook.
 [Editor]	Enter a room code to join a collaboration room.
-[Editor]	Enter a server setting. Press Ctrl+Space or Ctrl+Shift+Space, or click ... to show available settings. If the IME reserves the shortcut, use ... .
+[Editor]	Enter a server setting. Press Ctrl+Space or Ctrl+Shift+Space to complete at the cursor. Click All commands to browse every command without changing the text until you select one. If the IME reserves the shortcut, use the button.
 [Editor]	Enter the room code
 [Editor]	ENTITIES OFF SIGN: Informs people playing with entities about important marks, tips, information or text on the map.
 [Editor]	Entities: %s

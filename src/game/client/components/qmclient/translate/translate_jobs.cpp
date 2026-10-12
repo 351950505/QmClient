@@ -2,6 +2,7 @@
 
 #include <base/system.h>
 
+#include <algorithm>
 #include <utility>
 
 bool CTranslateJobQueue::CanSubmit(int Limit) const
@@ -15,6 +16,11 @@ bool CTranslateJobQueue::Submit(STranslateJob Job, int Limit)
 		return false;
 	m_vJobs.emplace_back(std::move(Job));
 	return true;
+}
+
+void CTranslateJobQueue::CancelOutgoing(int Connection)
+{
+	m_vJobs.erase(std::remove_if(m_vJobs.begin(), m_vJobs.end(), [Connection](const STranslateJob &Job) { return Job.m_Outgoing && Job.m_Connection == Connection; }), m_vJobs.end());
 }
 
 std::vector<STranslateCompletion> CTranslateJobQueue::Update(const std::function<bool(const STranslateJob &)> &IncomingStillValid)
@@ -45,13 +51,25 @@ std::vector<STranslateCompletion> CTranslateJobQueue::Update(const std::function
 		{
 			if(Success)
 				SendText = It->m_pTranslateResponse->m_Text;
-			else if(It->m_AutoTriggered && !It->m_OriginalSent)
-				SendText = It->m_OriginalText;
 		}
 		vCompleted.push_back({std::move(*It), Success, std::move(SendText)});
 		It = m_vJobs.erase(It);
 	}
 	return vCompleted;
+}
+
+bool DispatchOutgoingTranslation(const STranslateCompletion &Completed, const std::function<bool(int, const char *, const char *, int)> &SendTranslated)
+{
+	if(!Completed.m_Job.m_Outgoing || !Completed.m_Success || Completed.m_SendText.empty())
+		return false;
+	const auto &Job = Completed.m_Job;
+	// 使用聊天协议常用的 256 字节正文边界，发送与本地附注匹配共用同一段完整 UTF-8 文本。
+	char aText[256];
+	str_utf8_copy_num(aText, Completed.m_SendText.c_str(), sizeof(aText), 256);
+	str_utf8_trim_right(aText);
+	if(aText[0] == '\0')
+		return false;
+	return SendTranslated(Job.m_Team, aText, Job.m_DisplayOriginal ? Job.m_OriginalText.c_str() : nullptr, Job.m_Connection);
 }
 
 bool IsTranslateResponseCurrent(bool Initialized, unsigned int TranslationId, const std::shared_ptr<CTranslateResponse> &pResponse, const STranslateJob &Job)

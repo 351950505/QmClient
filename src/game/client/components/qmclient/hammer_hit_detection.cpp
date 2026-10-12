@@ -321,7 +321,7 @@ SQmHammerWakeupDecision QmDecideHammerWakeupActions(const SQmHammerWakeupDecisio
 	for(int Connection = 0; Connection < 2; ++Connection)
 	{
 		Result.m_aUnspec[Connection] = Input.m_aSpectating[Connection] &&
-			(UnspecBoth || (Input.m_AutoUnspec && Connection == Active && ActiveExternalWakeup));
+					       (UnspecBoth || (Input.m_AutoUnspec && Connection == Active && ActiveExternalWakeup));
 	}
 	Result.m_CloseChat = Input.m_AutoCloseChat && Input.m_ChatActive && ActiveExternalWakeup;
 

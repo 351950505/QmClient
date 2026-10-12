@@ -621,6 +621,9 @@ void CSkins::CSkinContainer::RequestLoad(ESettingsResourcePriority Priority)
 	// when quickly scrolling through lists or if a player with a new skin quickly joins and leaves.
 	if(m_State == EState::UNLOADED || m_State == EState::BACKGROUND_REQUESTED)
 	{
+		// 等待中的可见需求不能被稍后到达的预取请求降级。
+		if(m_State == EState::BACKGROUND_REQUESTED && !SettingsResourcePriorityCanUpgrade(Priority, m_LoadPriority))
+			Priority = m_LoadPriority;
 		if(TeeSettingsActive)
 		{
 			SetState(EState::BACKGROUND_REQUESTED, Priority);
@@ -1476,6 +1479,8 @@ void CSkins::OnUpdate()
 
 void CSkins::OnRender()
 {
+	// 未被本帧真实列表重新发布的视窗失效；折叠和离页不能保留最高优先级。
+	m_SettingsLoadViewport.BeginFrame();
 	m_SkinUploadFrameBudget.Reset();
 }
 
@@ -2103,6 +2108,9 @@ void CSkins::UpdateStartLoading(CSkinLoadingStats &Stats)
 		return Admission;
 	};
 	auto StartLoadJob = [&](CSkinContainer *pSkinContainer, ESettingsResourcePriority Priority) {
+		// 已启动和已加载条目不参与准入，不能因窗口满而阻断其他候选。
+		if(pSkinContainer->m_State != CSkinContainer::EState::PENDING && pSkinContainer->m_State != CSkinContainer::EState::BACKGROUND_REQUESTED)
+			return true;
 		if(Stats.m_NumPending == 0 && pSkinContainer->m_State != CSkinContainer::EState::BACKGROUND_REQUESTED)
 		{
 			return true;
@@ -2174,8 +2182,9 @@ void CSkins::UpdateStartLoading(CSkinLoadingStats &Stats)
 	{
 		vPrioritizedSkinNames.push_back(SkinName);
 	}
-	for(const std::string &SkinName : vPrioritizedSkinNames)
-	{
+	SettingsVisitSkinLoadRequests(vPrioritizedSkinNames, [this](const std::string &Name) {
+			const auto It = m_Skins.find(Name);
+			return It != m_Skins.end() ? It->second->m_LoadPriority : ESettingsResourcePriority::BACKGROUND; }, [this, TeeSettingsActive](const std::string &Name) { return TeeSettingsActive && m_SettingsLoadViewport.Contains(Name); }, [&](const std::string &SkinName) {
 		auto It = m_Skins.find(SkinName);
 		if(CSkinContainer::ShouldDiscardUsageEntryBeforeUnload(It != m_Skins.end(),
 			   It != m_Skins.end() ? It->second->m_State : CSkinContainer::EState::UNLOADED,
@@ -2189,17 +2198,13 @@ void CSkins::UpdateStartLoading(CSkinLoadingStats &Stats)
 			{
 				m_SkinsUsageList.remove(SkinName);
 			}
-			continue;
+			return;
 		}
 		if(It == m_Skins.end())
 		{
-			continue;
-		}
-		if(!StartLoadJob(It->second.get(), It->second->m_LoadPriority))
-		{
 			return;
 		}
-	}
+		StartLoadJob(It->second.get(), It->second->m_LoadPriority); });
 
 	std::vector<std::string> vBackgroundSkinNames;
 	vBackgroundSkinNames.reserve(m_SkinsBackgroundList.size());
@@ -3421,6 +3426,20 @@ bool CSkins::RandomSkinQueueIndex(int Dummy)
 	return ApplySkinQueueIndex(rand() % Queue.size(), Dummy);
 }
 
+bool CSkins::ShuffleSkinQueue(int Dummy)
+{
+	if(Dummy < 0 || Dummy >= NUM_DUMMIES || m_aSkinQueue[Dummy].size() < 2)
+		return false;
+	SkinQueueIndexVar(Dummy) = ShuffleSkinQueueEntries(m_aSkinQueue[Dummy], SkinQueueIndexVar(Dummy), (uint32_t)rand());
+	// 服务器预设是动态快照，编辑顺序后转为自定义队列，防止下一次同步覆盖排序。
+	SkinQueueRotateMapVar(Dummy) = 0;
+	if(m_aAppliedSkinQueuePresetIndex[Dummy] == (int)SKIN_QUEUE_SERVER_PRESET)
+		m_aAppliedSkinQueuePresetIndex[Dummy] = -1;
+	m_aSkinQueueDirty[Dummy] = true;
+	m_SkinList.ForceRefresh();
+	return true;
+}
+
 void CSkins::TrimSkinQueueToLimit(int Dummy)
 {
 	auto &Queue = m_aSkinQueue[Dummy];
@@ -3578,8 +3597,7 @@ bool CSkins::ApplySkinQueuePreset(size_t PresetIndex, int Dummy)
 	{
 		return false;
 	}
-	// Clicking a preset applies it to the playing queue immediately (the list
-	// doubles as the apply control; there is no separate Apply button).
+	// 显式应用只更新指定目标；列表选择本身不改变正在使用的队列。
 	if(PresetIndex == SKIN_QUEUE_SERVER_PRESET)
 	{
 		SkinQueueRotateMapVar(Dummy) = 1;

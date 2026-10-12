@@ -25,8 +25,10 @@
 #include <game/client/QmUi/QmDropdown.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsFontSelection.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -72,6 +74,11 @@
 using namespace FontIcons;
 using namespace qm_tclient_cards;
 
+namespace qm_tclient_cards
+{
+	float TClientDeclaredRegion(const char *pId, float Width, const std::function<void(CUIRect &)> &Render, CUIRect *pRect);
+}
+
 qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_catalog::SQmCardBuildContext &Ctx, const char *pStableId, CUIRect &Content, qm_card_catalog::ETClientCardPass Pass)
 {
 	CUIRect MainView = Ctx.m_Page.m_ContentViewport;
@@ -104,14 +111,14 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 	static CLineInput s_TypeNameInput;
 	CWarEntry *pPreviewSelectedEntry = s_pSelectedEntry;
 	CWarType *pPreviewSelectedType = s_pSelectedType;
-	CWarEntry *&pSelectedEntry = ReadOnly ? pPreviewSelectedEntry : s_pSelectedEntry;
-	CWarType *&pSelectedType = ReadOnly ? pPreviewSelectedType : s_pSelectedType;
+	CWarEntry *&pSelectedEntry = ReadOnly || Ui()->RenderOnly() ? pPreviewSelectedEntry : s_pSelectedEntry;
+	CWarType *&pSelectedType = ReadOnly || Ui()->RenderOnly() ? pPreviewSelectedType : s_pSelectedType;
 
-	static uint64_t s_SelectionRevision = std::numeric_limits<uint64_t>::max();
+	static uint64_t s_SelectionRevision = UINT64_MAX;
 	if(s_SelectionRevision != GameClient()->m_WarList.Revision())
 	{
 		pSelectedEntry = nullptr;
-		if(!ReadOnly)
+		if(!ReadOnly && !Ui()->RenderOnly())
 			s_SelectionRevision = GameClient()->m_WarList.Revision();
 	}
 
@@ -143,24 +150,27 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 
 	auto RenderEntries = [&](CUIRect &Column) {
 		CPerfTimer ListTimer;
-		CUIRect Button, EntriesSearch;
-		Column.HSplitTop(LineSize, &Button, &Column);
-		Button.VSplitRight(25.0f, nullptr, &Button);
-
-		static CButtonContainer s_ReverseEntries;
+		CUIRect Button, EntriesSearch, EntriesList;
+		CSettingsContentLayoutFlow Flow(Column);
 		static bool s_Reversed = true;
-		if(!ReadOnly && Ui()->DoButton_QmIcon(&s_ReverseEntries, s_Reversed ? EQmIcon::CHEVRON_UP : EQmIcon::CHEVRON_DOWN, s_Reversed ? FONT_ICON_CHEVRON_UP : FONT_ICON_CHEVRON_DOWN, 0, &Button, IGraphics::CORNER_ALL))
-			s_Reversed = !s_Reversed;
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &EntriesSearch, &Column);
-		if(!ReadOnly)
+		if(Flow.Control("tclient-warlist-reverse-entries", LineSize, Button))
+		{
+			Button.VSplitRight(25.0f, nullptr, &Button);
+
+			static CButtonContainer s_ReverseEntries;
+			if(Ui()->DoButton_QmIcon(&s_ReverseEntries, s_Reversed ? EQmIcon::CHEVRON_UP : EQmIcon::CHEVRON_DOWN, s_Reversed ? FONT_ICON_CHEVRON_UP : FONT_ICON_CHEVRON_DOWN, 0, &Button, IGraphics::CORNER_ALL) && !ReadOnly && !Ui()->RenderOnly())
+				s_Reversed = !s_Reversed;
+		}
+		if(Flow.Control("tclient-warlist-entries-search", LineSize, EntriesSearch, MarginSmall))
+		{
 			ui_widget::InputField(TClientWarListEntriesSearchCtx, &s_EntriesFilterInput, EntriesSearch, FontSize, !Ui()->IsPopupOpen() && !GameClient()->m_GameConsole.IsActive());
-		else
-			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, "tclient-warlist-entries-search", &EntriesSearch, s_EntriesFilterInput.GetString(), FontSize, TEXTALIGN_ML);
+		}
+		if(!Flow.Control("tclient-warlist-entries-list", WarListViewportRows * ListRowHeight, EntriesList))
+			return;
 		static std::vector<CWarEntry *> s_vFilteredEntries;
 		static char s_aCachedEntriesFilter[128] = "";
 		static bool s_CachedReversed = false;
-		static uint64_t s_CachedWarEntriesRevision = std::numeric_limits<uint64_t>::max();
+		static uint64_t s_CachedWarEntriesRevision = UINT64_MAX;
 		if(str_comp(s_aCachedEntriesFilter, s_EntriesFilterInput.GetString()) != 0 ||
 			s_CachedReversed != s_Reversed ||
 			s_CachedWarEntriesRevision != GameClient()->m_WarList.Revision())
@@ -189,7 +199,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 		EntriesListBox.SetActive(!ReadOnly);
 		EntriesListBox.SetScrollProfile(EQmScrollProfile::SETTINGS_INNER);
 		EntriesListBox.SetWheelOwnerPriority(EUiWheelOwnerPriority::COMPOSITE_CONTROL);
-		EntriesListBox.DoStart(ListRowHeight, s_vFilteredEntries.size(), 1, 2, SelectedOldEntry, &Column);
+		EntriesListBox.DoStart(ListRowHeight, s_vFilteredEntries.size(), 1, 2, SelectedOldEntry, &EntriesList);
 
 		static std::vector<unsigned char> s_vItemIds;
 		static std::vector<CButtonContainer> s_vDeleteButtons;
@@ -214,7 +224,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 			DeleteButton.HMargin(7.5f, &DeleteButton);
 			DeleteButton.VSplitLeft(MarginSmall, nullptr, &DeleteButton);
 			DeleteButton.VSplitRight(MarginExtraSmall, &DeleteButton, nullptr);
-			if(!ReadOnly && Ui()->DoButton_QmIcon(&s_vDeleteButtons[i], EQmIcon::TRASH, FONT_ICON_TRASH, 0, &DeleteButton, IGraphics::CORNER_ALL))
+			if(Ui()->DoButton_QmIcon(&s_vDeleteButtons[i], EQmIcon::TRASH, FONT_ICON_TRASH, 0, &DeleteButton, IGraphics::CORNER_ALL) && !ReadOnly && !Ui()->RenderOnly())
 			{
 				pEntryToRemove = pEntry;
 			}
@@ -231,7 +241,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 				str_copy(aBuf, pEntry->m_aName);
 			}
 			EntryRect.VSplitLeft(35.0f, &EntryTypeRect, &EntryRect);
-			if(!ReadOnly)
+			if(!ReadOnly || Ui()->BackgroundRender())
 			{
 				if(IsClan)
 					RenderFontIcon_QmIcon(EntryTypeRect, EQmIcon::USERS, FONT_ICON_USERS, 18.0f, TEXTALIGN_MC);
@@ -242,7 +252,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 			if(str_comp(pEntry->m_aReason, "") != 0)
 			{
 				EntryRect.VSplitRight(20.0f, &EntryRect, &ToolTip);
-				if(!ReadOnly)
+				if(!ReadOnly || Ui()->BackgroundRender())
 					RenderFontIcon_QmIcon(ToolTip, EQmIcon::COMMENT, FONT_ICON_COMMENT, 18.0f, TEXTALIGN_MC);
 				GameClient()->m_Tooltips.DoToolTip(&s_vItemIds[i], &ToolTip, pEntry->m_aReason);
 				GameClient()->m_Tooltips.SetFadeTime(&s_vItemIds[i], 0.0f);
@@ -257,12 +267,12 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 		}
 
 		const int NewSelectedEntry = EntriesListBox.DoEnd();
-		if(!ReadOnly && pEntryToRemove != nullptr)
+		if(!ReadOnly && !Ui()->RenderOnly() && pEntryToRemove != nullptr)
 		{
 			GameClient()->m_WarList.RemoveWarEntry(pEntryToRemove);
 			pSelectedEntry = nullptr;
 		}
-		else if(!ReadOnly && NewSelectedEntry >= 0 && NewSelectedEntry < (int)s_vFilteredEntries.size() &&
+		else if(!ReadOnly && !Ui()->RenderOnly() && NewSelectedEntry >= 0 && NewSelectedEntry < (int)s_vFilteredEntries.size() &&
 			(SelectedOldEntry != NewSelectedEntry || (Ui()->HotItem() == &s_vItemIds[NewSelectedEntry] && Ui()->MouseButtonClicked(0))))
 		{
 			pSelectedEntry = s_vFilteredEntries[NewSelectedEntry];
@@ -293,82 +303,84 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 	auto RenderEditor = [&](CUIRect &Column) {
 		CPerfTimer FilterTimer;
 		CUIRect Button, ButtonL, ButtonR;
-		Column.HSplitTop(LineSize, &Button, &Column);
-
-		Button.VSplitMid(&ButtonL, &ButtonR, MarginSmall);
-		s_NameInput.SetBuffer(s_aEntryName, sizeof(s_aEntryName));
-		s_NameInput.SetEmptyText(Localize("Name"));
-		if(!ReadOnly && s_IsName)
-			ui_widget::InputField(TClientWarListTextInputCtx, &s_NameInput, ButtonL, Localize("Name"), EditBoxFontSize);
-		else
-			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, "tclient-warlist-name", &ButtonL, s_aEntryName, FontSize, TEXTALIGN_ML);
-
-		s_ClanInput.SetBuffer(s_aEntryClan, sizeof(s_aEntryClan));
-		s_ClanInput.SetEmptyText(Localize("Clan"));
-		if(!ReadOnly && s_IsClan)
-			ui_widget::InputField(TClientWarListTextInputCtx, &s_ClanInput, ButtonR, Localize("Clan"), EditBoxFontSize);
-		else
-			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, "tclient-warlist-clan", &ButtonR, s_aEntryClan, FontSize, TEXTALIGN_ML);
-
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &Button, &Column);
-		Button.VSplitMid(&ButtonL, &ButtonR, MarginSmall);
-		static unsigned char s_NameRadio, s_ClanRadio;
-		if(!ReadOnly && DoButton_CheckBox_Common(&s_NameRadio, Localize("Name"), s_IsName ? "X" : "", &ButtonL, BUTTONFLAG_LEFT))
-		{
-			s_IsName = true;
-			s_IsClan = false;
-		}
-		if(!ReadOnly && DoButton_CheckBox_Common(&s_ClanRadio, Localize("Clan"), s_IsClan ? "X" : "", &ButtonR, BUTTONFLAG_LEFT))
-		{
-			s_IsName = false;
-			s_IsClan = true;
-		}
-		if(!s_IsName)
-			str_copy(s_aEntryName, "");
-		if(!s_IsClan)
-			str_copy(s_aEntryClan, "");
-
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &Button, &Column);
-		s_ReasonInput.SetBuffer(s_aEntryReason, sizeof(s_aEntryReason));
-		s_ReasonInput.SetEmptyText(Localize("Reason"));
-		if(!ReadOnly)
-			ui_widget::InputField(TClientWarListTextInputCtx, &s_ReasonInput, Button, Localize("Reason"), EditBoxFontSize);
-		else
-			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, "tclient-warlist-reason", &Button, s_aEntryReason, FontSize, TEXTALIGN_ML);
-
 		static CButtonContainer s_AddButton, s_OverrideButton;
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize * 2.0f, &Button, &Column);
-		Button.VSplitMid(&ButtonL, &ButtonR, MarginSmall);
-		if(!ReadOnly && DoButtonLineSize_Menu(&s_OverrideButton, Localize("Override Entry"), 0, &ButtonL, LineSize) && pSelectedEntry)
+		CSettingsContentLayoutFlow Flow(Column);
+		if(Flow.Control("tclient-warlist-entry-identity", LineSize, Button, MarginSmall))
 		{
-			if(pSelectedEntry && pSelectedType && (str_comp(s_aEntryName, "") != 0 || str_comp(s_aEntryClan, "") != 0))
+			Button.VSplitMid(&ButtonL, &ButtonR, MarginSmall);
+			s_NameInput.SetBuffer(s_aEntryName, sizeof(s_aEntryName));
+			s_NameInput.SetEmptyText(Localize("Name"));
+			if(s_IsName)
+				ui_widget::InputField(TClientWarListTextInputCtx, &s_NameInput, ButtonL, Localize("Name"), EditBoxFontSize);
+			else
+				DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, "tclient-warlist-name", &ButtonL, s_aEntryName, FontSize, TEXTALIGN_ML);
+
+			s_ClanInput.SetBuffer(s_aEntryClan, sizeof(s_aEntryClan));
+			s_ClanInput.SetEmptyText(Localize("Clan"));
+			if(s_IsClan)
+				ui_widget::InputField(TClientWarListTextInputCtx, &s_ClanInput, ButtonR, Localize("Clan"), EditBoxFontSize);
+			else
+				DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, "tclient-warlist-clan", &ButtonR, s_aEntryClan, FontSize, TEXTALIGN_ML);
+		}
+		if(Flow.Control("tclient-warlist-name-clan-choice", LineSize, Button, MarginSmall))
+		{
+			Button.VSplitMid(&ButtonL, &ButtonR, MarginSmall);
+			static unsigned char s_NameRadio, s_ClanRadio;
+			if(DoButton_CheckBox_Common(&s_NameRadio, Localize("Name"), s_IsName ? "X" : "", &ButtonL, BUTTONFLAG_LEFT) && !ReadOnly && !Ui()->RenderOnly())
 			{
-				const int Index = pSelectedEntry - GameClient()->m_WarList.m_vWarEntries.data();
-				GameClient()->m_WarList.UpdateWarEntry(Index, s_aEntryName, s_aEntryClan, s_aEntryReason, pSelectedType);
+				s_IsName = true;
+				s_IsClan = false;
+			}
+			if(DoButton_CheckBox_Common(&s_ClanRadio, Localize("Clan"), s_IsClan ? "X" : "", &ButtonR, BUTTONFLAG_LEFT) && !ReadOnly && !Ui()->RenderOnly())
+			{
+				s_IsName = false;
+				s_IsClan = true;
+			}
+			if(Flow.Input() && !ReadOnly && !Ui()->RenderOnly() && !s_IsName)
+				str_copy(s_aEntryName, "");
+			if(Flow.Input() && !ReadOnly && !Ui()->RenderOnly() && !s_IsClan)
+				str_copy(s_aEntryClan, "");
+		}
+		if(Flow.Control("tclient-warlist-reason", LineSize, Button, MarginSmall))
+		{
+			s_ReasonInput.SetBuffer(s_aEntryReason, sizeof(s_aEntryReason));
+			s_ReasonInput.SetEmptyText(Localize("Reason"));
+			ui_widget::InputField(TClientWarListTextInputCtx, &s_ReasonInput, Button, Localize("Reason"), EditBoxFontSize);
+		}
+		if(Flow.Control("tclient-warlist-entry-actions", WarListMetrics.m_ButtonHeight, Button, MarginSmall))
+		{
+			static ui_widget::SSettingsActionGroupState s_EntryActionWidths;
+			const char *apLabels[] = {Localize("Override Entry"), Localize("Add Entry")};
+			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_EntryActionWidths, Button, apLabels, std::size(apLabels), WarListMetrics);
+			ButtonL = Actions.m_aButtons[0];
+			ButtonR = Actions.m_aButtons[1];
+			if(DoButtonLineSize_Menu(&s_OverrideButton, Localize("Override Entry"), 0, &ButtonL, LineSize) && !ReadOnly && !Ui()->RenderOnly() && pSelectedEntry)
+			{
+				if(pSelectedEntry && pSelectedType && (str_comp(s_aEntryName, "") != 0 || str_comp(s_aEntryClan, "") != 0))
+				{
+					const int Index = static_cast<int>(pSelectedEntry - GameClient()->m_WarList.m_vWarEntries.data());
+					GameClient()->m_WarList.UpdateWarEntry(Index, s_aEntryName, s_aEntryClan, s_aEntryReason, pSelectedType);
+				}
+			}
+			if(DoButtonLineSize_Menu(&s_AddButton, Localize("Add Entry"), 0, &ButtonR, LineSize) && !ReadOnly && !Ui()->RenderOnly())
+			{
+				if(pSelectedType)
+				{
+					GameClient()->m_WarList.AddWarEntry(s_aEntryName, s_aEntryClan, s_aEntryReason, pSelectedType->m_aWarName);
+					pSelectedEntry = nullptr;
+				}
 			}
 		}
-		if(!ReadOnly && DoButtonLineSize_Menu(&s_AddButton, Localize("Add Entry"), 0, &ButtonR, LineSize))
+		if(Flow.Control("tclient-warlist-selected-group", HeadlineFontSize + MarginSmall, Button, MarginSmall))
 		{
 			if(pSelectedType)
 			{
-				GameClient()->m_WarList.AddWarEntry(s_aEntryName, s_aEntryClan, s_aEntryReason, pSelectedType->m_aWarName);
-				pSelectedEntry = nullptr;
-			}
-		}
-
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(HeadlineFontSize + MarginSmall, &Button, &Column);
-		if(pSelectedType)
-		{
-			float Shade = 0.0f;
-			if(!ReadOnly)
+				float Shade = 0.0f;
 				Button.Draw(ColorRGBA(Shade, Shade, Shade, 0.25f), 15, 3.0f);
-			TextRender()->TextColor(pSelectedType->m_Color);
-			Ui()->DoLabel(&Button, pSelectedType->m_aWarName, HeadlineFontSize, TEXTALIGN_MC);
-			TextRender()->TextColor(TextRender()->DefaultTextColor());
+				TextRender()->TextColor(pSelectedType->m_Color);
+				Ui()->DoLabel(&Button, pSelectedType->m_aWarName, HeadlineFontSize, TEXTALIGN_MC);
+				TextRender()->TextColor(TextRender()->DefaultTextColor());
+			}
 		}
 
 		LogTClientPerfStageEx("tclient_warlist", "filter", ETClientSettingsPerfStage::INTERACTIVE_LAYER, FilterTimer.ElapsedMs());
@@ -376,140 +388,154 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 
 	auto RenderSettings = [&](CUIRect &Column) {
 		CUIRect CheckBoxRect;
-		Column.HSplitTop(LineSize, &CheckBoxRect, &Column);
-		if(!ReadOnly && DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListAllowDuplicates, "tclient-warlist-allow-duplicates", Localize("Allow Duplicate Entries"), g_Config.m_QmWarListAllowDuplicates, &CheckBoxRect))
-			g_Config.m_QmWarListAllowDuplicates ^= 1;
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &CheckBoxRect, &Column);
-		if(!ReadOnly && DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarList, "tclient-warlist-enable", Localize("Enable warlist"), g_Config.m_QmWarList, &CheckBoxRect))
-			g_Config.m_QmWarList ^= 1;
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &CheckBoxRect, &Column);
-		if(!ReadOnly && DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListBlockEnemyChat, "tclient-warlist-block-enemy-chat", Localize("Block enemy chat"), g_Config.m_QmWarListBlockEnemyChat, &CheckBoxRect))
-			g_Config.m_QmWarListBlockEnemyChat ^= 1;
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &CheckBoxRect, &Column);
-		if(!ReadOnly && DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListChat, "tclient-warlist-colors-chat", Localize("Colors in chat"), g_Config.m_QmWarListChat, &CheckBoxRect))
-			g_Config.m_QmWarListChat ^= 1;
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &CheckBoxRect, &Column);
-		if(!ReadOnly && DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListScoreboard, "tclient-warlist-colors-scoreboard", Localize("Colors in scoreboard"), g_Config.m_QmWarListScoreboard, &CheckBoxRect))
-			g_Config.m_QmWarListScoreboard ^= 1;
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &CheckBoxRect, &Column);
-		if(!ReadOnly && DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListSpectate, "tclient-warlist-colors-spectate", Localize("Show colors in spectator selection"), g_Config.m_QmWarListSpectate, &CheckBoxRect))
-			g_Config.m_QmWarListSpectate ^= 1;
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &CheckBoxRect, &Column);
-		if(!ReadOnly && DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListShowClan, "tclient-warlist-show-clan", Localize("Show clan if war"), g_Config.m_QmWarListShowClan, &CheckBoxRect))
-			g_Config.m_QmWarListShowClan ^= 1;
+		CSettingsContentLayoutFlow Flow(Column);
+		if(Flow.Control("tclient-warlist-allow-duplicates", LineSize, CheckBoxRect, MarginSmall))
+		{
+			if(DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListAllowDuplicates, "tclient-warlist-allow-duplicates", Localize("Allow Duplicate Entries"), g_Config.m_QmWarListAllowDuplicates, &CheckBoxRect) && !ReadOnly && !Ui()->RenderOnly())
+				g_Config.m_QmWarListAllowDuplicates ^= 1;
+		}
+		if(Flow.Control("tclient-warlist-enable", LineSize, CheckBoxRect, MarginSmall))
+		{
+			if(DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarList, "tclient-warlist-enable", Localize("Enable warlist"), g_Config.m_QmWarList, &CheckBoxRect) && !ReadOnly && !Ui()->RenderOnly())
+				g_Config.m_QmWarList ^= 1;
+		}
+		if(Flow.Control("tclient-warlist-block-enemy-chat", LineSize, CheckBoxRect, MarginSmall))
+		{
+			if(DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListBlockEnemyChat, "tclient-warlist-block-enemy-chat", Localize("Block enemy chat"), g_Config.m_QmWarListBlockEnemyChat, &CheckBoxRect) && !ReadOnly && !Ui()->RenderOnly())
+				g_Config.m_QmWarListBlockEnemyChat ^= 1;
+		}
+		if(Flow.Control("tclient-warlist-colors-chat", LineSize, CheckBoxRect, MarginSmall))
+		{
+			if(DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListChat, "tclient-warlist-colors-chat", Localize("Colors in chat"), g_Config.m_QmWarListChat, &CheckBoxRect) && !ReadOnly && !Ui()->RenderOnly())
+				g_Config.m_QmWarListChat ^= 1;
+		}
+		if(Flow.Control("tclient-warlist-colors-scoreboard", LineSize, CheckBoxRect, MarginSmall))
+		{
+			if(DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListScoreboard, "tclient-warlist-colors-scoreboard", Localize("Colors in scoreboard"), g_Config.m_QmWarListScoreboard, &CheckBoxRect) && !ReadOnly && !Ui()->RenderOnly())
+				g_Config.m_QmWarListScoreboard ^= 1;
+		}
+		if(Flow.Control("tclient-warlist-colors-spectate", LineSize, CheckBoxRect, MarginSmall))
+		{
+			if(DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListSpectate, "tclient-warlist-colors-spectate", Localize("Show colors in spectator selection"), g_Config.m_QmWarListSpectate, &CheckBoxRect) && !ReadOnly && !Ui()->RenderOnly())
+				g_Config.m_QmWarListSpectate ^= 1;
+		}
+		if(Flow.Control("tclient-warlist-show-clan", LineSize, CheckBoxRect, MarginSmall))
+		{
+			if(DoSettingsButton_CheckBox(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, TCLIENT_TAB_WARLIST, &g_Config.m_QmWarListShowClan, "tclient-warlist-show-clan", Localize("Show clan if war"), g_Config.m_QmWarListShowClan, &CheckBoxRect) && !ReadOnly && !Ui()->RenderOnly())
+				g_Config.m_QmWarListShowClan ^= 1;
+		}
 	};
 
 	auto RenderGroups = [&](CUIRect &Column) {
 		CPerfTimer ActionsTimer;
 		CUIRect WarTypeList, Button, ButtonL, ButtonR;
-		Column.HSplitTop(WarListViewportRows * ListRowHeight, &WarTypeList, &Column);
-		m_pRemoveWarType = nullptr;
-		int SelectedOldType = -1;
-		static CListBox s_WarTypeListBox;
-		static CListBox s_WarTypeReadOnlyListBox;
-		CListBox &WarTypeListBox = ReadOnly ? s_WarTypeReadOnlyListBox : s_WarTypeListBox;
-		WarTypeListBox.SetActive(!ReadOnly);
-		WarTypeListBox.SetScrollProfile(EQmScrollProfile::SETTINGS_INNER);
-		WarTypeListBox.SetWheelOwnerPriority(EUiWheelOwnerPriority::COMPOSITE_CONTROL);
-		WarTypeListBox.DoStart(ListRowHeight, GameClient()->m_WarList.m_WarTypes.size(), 1, 2, SelectedOldType, &WarTypeList, true, IGraphics::CORNER_ALL);
-
-		static std::vector<unsigned char> s_vTypeItemIds;
-		static std::vector<CButtonContainer> s_vTypeDeleteButtons;
-		const int MaxTypes = GameClient()->m_WarList.m_WarTypes.size();
-		s_vTypeItemIds.resize(MaxTypes);
-		s_vTypeDeleteButtons.resize(MaxTypes);
-
-		for(int i = 0; i < (int)GameClient()->m_WarList.m_WarTypes.size(); i++)
-		{
-			CWarType *pType = GameClient()->m_WarList.m_WarTypes[i];
-			if(!pType)
-				continue;
-			if(pSelectedType && pType == pSelectedType)
-				SelectedOldType = i;
-
-			const CListboxItem Item = WarTypeListBox.DoNextItem(&s_vTypeItemIds[i], SelectedOldType >= 0 && SelectedOldType == i);
-			if(!Item.m_Visible)
-				continue;
-
-			CUIRect TypeRect, DeleteButton;
-			Item.m_Rect.Margin(0.0f, &TypeRect);
-			if(pType->m_Removable)
-			{
-				TypeRect.VSplitRight(20.0f, &TypeRect, &DeleteButton);
-				DeleteButton.HSplitTop(20.0f, &DeleteButton, nullptr);
-				DeleteButton.Margin(2.0f, &DeleteButton);
-				if(!ReadOnly && DoButtonNoRect_QmIcon(&s_vTypeDeleteButtons[i], EQmIcon::TRASH, FONT_ICON_TRASH, 0, &DeleteButton, IGraphics::CORNER_ALL))
-					m_pRemoveWarType = pType;
-			}
-			TextRender()->TextColor(pType->m_Color);
-			DoTClientLabel(Ui(), &TypeRect, pType->m_aWarName, StandardFontSize, TEXTALIGN_ML);
-			TextRender()->TextColor(TextRender()->DefaultTextColor());
-		}
-
-		const int NewSelectedType = WarTypeListBox.DoEnd();
-		const bool NewSelectedTypeValid = NewSelectedType >= 0 && NewSelectedType < (int)GameClient()->m_WarList.m_WarTypes.size();
-		if(!ReadOnly && ((SelectedOldType != NewSelectedType && NewSelectedTypeValid) || (NewSelectedTypeValid && Ui()->HotItem() == &s_vTypeItemIds[NewSelectedType] && Ui()->MouseButtonClicked(0))))
-		{
-			pSelectedType = GameClient()->m_WarList.m_WarTypes[NewSelectedType];
-			if(!Ui()->LastMouseButton(1) && !Ui()->LastMouseButton(2))
-			{
-				str_copy(s_aTypeName, pSelectedType->m_aWarName);
-				s_GroupColor = pSelectedType->m_Color;
-			}
-		}
-		if(!ReadOnly && m_pRemoveWarType != nullptr)
-		{
-			if(m_pRemoveWarType == pSelectedType)
-				pSelectedType = DefaultWarType();
-			char aMessage[256];
-			str_format(aMessage, sizeof(aMessage),
-				Localize("Are you sure that you want to remove '%s' from your war groups?"),
-				m_pRemoveWarType->m_aWarName);
-			PopupConfirm(Localize("Remove War Group"), aMessage, Localize("Yes"), Localize("No"), &CMenus::PopupConfirmRemoveWarType);
-		}
-
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &Button, &Column);
-		s_TypeNameInput.SetBuffer(s_aTypeName, sizeof(s_aTypeName));
-		s_TypeNameInput.SetEmptyText(Localize("Group name"));
-		if(!ReadOnly)
-			ui_widget::InputField(TClientWarListTextInputCtx, &s_TypeNameInput, Button, Localize("Group name"), EditBoxFontSize);
-		else
-			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, "tclient-warlist-group-name", &Button, s_aTypeName, FontSize, TEXTALIGN_ML);
+		CSettingsContentLayoutFlow Flow(Column);
 		static CButtonContainer s_AddGroupButton, s_OverrideGroupButton, s_GroupColorPicker;
-
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		static unsigned int s_ColorValue = 0;
-		s_ColorValue = color_cast<ColorHSLA>(s_GroupColor).Pack(false);
-		if(!ReadOnly)
-			s_GroupColor = color_cast<ColorRGBA>(DoLine_ColorPicker(&s_GroupColorPicker, CurrentSettingsContentMetrics(), &Column, Localize("Color"), &s_ColorValue, ColorRGBA(1.0f, 1.0f, 1.0f), true));
-		else
-			Column.HSplitTop(ColorPickerLineSize + ColorPickerLineSpacing, nullptr, &Column);
-
-		Column.HSplitTop(LineSize * 2.0f, &Button, &Column);
-		Button.VSplitMid(&ButtonL, &ButtonR, MarginSmall);
-		bool OverrideDisabled = NewSelectedType == 0;
-		if(!ReadOnly && DoButtonLineSize_Menu(&s_OverrideGroupButton, Localize("Override Group"), 0, &ButtonL, LineSize, OverrideDisabled) && pSelectedType)
+		if(Flow.Control("tclient-warlist-groups-list", WarListViewportRows * ListRowHeight, WarTypeList))
 		{
-			if(pSelectedType && str_comp(s_aTypeName, "") != 0)
+			m_pRemoveWarType = nullptr;
+			int SelectedOldType = -1;
+			static CListBox s_WarTypeListBox;
+			static CListBox s_WarTypeReadOnlyListBox;
+			CListBox &WarTypeListBox = ReadOnly ? s_WarTypeReadOnlyListBox : s_WarTypeListBox;
+			WarTypeListBox.SetActive(!ReadOnly);
+			WarTypeListBox.SetScrollProfile(EQmScrollProfile::SETTINGS_INNER);
+			WarTypeListBox.SetWheelOwnerPriority(EUiWheelOwnerPriority::COMPOSITE_CONTROL);
+			WarTypeListBox.DoStart(ListRowHeight, GameClient()->m_WarList.m_WarTypes.size(), 1, 2, SelectedOldType, &WarTypeList, true, IGraphics::CORNER_ALL);
+
+			static std::vector<unsigned char> s_vTypeItemIds;
+			static std::vector<CButtonContainer> s_vTypeDeleteButtons;
+			const int MaxTypes = GameClient()->m_WarList.m_WarTypes.size();
+			s_vTypeItemIds.resize(MaxTypes);
+			s_vTypeDeleteButtons.resize(MaxTypes);
+
+			for(int i = 0; i < (int)GameClient()->m_WarList.m_WarTypes.size(); i++)
 			{
-				const auto &vpTypes = GameClient()->m_WarList.m_WarTypes;
-				const int Index = std::find(vpTypes.begin(), vpTypes.end(), pSelectedType) - vpTypes.begin();
-				GameClient()->m_WarList.UpsertWarType(Index, s_aTypeName, s_GroupColor);
+				CWarType *pType = GameClient()->m_WarList.m_WarTypes[i];
+				if(!pType)
+					continue;
+				if(pSelectedType && pType == pSelectedType)
+					SelectedOldType = i;
+
+				const CListboxItem Item = WarTypeListBox.DoNextItem(&s_vTypeItemIds[i], SelectedOldType >= 0 && SelectedOldType == i);
+				if(!Item.m_Visible)
+					continue;
+
+				CUIRect TypeRect, DeleteButton;
+				Item.m_Rect.Margin(0.0f, &TypeRect);
+				if(pType->m_Removable)
+				{
+					TypeRect.VSplitRight(20.0f, &TypeRect, &DeleteButton);
+					DeleteButton.HSplitTop(20.0f, &DeleteButton, nullptr);
+					DeleteButton.Margin(2.0f, &DeleteButton);
+					if(DoButtonNoRect_QmIcon(&s_vTypeDeleteButtons[i], EQmIcon::TRASH, FONT_ICON_TRASH, 0, &DeleteButton, IGraphics::CORNER_ALL) && !ReadOnly && !Ui()->RenderOnly())
+						m_pRemoveWarType = pType;
+				}
+				TextRender()->TextColor(pType->m_Color);
+				DoTClientLabel(Ui(), &TypeRect, pType->m_aWarName, StandardFontSize, TEXTALIGN_ML);
+				TextRender()->TextColor(TextRender()->DefaultTextColor());
+			}
+
+			const int NewSelectedType = WarTypeListBox.DoEnd();
+			const bool NewSelectedTypeValid = NewSelectedType >= 0 && NewSelectedType < (int)GameClient()->m_WarList.m_WarTypes.size();
+			if(!ReadOnly && !Ui()->RenderOnly() && ((SelectedOldType != NewSelectedType && NewSelectedTypeValid) || (NewSelectedTypeValid && Ui()->HotItem() == &s_vTypeItemIds[NewSelectedType] && Ui()->MouseButtonClicked(0))))
+			{
+				pSelectedType = GameClient()->m_WarList.m_WarTypes[NewSelectedType];
+				if(!Ui()->LastMouseButton(1) && !Ui()->LastMouseButton(2))
+				{
+					str_copy(s_aTypeName, pSelectedType->m_aWarName);
+					s_GroupColor = pSelectedType->m_Color;
+				}
+			}
+			if(!ReadOnly && !Ui()->RenderOnly() && m_pRemoveWarType != nullptr)
+			{
+				if(m_pRemoveWarType == pSelectedType)
+					pSelectedType = DefaultWarType();
+				char aMessage[256];
+				str_format(aMessage, sizeof(aMessage),
+					Localize("Are you sure that you want to remove '%s' from your war groups?"),
+					m_pRemoveWarType->m_aWarName);
+				PopupConfirm(Localize("Remove War Group"), aMessage, Localize("Yes"), Localize("No"), &CMenus::PopupConfirmRemoveWarType);
 			}
 		}
-		bool AddDisabled = str_comp(GameClient()->m_WarList.FindWarType(s_aTypeName)->m_aWarName, "none") != 0 || str_comp(s_aTypeName, "none") == 0;
-		if(!ReadOnly && DoButtonLineSize_Menu(&s_AddGroupButton, Localize("Add Group"), 0, &ButtonR, LineSize, AddDisabled))
+		if(Flow.Control("tclient-warlist-group-name", LineSize, Button, MarginSmall))
 		{
-			GameClient()->m_WarList.AddWarType(s_aTypeName, s_GroupColor);
+			s_TypeNameInput.SetBuffer(s_aTypeName, sizeof(s_aTypeName));
+			s_TypeNameInput.SetEmptyText(Localize("Group name"));
+			ui_widget::InputField(TClientWarListTextInputCtx, &s_TypeNameInput, Button, Localize("Group name"), EditBoxFontSize);
 		}
-
+		if(Flow.Control("tclient-warlist-group-color", ColorPickerLineSize, Button, MarginSmall))
+		{
+			static unsigned int s_ColorValue = 0;
+			s_ColorValue = color_cast<ColorHSLA>(s_GroupColor).Pack(false);
+			const ColorRGBA Color = color_cast<ColorRGBA>(DoLine_ColorPicker(&s_GroupColorPicker, CurrentSettingsContentMetrics(), &Button, Localize("Color"), &s_ColorValue, ColorRGBA(1.0f, 1.0f, 1.0f), true));
+			if(Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+				s_GroupColor = Color;
+		}
+		Flow.Space(ColorPickerLineSpacing);
+		if(Flow.Control("tclient-warlist-group-actions", WarListMetrics.m_ButtonHeight, Button))
+		{
+			static ui_widget::SSettingsActionGroupState s_GroupActionWidths;
+			const char *apLabels[] = {Localize("Override Group"), Localize("Add Group")};
+			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_GroupActionWidths, Button, apLabels, std::size(apLabels), WarListMetrics);
+			ButtonL = Actions.m_aButtons[0];
+			ButtonR = Actions.m_aButtons[1];
+			bool OverrideDisabled = !GameClient()->m_WarList.m_WarTypes.empty() && pSelectedType == GameClient()->m_WarList.m_WarTypes[0];
+			if(DoButtonLineSize_Menu(&s_OverrideGroupButton, Localize("Override Group"), 0, &ButtonL, LineSize, OverrideDisabled) && !ReadOnly && !Ui()->RenderOnly() && pSelectedType)
+			{
+				if(pSelectedType && str_comp(s_aTypeName, "") != 0)
+				{
+					const auto &vpTypes = GameClient()->m_WarList.m_WarTypes;
+					const int Index = static_cast<int>(std::find(vpTypes.begin(), vpTypes.end(), pSelectedType) - vpTypes.begin());
+					GameClient()->m_WarList.UpsertWarType(Index, s_aTypeName, s_GroupColor);
+				}
+			}
+			bool AddDisabled = str_comp(GameClient()->m_WarList.FindWarType(s_aTypeName)->m_aWarName, "none") != 0 || str_comp(s_aTypeName, "none") == 0;
+			if(DoButtonLineSize_Menu(&s_AddGroupButton, Localize("Add Group"), 0, &ButtonR, LineSize, AddDisabled) && !ReadOnly && !Ui()->RenderOnly())
+			{
+				GameClient()->m_WarList.AddWarType(s_aTypeName, s_GroupColor);
+			}
+		}
 		char aExtra[96];
 		str_format(aExtra, sizeof(aExtra), "groups=%d", (int)GameClient()->m_WarList.m_WarTypes.size());
 		LogTClientPerfStageEx("tclient_warlist", "actions", ETClientSettingsPerfStage::RESOURCE_PRETRIGGER, ActionsTimer.ElapsedMs(), false, aExtra);
@@ -518,14 +544,13 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 	auto RenderPlayers = [&](CUIRect &Column) {
 		CPerfTimer PlayersTimer;
 		CUIRect PlayerSearch, PlayerList;
-		Column.HSplitTop(LineSize, &PlayerSearch, &Column);
-		if(!ReadOnly)
+		CSettingsContentLayoutFlow Flow(Column);
+		if(Flow.Control("tclient-warlist-player-search", LineSize, PlayerSearch))
+		{
 			ui_widget::InputField(TClientWarListPlayerSearchCtx, &s_PlayerSearchInput, PlayerSearch, FontSize, !Ui()->IsPopupOpen() && !GameClient()->m_GameConsole.IsActive());
-		else
-			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, "tclient-warlist-player-search", &PlayerSearch, s_PlayerSearchInput.GetString(), FontSize, TEXTALIGN_ML);
-
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		PlayerList = Column;
+		}
+		if(!Flow.Control("tclient-warlist-players-list", WarListViewportRows * ListRowHeight, PlayerList, MarginSmall))
+			return;
 		static CListBox s_PlayerListBox;
 		static CListBox s_PlayerReadOnlyListBox;
 		CListBox &PlayerListBox = ReadOnly ? s_PlayerReadOnlyListBox : s_PlayerListBox;
@@ -572,10 +597,10 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 			TextRender()->TextColor(GameClient()->m_WarList.GetWarData(ClientId).m_NameColor);
 			ColorRGBA NameButtonColor = Ui()->CheckActiveItem(&s_vNameButtons[ClientId]) ? ColorRGBA(1.0f, 1.0f, 1.0f, 0.75f) :
 												       (Ui()->HotItem() == &s_vNameButtons[ClientId] ? ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f) : ColorRGBA(1.0f, 1.0f, 1.0f, 0.0f));
-			if(!ReadOnly && NameButtonColor.a > 0.0f)
+			if(NameButtonColor.a > 0.0f)
 				DrawRoundedSurface(Ui(), PlayerRect, NameButtonColor, ColorRGBA(), 5.0f, 0.0f, IGraphics::CORNER_L);
 			Ui()->DoLabel(&NameRect, Client.m_aName, StandardFontSize, TEXTALIGN_ML);
-			if(!ReadOnly && Ui()->DoButtonLogic(&s_vNameButtons[ClientId], false, &PlayerRect, BUTTONFLAG_LEFT))
+			if(Ui()->DoButtonLogic(&s_vNameButtons[ClientId], false, &PlayerRect, BUTTONFLAG_LEFT) && !ReadOnly && !Ui()->RenderOnly())
 			{
 				s_IsName = true;
 				s_IsClan = false;
@@ -585,10 +610,10 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 			TextRender()->TextColor(GameClient()->m_WarList.GetWarData(ClientId).m_ClanColor);
 			ColorRGBA ClanButtonColor = Ui()->CheckActiveItem(&s_vClanButtons[ClientId]) ? ColorRGBA(1.0f, 1.0f, 1.0f, 0.75f) :
 												       (Ui()->HotItem() == &s_vClanButtons[ClientId] ? ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f) : ColorRGBA(1.0f, 1.0f, 1.0f, 0.0f));
-			if(!ReadOnly && ClanButtonColor.a > 0.0f)
+			if(ClanButtonColor.a > 0.0f)
 				DrawRoundedSurface(Ui(), ClanRect, ClanButtonColor, ColorRGBA(), 5.0f, 0.0f, IGraphics::CORNER_R);
 			Ui()->DoLabel(&ClanRect, Client.m_aClan, StandardFontSize, TEXTALIGN_ML);
-			if(!ReadOnly && Ui()->DoButtonLogic(&s_vClanButtons[ClientId], false, &ClanRect, BUTTONFLAG_LEFT))
+			if(Ui()->DoButtonLogic(&s_vClanButtons[ClientId], false, &ClanRect, BUTTONFLAG_LEFT) && !ReadOnly && !Ui()->RenderOnly())
 			{
 				s_IsName = false;
 				s_IsClan = true;
@@ -598,7 +623,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 
 			CTeeRenderInfo TeeInfo = Client.m_RenderInfo;
 			TeeInfo.m_Size = ListRowHeight;
-			if(!ReadOnly)
+			if(!ReadOnly || Ui()->BackgroundRender())
 				RenderTeeCute(CAnimState::GetIdle(), &TeeInfo, 0, vec2(1.0f, 0.0f), TeeRect.Center() + vec2(-1.0f, 2.5f), true);
 		}
 		PlayerListBox.DoEnd();
@@ -611,108 +636,82 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 	const float WarListColumnMinimum = ResolveSettingsInlineRowMinimumWidth(WarListMetrics.m_LabelWidth + 2.0f * WarListMetrics.m_ButtonHeight, WarListMetrics.m_SectionGap, 1);
 	const float FourColumnMinWidth = 4.0f * WarListColumnMinimum + 3.0f * WarListMetrics.m_SectionGap;
 	const float TwoColumnMinWidth = 2.0f * WarListColumnMinimum + WarListMetrics.m_SectionGap;
-	const float EntriesHeight = LineSize * 2.0f + MarginSmall + WarListViewportRows * ListRowHeight;
-	const float GroupsHeight = WarListViewportRows * ListRowHeight + MarginSmall * 2.0f + LineSize * 3.0f + ColorPickerLineSize + ColorPickerLineSpacing;
-	const float PlayersHeight = LineSize + MarginSmall + WarListViewportRows * ListRowHeight;
-	const float EditorHeight = LineSize * 5.0f + MarginSmall * 5.0f + HeadlineFontSize;
-	const float SettingsHeight = LineSize * 7.0f + MarginSmall * 6.0f;
-	const float SectionHeaderHeight = LineSize + MarginSmall;
 	const float SectionGap = WarListMetrics.m_SectionGap;
-	const char *pWarEntriesTitle = Localizable("War Entries");
-	const char *pSettingsTitle = Localizable("Settings");
-	const char *pEditEntryTitle = Localizable("Edit Entry");
-	const char *pWarGroupsTitle = Localizable("War Groups");
-	const char *pOnlinePlayersTitle = Localizable("Online Players");
-	const auto SectionHeight = [SectionHeaderHeight](float ContentHeight) {
-		return SectionHeaderHeight + ContentHeight;
-	};
-	const auto WarListContentHeight = [&](float ContentWidth) {
-		const float EntriesSectionHeight = SectionHeight(EntriesHeight);
-		const float EditorSectionHeight = SectionHeight(EditorHeight);
-		const float SettingsSectionHeight = SectionHeight(SettingsHeight);
-		const float GroupsSectionHeight = SectionHeight(GroupsHeight);
-		const float PlayersSectionHeight = SectionHeight(PlayersHeight);
-		if(ContentWidth >= FourColumnMinWidth)
-			return maximum(EntriesSectionHeight + SectionGap + SettingsSectionHeight,
-				maximum(EditorSectionHeight, maximum(GroupsSectionHeight, PlayersSectionHeight)));
-		if(ContentWidth >= TwoColumnMinWidth)
-			return maximum(EntriesSectionHeight + SectionGap + SettingsSectionHeight, EditorSectionHeight) + SectionGap +
-			       maximum(GroupsSectionHeight, PlayersSectionHeight);
-		return EntriesSectionHeight + SectionGap + SettingsSectionHeight + SectionGap + EditorSectionHeight +
-		       SectionGap + GroupsSectionHeight + SectionGap + PlayersSectionHeight;
-	};
-	const auto RenderWarListLayout = [&](CUIRect ContentRect, bool Render) {
-		const auto RenderSection = [&](CUIRect &Column, const char *pTextId, const char *pTitle, float ContentHeight, const auto &RenderContent) {
-			CUIRect Section, Header, Body;
-			Column.HSplitTop(SectionHeight(ContentHeight), &Section, &Column);
-			Section.HSplitTop(LineSize, &Header, &Body);
-			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, pTextId, &Header, Localize(pTitle), HeadlineFontSize, TEXTALIGN_ML);
-			Body.HSplitTop(MarginSmall, nullptr, &Body);
-			if(Render)
-				RenderContent(Body);
-		};
-		const auto AddSectionGap = [&](CUIRect &Column) {
-			Column.HSplitTop(SectionGap, nullptr, &Column);
-		};
-
-		if(ContentRect.w >= FourColumnMinWidth)
+	const char *apSectionIds[] = {"tclient-warlist-section-entries", "tclient-warlist-section-settings", "tclient-warlist-section-editor", "tclient-warlist-section-groups", "tclient-warlist-section-players"};
+	const char *apTitles[] = {Localizable("War Entries"), Localizable("Settings"), Localizable("Edit Entry"), Localizable("War Groups"), Localizable("Online Players")};
+	const std::function<void(CUIRect &)> aContents[] = {RenderEntries, RenderSettings, RenderEditor, RenderGroups, RenderPlayers};
+	const auto RenderWarListCard = [&](CUIRect &Content) {
+		CSettingsContentLayoutFlow Flow(Content);
+		const auto *pScope = CSettingsContentLayoutScope::Current();
+		const float Width = pScope && pScope->m_pLayout ? pScope->m_pLayout->Width() : Content.w;
+		const int Columns = Width >= FourColumnMinWidth ? 4 : Width >= TwoColumnMinWidth ? 2 :
+												   1;
+		const float ColumnWidth = std::max(0.0f, (Width - (Columns - 1) * SectionGap) / Columns);
+		std::array<std::function<void(CUIRect &)>, 5> aRenderSections;
+		std::array<float, 5> aHeights{};
+		for(size_t Index = 0; Index < aRenderSections.size(); ++Index)
 		{
-			CUIRect EntriesColumn, EditorColumn, GroupsColumn, PlayersColumn;
-			const float ColumnGap = SectionGap;
-			const float ColumnWidth = maximum(0.0f, (ContentRect.w - ColumnGap * 3.0f) / 4.0f);
-			ContentRect.VSplitLeft(ColumnWidth, &EntriesColumn, &ContentRect);
-			ContentRect.VSplitLeft(ColumnGap, nullptr, &ContentRect);
-			ContentRect.VSplitLeft(ColumnWidth, &EditorColumn, &ContentRect);
-			ContentRect.VSplitLeft(ColumnGap, nullptr, &ContentRect);
-			ContentRect.VSplitLeft(ColumnWidth, &GroupsColumn, &ContentRect);
-			ContentRect.VSplitLeft(ColumnGap, nullptr, &ContentRect);
-			PlayersColumn = ContentRect;
-			RenderSection(EntriesColumn, "tclient-warlist-section-entries", pWarEntriesTitle, EntriesHeight, RenderEntries);
-			AddSectionGap(EntriesColumn);
-			RenderSection(EntriesColumn, "tclient-warlist-section-settings", pSettingsTitle, SettingsHeight, RenderSettings);
-			RenderSection(EditorColumn, "tclient-warlist-section-editor", pEditEntryTitle, EditorHeight, RenderEditor);
-			RenderSection(GroupsColumn, "tclient-warlist-section-groups", pWarGroupsTitle, GroupsHeight, RenderGroups);
-			RenderSection(PlayersColumn, "tclient-warlist-section-players", pOnlinePlayersTitle, PlayersHeight, RenderPlayers);
+			aRenderSections[Index] = [&, Index](CUIRect &Column) {
+				CSettingsContentLayoutFlow SectionFlow(Column);
+				CUIRect Header;
+				if(SectionFlow.Control(apSectionIds[Index], LineSize, Header))
+					DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_WARLIST, apSectionIds[Index], &Header, Localize(apTitles[Index]), HeadlineFontSize, TEXTALIGN_ML);
+				SectionFlow.Space(MarginSmall);
+				aContents[Index](Column);
+			};
+			aHeights[Index] = TClientDeclaredRegion(apSectionIds[Index], ColumnWidth, aRenderSections[Index], nullptr);
 		}
-		else if(ContentRect.w >= TwoColumnMinWidth)
-		{
-			const float FirstRowHeight = maximum(SectionHeight(EntriesHeight) + SectionGap + SectionHeight(SettingsHeight), SectionHeight(EditorHeight));
-			CUIRect FirstRow, SecondRow, EntriesColumn, EditorColumn, GroupsColumn, PlayersColumn;
-			ContentRect.HSplitTop(FirstRowHeight, &FirstRow, &SecondRow);
-			SecondRow.HSplitTop(SectionGap, nullptr, &SecondRow);
-			FirstRow.VSplitMid(&EntriesColumn, &EditorColumn, SectionGap);
-			SecondRow.VSplitMid(&GroupsColumn, &PlayersColumn, SectionGap);
-			RenderSection(EntriesColumn, "tclient-warlist-section-entries", pWarEntriesTitle, EntriesHeight, RenderEntries);
-			AddSectionGap(EntriesColumn);
-			RenderSection(EntriesColumn, "tclient-warlist-section-settings", pSettingsTitle, SettingsHeight, RenderSettings);
-			RenderSection(EditorColumn, "tclient-warlist-section-editor", pEditEntryTitle, EditorHeight, RenderEditor);
-			RenderSection(GroupsColumn, "tclient-warlist-section-groups", pWarGroupsTitle, GroupsHeight, RenderGroups);
-			RenderSection(PlayersColumn, "tclient-warlist-section-players", pOnlinePlayersTitle, PlayersHeight, RenderPlayers);
-		}
+		float Height;
+		const float FirstHeight = std::max(aHeights[0] + SectionGap + aHeights[1], aHeights[2]);
+		if(Columns == 4)
+			Height = std::max(FirstHeight, std::max(aHeights[3], aHeights[4]));
+		else if(Columns == 2)
+			Height = FirstHeight + SectionGap + std::max(aHeights[3], aHeights[4]);
 		else
+			Height = aHeights[0] + aHeights[1] + aHeights[2] + aHeights[3] + aHeights[4] + SectionGap * 4.0f;
+		CUIRect Block;
+		if(!Flow.Control("tclient-warlist-columns", Height, Block))
+			return;
+		std::array<CUIRect, 5> aViews;
+		float StackedY = Block.y;
+		for(size_t Index = 0; Index < aViews.size(); ++Index)
 		{
-			RenderSection(ContentRect, "tclient-warlist-section-entries", pWarEntriesTitle, EntriesHeight, RenderEntries);
-			AddSectionGap(ContentRect);
-			RenderSection(ContentRect, "tclient-warlist-section-settings", pSettingsTitle, SettingsHeight, RenderSettings);
-			AddSectionGap(ContentRect);
-			RenderSection(ContentRect, "tclient-warlist-section-editor", pEditEntryTitle, EditorHeight, RenderEditor);
-			AddSectionGap(ContentRect);
-			RenderSection(ContentRect, "tclient-warlist-section-groups", pWarGroupsTitle, GroupsHeight, RenderGroups);
-			AddSectionGap(ContentRect);
-			RenderSection(ContentRect, "tclient-warlist-section-players", pOnlinePlayersTitle, PlayersHeight, RenderPlayers);
+			aViews[Index] = {Block.x, Block.y, ColumnWidth, aHeights[Index]};
+			if(Columns == 1)
+			{
+				aViews[Index].y = StackedY;
+				StackedY += aHeights[Index] + SectionGap;
+			}
+			else if(Index == 1)
+				aViews[Index].y += aHeights[0] + SectionGap;
+			else if(Index >= 2)
+			{
+				const int Column = Columns == 4 ? (int)Index - 1 : Index == 2 ? 1 :
+									   Index == 3         ? 0 :
+												1;
+				aViews[Index].x += Column * (ColumnWidth + SectionGap);
+				if(Columns == 2 && Index >= 3)
+					aViews[Index].y += FirstHeight + SectionGap;
+			}
+			TClientDeclaredRegion(apSectionIds[Index], ColumnWidth, aRenderSections[Index], &aViews[Index]);
 		}
 	};
-
-	const auto RenderWarListCard = [&](CUIRect &ContentRect) { RenderWarListLayout(ContentRect, true); };
 	const uint64_t CardRevision = GameClient()->m_WarList.Revision();
 	if(Pass == qm_card_catalog::ETClientCardPass::REVISION)
 		return {0.0f, CardRevision};
 	if(str_comp(pStableId, "deck:tclient-warlist") == 0)
 	{
-		const float Height = WarListContentHeight(Content.w);
-		if(Pass == qm_card_catalog::ETClientCardPass::RENDER)
-			RenderWarListCard(Content);
-		return {Height, CardRevision};
+		const float SavedY = Content.y;
+		RenderWarListCard(Content);
+		return {Content.y - SavedY, CardRevision};
 	}
 	return {0.0f, CardRevision};
+}
+
+void CMenus::PopupConfirmRemoveWarType()
+{
+	const auto &vpTypes = GameClient()->m_WarList.m_WarTypes;
+	if(std::find(vpTypes.begin(), vpTypes.end(), m_pRemoveWarType) != vpTypes.end())
+		GameClient()->m_WarList.RemoveWarType(m_pRemoveWarType->m_aWarName);
+	m_pRemoveWarType = nullptr;
 }

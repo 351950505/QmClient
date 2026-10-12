@@ -90,7 +90,7 @@ namespace ui_widget
 			return;
 		// 预热 / 文字计划收集帧只跑逻辑不落绘制，也不推进滑块弹簧，否则预热帧会把滑块
 		// 直接推到目标位置，下一帧切换就看不到滑动。
-		if(Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi->MeasurementOnly())
 			return;
 
 		CUIRect Capsule;
@@ -121,7 +121,7 @@ namespace ui_widget
 			return;
 
 		CUIRect Indicator = Target;
-		if(Ctx.m_pAnim != nullptr)
+		if(Ctx.m_pAnim != nullptr && !Ctx.m_pUi->RenderOnly())
 		{
 			// 胶囊与嵌套分段共用导航弹簧，切换时保留当前速度；选中块固定在同一条竖向轨道。
 			const uint64_t NodeKey = BuildUiAnimNodeKey(GroupId, 0);
@@ -137,7 +137,7 @@ namespace ui_widget
 			return;
 		// 预热 / 文字计划收集帧只跑逻辑不落绘制，也不推进滑块弹簧，否则预热帧会把滑块
 		// 直接推到目标位置，下一帧切换就看不到滑动。
-		if(Ctx.m_pUi->RenderOnly())
+		if(Ctx.m_pUi->MeasurementOnly())
 			return;
 
 		DrawRoundedSurface(Ctx, ContainerRect, Style.m_ContainerColor, ColorRGBA(), ui_token::radius::PILL);
@@ -152,7 +152,7 @@ namespace ui_widget
 				return;
 
 			CUIRect Indicator = Target;
-			if(Ctx.m_pAnim != nullptr)
+			if(Ctx.m_pAnim != nullptr && !Ctx.m_pUi->RenderOnly())
 			{
 				// 主级与次级导航沿用同一节奏，各自保留当前速度。
 				const uint64_t NodeKey = BuildUiAnimNodeKey(GroupId, TrackIndex);
@@ -176,7 +176,7 @@ namespace ui_widget
 		const bool RenderOnly = Ctx.m_pUi->RenderOnly();
 
 		// Background: selected first, then hover blend on top.
-		if(Props.m_Selected && !RenderOnly)
+		if(Props.m_Selected && !Ctx.m_pUi->MeasurementOnly())
 			Rect.Draw(Ctx.m_pTheme != nullptr ? Ctx.m_pTheme->m_Selected : ui_token::color::ACCENT_PRIMARY_DIM, IGraphics::CORNER_ALL, ui_token::radius::TIGHT);
 
 		if(Ctx.m_pAnim != nullptr && !Props.m_Disabled && !RenderOnly)

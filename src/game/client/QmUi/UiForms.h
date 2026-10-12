@@ -82,7 +82,7 @@ namespace ui_widget
 
 	void DrawToggle(const IUiContext &Ctx, const void *pId, bool Value, const CUIRect &Rect, bool Enabled = true, bool Animate = true, const CUIRect *pHitRect = nullptr);
 	void DrawMarkedControl(const IUiContext &Ctx, const void *pId, const char *pMark, const CUIRect &Rect, const CUIRect *pHitRect = nullptr);
-	void DrawScrollbarHandle(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, bool Enabled = true, const ColorRGBA *pColorInner = nullptr);
+	void DrawScrollbarHandle(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, bool Enabled = true, const ColorRGBA *pColorInner = nullptr, const ColorRGBA *pHandleColorOverride = nullptr);
 	void RenderHorizontalSlider(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, float Current, const ColorRGBA *pColorInner = nullptr);
 	enum class EInputFieldCapability : unsigned
 	{

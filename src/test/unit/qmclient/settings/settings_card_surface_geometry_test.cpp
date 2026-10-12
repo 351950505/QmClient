@@ -2,6 +2,7 @@
 
 #include <game/client/QmUi/SettingsCard.h>
 #include <game/client/QmUi/SettingsCardDeckLogic.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 
 #include <gtest/gtest.h>
 
@@ -61,7 +62,10 @@ TEST(SettingsCardDeck, RestingCardsDoNotDrawASecondRoundedBorder)
 	EXPECT_FALSE(SettingsCardInteractionBorderVisible(State));
 	State.m_Hovered = false;
 	State.m_Focused = true;
-	EXPECT_TRUE(SettingsCardInteractionBorderVisible(State));
+	EXPECT_FALSE(SettingsCardInteractionBorderVisible(State));
+	State.m_Hovered = true;
+	EXPECT_FALSE(SettingsCardInteractionBorderVisible(State));
+	State.m_Hovered = false;
 	State.m_Focused = false;
 	State.m_Dragged = true;
 	EXPECT_TRUE(SettingsCardInteractionBorderVisible(State));
@@ -70,7 +74,7 @@ TEST(SettingsCardDeck, RestingCardsDoNotDrawASecondRoundedBorder)
 	EXPECT_TRUE(SettingsCardInteractionBorderVisible(State));
 }
 
-TEST(SettingsCardDeck, RenderOnlyAndVisiblePassPlanChromeExactlyOnce)
+TEST(SettingsCardDeck, MeasurementAndVisiblePassPlanChromeExactlyOnce)
 {
 	int SurfaceDrawCount = 0;
 	int BorderedSurfaceDrawCount = 0;
@@ -183,4 +187,62 @@ TEST(SettingsCardDeck, ConfiguredBorderColorDoesNotTintSurface)
 	EXPECT_FLOAT_EQ(Resolved.g, Surface.g);
 	EXPECT_FLOAT_EQ(Resolved.b, Surface.b);
 	EXPECT_FLOAT_EQ(Resolved.a, Surface.a);
+}
+
+TEST(SettingsCard, HoverSubtitleReservesFixedSpaceBeforeContent)
+{
+	const CUIRect Slot{10.0f, 20.0f, 320.0f, 0.0f};
+	const SSettingsCardFrame Plain = BuildSettingsCardFrame(Slot, {"plain", "Title", nullptr}, 100.0f, 1.0f);
+	const SSettingsCardFrame Summary = BuildSettingsCardFrame(Slot, {"summary", "Title", "What this card changes"}, 100.0f, 1.0f);
+	EXPECT_GT(Summary.m_SubtitleRect.h, 0.0f);
+	EXPECT_FLOAT_EQ(Summary.m_SubtitleRect.y, Summary.m_TitleRect.y + Summary.m_TitleRect.h);
+	EXPECT_GE(Summary.m_ContentRect.y, Summary.m_SubtitleRect.y + Summary.m_SubtitleRect.h);
+	EXPECT_FLOAT_EQ(Summary.m_Rect.h, Plain.m_Rect.h + Summary.m_SubtitleRect.h);
+	EXPECT_FLOAT_EQ(Summary.m_ContentRect.h, Plain.m_ContentRect.h);
+	EXPECT_FLOAT_EQ(Summary.m_HandleRect.h, Plain.m_HandleRect.h);
+	EXPECT_FLOAT_EQ(Summary.m_HandleRect.w, Summary.m_HandleRect.h);
+}
+
+TEST(SettingsCard, EmptySummaryHasTheSameGeometryAsAbsentSummary)
+{
+	const CUIRect Slot{0.0f, 0.0f, 320.0f, 0.0f};
+	const SSettingsCardFrame Absent = BuildSettingsCardFrame(Slot, {"card", "Title", nullptr}, 100.0f, 1.0f);
+	const SSettingsCardFrame Empty = BuildSettingsCardFrame(Slot, {"card", "Title", ""}, 100.0f, 1.0f);
+	EXPECT_FLOAT_EQ(Absent.m_Rect.h, Empty.m_Rect.h);
+	EXPECT_FLOAT_EQ(0.0f, Empty.m_SubtitleRect.h);
+	EXPECT_FLOAT_EQ(Absent.m_ContentRect.y, Empty.m_ContentRect.y);
+}
+
+TEST(SettingsCard, ObservedContentDetectsGrowthShrinkAndRecoveryWithoutRevision)
+{
+	float RowHeight = 24.0f;
+	int Rows = 1;
+	int RenderCount = 0;
+	const FSettingsCardRenderMeasured Render = [&](CUIRect &Content) {
+		++RenderCount;
+		for(int i = 0; i < Rows; ++i)
+			Content.HSplitTop(RowHeight, nullptr, &Content);
+	};
+	for(const int Count : {1, 6, 0, 1})
+	{
+		Rows = Count;
+		CUIRect Content{10, 20, 240, 24};
+		EXPECT_FLOAT_EQ(RenderSettingsCardObservedContent(Render, Content), Count * RowHeight);
+		EXPECT_FLOAT_EQ(Content.y, 20 + Count * RowHeight);
+	}
+	EXPECT_EQ(RenderCount, 4);
+}
+
+TEST(SettingsCard, FractionalRowsMeasureMatchesObservedHeightWithoutLargeProbeCancellation)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(640.0f);
+	const FSettingsCardRenderMeasured Render = [&](CUIRect &Content) {
+		CSettingsContentRowFlow Flow(Content, Metrics);
+		for(int i = 0; i < 40; ++i)
+			Flow.NextLine();
+	};
+	CUIRect Content{0, 0, 320, 24};
+	const float Observed = RenderSettingsCardObservedContent(Render, Content);
+	const float Measured = ResolveSettingsCardContentHeight(Render, 320);
+	EXPECT_NEAR(Measured, Observed, 0.01f);
 }

@@ -3,6 +3,7 @@
 #ifndef GAME_CLIENT_UI_H
 #define GAME_CLIENT_UI_H
 
+#include "QmUi/ColorPickerPalette.h"
 #include "QmUi/QmAnimationBackend.h"
 #include "QmUi/QmCardLabelHints.h"
 #include "QmUi/QmDropdown.h"
@@ -521,6 +522,11 @@ struct SPopupMenuProperties
 	bool m_BlockUnderlyingScroll = false;
 	bool m_BlockUnderlyingPointerInput = false;
 	bool m_RequireSourceRefresh = false;
+	// 二级面板关闭后仅在来源控件重新参与渲染时恢复焦点。
+	bool m_ReturnFocus = false;
+	bool m_IgnoreOpeningClick = false;
+	float m_ContentInset = -1.0f;
+	std::function<void()> m_OnClosed;
 	// 使用 CUi::PopupSourceFrame()，主循环 PerfFrame 不代表实际 UI 更新次数。
 	uint64_t m_SourceFrame = 0;
 	CUIRect m_Viewport{};
@@ -708,6 +714,7 @@ private:
 	bool m_Enabled;
 	int m_RenderOnlyDepth = 0;
 	int m_BackgroundRenderDepth = 0;
+	int m_ContentDrawDepth = 0;
 	int m_PreLayoutInputDepth = 0;
 	float m_DropDownFontSize = -1.0f;
 	// 仅客户端绑定；地图编辑器保留自己的控件样式。
@@ -745,6 +752,18 @@ private:
 	CLineInput *m_pTrackedTextInput = nullptr;
 	const SPopupMenuId *m_pTrackedTextPopupId = nullptr;
 	CQmUiInteractionSource m_TextInputSource;
+	struct SPopupFocus
+	{
+		const void *m_pItem = nullptr;
+		CLineInput *m_pTextInput = nullptr;
+		const SPopupMenuId *m_pPopupId = nullptr;
+		CQmUiInteractionSource m_Source;
+		uint64_t m_Frame = 0;
+	};
+	SPopupFocus m_KeyboardFocus;
+	SPopupFocus m_PendingPopupFocus;
+	void RestorePopupFocus(const void *pId, CLineInput *pLineInput = nullptr);
+	void QueuePopupFocusRestore(const SPopupFocus &Focus);
 	void TrackActiveTextInput(CLineInput *pLineInput);
 	void ReleaseTrackedTextInput();
 	void PruneInteractionSources(bool AllowPreviousFrame);
@@ -831,6 +850,8 @@ private:
 		const SPopupMenuId *m_pId;
 		SPopupMenuProperties m_Props;
 		CQmUiInteractionSource m_Source;
+		SPopupFocus m_ReturnFocus;
+		uint64_t m_OpenedFrame = 0;
 		CUIRect m_Rect;
 		void *m_pContext;
 		FPopupMenuFunction m_pfnFunc;
@@ -842,10 +863,13 @@ private:
 		float m_CloseStart = 0.0f;
 	};
 	std::vector<SPopupMenu> m_vPopupMenus;
+	std::vector<std::weak_ptr<SQmUiSelectionCommit>> m_vPendingSelections;
+	void RegisterSelectionCommit(std::shared_ptr<SQmUiSelectionCommit> &pCommit);
 	CQmPopupSourceClock m_PopupSourceClock;
 	FPopupMenuClosedCallback m_pfnPopupMenuClosedCallback = nullptr;
 	int m_PopupInputDepth = 0;
 	bool UnderlyingPointerInputBlocked() const;
+	bool WheelInputBlocked(const void *pOwnerId) const;
 
 	static CUi::EPopupMenuFunctionResult PopupMessage(void *pContext, CUIRect View, bool Active);
 	static CUi::EPopupMenuFunctionResult PopupConfirm(void *pContext, CUIRect View, bool Active);
@@ -857,6 +881,7 @@ private:
 	IInput *m_pInput;
 	ITextRender *m_pTextRender;
 	float m_BackgroundAlphaScale = 1.0f;
+	float m_ControlAlphaScale = 1.0f;
 	struct SQmCachedIconLabel
 	{
 		std::string m_Text;
@@ -894,6 +919,7 @@ public:
 	uint64_t PopupSourceFrame() const { return m_PopupSourceClock.Frame(); }
 	void RefreshInteractionSource(const void *pContext, const char *pCardId);
 	void CloseInteractionSource(const void *pContext, const char *pCardId);
+	bool HasPendingInteractionSelection() const;
 	bool ConsumeMenuUiFirstWheelPerf()
 	{
 		const bool Result = m_MenuUiFirstWheelPerf;
@@ -903,6 +929,14 @@ public:
 	IGraphics *Graphics() const { return m_pGraphics; }
 	IInput *Input() const { return m_pInput; }
 	ITextRender *TextRender() const { return m_pTextRender; }
+	// 背景透明度只作用于页面及轨道；控件自身颜色只乘父层显隐系数。
+	float ControlAlphaScale() const { return m_ControlAlphaScale; }
+	void SetControlAlphaScale(float AlphaScale) { m_ControlAlphaScale = std::clamp(AlphaScale, 0.0f, 1.0f); }
+	ColorRGBA ScaleControlAlpha(ColorRGBA Color) const
+	{
+		Color.a *= m_ControlAlphaScale;
+		return Color;
+	}
 	float BackgroundAlphaScale() const { return m_BackgroundAlphaScale; }
 	void SetBackgroundAlphaScale(float AlphaScale) { m_BackgroundAlphaScale = std::clamp(AlphaScale, 0.0f, 1.0f); }
 	ColorRGBA ScaleBackgroundAlpha(ColorRGBA Color) const
@@ -960,13 +994,30 @@ public:
 	bool Enabled() const { return m_Enabled; }
 	void BeginRenderOnly();
 	void EndRenderOnly();
-	void BeginBackgroundRender() { ++m_BackgroundRenderDepth; }
-	void EndBackgroundRender()
+	void BeginBackgroundRender(bool ContentDraw = false)
+	{
+		++m_BackgroundRenderDepth;
+		if(ContentDraw)
+			++m_ContentDrawDepth;
+	}
+	void EndBackgroundRender(bool ContentDraw = false)
 	{
 		if(m_BackgroundRenderDepth > 0)
 			--m_BackgroundRenderDepth;
+		if(ContentDraw && m_ContentDrawDepth > 0)
+			--m_ContentDrawDepth;
 	}
+	// 文本预热不绘制外观；后台绘制保留外观，但同样禁止交互。
+	bool MeasurementOnly() const { return m_RenderOnlyDepth > 0; }
+	bool BackgroundRender() const { return m_BackgroundRenderDepth > 0; }
+	// 预布局允许输入和测量，但不能重复提交半透明控件。
+	bool DrawingSuppressed() const { return m_RenderOnlyDepth > 0 || PreLayoutInput(); }
 	bool RenderOnly() const { return m_RenderOnlyDepth > 0 || m_BackgroundRenderDepth > 0; }
+	// 内容 DRAW 保留控件反馈；真正的下层菜单、测量和活动弹层仍屏蔽反馈。
+	bool VisualMouseHovered(const CUIRect *pRect) const
+	{
+		return m_RenderOnlyDepth == 0 && m_ContentDrawDepth == m_BackgroundRenderDepth && !UnderlyingPointerInputBlocked() && MouseInside(pRect) && MouseInsideClip();
+	}
 	void BeginPreLayoutInput() { ++m_PreLayoutInputDepth; }
 	void EndPreLayoutInput()
 	{
@@ -982,6 +1033,13 @@ public:
 	void SetCardLabelHintsEnabled(bool Enabled) { m_CardLabelHintsEnabled = Enabled; }
 	const char *PrepareCardLabel(const CUIRect *pRect, const char *pText, bool Render = true) const;
 	void DoConfigTooltip(const void *pId, const CUIRect *pRect, const void *pValue, const void *pSecondValue = nullptr);
+	void DoButtonTooltip(const void *pId, const CUIRect *pRect, const char *pText);
+	void SetKeyboardFocus(const void *pId);
+	const void *KeyboardFocusItem() const { return m_KeyboardFocus.m_pItem; }
+	int DoButtonGroupKeyboard(const void *const *ppIds, const bool *pEnabled, int Count);
+	void DoTooltip(const void *pId, const CUIRect *pNearRect, const char *pText, float WidthHint = -1.0f);
+	void DoSmallTooltip(const void *pId, const CUIRect *pNearRect, const char *pText, float FontSize = 12.0f, float WidthHint = -1.0f);
+	CTooltips *QmTooltips() const { return m_pQmTooltips; }
 	const SUiTheme &QmControlTheme();
 	float DropDownFontSize() const { return m_DropDownFontSize; }
 	void Update();
@@ -1056,6 +1114,8 @@ public:
 	bool IsActiveItem(const void *pId) const { return m_pActiveItem == pId; }
 	void SetHotScrollRegion(CScrollRegion *pId, EUiWheelOwnerPriority Priority = EUiWheelOwnerPriority::PAGE)
 	{
+		if(RenderOnly())
+			return;
 		if(pId == nullptr)
 		{
 			m_pBecomingHotScrollRegion = nullptr;
@@ -1133,6 +1193,8 @@ public:
 	void DoSmoothScrollLogic(float *pScrollOffset, float *pScrollOffsetChange, float ViewPortSize, float TotalSize, bool SmoothClamp = false, float ScrollSpeed = 10.0f) const;
 	static vec2 CalcAlignedCursorPos(const CUIRect *pRect, vec2 TextSize, int Align, const float *pBiggestCharHeight = nullptr);
 
+	// 定位文字与控件共用绘制隔离；保留后台预览的原始坐标。
+	void DoText(float X, float Y, float Size, const char *pText, float LineWidth = -1.0f) const;
 	CLabelResult DoLabel(const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps = {}) const;
 	CLabelResult DoLabel_AutoLineSize(const char *pText, float FontSize, int Align, CUIRect *pRect, float LineSize, const SLabelProperties &LabelProps = {}) const;
 	int GetLabelFlagsForProperties(const SLabelProperties &LabelProps, const CTextCursor *pReadCursor = nullptr) const;
@@ -1142,7 +1204,8 @@ public:
 		SEditBoxRenderOptions() :
 			m_DrawBackground(true),
 			m_pHitRect(nullptr),
-			m_ReleaseFocusOnEnter(true)
+			m_ReleaseFocusOnEnter(true),
+			m_ProcessInput(true)
 		{
 		}
 
@@ -1150,6 +1213,8 @@ public:
 		const CUIRect *m_pHitRect;
 		// 编辑器等调用者需要保留焦点与确认热键，供外层执行数值／命令提交。
 		bool m_ReleaseFocusOnEnter;
+		// 输入权限与文字排版分离，禁用编辑仍使用相同内边距和滚动偏移。
+		bool m_ProcessInput;
 	};
 
 	void DoLabel(CUIElement::SUIElementRect &RectEl, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps = {}, int StrLen = -1, const CTextCursor *pReadCursor = nullptr) const;
@@ -1274,13 +1339,14 @@ public:
 
 	// 弹窗实现位于 ui_popups.cpp
 	static constexpr float PopupMenuContentInset() { return (SPopupMenu::POPUP_BORDER + SPopupMenu::POPUP_MARGIN) * 2.0f; }
+	static SPopupMenuProperties SecondaryPanelProperties();
 	void DoPopupMenu(const SPopupMenuId *pId, float X, float Y, float Width, float Height, void *pContext, FPopupMenuFunction pfnFunc, const SPopupMenuProperties &Props = {});
 	void RenderPopupMenus();
-	void ClosePopupMenu(const SPopupMenuId *pId, bool IncludeDescendants = false);
+	void ClosePopupMenu(const SPopupMenuId *pId, bool IncludeDescendants = false, bool RestoreFocus = true);
 	void RefreshPopupMenuSource(const SPopupMenuId *pId, bool RequireRefresh, uint64_t Frame);
 	// 输入阶段关闭最上层，避免所属组件延迟绘制前 Escape 泄漏给菜单。
 	bool CloseTopPopupMenu();
-	void ClosePopupMenus();
+	void ClosePopupMenus(bool RestoreFocus = true);
 	bool IsPopupOpen() const;
 	bool IsPopupOpen(const SPopupMenuId *pId) const;
 	// 包含退场中的弹层，供独立绘制入口延续公共动画生命周期。
@@ -1334,6 +1400,7 @@ public:
 
 	struct SSelectionPopupContext : public SPopupMenuId
 	{
+		std::shared_ptr<SQmUiSelectionCommit> m_pCommit;
 		CUi *m_pUI; // set by CUi when popup is shown
 		CScrollRegion *m_pScrollRegion;
 		SPopupMenuProperties m_Props;
@@ -1368,6 +1435,10 @@ public:
 		bool m_FontFaceAvailabilityCheck = false;
 		// 字体族列表以默认面预览；样式与商店 face 列表保持完整配置名语义。
 		bool m_FontFamilySelection = false;
+		bool m_Searchable = false;
+		bool m_FocusSearch = false;
+		CLineInputBuffered<256> m_SearchInput;
+		CQmDropdownSearch m_Search;
 
 		SSelectionPopupContext();
 		void Reset();
@@ -1379,23 +1450,58 @@ public:
 		enum EColorPickerMode
 		{
 			MODE_UNSET = -1,
+			MODE_RECOMMENDED,
 			MODE_HSVA,
 			MODE_RGBA,
 			MODE_HSLA,
 		};
+		// 主取色区形态：方图（SV 平面 + 竖向色相条）或色环（环选色相 + 环内 SV 方图）。
+		enum EColorPickerShape
+		{
+			SHAPE_SQUARE = 0,
+			SHAPE_WHEEL,
+		};
 
 		CUi *m_pUI; // set by CUi when popup is shown
 		EColorPickerMode m_ColorMode = MODE_UNSET;
+		EColorPickerShape m_Shape = SHAPE_SQUARE;
 		bool m_Alpha = false;
 		unsigned int *m_pHslaColor = nullptr; // may be nullptr
 		ColorHSVA m_HsvaColor;
 		ColorRGBA m_RgbaColor;
 		ColorHSLA m_HslaColor;
+		// 打开时快照的初始颜色：确认关闭保持当前值，取消关闭恢复快照。
+		ColorHSVA m_InitialHsvaColor;
+		ColorRGBA m_InitialRgbaColor;
+		ColorHSLA m_InitialHslaColor;
+		// 「我的调色板」工作副本：打开时从 g_Config.m_QmColorPickerPalette 载入，
+		// 每次增删改名即刻序列化回写；全部取色器实例共享同一份配置。
+		std::vector<qm_picker_palette::SSwatch> m_vPalette;
+		int m_RenamingPaletteIndex = -1; // >=0 时对应色块显示为行内改名输入框
+		CLineInput m_RenameInput;
+		char m_aRenameBuffer[qm_picker_palette::MAX_NAME_BYTES];
 		// UI element IDs
 		const char m_HuePickerId = 0;
+		const char m_WheelPickerId = 0;
 		const char m_ColorPickerId = 0;
 		const char m_aValueSelectorIds[5] = {0};
+		// 通道滑条行（H/S/V/L/A 与 Hex）的常驻小输入框：滑条拖动与数值输入双向。
+		char m_aacChannelBuffers[4][8];
+		CLineInput m_aChannelInputs[4];
+		char m_aHexBuffer[16];
+		CLineInput m_HexInput;
 		CButtonContainer m_aModeButtons[(int)MODE_HSLA + 1];
+		CButtonContainer m_ShapeButton;
+		CButtonContainer m_AcceptButton;
+		CButtonContainer m_CloseButton;
+		CButtonContainer m_InitialColorButton;
+		CButtonContainer m_aPresetButtons[24];
+		CButtonContainer m_aPaletteSwatchButtons[qm_picker_palette::MAX_SWATCHES];
+		CButtonContainer m_aPaletteDeleteButtons[qm_picker_palette::MAX_SWATCHES];
+		CButtonContainer m_AddPaletteButton;
+		// 调色板色块双击改名判定：记录上次左键点击的色块与时间。
+		float m_aSwatchClickTime[qm_picker_palette::MAX_SWATCHES] = {0.0f};
+		int m_LastSwatchClickIndex = -1;
 		EEditState m_State = EEditState::NONE;
 	};
 	void ShowPopupColorPicker(float X, float Y, SColorPickerPopupContext *pContext);
@@ -1437,11 +1543,44 @@ public:
 		const CUIRect *m_pAnchorViewport;
 		const CUIRect *m_pPopupViewport;
 		SQmDropdownVisualStyle m_VisualStyle;
+		bool m_Searchable = false;
 		const void *m_pConfigValue = nullptr;
 		const void *m_pSecondConfigValue = nullptr;
 	};
 	int DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, int Num, SDropDownState &State, const SDropDownProperties &DropDownProps = {});
 	int DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, int Num, SDropDownState &State, bool Enabled);
+};
+
+// 测量独立于后台只读绘制，嵌套进入时仍建立零尺寸裁剪。
+class CUiScopedMeasurement
+{
+	CUi *m_pUi;
+
+public:
+	explicit CUiScopedMeasurement(CUi *pUi, bool Enabled = true) : m_pUi(Enabled ? pUi : nullptr)
+	{
+		if(m_pUi != nullptr)
+			m_pUi->BeginRenderOnly();
+	}
+	~CUiScopedMeasurement()
+	{
+		if(m_pUi != nullptr)
+			m_pUi->EndRenderOnly();
+	}
+	CUiScopedMeasurement(const CUiScopedMeasurement &) = delete;
+	CUiScopedMeasurement &operator=(const CUiScopedMeasurement &) = delete;
+};
+
+class CUiScopedBackgroundRender
+{
+	CUi *m_pUi;
+	bool m_ContentDraw;
+
+public:
+	explicit CUiScopedBackgroundRender(CUi *pUi, bool ContentDraw = false) : m_pUi(pUi), m_ContentDraw(ContentDraw) { m_pUi->BeginBackgroundRender(m_ContentDraw); }
+	~CUiScopedBackgroundRender() { m_pUi->EndBackgroundRender(m_ContentDraw); }
+	CUiScopedBackgroundRender(const CUiScopedBackgroundRender &) = delete;
+	CUiScopedBackgroundRender &operator=(const CUiScopedBackgroundRender &) = delete;
 };
 
 class CUiScopedInteractionOwner
@@ -1470,6 +1609,48 @@ public:
 	}
 	CUiScopedInteractionOwner(const CUiScopedInteractionOwner &) = delete;
 	CUiScopedInteractionOwner &operator=(const CUiScopedInteractionOwner &) = delete;
+};
+
+// 父层淡入淡出按层相乘，离开作用域后恢复，避免页面背景设置串入控件颜色。
+class CUiScopedControlAlphaScale
+{
+	CUi *m_pUi;
+	float m_Previous;
+	ITextRender *m_pTextRender;
+	ColorRGBA m_PreviousText;
+	ColorRGBA m_PreviousOutline;
+	ColorRGBA m_PreviousSelection;
+
+public:
+	CUiScopedControlAlphaScale(CUi *pUi, float Alpha) :
+		m_pUi(pUi), m_Previous(pUi != nullptr ? pUi->ControlAlphaScale() : 1.0f), m_pTextRender(pUi != nullptr ? pUi->TextRender() : nullptr)
+	{
+		const float Scale = std::clamp(Alpha, 0.0f, 1.0f);
+		if(m_pUi != nullptr)
+			m_pUi->SetControlAlphaScale(m_Previous * Scale);
+		if(m_pTextRender != nullptr)
+		{
+			m_PreviousText = m_pTextRender->GetTextColor();
+			m_PreviousOutline = m_pTextRender->GetTextOutlineColor();
+			m_PreviousSelection = m_pTextRender->GetTextSelectionColor();
+			m_pTextRender->TextColor(m_PreviousText.WithMultipliedAlpha(Scale));
+			m_pTextRender->TextOutlineColor(m_PreviousOutline.WithMultipliedAlpha(Scale));
+			m_pTextRender->TextSelectionColor(m_PreviousSelection.WithMultipliedAlpha(Scale));
+		}
+	}
+	~CUiScopedControlAlphaScale()
+	{
+		if(m_pUi != nullptr)
+			m_pUi->SetControlAlphaScale(m_Previous);
+		if(m_pTextRender != nullptr)
+		{
+			m_pTextRender->TextColor(m_PreviousText);
+			m_pTextRender->TextOutlineColor(m_PreviousOutline);
+			m_pTextRender->TextSelectionColor(m_PreviousSelection);
+		}
+	}
+	CUiScopedControlAlphaScale(const CUiScopedControlAlphaScale &) = delete;
+	CUiScopedControlAlphaScale &operator=(const CUiScopedControlAlphaScale &) = delete;
 };
 
 #endif

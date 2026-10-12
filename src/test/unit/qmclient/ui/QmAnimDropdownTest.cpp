@@ -776,7 +776,8 @@ TEST(UiV2PopupPointer, BlockingPopupClosesOnOutsidePressWithoutCapture)
 {
 	SQmPopupPointerInput Input;
 	Input.m_Active = true;
-	Input.m_BlockUnderlying = ui_widget::SecondaryPanelProperties().m_BlockUnderlyingPointerInput;
+	// 单元层验证指针状态机的阻断输入；公共面板属性与关闭行为由真实 UI 集成测试验证。
+	Input.m_BlockUnderlying = true;
 	Input.m_Pressed = true;
 	Input.m_Held = true;
 	EXPECT_EQ(QmResolvePopupPointerAction(Input), EQmPopupPointerAction::CLOSE);
@@ -1040,4 +1041,43 @@ TEST_F(CQmDropdownVisualStyleTest, ReconstructedDefaultStyleReflectsChangedOpaci
 	EXPECT_FLOAT_EQ(After.m_PopupBackgroundColor.a, 0.8f);
 	EXPECT_GT(Before.m_TriggerColor.a, After.m_TriggerColor.a);
 	EXPECT_LT(Before.m_PopupBackgroundColor.a, After.m_PopupBackgroundColor.a);
+}
+
+TEST(QmDropdownSearch, FiltersUnicodeNamesAndReturnsOriginalIndex)
+{
+	CQmDropdownSearch Search;
+	const std::vector<std::string> Names{"Default", "Arial", "思源黑体", "Source Han Sans", "Arial Narrow"};
+	ASSERT_TRUE(Search.Update(Names, "aRiAl"));
+	EXPECT_EQ(Search.Indices(), (std::vector<int>{1, 4}));
+	EXPECT_EQ(Search.SourceIndex(1), 4);
+	EXPECT_EQ(Search.SourceIndex(-1), -1);
+	EXPECT_EQ(Search.SourceIndex(2), -1);
+	ASSERT_TRUE(Search.Update(Names, "黑体"));
+	EXPECT_EQ(Search.Indices(), (std::vector<int>{2}));
+}
+
+TEST(QmDropdownSearch, EmptyAndMissingQueryNeverSelectAnUnrelatedEntry)
+{
+	CQmDropdownSearch Search;
+	const std::vector<std::string> Names{"Arial", "Verdana"};
+	ASSERT_TRUE(Search.Update(Names, "unknown"));
+	EXPECT_TRUE(Search.Indices().empty());
+	EXPECT_EQ(Search.SourceIndex(0), -1);
+	ASSERT_TRUE(Search.Update(Names, ""));
+	EXPECT_EQ(Search.Indices(), (std::vector<int>{0, 1}));
+	EXPECT_FALSE(Search.Update(Names, ""));
+	ASSERT_TRUE(Search.Update({}, ""));
+	EXPECT_EQ(Search.SourceIndex(0), -1);
+}
+
+TEST(QmDropdownSearch, SourceChangeAndReopeningDiscardStaleMatches)
+{
+	CQmDropdownSearch Search;
+	ASSERT_TRUE(Search.Update({"Default", "Arial", "Verdana"}, "Arial"));
+	EXPECT_EQ(Search.SourceIndex(0), 1);
+	ASSERT_TRUE(Search.Update({"Arial", "Verdana"}, "Arial"));
+	EXPECT_EQ(Search.SourceIndex(0), 0);
+	Search.Reset();
+	ASSERT_TRUE(Search.Update({"Arial", "Verdana"}, ""));
+	EXPECT_EQ(Search.Indices().size(), 2u);
 }

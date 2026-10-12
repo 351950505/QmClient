@@ -6,26 +6,28 @@
 
 #include <algorithm>
 
-SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &, const float ContentHeight, const float UiScale)
+SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &Spec, const float ContentHeight, const float UiScale)
 {
-	const float Scale = UiScale > 0.0f ? UiScale : 1.0f;
+	const float Scale = std::isfinite(UiScale) && UiScale > 0.0f ? UiScale : 1.0f;
 	const float Padding = ui_token::settings::CARD_PADDING * Scale;
 	const float TitleHeight = ui_token::settings::CARD_HEADER_TITLE_HEIGHT * Scale;
-	// 模块说明由标题悬浮提示承载，不再预留副标题行。
-	const float SubtitleHeight = 0.0f;
+	// 为悬浮副标题固定预留空间，鼠标进入或离开时不移动正文和后续卡片。
+	const float SubtitleHeight = Spec.m_pSubtitle != nullptr && Spec.m_pSubtitle[0] != '\0' ? ui_token::settings::CARD_HEADER_SUBTITLE_HEIGHT * Scale : 0.0f;
+	const float SummaryGap = 0.0f;
 	const float HeaderGap = ui_token::settings::CARD_HEADER_GAP * Scale;
-	const float HeaderHeight = TitleHeight + SubtitleHeight;
-	const float HandleSize = ui_token::settings::CARD_HANDLE_SIZE * Scale;
+	const float HeaderHeight = TitleHeight + SummaryGap + SubtitleHeight;
 	const float SafeContentHeight = std::max(0.0f, ContentHeight);
 
 	SSettingsCardFrame Frame{};
 	Frame.m_Rect = {Slot.x, Slot.y, std::max(0.0f, Slot.w), Padding + HeaderHeight + HeaderGap + SafeContentHeight + Padding};
 	Frame.m_HeaderRect = {Frame.m_Rect.x + Padding, Frame.m_Rect.y + Padding, std::max(0.0f, Frame.m_Rect.w - Padding * 2.0f), HeaderHeight};
-	Frame.m_HandleRect = {Frame.m_HeaderRect.x + std::max(0.0f, Frame.m_HeaderRect.w - HandleSize), Frame.m_HeaderRect.y, std::min(HandleSize, Frame.m_HeaderRect.w), std::min(HandleSize, HeaderHeight)};
-	const float TextWidth = std::max(0.0f, Frame.m_HeaderRect.w - Frame.m_HandleRect.w - Padding);
+	const float HandleSize = std::min({ui_token::settings::CARD_HANDLE_SIZE * Scale, TitleHeight, Frame.m_HeaderRect.w});
+	Frame.m_HandleRect = {Frame.m_HeaderRect.x + Frame.m_HeaderRect.w - HandleSize, Frame.m_HeaderRect.y, HandleSize, HandleSize};
+	const float TextWidth = std::max(0.0f, Frame.m_HeaderRect.w - HandleSize - Padding);
 	Frame.m_TitleRect = {Frame.m_HeaderRect.x, Frame.m_HeaderRect.y, TextWidth, TitleHeight};
-	Frame.m_SubtitleRect = {Frame.m_HeaderRect.x, Frame.m_HeaderRect.y + TitleHeight, TextWidth, SubtitleHeight};
-	Frame.m_ContentRect = {Frame.m_Rect.x + Padding, Frame.m_HeaderRect.y + HeaderHeight + HeaderGap, std::max(0.0f, Frame.m_Rect.w - Padding * 2.0f), SafeContentHeight};
+	// 副标题独占标题下方的一行，绘制时沿用限宽和省略兜底。
+	Frame.m_SubtitleRect = {Frame.m_HeaderRect.x, Frame.m_HeaderRect.y + TitleHeight + SummaryGap, Frame.m_HeaderRect.w, SubtitleHeight};
+	Frame.m_ContentRect = {Frame.m_Rect.x + Padding, Frame.m_HeaderRect.y + HeaderHeight + HeaderGap, Frame.m_HeaderRect.w, SafeContentHeight};
 	return Frame;
 }
 

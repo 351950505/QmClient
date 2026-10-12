@@ -18,6 +18,8 @@
 #include <engine/storage.h>
 #include <engine/textrender.h>
 
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -50,6 +52,7 @@ extern std::unordered_map<std::string, CBindSlot> g_CommandBindCache;
 
 void CMenus::RenderQmHudBackground3DContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, float LabelWidth, bool PrewarmOnly)
 {
+	CSettingsContentLayoutFlow Flow(Content);
 	const float LineHeight = Metrics.m_LineHeight;
 	const float BodySize = Metrics.m_BodySize;
 	const float LineSpacing = Metrics.m_LineSpacing;
@@ -70,141 +73,167 @@ void CMenus::RenderQmHudBackground3DContent(CUIRect &Content, const SSettingsCon
 		RenderQmSettingsSliderWithValueInput(pId, ControlColumn, pValue, MinValue, MaxValue, pSuffix, PrewarmOnly);
 	};
 
-	auto RenderIntOption = [&](const void *pId, const char *pLabel, int *pValue, int MinValue, int MaxValue, const char *pSuffix = "", bool TrailingSpacing = true) {
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitLeft(LabelWidth, &LabelCol, &ControlCol);
-		Ui()->DoLabel(&LabelCol, pLabel, BodySize, TEXTALIGN_ML);
-		GameClient()->m_Tooltips.DoSettingsToolTipForConfig(pId, &Row, pValue, &LabelCol);
-		RenderSliderWithValueInput(pId, ControlCol, pValue, MinValue, MaxValue, pSuffix);
+	auto RenderIntOption = [&](const char *pTextId, const void *pId, const char *pLabel, int *pValue, int MinValue, int MaxValue, const char *pSuffix = "", bool TrailingSpacing = true) {
+		if(Flow.Control(pTextId, CurrentSettingsContentMetrics().m_LineHeight, Row))
+		{
+			SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelCol, &ControlCol);
+			Ui()->DoLabel(&LabelCol, pLabel, BodySize, TEXTALIGN_ML);
+			GameClient()->m_Tooltips.DoSettingsToolTipForConfig(pId, &Row, pValue, &LabelCol);
+			RenderSliderWithValueInput(pId, ControlCol, pValue, MinValue, MaxValue, pSuffix);
+		}
 		if(TrailingSpacing)
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
+			Flow.Space(LineSpacing);
 	};
 
-	Content.HSplitTop(LineHeight, &Row, &Content);
-	DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticles, "Enable 3D background particles", Localize("Enable 3D background particles"), &g_Config.m_Qm3DParticles, &Row, LineHeight);
+	if(Flow.Control("Enable 3D background particles", CurrentSettingsContentMetrics().m_LineHeight, Row))
+	{
+		DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticles, "Enable 3D background particles", Localize("Enable 3D background particles"), &g_Config.m_Qm3DParticles, &Row, LineHeight);
+	}
 	if(g_Config.m_Qm3DParticles)
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		Flow.Space(LineSpacing);
 
 	if(g_Config.m_Qm3DParticles)
 	{
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitLeft(LabelWidth, &LabelCol, &ControlCol);
-		DoQmSettingsLabel("qmclient-3d-background-particle-type", &LabelCol, Localize("Particle type"), BodySize);
-		std::array<const char *, 9> apQm3DParticleTypeNames = {
-			Localize("Cube"),
-			Localize("Heart"),
-			Localize("Sphere"),
-			Localize("Pyramid"),
-			Localize("Diamond"),
-			Localize("Ring"),
-			Localize("Star"),
-			Localize("Crescent"),
-			Localize("Mixed"),
-		};
-		const std::array<int, 9> aQm3DParticleTypeValues = {1, 2, 4, 5, 6, 7, 8, 9, 3};
-		int TypeIndex = 0;
-		for(size_t TypeValueIndex = 0; TypeValueIndex < aQm3DParticleTypeValues.size(); ++TypeValueIndex)
+		if(Flow.Control("qmclient-3d-background-particle-type", CurrentSettingsContentMetrics().m_LineHeight, Row))
 		{
-			if(aQm3DParticleTypeValues[TypeValueIndex] == g_Config.m_Qm3DParticlesType)
+			SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelCol, &ControlCol);
+			DoQmSettingsLabel("qmclient-3d-background-particle-type", &LabelCol, Localize("Particle type"), BodySize);
+			std::array<const char *, 9> apQm3DParticleTypeNames = {
+				Localize("Cube"),
+				Localize("Heart"),
+				Localize("Sphere"),
+				Localize("Pyramid"),
+				Localize("Diamond"),
+				Localize("Ring"),
+				Localize("Star"),
+				Localize("Crescent"),
+				Localize("Mixed"),
+			};
+			const std::array<int, 9> aQm3DParticleTypeValues = {1, 2, 4, 5, 6, 7, 8, 9, 3};
+			int TypeIndex = 0;
+			for(size_t TypeValueIndex = 0; TypeValueIndex < aQm3DParticleTypeValues.size(); ++TypeValueIndex)
 			{
-				TypeIndex = (int)TypeValueIndex;
-				break;
+				if(aQm3DParticleTypeValues[TypeValueIndex] == g_Config.m_Qm3DParticlesType)
+				{
+					TypeIndex = (int)TypeValueIndex;
+					break;
+				}
 			}
+			static CUi::SDropDownState s_Qm3DParticleTypeDropDownState;
+			static CScrollRegion s_Qm3DParticleTypeDropDownScrollRegion;
+			s_Qm3DParticleTypeDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_Qm3DParticleTypeDropDownScrollRegion;
+			const int NewTypeIndex = DoSettingsDropDown(&ControlCol, TypeIndex, apQm3DParticleTypeNames.data(), static_cast<int>(apQm3DParticleTypeNames.size()), s_Qm3DParticleTypeDropDownState, {}, &g_Config.m_Qm3DParticlesType, nullptr, &Row);
+			if(NewTypeIndex >= 0 && NewTypeIndex < static_cast<int>(aQm3DParticleTypeValues.size()) && NewTypeIndex != TypeIndex)
+				g_Config.m_Qm3DParticlesType = aQm3DParticleTypeValues[NewTypeIndex];
 		}
-		static CUi::SDropDownState s_Qm3DParticleTypeDropDownState;
-		static CScrollRegion s_Qm3DParticleTypeDropDownScrollRegion;
-		s_Qm3DParticleTypeDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_Qm3DParticleTypeDropDownScrollRegion;
-		const int NewTypeIndex = DoSettingsDropDown(&ControlCol, TypeIndex, apQm3DParticleTypeNames.data(), static_cast<int>(apQm3DParticleTypeNames.size()), s_Qm3DParticleTypeDropDownState, {}, &g_Config.m_Qm3DParticlesType, nullptr, &Row);
-		if(NewTypeIndex >= 0 && NewTypeIndex < static_cast<int>(aQm3DParticleTypeValues.size()) && NewTypeIndex != TypeIndex)
-			g_Config.m_Qm3DParticlesType = aQm3DParticleTypeValues[NewTypeIndex];
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		Flow.Space(LineSpacing);
 
 		static int s_Qm3DParticleCountInputId;
-		RenderIntOption(&s_Qm3DParticleCountInputId, Localize("Particle count"), &g_Config.m_Qm3DParticlesCount, 1, 200);
+		RenderIntOption("hud-Qm3DParticlesCount", &s_Qm3DParticleCountInputId, Localize("Particle count"), &g_Config.m_Qm3DParticlesCount, 1, 200);
 		static int s_Qm3DParticleAlphaInputId;
-		RenderIntOption(&s_Qm3DParticleAlphaInputId, Localize("Particle alpha"), &g_Config.m_Qm3DParticlesAlpha, 1, 100, "%");
+		RenderIntOption("hud-Qm3DParticlesAlpha", &s_Qm3DParticleAlphaInputId, Localize("Particle alpha"), &g_Config.m_Qm3DParticlesAlpha, 1, 100, "%");
 		static int s_Qm3DParticleMinSizeInputId;
-		RenderIntOption(&s_Qm3DParticleMinSizeInputId, Localize("Min size"), &g_Config.m_Qm3DParticlesSizeMin, 2, 64);
+		RenderIntOption("hud-Qm3DParticlesSizeMin", &s_Qm3DParticleMinSizeInputId, Localize("Min size"), &g_Config.m_Qm3DParticlesSizeMin, 2, 64);
 		if(!PrewarmOnly && !Ui()->RenderOnly() && g_Config.m_Qm3DParticlesSizeMax < g_Config.m_Qm3DParticlesSizeMin)
 			g_Config.m_Qm3DParticlesSizeMax = g_Config.m_Qm3DParticlesSizeMin;
 		static int s_Qm3DParticleMaxSizeInputId;
-		RenderIntOption(&s_Qm3DParticleMaxSizeInputId, Localize("Max size"), &g_Config.m_Qm3DParticlesSizeMax, g_Config.m_Qm3DParticlesSizeMin, 64);
+		RenderIntOption("hud-Qm3DParticlesSizeMax", &s_Qm3DParticleMaxSizeInputId, Localize("Max size"), &g_Config.m_Qm3DParticlesSizeMax, g_Config.m_Qm3DParticlesSizeMin, 64);
 		static int s_Qm3DParticleSpeedInputId;
-		RenderIntOption(&s_Qm3DParticleSpeedInputId, Localize("Particle speed"), &g_Config.m_Qm3DParticlesSpeed, 1, 500);
+		RenderIntOption("hud-Qm3DParticlesSpeed", &s_Qm3DParticleSpeedInputId, Localize("Particle speed"), &g_Config.m_Qm3DParticlesSpeed, 1, 500);
 		static int s_Qm3DParticleDepthInputId;
-		RenderIntOption(&s_Qm3DParticleDepthInputId, Localize("Particle depth"), &g_Config.m_Qm3DParticlesDepth, 10, 1000);
+		RenderIntOption("hud-Qm3DParticlesDepth", &s_Qm3DParticleDepthInputId, Localize("Particle depth"), &g_Config.m_Qm3DParticlesDepth, 10, 1000);
 		static int s_Qm3DParticleViewMarginInputId;
-		RenderIntOption(&s_Qm3DParticleViewMarginInputId, Localize("View margin"), &g_Config.m_Qm3DParticlesViewMargin, 0, 1000);
+		RenderIntOption("hud-Qm3DParticlesViewMargin", &s_Qm3DParticleViewMarginInputId, Localize("View margin"), &g_Config.m_Qm3DParticlesViewMargin, 0, 1000);
 		static int s_Qm3DParticleFadeInInputId;
-		RenderIntOption(&s_Qm3DParticleFadeInInputId, Localize("Fade in"), &g_Config.m_Qm3DParticlesFadeInMs, 1, 5000, "ms");
+		RenderIntOption("hud-Qm3DParticlesFadeInMs", &s_Qm3DParticleFadeInInputId, Localize("Fade in"), &g_Config.m_Qm3DParticlesFadeInMs, 1, 5000, "ms");
 		static int s_Qm3DParticleFadeOutInputId;
-		RenderIntOption(&s_Qm3DParticleFadeOutInputId, Localize("Fade out"), &g_Config.m_Qm3DParticlesFadeOutMs, 1, 5000, "ms");
+		RenderIntOption("hud-Qm3DParticlesFadeOutMs", &s_Qm3DParticleFadeOutInputId, Localize("Fade out"), &g_Config.m_Qm3DParticlesFadeOutMs, 1, 5000, "ms");
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesCollide, "Particle collision", Localize("Particle collision"), &g_Config.m_Qm3DParticlesCollide, &Row, LineHeight);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		if(Flow.Control("Particle collision", CurrentSettingsContentMetrics().m_LineHeight, Row))
+		{
+			DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesCollide, "Particle collision", Localize("Particle collision"), &g_Config.m_Qm3DParticlesCollide, &Row, LineHeight);
+		}
+		Flow.Space(LineSpacing);
 
 		static int s_Qm3DParticlePushRadiusInputId;
-		RenderIntOption(&s_Qm3DParticlePushRadiusInputId, Localize("Push radius"), &g_Config.m_Qm3DParticlesPushRadius, 0, 1000);
+		RenderIntOption("hud-Qm3DParticlesPushRadius", &s_Qm3DParticlePushRadiusInputId, Localize("Push radius"), &g_Config.m_Qm3DParticlesPushRadius, 0, 1000);
 		static int s_Qm3DParticlePushStrengthInputId;
-		RenderIntOption(&s_Qm3DParticlePushStrengthInputId, Localize("Push strength"), &g_Config.m_Qm3DParticlesPushStrength, 0, 2000);
+		RenderIntOption("hud-Qm3DParticlesPushStrength", &s_Qm3DParticlePushStrengthInputId, Localize("Push strength"), &g_Config.m_Qm3DParticlesPushStrength, 0, 2000);
 
-		static std::vector<CButtonContainer> s_vQm3DParticleColorModeButtons = {{}, {}};
-		int ColorMode = g_Config.m_Qm3DParticlesColorMode;
-		if(DoSettingsLine_RadioMenu(SETTINGS_QMCLIENT, m_QmClientSettingsTab, m_QmClientSettingsTab, Content, "qmclient-3d-particle-color-mode-label", Localize("Particle color"), s_vQm3DParticleColorModeButtons, {"qmclient-3d-particle-color-custom", "qmclient-3d-particle-color-random"}, {Localize("Custom"), Localize("Random")}, {1, 2}, ColorMode, Metrics, nullptr, &g_Config.m_Qm3DParticlesColorMode))
-			g_Config.m_Qm3DParticlesColorMode = ColorMode;
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		CUIRect RadioRow;
+		if(Flow.Control("qmclient-3d-particle-color-mode-label", ResolveSettingsRadioRowLayout(Content, 2, Metrics).m_Height, RadioRow))
+		{
+			static std::vector<CButtonContainer> s_vQm3DParticleColorModeButtons = {{}, {}};
+			int ColorMode = g_Config.m_Qm3DParticlesColorMode;
+			if(DoSettingsLine_RadioMenu(SETTINGS_QMCLIENT, m_QmClientSettingsTab, m_QmClientSettingsTab, RadioRow, "qmclient-3d-particle-color-mode-label", Localize("Particle color"), s_vQm3DParticleColorModeButtons, {"qmclient-3d-particle-color-custom", "qmclient-3d-particle-color-random"}, {Localize("Custom"), Localize("Random")}, {1, 2}, ColorMode, Metrics, nullptr, &g_Config.m_Qm3DParticlesColorMode))
+				g_Config.m_Qm3DParticlesColorMode = ColorMode;
+		}
+		Flow.Space(LineSpacing);
 
 		if(ColorModeForLayout == 1)
 		{
 			static CButtonContainer s_Qm3DParticleColorId;
-			DoLine_ColorPicker(&s_Qm3DParticleColorId, Metrics, &Content, Localize("Particle color"), &g_Config.m_Qm3DParticlesColor, ColorRGBA(0.56f, 0.72f, 0.62f, 1.0f), false, nullptr, true);
+			{
+				CUIRect ColorRow;
+				if(Flow.Control("hud-Qm3DParticlesColor", CurrentSettingsContentMetrics().m_ButtonHeight, ColorRow))
+				{
+					DoLine_ColorPicker(&s_Qm3DParticleColorId, Metrics, &ColorRow, Localize("Particle color"), &g_Config.m_Qm3DParticlesColor, ColorRGBA(0.56f, 0.72f, 0.62f, 1.0f), false, nullptr, true);
+				}
+				Flow.Space(CurrentSettingsContentMetrics().m_LineSpacing);
+			}
 		}
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesGlow, "Particle glow", Localize("Particle glow"), &g_Config.m_Qm3DParticlesGlow, &Row, LineHeight);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		if(Flow.Control("Particle glow", CurrentSettingsContentMetrics().m_LineHeight, Row))
+		{
+			DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesGlow, "Particle glow", Localize("Particle glow"), &g_Config.m_Qm3DParticlesGlow, &Row, LineHeight);
+		}
+		Flow.Space(LineSpacing);
 
 		if(g_Config.m_Qm3DParticlesGlow)
 		{
 			static int s_Qm3DParticleGlowAlphaInputId;
-			RenderIntOption(&s_Qm3DParticleGlowAlphaInputId, Localize("Glow alpha"), &g_Config.m_Qm3DParticlesGlowAlpha, 1, 100, "%");
+			RenderIntOption("hud-Qm3DParticlesGlowAlpha", &s_Qm3DParticleGlowAlphaInputId, Localize("Glow alpha"), &g_Config.m_Qm3DParticlesGlowAlpha, 1, 100, "%");
 			static int s_Qm3DParticleGlowOffsetInputId;
-			RenderIntOption(&s_Qm3DParticleGlowOffsetInputId, Localize("Glow offset"), &g_Config.m_Qm3DParticlesGlowOffset, 1, 20);
+			RenderIntOption("hud-Qm3DParticlesGlowOffset", &s_Qm3DParticleGlowOffsetInputId, Localize("Glow offset"), &g_Config.m_Qm3DParticlesGlowOffset, 1, 20);
 		}
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesTrail, "Particle trail", Localize("Particle trail"), &g_Config.m_Qm3DParticlesTrail, &Row, LineHeight);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		if(Flow.Control("Particle trail", CurrentSettingsContentMetrics().m_LineHeight, Row))
+		{
+			DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesTrail, "Particle trail", Localize("Particle trail"), &g_Config.m_Qm3DParticlesTrail, &Row, LineHeight);
+		}
+		Flow.Space(LineSpacing);
 
 		if(g_Config.m_Qm3DParticlesTrail)
 		{
 			static int s_Qm3DParticleTrailLengthInputId;
-			RenderIntOption(&s_Qm3DParticleTrailLengthInputId, Localize("Trail length"), &g_Config.m_Qm3DParticlesTrailLength, 2, 6);
+			RenderIntOption("hud-Qm3DParticlesTrailLength", &s_Qm3DParticleTrailLengthInputId, Localize("Trail length"), &g_Config.m_Qm3DParticlesTrailLength, 2, 6);
 			static int s_Qm3DParticleTrailAlphaInputId;
-			RenderIntOption(&s_Qm3DParticleTrailAlphaInputId, Localize("Trail alpha"), &g_Config.m_Qm3DParticlesTrailAlpha, 1, 100, "%");
+			RenderIntOption("hud-Qm3DParticlesTrailAlpha", &s_Qm3DParticleTrailAlphaInputId, Localize("Trail alpha"), &g_Config.m_Qm3DParticlesTrailAlpha, 1, 100, "%");
 		}
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesPulse, "Particle pulse", Localize("Particle pulse"), &g_Config.m_Qm3DParticlesPulse, &Row, LineHeight);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
+		if(Flow.Control("Particle pulse", CurrentSettingsContentMetrics().m_LineHeight, Row))
+		{
+			DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesPulse, "Particle pulse", Localize("Particle pulse"), &g_Config.m_Qm3DParticlesPulse, &Row, LineHeight);
+		}
+		Flow.Space(LineSpacing);
 
 		if(g_Config.m_Qm3DParticlesPulse)
 		{
 			static int s_Qm3DParticlePulseStrengthInputId;
-			RenderIntOption(&s_Qm3DParticlePulseStrengthInputId, Localize("Pulse strength"), &g_Config.m_Qm3DParticlesPulseStrength, 0, 50, "%");
+			RenderIntOption("hud-Qm3DParticlesPulseStrength", &s_Qm3DParticlePulseStrengthInputId, Localize("Pulse strength"), &g_Config.m_Qm3DParticlesPulseStrength, 0, 50, "%");
 			static int s_Qm3DParticlePulseSpeedInputId;
-			RenderIntOption(&s_Qm3DParticlePulseSpeedInputId, Localize("Pulse speed"), &g_Config.m_Qm3DParticlesPulseSpeed, 10, 300, "%");
+			RenderIntOption("hud-Qm3DParticlesPulseSpeed", &s_Qm3DParticlePulseSpeedInputId, Localize("Pulse speed"), &g_Config.m_Qm3DParticlesPulseSpeed, 10, 300, "%");
 		}
 
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesTwinkle, "Particle twinkle", Localize("Particle twinkle"), &g_Config.m_Qm3DParticlesTwinkle, &Row, LineHeight);
-
+		if(Flow.Control("Particle twinkle", CurrentSettingsContentMetrics().m_LineHeight, Row))
+		{
+			DoQmSettingsCheckboxAuto(&g_Config.m_Qm3DParticlesTwinkle, "Particle twinkle", Localize("Particle twinkle"), &g_Config.m_Qm3DParticlesTwinkle, &Row, LineHeight);
+		}
 		if(g_Config.m_Qm3DParticlesTwinkle)
 		{
-			Content.HSplitTop(LineSpacing, nullptr, &Content);
+			Flow.Space(LineSpacing);
 			static int s_Qm3DParticleTwinkleStrengthInputId;
-			RenderIntOption(&s_Qm3DParticleTwinkleStrengthInputId, Localize("Twinkle strength"), &g_Config.m_Qm3DParticlesTwinkleStrength, 0, 100, "%", false);
+			RenderIntOption("hud-Qm3DParticlesTwinkleStrength", &s_Qm3DParticleTwinkleStrengthInputId, Localize("Twinkle strength"), &g_Config.m_Qm3DParticlesTwinkleStrength, 0, 100, "%", false);
 		}
 	}
 }

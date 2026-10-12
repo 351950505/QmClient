@@ -126,7 +126,6 @@ namespace
 			m_vParseJobs.push_back(pJob);
 		}
 
-
 	public:
 		std::vector<std::shared_ptr<CQmAxiomDdStatsParseJob>> m_vParseJobs;
 

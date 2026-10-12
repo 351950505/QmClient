@@ -330,6 +330,12 @@ bool SettingsCardDeckScrollMoved(const bool HasPreviousOffset, const float Previ
 	return HasPreviousOffset && std::abs(PreviousOffsetY - CurrentOffsetY) > 0.001f;
 }
 
+float ResolveSettingsCardDeckPassiveScrollOffset(const bool BackgroundRender, const bool HasPreviousOffset, const float PreviousOffsetY)
+{
+	// 背景只绘制已有页面的位置；测量预热仍从零原点解析，不推进滚动状态。
+	return BackgroundRender && HasPreviousOffset ? PreviousOffsetY : 0.0f;
+}
+
 bool SettingsCardDeckAllowsDragStart(const bool EntryPending, const bool EntryPositionActive, const bool ReflowTargetChanged, const bool ReflowPositionActive)
 {
 	return !EntryPending && !EntryPositionActive && !ReflowTargetChanged && !ReflowPositionActive;

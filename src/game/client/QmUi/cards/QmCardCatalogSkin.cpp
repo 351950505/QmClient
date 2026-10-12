@@ -4,6 +4,9 @@
 #include <engine/shared/config.h>
 #include <engine/textrender.h>
 
+#include <game/client/QmUi/SettingsCardContentBridge.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/components/menus.h>
 #include <game/client/gameclient.h>
 #include <game/client/ui_scrollregion.h>
@@ -27,40 +30,30 @@ namespace qm_card_catalog
 		const float LineSpacing = Metrics.m_LineSpacing;
 		const float LabelWidth = Ctx.m_LabelWidth;
 		const bool ReadOnly = Ctx.m_ReadOnly;
-		FSettingsCardPreLayoutInput PreLayoutInput;
 
 		switch(Id)
 		{
 		case EQmModuleId::SkinAppearance:
-			if(!ReadOnly)
-			{
-				PreLayoutInput = [pMenus, Metrics](CUIRect Content) {
-					CUIRect Outline = ResolveSettingsSkinAppearanceLayout(Content, Metrics).m_Outline;
-					bool Changed = QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Outline, Metrics.m_LineHeight, Metrics.m_LineSpacing, &g_Config.m_QmSkinOutlineLocal, &g_Config.m_QmSkinOutlineLocal);
-					Changed = QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Outline, Metrics.m_LineHeight, Metrics.m_LineSpacing, &g_Config.m_QmSkinOutlineOthers, &g_Config.m_QmSkinOutlineOthers) || Changed;
-					return Changed;
-				};
-			}
 			MakeModuleCard(
-				Ctx, Id, "qm:skin_appearance", "Tee appearance", "Configure Tee appearance and skins",
+				Ctx,
+				Id,
+				"qm:skin_appearance",
+				"Tee appearance",
+				"Configure Tee appearance and skins",
 				[pMenus, LineHeight, BodySize, LineSpacing, LabelWidth, ReadOnly](CUIRect &Content) { QmCardRenderHook::RenderQmVisualSkinAppearanceContent(pMenus, Content, LineHeight, BodySize, LineSpacing, LabelWidth, ReadOnly); },
-				[Metrics](float Width) { return ResolveQmVisualSkinAppearanceHeight(Metrics, Width); },
-				0, std::move(PreLayoutInput), Out);
+				Out);
+			qm_settings_content::UseDeclaredBlockContent(Out, Ctx.m_UiContext.m_pUi, QmCardRenderHook::TextRenderer(pMenus), [Metrics](float Width) { return ResolveQmVisualSkinAppearanceHeight(Metrics, Width); });
 			return true;
 		case EQmModuleId::SkinTransition:
-			if(!ReadOnly)
-			{
-				PreLayoutInput = [pMenus, LineHeight, LineSpacing](CUIRect Content) {
-					// 偷皮保持独立，只有动画开关影响其下方五行高级参数的高度。
-					Content.HSplitTop(LineHeight + LineSpacing, nullptr, &Content);
-					return QmCardRenderHook::HandleQmHudCheckboxInput(pMenus, Content, LineHeight, LineSpacing, &g_Config.m_QmSkinChangeTransition, &g_Config.m_QmSkinChangeTransition);
-				};
-			}
 			MakeModuleCard(
-				Ctx, Id, "qm:skin_transition", "Skin transition animation", "Configure hammer skin steal and skin transition animations",
+				Ctx,
+				Id,
+				"qm:skin_transition",
+				"Skin transition animation",
+				"Configure hammer skin steal and skin transition animations",
 				[pMenus, LineHeight, BodySize, LineSpacing, LabelWidth, ReadOnly](CUIRect &Content) { QmCardRenderHook::RenderQmVisualSkinTransitionContent(pMenus, Content, LineHeight, BodySize, LineSpacing, LabelWidth, ReadOnly); },
-				[Metrics](float) { return ResolveQmVisualSkinTransitionHeight(Metrics, g_Config.m_QmSkinChangeTransition != 0); },
-				g_Config.m_QmSkinChangeTransition ? 1u : 0u, std::move(PreLayoutInput), Out);
+				Out);
+			UseDeclaredModuleContent(Ctx, Out);
 			return true;
 		default:
 			return false;
@@ -78,10 +71,9 @@ void CMenus::RenderQmVisualSkinAppearanceContent(CUIRect &Content, float LineHei
 	CUIRect Shadow = Layout.m_Shadow;
 	const auto Slider = [&](CUIRect &Group, const char *pId, const char *pText, const void *pSliderId, int *pValue, int Min, int Max, const char *pSuffix) {
 		CUIRect Row, Label, Control;
-		Group.HSplitTop(LineHeight, &Row, &Group);
+		ConsumeSettingsControlRow(Group, CurrentSettingsContentMetrics(), &Row);
 		Group.HSplitTop(LineSpacing, nullptr, &Group);
-		Row.VSplitLeft(std::min(Row.w * 0.44f, LabelWidth > 0.0f ? LabelWidth : 142.0f * Metrics.m_UiScale), &Label, &Control);
-		Control.VSplitLeft(LineSpacing, nullptr, &Control);
+		SplitSettingsControlRow(Row, Metrics, &Label, &Control);
 		SLabelProperties Props;
 		Props.m_DisallowNewline = true;
 		Props.m_StopAtEnd = true;
@@ -118,25 +110,29 @@ void CMenus::RenderQmVisualSkinAppearanceContent(CUIRect &Content, float LineHei
 }
 void CMenus::RenderQmVisualSkinTransitionContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Row, LabelColumn, ControlColumn;
 	RenderQmVisualCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmHammerSwapSkin, "Hammer skin steal", Localize("Hammer skin steal"), &g_Config.m_QmHammerSwapSkin);
 
-	Content.HSplitTop(LineHeight, &Row, &Content);
-	if(DoSettingsButton_CheckBox(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, &g_Config.m_QmSkinChangeTransition, "Skin transition animation", Localize("Skin transition animation"), g_Config.m_QmSkinChangeTransition, &Row))
+	const bool HasToggle = Flow.Control("skin-transition-enabled", LineHeight, Row);
+	Flow.Space(LineSpacing);
+	if(HasToggle && DoSettingsButton_CheckBox(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, &g_Config.m_QmSkinChangeTransition, "Skin transition animation", Localize("Skin transition animation"), g_Config.m_QmSkinChangeTransition, &Row))
 		g_Config.m_QmSkinChangeTransition ^= 1;
-	Content.HSplitTop(LineSpacing, nullptr, &Content);
+
 	if(!g_Config.m_QmSkinChangeTransition)
 		return;
 
 	auto RenderDropDown = [&](const char *pTextId, const char *pText, int *pValue, int MaxValue, const char **ppNames, int NumNames, CUi::SDropDownState &State, CScrollRegion &ScrollRegion) {
-		Content.HSplitTop(LineHeight, &Row, &Content);
-		Row.VSplitLeft(LabelWidth, &LabelColumn, &ControlColumn);
+		const bool HasRow = Flow.Control(pTextId, LineHeight, Row);
+		Flow.Space(LineSpacing);
+		if(!HasRow)
+			return;
+		SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColumn, &ControlColumn);
 		RenderQmVisualLabel(pTextId, &LabelColumn, pText, BodySize);
 		State.m_SelectionPopupContext.m_pScrollRegion = &ScrollRegion;
 		const int NewValue = DoSettingsDropDown(&ControlColumn, std::clamp(*pValue, 0, MaxValue), ppNames, NumNames, State, {}, pValue, nullptr, &Row);
 		if(*pValue != NewValue)
 			*pValue = NewValue;
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
 	};
 	static CUi::SDropDownState s_SkinTransitionTypeDropDownState;
 	static CScrollRegion s_SkinTransitionTypeDropDownScrollRegion;
@@ -148,28 +144,32 @@ void CMenus::RenderQmVisualSkinTransitionContent(CUIRect &Content, float LineHei
 	s_SkinTransitionScopeDropDownNames = {Localize("Self only"), Localize("Local"), Localize("All players")};
 	RenderDropDown("qmclient-skin-transition-range", Localize("Animation range"), &g_Config.m_QmSkinChangeTransitionScope, 2, s_SkinTransitionScopeDropDownNames.data(), (int)s_SkinTransitionScopeDropDownNames.size(), s_SkinTransitionScopeDropDownState, s_SkinTransitionScopeDropDownScrollRegion);
 
-	Content.HSplitTop(LineHeight, &Row, &Content);
-	Row.VSplitLeft(LabelWidth, &LabelColumn, &ControlColumn);
-	SLabelProperties DurationLabelProps;
-	DurationLabelProps.m_DisallowNewline = true;
-	DurationLabelProps.m_StopAtEnd = true;
-	DurationLabelProps.m_MinimumFontSize = 6.0f;
-	RenderQmVisualLabel("qmclient-skin-transition-duration", &LabelColumn, Localize("Skin transition duration"), BodySize, TEXTALIGN_ML, DurationLabelProps);
-	static int s_QmSkinChangeTransitionMsInputId;
-	GameClient()->m_Tooltips.DoSettingsToolTipForConfig(&s_QmSkinChangeTransitionMsInputId, &Row, &g_Config.m_QmSkinChangeTransitionMs, &LabelColumn);
-	RenderQmSettingsSliderWithValueInput(&s_QmSkinChangeTransitionMsInputId, ControlColumn, &g_Config.m_QmSkinChangeTransitionMs, 0, 2000, "ms", PrewarmOnly);
-	Content.HSplitTop(LineSpacing, nullptr, &Content);
+	if(Flow.Control("skin-transition-duration", LineHeight, Row))
+	{
+		SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColumn, &ControlColumn);
+		SLabelProperties DurationLabelProps;
+		DurationLabelProps.m_DisallowNewline = true;
+		DurationLabelProps.m_StopAtEnd = true;
+		DurationLabelProps.m_MinimumFontSize = 6.0f;
+		RenderQmVisualLabel("qmclient-skin-transition-duration", &LabelColumn, Localize("Skin transition duration"), BodySize, TEXTALIGN_ML, DurationLabelProps);
+		static int s_QmSkinChangeTransitionMsInputId;
+		GameClient()->m_Tooltips.DoSettingsToolTipForConfig(&s_QmSkinChangeTransitionMsInputId, &Row, &g_Config.m_QmSkinChangeTransitionMs, &LabelColumn);
+		RenderQmSettingsSliderWithValueInput(&s_QmSkinChangeTransitionMsInputId, ControlColumn, &g_Config.m_QmSkinChangeTransitionMs, 0, 2000, "ms", PrewarmOnly);
+	}
+	Flow.Space(LineSpacing);
 
 	static CUi::SDropDownState s_SkinTransitionEasingDropDownState;
 	static CScrollRegion s_SkinTransitionEasingDropDownScrollRegion;
 	const char *apSkinTransitionEasingNames[] = {Localize("Ease out cubic"), Localize("Elastic back"), Localize("Linear"), Localize("Ease in out quad")};
 	RenderDropDown("qmclient-skin-transition-easing", Localize("Skin transition easing"), &g_Config.m_QmSkinChangeTransitionEasing, 3, apSkinTransitionEasingNames, std::size(apSkinTransitionEasingNames), s_SkinTransitionEasingDropDownState, s_SkinTransitionEasingDropDownScrollRegion);
 
-	Content.HSplitTop(LineHeight, &Row, &Content);
-	Row.VSplitLeft(LabelWidth, &LabelColumn, &ControlColumn);
-	RenderQmVisualLabel("qmclient-skin-transition-intensity", &LabelColumn, Localize("Skin transition intensity"), BodySize);
-	static int s_QmSkinChangeTransitionIntensityInputId;
-	GameClient()->m_Tooltips.DoSettingsToolTipForConfig(&s_QmSkinChangeTransitionIntensityInputId, &Row, &g_Config.m_QmSkinChangeTransitionIntensity, &LabelColumn);
-	RenderQmSettingsSliderWithValueInput(&s_QmSkinChangeTransitionIntensityInputId, ControlColumn, &g_Config.m_QmSkinChangeTransitionIntensity, 0, 300, "%", PrewarmOnly);
-	Content.HSplitTop(LineSpacing, nullptr, &Content);
+	if(Flow.Control("skin-transition-intensity", LineHeight, Row))
+	{
+		SplitSettingsControlRow(Row, CurrentSettingsContentMetrics(), &LabelColumn, &ControlColumn);
+		RenderQmVisualLabel("qmclient-skin-transition-intensity", &LabelColumn, Localize("Skin transition intensity"), BodySize);
+		static int s_QmSkinChangeTransitionIntensityInputId;
+		GameClient()->m_Tooltips.DoSettingsToolTipForConfig(&s_QmSkinChangeTransitionIntensityInputId, &Row, &g_Config.m_QmSkinChangeTransitionIntensity, &LabelColumn);
+		RenderQmSettingsSliderWithValueInput(&s_QmSkinChangeTransitionIntensityInputId, ControlColumn, &g_Config.m_QmSkinChangeTransitionIntensity, 0, 300, "%", PrewarmOnly);
+	}
+	Flow.Space(LineSpacing);
 }

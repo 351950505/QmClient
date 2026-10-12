@@ -31,6 +31,7 @@
 #include <game/client/components/qmclient/perf_logging.h>
 #include <game/client/components/qmclient/rank_ghost.h>
 #include <game/client/components/qmclient/score_hud_layout.h>
+#include <game/client/components/qmclient/spectator_hud_layout.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/gameclient.h>
 #include <game/client/prediction/entities/character.h>
@@ -6599,15 +6600,6 @@ void CHud::RenderSpectatorHud()
 		BoundsTop = minimum(BoundsTop, m_Height - 12.0f);
 		BoundsBottom = maximum(BoundsBottom, m_Height - 2.0f);
 	}
-	const auto HudEditorScope = GameClient()->m_HudEditor.BeginTransform(EHudEditorElement::SpectatorHud, {m_Width - 180.0f, BoundsTop, 180.0f, BoundsBottom - BoundsTop});
-
-	// draw the box
-	const CUIRect BackgroundRect = {m_Width - 180.0f, AdjustedHeight - 15.0f, 180.0f, 15.0f};
-	ColorRGBA BackgroundColor = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiColor));
-	BackgroundColor.a = std::clamp(g_Config.m_QmUiOpacity / 100.0f, 0.0f, 1.0f);
-	Ui()->RenderGaussianBlur(BackgroundRect, 1.0f, HudEditorScope.m_Corners, ui_token::radius::BASE);
-	Graphics()->DrawRect(BackgroundRect.x, BackgroundRect.y, BackgroundRect.w, BackgroundRect.h, BackgroundColor, HudEditorScope.m_Corners, ui_token::radius::BASE);
-
 	// draw the text
 	char aBuf[128];
 	if(GameClient()->m_RankGhost.IsViewModeActive())
@@ -6643,14 +6635,32 @@ void CHud::RenderSpectatorHud()
 	{
 		str_copy(aBuf, Localize("Free-View"));
 	}
-	TextRender()->Text(m_Width - 174.0f, AdjustedHeight - 15.0f + (15.f - 8.f) / 2.f, 8.0f, aBuf, -1.0f);
+	const char *pAutoLabel = Localize("AUTO", "Spectating Camera Mode Icon");
+	const float AutoLabelWidth = ShowAutoTag ? TextRender()->TextWidth(6.0f, pAutoLabel) : 0.0f;
+	const float AutoTagWidth = ShowAutoTag ? 6.0f + AutoLabelWidth + 9.0f : 0.0f;
+	const auto Layout = QmSpectatorHudLayout(m_Width, TextRender()->TextWidth(8.0f, aBuf), ShowAutoTag ? AutoTagWidth + 4.0f : 0.0f);
+	const auto HudEditorScope = GameClient()->m_HudEditor.BeginTransform(EHudEditorElement::SpectatorHud, {Layout.m_Left, BoundsTop, Layout.m_Width, BoundsBottom - BoundsTop});
+	const CUIRect BackgroundRect = {Layout.m_Left, AdjustedHeight - 15.0f, Layout.m_Width, 15.0f};
+	ColorRGBA BackgroundColor = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiColor));
+	BackgroundColor.a = std::clamp(g_Config.m_QmUiOpacity / 100.0f, 0.0f, 1.0f);
+	Ui()->RenderGaussianBlur(BackgroundRect, 1.0f, HudEditorScope.m_Corners, ui_token::radius::BASE);
+	Graphics()->DrawRect(BackgroundRect.x, BackgroundRect.y, BackgroundRect.w, BackgroundRect.h, BackgroundColor, HudEditorScope.m_Corners, ui_token::radius::BASE);
+	if(Layout.m_TextWidth > 0.0f)
+	{
+		const CUIRect Label{Layout.m_Left + 6.0f, BackgroundRect.y, Layout.m_TextWidth, BackgroundRect.h};
+		SLabelProperties Props;
+		Props.m_MaxWidth = Label.w;
+		Props.m_EllipsisAtEnd = true;
+		const CQmCardLabelHintScope NameHints(Ui(), false);
+		Ui()->DoLabel(&Label, aBuf, 8.0f, TEXTALIGN_ML, Props);
+	}
 
 	// draw the camera info
-	if(ShowAutoTag)
+	if(ShowAutoTag && AutoTagWidth + 4.0f <= m_Width)
 	{
 		bool AutoSpecCameraEnabled = GameClient()->m_Camera.m_AutoSpecCamera;
-		const char *pLabelText = Localize("AUTO", "Spectating Camera Mode Icon");
-		const float TextWidth = TextRender()->TextWidth(6.0f, pLabelText);
+		const char *pLabelText = pAutoLabel;
+		const float TextWidth = AutoLabelWidth;
 
 		constexpr float RightMargin = 4.0f;
 		constexpr float IconWidth = 6.0f;
@@ -6682,6 +6692,7 @@ void CHud::RenderLocalTime(float x)
 		char aTimeStr[6];
 		str_timestamp_format(aTimeStr, sizeof(aTimeStr), "%H:%M");
 		const auto HudEditorScope = GameClient()->m_HudEditor.BeginTransform(EHudEditorElement::LocalTime, {x - 30.0f, 0.0f, 25.0f, 12.5f});
+		Ui()->RenderGaussianBlur({x - 30.0f, 0.0f, 25.0f, 12.5f}, 1.0f, HudEditorScope.m_Corners, ui_token::radius::BASE);
 		Graphics()->DrawRect(x - 30.0f, 0.0f, 25.0f, 12.5f, ui_token::color::SURFACE_GLASS, HudEditorScope.m_Corners, ui_token::radius::BASE);
 		TextRender()->Text(x - 25.0f, (12.5f - 5.f) / 2.f, 5.0f, aTimeStr, -1.0f);
 		GameClient()->m_HudEditor.EndTransform(HudEditorScope);

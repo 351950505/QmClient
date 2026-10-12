@@ -5,6 +5,7 @@
 #include <game/editor/editor_server_settings_completion.h>
 
 #include <test/support/qm_real_ui_fixture.h>
+#include <test/support/qm_ui_test_client.h>
 #include <test/support/qm_ui_test_input.h>
 
 #include <string>
@@ -16,6 +17,7 @@ namespace
 	{
 	protected:
 		qm_ui_test::CTestInput m_Input;
+		qm_ui_test::CTestUiClient m_Client;
 		CLineInputNumber m_Number;
 		CLineInputBuffered<256> m_First;
 		CLineInputBuffered<256> m_Second;
@@ -25,6 +27,7 @@ namespace
 		CUIRect m_Rect{10.0f, 10.0f, 160.0f, 20.0f};
 
 		IInput *UiInput() override { return &m_Input; }
+		IClient *UiClient() override { return &m_Client; }
 
 		bool Draw(CLineInput &Field)
 		{
@@ -646,6 +649,174 @@ namespace
 		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
 		m_Input.m_Composing = false;
 		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+	}
+
+	TEST_F(QmEditorTextInput, SettingsCompletionUnroutedPressIsConsumedOnceWhileHeld)
+	{
+		Focus(m_First);
+		CQmEditorSettingsCompletion Completion;
+		m_Input.m_Modifier = true;
+		m_Input.m_RawPressedKey = KEY_SPACE;
+		m_Input.m_HeldKey = KEY_SPACE;
+		EXPECT_FALSE(Completion.Request(m_Second, m_Input, false));
+		EXPECT_TRUE(Completion.Request(m_First, m_Input, false));
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+		// 下一帧的 KeyPress 也可能来自重复按下，不能重开已关闭列表。
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+		m_Input.m_HeldKey = 0;
+		m_Input.Clear();
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+		m_Input.m_HeldKey = KEY_SPACE;
+		m_Input.m_RawPressedKey = KEY_SPACE;
+		EXPECT_TRUE(Completion.Request(m_First, m_Input, false));
+	}
+
+	TEST_F(QmEditorTextInput, SettingsCompletionRoutedRepeatCannotUseFrameFallback)
+	{
+		Focus(m_First);
+		CQmEditorSettingsCompletion Completion;
+		m_Input.m_Modifier = true;
+		m_Input.m_RawPressedKey = KEY_SPACE;
+		m_Input.m_HeldKey = KEY_SPACE;
+		IInput::CEvent Event{};
+		Event.m_Key = KEY_SPACE;
+		Event.m_Flags = IInput::FLAG_PRESS | IInput::FLAG_REPEAT;
+		EXPECT_TRUE(Completion.OnInput(&m_First, m_Input, Event));
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+	}
+
+	TEST_F(QmEditorTextInput, SettingsCompletionCtrlAfterOrdinarySpaceDoesNotRequest)
+	{
+		Focus(m_First);
+		CQmEditorSettingsCompletion Completion;
+		m_Input.m_RawPressedKey = KEY_SPACE;
+		m_Input.m_HeldKey = KEY_SPACE;
+		IInput::CEvent Event{};
+		Event.m_Key = KEY_SPACE;
+		Event.m_Flags = IInput::FLAG_PRESS;
+		EXPECT_FALSE(Completion.OnInput(&m_First, m_Input, Event));
+		Event.m_Key = KEY_LCTRL;
+		m_Input.m_Modifier = true;
+		EXPECT_FALSE(Completion.OnInput(&m_First, m_Input, Event));
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+	}
+
+	TEST_F(QmEditorTextInput, SettingsCompletionCtrlHeldAcrossDrawRecognizesNextSpace)
+	{
+		Focus(m_First);
+		CQmEditorSettingsCompletion Completion;
+		m_Input.m_Modifier = true;
+		IInput::CEvent Event{};
+		Event.m_Key = KEY_LCTRL;
+		Event.m_Flags = IInput::FLAG_PRESS;
+		EXPECT_FALSE(Completion.OnInput(&m_First, m_Input, Event));
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+		Event.m_Key = KEY_SPACE;
+		EXPECT_TRUE(Completion.OnInput(&m_First, m_Input, Event));
+		EXPECT_TRUE(Completion.Request(m_First, m_Input, false));
+	}
+
+	TEST_F(QmEditorTextInput, SettingsCompletionFrameFallbackDoesNotStealFocusOrReplayComposition)
+	{
+		Focus(m_Second);
+		CQmEditorSettingsCompletion Completion;
+		m_Input.m_Modifier = true;
+		m_Input.m_RawPressedKey = KEY_SPACE;
+		m_Input.m_HeldKey = KEY_SPACE;
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+		EXPECT_TRUE(m_Second.IsActive());
+		Focus(m_First);
+		m_Input.m_Composing = true;
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+		m_Input.m_Composing = false;
+		EXPECT_FALSE(Completion.Request(m_First, m_Input, false));
+	}
+
+	TEST_F(QmEditorTextInput, AllCommandsIgnoresPrefixAndCancelPreservesUtf8Selection)
+	{
+		m_First.Set("tune gravity 0.5 # 中文");
+		Focus(m_First);
+		m_First.SetCursorOffset(8);
+		m_First.SetSelection(5, 8);
+		CQmEditorSettingsCommandBrowser Browser;
+		EXPECT_FALSE(Browser.Matches("sv_deepfly", "tune"));
+		Browser.Open();
+		for(const char *pPrefix : {"tune", "gravity", "# 中文", "unknown"})
+		{
+			SCOPED_TRACE(pPrefix);
+			EXPECT_TRUE(Browser.Matches("sv_deepfly", pPrefix));
+			EXPECT_TRUE(Browser.Matches("tune_zone", pPrefix));
+		}
+		EXPECT_STREQ(m_First.GetString(), "tune gravity 0.5 # 中文");
+		EXPECT_EQ(m_First.GetCursorOffset(), 8u);
+		EXPECT_EQ(m_First.GetSelectionLength(), 3u);
+		Browser.Close();
+		EXPECT_FALSE(Browser.IsOpen());
+		EXPECT_STREQ(m_First.GetString(), "tune gravity 0.5 # 中文");
+		EXPECT_EQ(m_First.GetCursorOffset(), 8u);
+		EXPECT_EQ(m_First.GetSelectionLength(), 3u);
+		EXPECT_FALSE(Browser.Select(m_First, "sv_deepfly"));
+		EXPECT_TRUE(Browser.Matches("tune_zone", "TuNe"));
+	}
+
+	TEST_F(QmEditorTextInput, AllCommandsSelectionReplacesLineOnlyAfterChoosing)
+	{
+		m_First.Set("unknown 123 # 中文");
+		Focus(m_First);
+		m_First.SetCursorOffset(9);
+		CQmEditorSettingsCommandBrowser Browser;
+		Browser.Open();
+		EXPECT_FALSE(Browser.Select(m_First, ""));
+		EXPECT_TRUE(Browser.IsOpen());
+		EXPECT_STREQ(m_First.GetString(), "unknown 123 # 中文");
+		EXPECT_TRUE(Browser.Select(m_First, "tune_zone"));
+		EXPECT_STREQ(m_First.GetString(), "tune_zone");
+		EXPECT_EQ(m_First.GetCursorOffset(), m_First.GetLength());
+		EXPECT_FALSE(Browser.IsOpen());
+		EXPECT_FALSE(Browser.Select(m_First, "sv_deepfly"));
+		Browser.Open();
+		EXPECT_TRUE(Browser.Select(m_First, "sv_deepfly"));
+		EXPECT_STREQ(m_First.GetString(), "sv_deepfly");
+	}
+
+	TEST_F(QmEditorTextInput, SettingsDropdownClickRestoresInputAfterOutsideRelease)
+	{
+		m_First.Set("tune gravity 0.5");
+		Focus(m_First);
+		m_First.SetCursorOffset(8);
+		m_First.SetSelection(5, 8);
+		CUIRect DropdownRect = m_Rect;
+		DropdownRect.y += m_Rect.h + 0.1f;
+		DropdownRect.h = 100.0f;
+		const vec2 Pixels = DropdownRect.Center() * vec2(m_Ui.Graphics()->WindowWidth(), m_Ui.Graphics()->WindowHeight()) / m_Ui.Screen()->Size();
+		m_Ui.OnCursorMove(Pixels.x, Pixels.y);
+		m_Input.m_HeldKey = KEY_MOUSE_1;
+		m_Client.AdvanceFrame();
+		m_Ui.Update();
+		Draw(m_First);
+		ASSERT_FALSE(m_First.IsActive());
+		EXPECT_TRUE(CQmEditorSettingsCommandBrowser::RestoreInputOnClick(m_Ui, m_First, DropdownRect, true));
+		EXPECT_TRUE(m_First.IsActive());
+		EXPECT_STREQ(m_First.GetString(), "tune gravity 0.5");
+		EXPECT_EQ(m_First.GetCursorOffset(), 8u);
+		EXPECT_EQ(m_First.GetSelectionLength(), 3u);
+	}
+
+	TEST_F(QmEditorTextInput, SettingsDropdownOutsideOrHiddenClickCannotStealFocus)
+	{
+		Focus(m_Second);
+		const vec2 Pixels = m_Rect.Center() * vec2(m_Ui.Graphics()->WindowWidth(), m_Ui.Graphics()->WindowHeight()) / m_Ui.Screen()->Size();
+		m_Ui.OnCursorMove(Pixels.x, Pixels.y);
+		m_Input.m_HeldKey = KEY_MOUSE_1;
+		m_Client.AdvanceFrame();
+		m_Ui.Update();
+		EXPECT_FALSE(CQmEditorSettingsCommandBrowser::RestoreInputOnClick(m_Ui, m_First, m_Rect, false));
+		CUIRect DropdownRect = m_Rect;
+		DropdownRect.y += m_Rect.h;
+		EXPECT_FALSE(CQmEditorSettingsCommandBrowser::RestoreInputOnClick(m_Ui, m_First, DropdownRect, true));
+		EXPECT_TRUE(m_Second.IsActive());
 	}
 
 	TEST_F(QmEditorTextInput, SettingsCompletionShiftOnlyLeavesOrdinarySpaceForInput)

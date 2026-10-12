@@ -148,7 +148,7 @@ void CMenusSettingsControls::Render(CUIRect MainView)
 {
 	const bool ReadOnly = Ui()->RenderOnly();
 	CPerfTimer ShellTimer;
-	PrepareSettingsCards(ResolveSettingsContentMetrics(MainView.w), ReadOnly, ReadOnly ? nullptr : &m_SettingsScrollRegion);
+	PrepareSettingsCards(ResolveSettingsContentMetrics(MainView.w), ReadOnly, Ui()->MeasurementOnly() ? nullptr : &m_SettingsScrollRegion);
 	LogControlsPerfStage(GameClient()->Client(), "controls_tab_shell", ShellTimer.ElapsedMs(), false, "page=controls");
 
 	CPerfTimer InteractiveTimer;
@@ -224,7 +224,7 @@ void CMenusSettingsControls::Render(CUIRect MainView)
 	CardBuild.m_Page = Page;
 	CardBuild.m_Metrics = m_CardMetrics;
 	CardBuild.m_UiContext = CardCtx;
-	CardBuild.m_pScrollRegion = ReadOnly ? nullptr : &m_SettingsScrollRegion;
+	CardBuild.m_pScrollRegion = Ui()->MeasurementOnly() ? nullptr : &m_SettingsScrollRegion;
 	const auto BuildDefinitions = [CardBuild](std::vector<SSettingsCardDefinition> &vCards) {
 		qm_card_catalog::BuildCards(CardBuild, qm_card_catalog::ControlsCardStableIds(), vCards);
 	};
@@ -240,6 +240,7 @@ void CMenusSettingsControls::Render(CUIRect MainView)
 	const SQmResolvedScrollPolicy ScrollPolicy = QmResolveScrollPolicy(ScrollRequest, UiScale, 0.0f);
 	CScrollRegionParams ScrollParams = QmScrollRegionParamsFromPolicy(ScrollPolicy);
 	SSettingsCardDeckInput InputState;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	if(!ReadOnly)
 	{
 		InputState.m_MouseX = Ui()->MouseX();
@@ -251,7 +252,7 @@ void CMenusSettingsControls::Render(CUIRect MainView)
 		InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
 		InputState.m_pScrollParams = &ScrollParams;
 	}
-	const SSettingsCardDeckResult DeckResult = GameClient()->m_Menus.SettingsCardDeckForRenderPass().RenderCached(CardCtx, Page, "controls", DefinitionsRevision, BuildDefinitions, GameClient()->m_Menus.SettingsCardOrderModelForRenderPass(), ReadOnly ? nullptr : &m_SettingsScrollRegion, InputState, GameClient()->m_Menus.SettingsCardMotionSpec(), VisualOptions);
+	const SSettingsCardDeckResult DeckResult = GameClient()->m_Menus.SettingsCardDeckForRenderPass().RenderCached(CardCtx, Page, "controls", DefinitionsRevision, BuildDefinitions, GameClient()->m_Menus.SettingsCardOrderModelForRenderPass(), Ui()->MeasurementOnly() ? nullptr : &m_SettingsScrollRegion, InputState, GameClient()->m_Menus.SettingsCardMotionSpec(), VisualOptions);
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		GameClient()->m_Menus.SaveSettingsCardOrderModel();
 	LogControlsPerfStage(GameClient()->Client(), "controls_bind_list", BindListTimer.ElapsedMs(), false, "page=controls section=bind_list");
