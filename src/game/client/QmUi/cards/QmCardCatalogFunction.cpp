@@ -126,6 +126,7 @@ void CMenus::RenderQmFunctionHJAssistContent(CUIRect &Content, float LineHeight,
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
 		{
 			{&g_Config.m_QmAutoUnspecOnUnfreeze, Localizable("Auto unspec on unfreeze"), Localize("Auto unspec on unfreeze")},
+			{&g_Config.m_QmAutoUnspecBothOnUnfreeze, Localizable("Auto unspec both tees when either is hammered awake"), Localize("Auto unspec both tees when either is hammered awake")},
 			{&g_Config.m_QmAutoSwitchOnUnfreeze, Localizable("Auto switch to the tee that got unfrozen"), Localize("Auto switch to the tee that got unfrozen")},
 			{&g_Config.m_QmAutoCloseChatOnUnfreeze, Localizable("Automatically close the current chat after waking from freeze"), Localize("Automatically close the current chat after waking from freeze")},
 			{&g_Config.m_QmFreezeWakeupPopup, Localizable("Show wake-up popup on the other tee"), Localize("Show wake-up popup on the other tee")},

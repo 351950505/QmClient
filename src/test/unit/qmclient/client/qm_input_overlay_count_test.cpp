@@ -26,6 +26,40 @@ TEST(QmInputOverlayCounts, HeldKeyAndRepeatsOnlyCountOnceUntilReleased)
 	EXPECT_EQ(Counter.Count(KEY_D), 0u);
 }
 
+TEST(QmInputOverlayCounts, NativeMouseButtonsMatchPhysicalEventKeys)
+{
+	const int aExpectedKeys[] = {KEY_MOUSE_1, KEY_MOUSE_3, KEY_MOUSE_2, KEY_MOUSE_4, KEY_MOUSE_5, KEY_MOUSE_6, KEY_MOUSE_7, KEY_MOUSE_8, KEY_MOUSE_9};
+	for(int MouseButton = 1; MouseButton <= NUM_MOUSE_BUTTONS; ++MouseButton)
+	{
+		SCOPED_TRACE(MouseButton);
+		EXPECT_EQ(QmInputOverlay::NativeMouseButtonKey(MouseButton), aExpectedKeys[MouseButton - 1]);
+	}
+	EXPECT_EQ(QmInputOverlay::NativeMouseButtonKey(-1), KEY_UNKNOWN);
+	EXPECT_EQ(QmInputOverlay::NativeMouseButtonKey(0), KEY_UNKNOWN);
+	EXPECT_EQ(QmInputOverlay::NativeMouseButtonKey(NUM_MOUSE_BUTTONS + 1), KEY_UNKNOWN);
+}
+
+TEST(QmInputOverlayCounts, RightAndMiddleMouseClicksKeepSeparateCountsAfterRelease)
+{
+	QmInputOverlay::CKeyPressCounter Counter;
+	const int RightMouseKey = QmInputOverlay::NativeMouseButtonKey(3);
+	const int MiddleMouseKey = QmInputOverlay::NativeMouseButtonKey(2);
+	Counter.Observe(KeyEvent(KEY_MOUSE_2, IInput::FLAG_PRESS), true, true);
+	Counter.Observe(KeyEvent(KEY_MOUSE_2, IInput::FLAG_RELEASE), true, true);
+	EXPECT_EQ(Counter.Count(RightMouseKey), 1u);
+	EXPECT_EQ(Counter.Count(MiddleMouseKey), 0u);
+
+	Counter.Observe(KeyEvent(KEY_MOUSE_3, IInput::FLAG_PRESS), true, true);
+	Counter.Observe(KeyEvent(KEY_MOUSE_3, IInput::FLAG_RELEASE), true, true);
+	EXPECT_EQ(Counter.Count(RightMouseKey), 1u);
+	EXPECT_EQ(Counter.Count(MiddleMouseKey), 1u);
+
+	Counter.Observe(KeyEvent(KEY_MOUSE_2, IInput::FLAG_PRESS), true, true);
+	Counter.Observe(KeyEvent(KEY_MOUSE_2, IInput::FLAG_RELEASE), true, true);
+	EXPECT_EQ(Counter.Count(RightMouseKey), 2u);
+	EXPECT_EQ(Counter.Count(MiddleMouseKey), 1u);
+}
+
 TEST(QmInputOverlayCounts, DisabledOrUnfocusedInputDoesNotBecomeANewPressWhenResumed)
 {
 	QmInputOverlay::CKeyPressCounter Counter;

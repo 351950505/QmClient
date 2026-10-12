@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == Activer automatiquement le micro en parlant
 
+Auto unspec both tees when either is hammered awake
+== Quitter le mode spectateur avec les deux Tees quand l'un est dégelé au marteau
+
 Auto unspec on unfreeze
 == Quitter automatiquement le mode spectateur lors du dégel
 
@@ -4549,6 +4552,9 @@ Existing Player
 
 Exit replay view
 == Quitter la vue de la démo
+
+Exit spectating on both tees when either is hammered awake by another player
+== Quitter le mode spectateur avec les deux Tees quand un autre joueur dégèle l'un d'eux au marteau
 
 Expand console
 == Agrandir la console

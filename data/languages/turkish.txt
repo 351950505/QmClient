@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == Konuşurken otomatik sessizi aç
 
+Auto unspec both tees when either is hammered awake
+== Biri çekiçle çözüldüğünde iki Tee de seyirci modundan çıksın
+
 Auto unspec on unfreeze
 == Çözülünce otomatik seyirciden çık
 
@@ -4549,6 +4552,9 @@ Existing Player
 
 Exit replay view
 == Demo görünümünden çık
+
+Exit spectating on both tees when either is hammered awake by another player
+== Başka bir oyuncu birini çekiçle çözdüğünde iki Tee de seyirci modundan çıksın
 
 Expand console
 == Konsolu genişlet

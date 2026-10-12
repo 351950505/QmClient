@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == 말할 때 자동 음소거 해제
 
+Auto unspec both tees when either is hammered awake
+== 어느 한 Tee가 망치로 해동되면 두 Tee 모두 관전 해제
+
 Auto unspec on unfreeze
 == 얼음 해제 시 자동 관전 해제
 
@@ -4549,6 +4552,9 @@ Existing Player
 
 Exit replay view
 == 리플레이 보기 종료
+
+Exit spectating on both tees when either is hammered awake by another player
+== 어느 한 Tee가 다른 플레이어의 망치로 해동되면 두 Tee 모두 관전 해제
 
 Expand console
 == 콘솔 확장

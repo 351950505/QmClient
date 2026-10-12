@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == 発話時に自動ミュート解除
 
+Auto unspec both tees when either is hammered awake
+== どちらかがハンマーで解凍されたら両方の Tee の観戦を解除
+
 Auto unspec on unfreeze
 == 凍結解除時に自動で観戦解除
 
@@ -4549,6 +4552,9 @@ Existing Player
 
 Exit replay view
 == リプレイ視聴を終了
+
+Exit spectating on both tees when either is hammered awake by another player
+== どちらかが他のプレイヤーのハンマーで解凍されたら両方の Tee の観戦を解除
 
 Expand console
 == コンソールを展開

@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == 自动检测说话时开麦
 
+Auto unspec both tees when either is hammered awake
+== 任一方被锤醒时两个 Tee 都取消旁观
+
 Auto unspec on unfreeze
 == 解冻自动取消旁观
 
@@ -4549,6 +4552,9 @@ Existing Player
 
 Exit replay view
 == 退出回放查看
+
+Exit spectating on both tees when either is hammered awake by another player
+== 任一方被其他玩家锤醒时，自动让两个 Tee 退出旁观
 
 Expand console
 == 展开控制台
