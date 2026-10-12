@@ -165,6 +165,8 @@ namespace qm_card_catalog
 			return BuildConsoleCard(Ctx, Out);
 		case EQmModuleId::Tooltip:
 			return BuildTooltipCard(Ctx, Out);
+		case EQmModuleId::ChatCompletion:
+			return BuildChatCompletionCard(Ctx, Out);
 		default:
 			return false;
 		}

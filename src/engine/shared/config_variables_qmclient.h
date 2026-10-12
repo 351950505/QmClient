@@ -720,6 +720,12 @@ MACRO_CONFIG_INT(QmSettingsPrewarm, qm_settings_prewarm, 0, 0, 1, CFGFLAG_CLIENT
 MACRO_CONFIG_INT(QmChatScrollbarRight, qm_chat_scrollbar_right, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Show the chat scrollbar on the right")
 MACRO_CONFIG_INT(QmChatSaveDraft, qm_chat_save_draft, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Keep unsent message on chat close")
 MACRO_CONFIG_INT(QmChatCommandCompletion, qm_chat_command_completion, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Show command completion in chat")
+MACRO_CONFIG_INT(QmChatEmojiCompletion, qm_chat_emoji_completion, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Show emoji completion in chat")
+MACRO_CONFIG_COL(QmChatCompletionBgColor, qm_chat_completion_bg_color, 0x1C1C1E, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Chat completion background color")
+MACRO_CONFIG_INT(QmChatCompletionOpacity, qm_chat_completion_opacity, 96, 0, 100, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Chat completion background opacity")
+MACRO_CONFIG_COL(QmChatCompletionTextColor, qm_chat_completion_text_color, 0xF50000FF, CFGFLAG_CLIENT | CFGFLAG_SAVE | CFGFLAG_COLALPHA, "Chat completion text color")
+MACRO_CONFIG_COL(QmChatCompletionSelectedTextColor, qm_chat_completion_selected_text_color, 0xFF98D68E, CFGFLAG_CLIENT | CFGFLAG_SAVE | CFGFLAG_COLALPHA, "Chat completion selected text color")
+MACRO_CONFIG_COL(QmChatCompletionSelectedColor, qm_chat_completion_selected_color, 0x4799FFA1, CFGFLAG_CLIENT | CFGFLAG_SAVE | CFGFLAG_COLALPHA, "Chat completion selection background color")
 MACRO_CONFIG_INT(QmMessageMerge, qm_message_merge, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Merge consecutive identical player messages within 2 seconds")
 // echo 合并的滑动窗口：同一段 echo 文本在窗口内连续重复时只保留一次并计数。
 // 该行为始终生效，不受 qm_message_merge 影响；设为 0 关闭合并。

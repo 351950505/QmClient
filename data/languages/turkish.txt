@@ -1445,6 +1445,9 @@ Background image in menu
 Background music volume
 == Arka plan müziği sesi
 
+Background opacity
+== Arka plan opaklığı
+
 Background stroke color
 == Arka plan vuruş rengi
 
@@ -1895,6 +1898,27 @@ Chat command
 Chat command (e.g. showall 1)
 == Sohbet komutu (ör. showall 1)
 
+Chat completion appearance
+== Sohbet tamamlama görünümü
+
+Chat completion background color
+== Sohbet tamamlama arka plan rengi
+
+Chat completion background opacity
+== Sohbet tamamlama arka plan opaklığı
+
+Chat completion selected text color
+== Sohbet tamamlamada seçili metin rengi
+
+Chat completion selection background color
+== Sohbet tamamlama seçim arka plan rengi
+
+Chat completion text color
+== Sohbet tamamlama metin rengi
+
+Chat emoji completion
+== Sohbette emoji tamamlama
+
 Chat export cancelled
 == Sohbet dışa aktarımı iptal edildi
 
@@ -2272,6 +2296,9 @@ Colorize ping on scoreboard
 
 Colors
 == Renkler
+
+Colors for chat command and emoji completion
+== Sohbette komut ve emoji tamamlama renkleri
 
 Colors in chat
 == Sohbetteki renkler
@@ -3946,6 +3973,9 @@ Elastic back
 
 Elevated
 == Yüksek
+
+Emoji completion
+== Emoji tamamlama
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == İfade ve bağlama tekerleği animasyon süresi (ms, 0=Animasyon yok, 1000=1 sn)
@@ -10301,6 +10331,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == Tüm veya tek bir ayar değişkenini varsayılana sıfırla
 
+Reset chat completion appearance
+== Sohbet tamamlama görünümünü sıfırla
+
 Reset chat on escape
 == Escape tuşunda sohbeti sıfırla
 
@@ -10937,11 +10970,17 @@ Selected item color
 Selected part: %d
 == Seçili parça: %d
 
+Selected text color
+== Seçili metin rengi
+
 Selected timertype is not supported by your client
 == Seçilen zamanlayıcı türü istemciniz tarafından desteklenmiyor
 
 Selection
 == Seçim
+
+Selection background color
+== Seçim arka plan rengi
 
 Self
 == Kendi
@@ -11467,6 +11506,9 @@ Show dummy title locally
 
 Show dummy velocity in movement info HUD
 == Hareket bilgisi HUD'unda dummy hızını göster
+
+Show emoji completion in chat
+== Sohbette emoji tamamlamayı göster
 
 Show enemy color in chat
 == Sohbette düşman rengini göster

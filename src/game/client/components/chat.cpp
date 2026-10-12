@@ -545,6 +545,22 @@ bool CChat::HandleCommandHudInput(const IInput::CEvent &Event)
 		m_CommandHud.Hide();
 		return false;
 	}
+	if(Event.m_Flags & IInput::FLAG_PRESS)
+	{
+		if(Event.m_Key == KEY_UP || Event.m_Key == KEY_DOWN)
+			return m_CommandHud.MoveSelection(Event.m_Key == KEY_UP ? -1 : 1, m_Input.GetString(), m_Input.GetCursorOffset());
+		if(Event.m_Key == KEY_RETURN || Event.m_Key == KEY_KP_ENTER)
+		{
+			std::string Completion;
+			size_t Cursor = 0;
+			if(m_CommandHud.CompleteSelected(m_Input.GetString(), m_Input.GetCursorOffset(), Completion, Cursor))
+			{
+				ApplyCommandHudCompletion(Completion, Cursor);
+				return true;
+			}
+			return false;
+		}
+	}
 	const vec2 MousePos = GetChatMousePos();
 	if((Event.m_Flags & IInput::FLAG_PRESS) && (Event.m_Key == KEY_MOUSE_WHEEL_UP || Event.m_Key == KEY_MOUSE_WHEEL_DOWN))
 		return m_CommandHud.Scroll(MousePos.x, MousePos.y, Event.m_Key == KEY_MOUSE_WHEEL_UP ? -1 : 1, m_Input.GetString(), m_Input.GetCursorOffset());
@@ -566,29 +582,44 @@ bool CChat::HandleCommandHudInput(const IInput::CEvent &Event)
 		std::string Completion;
 		size_t Cursor = 0;
 		if(m_CommandHud.Release(MousePos.x, MousePos.y, m_Input.GetString(), m_Input.GetCursorOffset(), Completion, Cursor))
-		{
-			m_Input.Set(Completion.c_str());
-			m_Input.SetCursorOffset(Cursor);
-			m_Input.SelectNothing();
-			m_CompletionChosen = -1;
-			m_CompletionUsed = false;
-			m_EmojiCompletionListLength = 0;
-			m_aEmojiCompletionColon[0] = '\0';
-		}
+			ApplyCommandHudCompletion(Completion, Cursor);
 		return WasPressed;
 	}
 	return false;
 }
 
-void CChat::RenderCommandHud(float X, float Bottom, float Width, float FontSize, const CUIRect &ChatRect, const CUIRect &TargetRect)
+void CChat::ApplyCommandHudCompletion(const std::string &Completion, size_t Cursor)
 {
-	if(m_CommandHud.BeginUpdate(m_Input.GetString(), m_Input.GetCursorOffset(), g_Config.m_QmChatCommandCompletion != 0, m_ServerCommandsRevision))
+	m_Input.Set(Completion.c_str());
+	m_Input.SetCursorOffset(Cursor);
+	m_Input.SelectNothing();
+	m_CompletionChosen = -1;
+	m_CompletionUsed = false;
+	m_EmojiCompletionListLength = 0;
+	m_aEmojiCompletionColon[0] = '\0';
+}
+
+void CChat::UpdateCommandHudCandidates()
+{
+	if(m_CommandHud.BeginUpdate(m_Input.GetString(), m_Input.GetCursorOffset(), g_Config.m_QmChatCommandCompletion != 0, m_ServerCommandsRevision, g_Config.m_QmChatEmojiCompletion != 0))
 	{
-		for(const auto &Command : m_vServerCommands)
-			m_CommandHud.AddServerCommand(Command.m_aName, Command.m_aParams, Localize(Command.m_aHelpText));
+		if(m_CommandHud.Source() == CQmChatCommandHud::ESource::SERVER)
+		{
+			for(const auto &Command : m_vServerCommands)
+				m_CommandHud.AddServerCommand(Command.m_aName, Command.m_aParams, Localize(Command.m_aHelpText));
+		}
+		else if(m_CommandHud.Source() == CQmChatCommandHud::ESource::EMOJI)
+		{
+			for(const auto &Emoji : QM_CHAT_EMOJI_DEFINITIONS)
+				m_CommandHud.AddEmoji(Emoji.m_pText);
+		}
 		m_CommandHud.EndUpdate();
 	}
+}
 
+void CChat::RenderCommandHud(float X, float Bottom, float Width, float FontSize, const CUIRect &ChatRect, const CUIRect &TargetRect)
+{
+	UpdateCommandHudCandidates();
 	const float Scale = ChatRect.w > 0.0f ? TargetRect.w / ChatRect.w : 1.0f;
 	const float OffsetX = TargetRect.x - ChatRect.x * Scale;
 	const float OffsetY = TargetRect.y - ChatRect.y * Scale;
@@ -598,7 +629,6 @@ void CChat::RenderCommandHud(float X, float Bottom, float Width, float FontSize,
 	const float ScreenMargin = 4.0f / maximum(Scale, 0.01f);
 	Bottom = minimum(Bottom, ScreenBottom - ScreenMargin);
 	m_CommandHud.SetLayout(X, Bottom, Width, maximum(0.0f, Bottom - ScreenTop - ScreenMargin), FontSize, ScreenLeft + ScreenMargin, ScreenRight - ScreenMargin);
-	QmRenderChatCommandHud(m_CommandHud, Ui(), TextRender(), GetChatMousePos());
 }
 
 void CChat::RebuildChat()
@@ -1062,11 +1092,16 @@ bool CChat::OnInput(const IInput::CEvent &Event)
 	const bool LanguageMenuOpen = m_LanguageMenuOpen || Ui()->IsPopupOpen(&m_LanguagePopupContext);
 	const bool ChatLineMenuOpen = Ui()->IsPopupOpen(&m_ChatLinePopupContext);
 	const bool AnyChatPopupOpen = LanguageMenuOpen || ChatLineMenuOpen;
-	const bool CommandHudEnabled = m_CommandHud.Source() == CQmChatCommandHud::ESource::SERVER && g_Config.m_QmChatCommandCompletion;
+	const bool CommandHudEnabled = g_Config.m_QmChatCommandCompletion || g_Config.m_QmChatEmojiCompletion;
 	if(AnyChatPopupOpen || Input()->HasComposition() || GameClient()->m_Menus.IsActive() || GameClient()->m_HudEditor.IsActive() || !CommandHudEnabled)
 		m_CommandHud.Hide();
-	else if(HandleCommandHudInput(Event))
-		return true;
+	else
+	{
+		// 同一批输入可能包含前缀和方向键，候选不能依赖上一帧渲染。
+		UpdateCommandHudCandidates();
+		if(HandleCommandHudInput(Event))
+			return true;
+	}
 	const bool IsWheelEvent = Event.m_Key == KEY_MOUSE_WHEEL_UP || Event.m_Key == KEY_MOUSE_WHEEL_DOWN;
 	if(!AnyChatPopupOpen && (Event.m_Flags & IInput::FLAG_PRESS) && IsWheelEvent)
 	{
@@ -3234,7 +3269,7 @@ void CChat::OnRender()
 				}
 			}
 		}
-		else
+		else if(!g_Config.m_QmChatEmojiCompletion)
 		{
 			// 表情补全提示：唯一匹配时显示剩余字符；多候选时以逗号分隔展示所有可能码
 			const int HintColonLength = QmChatEmojiColonUtf8Length(m_Input.GetString());
@@ -3292,12 +3327,6 @@ void CChat::OnRender()
 		{
 			const vec2 CaretPosition = m_Input.GetCaretPosition();
 			RenderCommandHud(CaretPosition.x, CaretPosition.y - 4.0f * CQmChatCommandHud::UI_SCALE, minimum(InputLineWidth, ChatRect.w - x), ScaledFontSize, ChatRect, HudEditorScope.m_Applied ? HudEditorScope.m_TargetRect : ChatRect);
-			const auto &CommandLayout = m_CommandHud.Layout();
-			if(CommandLayout.m_VisibleRows > 0)
-			{
-				ExtendBounds(CommandLayout.m_X, CommandLayout.m_Y, CommandLayout.m_W, CommandLayout.m_H);
-				y = minimum(y, CommandLayout.m_Y - 2.0f);
-			}
 		}
 		else
 			m_CommandHud.Hide();
@@ -3316,6 +3345,7 @@ void CChat::OnRender()
 	// 回放/导出走独立显示选项；其余情况沿用 cl_showchat / cl_video_showchat。
 	if(!qm_demo_display::Resolve(g_Config, Client()->State() == IClient::STATE_DEMOPLAYBACK, VideoRendering).m_Chat)
 	{
+		QmRenderChatCommandHud(m_CommandHud, Ui(), TextRender(), GetChatMousePos(), &GameClient()->m_QmChatEmoji);
 		GameClient()->m_HudEditor.EndTransform(HudEditorScope);
 		return;
 	}
@@ -3343,6 +3373,8 @@ void CChat::OnRender()
 	}
 
 	const float HistoryBottom = y;
+	const vec2 CommandHudMousePos = GetChatMousePos();
+	const bool InsideCommandHud = m_CommandHud.Contains(CommandHudMousePos.x, CommandHudMousePos.y);
 	const float HistoryHeight = maximum(0.0f, HistoryBottom - HeightLimit);
 	const int TotalVisibleLines = CountVisibleLinesFrom(0);
 	const int VisibleLineCapacity = maximum(1, (int)std::floor(HistoryHeight / maximum(RowHeight, 1.0f)));
@@ -3372,7 +3404,7 @@ void CChat::OnRender()
 			MousePos.y >= ScrollbarHandleY &&
 			MousePos.y <= ScrollbarHandleY + ScrollbarHandleH;
 
-		if(Input()->KeyPress(KEY_MOUSE_1) && InsideRail)
+		if(Input()->KeyPress(KEY_MOUSE_1) && InsideRail && !InsideCommandHud && !m_CommandHud.IsPressed())
 		{
 			m_ScrollbarDragging = true;
 			m_ScrollbarDragOffset = InsideHandle ? std::clamp(MousePos.y - ScrollbarHandleY, 0.0f, ScrollbarHandleH) : ScrollbarHandleH * 0.5f;
@@ -3419,8 +3451,6 @@ void CChat::OnRender()
 		MousePos.x <= ScrollbarRect.x + ScrollbarRect.w &&
 		MousePos.y >= ScrollbarRect.y &&
 		MousePos.y <= ScrollbarRect.y + ScrollbarRect.h;
-	const vec2 CommandHudMousePos = GetChatMousePos();
-	const bool InsideCommandHud = m_CommandHud.Contains(CommandHudMousePos.x, CommandHudMousePos.y);
 	const bool ChatCopyActive = m_Mode != MODE_NONE && !LanguageMenuOpen && !ChatLineMenuOpen && !InsideInputBlock && !InsideTranslateButton && !InsideScrollbar && !InsideCommandHud && !m_CommandHud.IsPressed() && !m_ScrollbarDragging;
 	const bool CopyClickReleased = m_MouseIsPress && !MouseDown && IsCopyClickDrag(m_MousePress, MousePos);
 	// 菜单打开时也允许右键：在其它消息行重新定位菜单，在空白处关闭菜单；
@@ -3674,6 +3704,8 @@ void CChat::OnRender()
 	if(VisibleBounds.Valid())
 		GameClient()->m_HudEditor.UpdateVisibleRect(EHudEditorElement::Chat, VisibleBounds.Rect());
 
+	// 与输入法候选栏相同，浮层覆盖聊天记录，不参与记录布局。
+	QmRenderChatCommandHud(m_CommandHud, Ui(), TextRender(), GetChatMousePos(), &GameClient()->m_QmChatEmoji);
 	GameClient()->m_HudEditor.EndTransform(HudEditorScope);
 
 	// 渲染聊天相关弹窗。

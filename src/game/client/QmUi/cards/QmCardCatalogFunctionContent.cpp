@@ -416,7 +416,10 @@ void CMenus::RenderQmFunctionEmoticonsContent(CUIRect &Content, float LineHeight
 void CMenus::RenderQmFunctionMiniFeaturesContent(CUIRect &Content, float, float, float, float, bool PrewarmOnly)
 {
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
-		{{&g_Config.m_QmChatCommandCompletion, "Show command completion in chat", Localize("Show command completion in chat")}},
+		{
+			{&g_Config.m_QmChatCommandCompletion, "Show command completion in chat", Localize("Show command completion in chat")},
+			{&g_Config.m_QmChatEmojiCompletion, "Chat emoji completion", Localize("Chat emoji completion"), nullptr, 0, Localize("Show emoji completion in chat")},
+		},
 		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
 		{

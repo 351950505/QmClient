@@ -1445,6 +1445,9 @@ Background image in menu
 Background music volume
 == Lautstärke der Hintergrundmusik
 
+Background opacity
+== Hintergrunddeckkraft
+
 Background stroke color
 == Hintergrundstrichfarbe
 
@@ -1895,6 +1898,27 @@ Chat command
 Chat command (e.g. showall 1)
 == Chat-Befehl (z. B. showall 1)
 
+Chat completion appearance
+== Darstellung der Chat-Vervollständigung
+
+Chat completion background color
+== Hintergrundfarbe der Chat-Vervollständigung
+
+Chat completion background opacity
+== Hintergrunddeckkraft der Chat-Vervollständigung
+
+Chat completion selected text color
+== Farbe des ausgewählten Textes der Chat-Vervollständigung
+
+Chat completion selection background color
+== Hintergrundfarbe der Auswahl der Chat-Vervollständigung
+
+Chat completion text color
+== Textfarbe der Chat-Vervollständigung
+
+Chat emoji completion
+== Emoji-Vervollständigung im Chat
+
 Chat export cancelled
 == Chat-Export abgebrochen
 
@@ -2272,6 +2296,9 @@ Colorize ping on scoreboard
 
 Colors
 == Farben
+
+Colors for chat command and emoji completion
+== Farben für die Befehls- und Emoji-Vervollständigung im Chat
 
 Colors in chat
 == Farben im Chat
@@ -3946,6 +3973,9 @@ Elastic back
 
 Elevated
 == Erhöht
+
+Emoji completion
+== Emoji-Vervollständigung
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == Animationsdauer des Emote- und Bindungsrads (ms, 0=Keine Animation, 1000=1 Sek.)
@@ -10301,6 +10331,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == Alle oder eine Tuning-Variable auf Standard zurücksetzen
 
+Reset chat completion appearance
+== Darstellung der Chat-Vervollständigung zurücksetzen
+
 Reset chat on escape
 == Chat bei Escape zurücksetzen
 
@@ -10937,11 +10970,17 @@ Selected item color
 Selected part: %d
 == Ausgewählter Teil: %d
 
+Selected text color
+== Farbe des ausgewählten Textes
+
 Selected timertype is not supported by your client
 == Ausgewählter Timer-Typ wird von deinem Client nicht unterstützt
 
 Selection
 == Auswahl
+
+Selection background color
+== Hintergrundfarbe der Auswahl
 
 Self
 == Selbst
@@ -11467,6 +11506,9 @@ Show dummy title locally
 
 Show dummy velocity in movement info HUD
 == Dummy-Geschwindigkeit im Bewegungsinfo-HUD anzeigen
+
+Show emoji completion in chat
+== Emoji-Vervollständigung im Chat anzeigen
 
 Show enemy color in chat
 == Feindfarbe im Chat anzeigen

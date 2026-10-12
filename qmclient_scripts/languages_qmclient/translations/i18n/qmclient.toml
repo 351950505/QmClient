@@ -3935,6 +3935,182 @@ turkish = "Sohbet balonu şeffaflığı (0-100)"
 polish = "Przezroczystość dymków czatu (0-100)"
 
 [[message]]
+key = "Chat completion appearance"
+[message.translations]
+simplified_chinese = "聊天补全外观"
+traditional_chinese = "聊天補全外觀"
+japanese = "チャット補完の外観"
+korean = "채팅 자동 완성 모양"
+russian = "Оформление автодополнения в чате"
+german = "Darstellung der Chat-Vervollständigung"
+spanish = "Apariencia del autocompletado del chat"
+french = "Apparence de la complétion du chat"
+brazilian_portuguese = "Aparência do autocompletar do chat"
+portuguese = "Aspeto da conclusão da conversa"
+turkish = "Sohbet tamamlama görünümü"
+polish = "Wygląd uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion background color"
+[message.translations]
+simplified_chinese = "聊天补全背景色"
+traditional_chinese = "聊天補全背景色"
+japanese = "チャット補完の背景色"
+korean = "채팅 자동 완성 배경색"
+russian = "Цвет фона автодополнения в чате"
+german = "Hintergrundfarbe der Chat-Vervollständigung"
+spanish = "Color de fondo del autocompletado del chat"
+french = "Couleur de fond de la complétion du chat"
+brazilian_portuguese = "Cor de fundo do autocompletar do chat"
+portuguese = "Cor de fundo da conclusão da conversa"
+turkish = "Sohbet tamamlama arka plan rengi"
+polish = "Kolor tła uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion background opacity"
+[message.translations]
+simplified_chinese = "聊天补全背景透明度"
+traditional_chinese = "聊天補全背景透明度"
+japanese = "チャット補完の背景不透明度"
+korean = "채팅 자동 완성 배경 불투명도"
+russian = "Непрозрачность фона автодополнения в чате"
+german = "Hintergrunddeckkraft der Chat-Vervollständigung"
+spanish = "Opacidad del fondo del autocompletado del chat"
+french = "Opacité du fond de la complétion du chat"
+brazilian_portuguese = "Opacidade do fundo do autocompletar do chat"
+portuguese = "Opacidade do fundo da conclusão da conversa"
+turkish = "Sohbet tamamlama arka plan opaklığı"
+polish = "Nieprzezroczystość tła uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion selected text color"
+[message.translations]
+simplified_chinese = "聊天补全选中文字颜色"
+traditional_chinese = "聊天補全選取文字顏色"
+japanese = "チャット補完の選択文字色"
+korean = "채팅 자동 완성 선택된 텍스트 색상"
+russian = "Цвет выбранного текста автодополнения в чате"
+german = "Farbe des ausgewählten Textes der Chat-Vervollständigung"
+spanish = "Color del texto seleccionado del autocompletado del chat"
+french = "Couleur du texte sélectionné de la complétion du chat"
+brazilian_portuguese = "Cor do texto selecionado do autocompletar do chat"
+portuguese = "Cor do texto selecionado da conclusão da conversa"
+turkish = "Sohbet tamamlamada seçili metin rengi"
+polish = "Kolor zaznaczonego tekstu uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion selection background color"
+[message.translations]
+simplified_chinese = "聊天补全选中背景色"
+traditional_chinese = "聊天補全選取背景色"
+japanese = "チャット補完の選択背景色"
+korean = "채팅 자동 완성 선택 배경색"
+russian = "Цвет фона выбранного пункта автодополнения в чате"
+german = "Hintergrundfarbe der Auswahl der Chat-Vervollständigung"
+spanish = "Color de fondo de selección del autocompletado del chat"
+french = "Couleur de fond de la sélection de la complétion du chat"
+brazilian_portuguese = "Cor de fundo da seleção do autocompletar do chat"
+portuguese = "Cor de fundo da seleção da conclusão da conversa"
+turkish = "Sohbet tamamlama seçim arka plan rengi"
+polish = "Kolor tła zaznaczenia uzupełniania na czacie"
+
+[[message]]
+key = "Chat completion text color"
+[message.translations]
+simplified_chinese = "聊天补全文字颜色"
+traditional_chinese = "聊天補全文字顏色"
+japanese = "チャット補完の文字色"
+korean = "채팅 자동 완성 텍스트 색상"
+russian = "Цвет текста автодополнения в чате"
+german = "Textfarbe der Chat-Vervollständigung"
+spanish = "Color del texto del autocompletado del chat"
+french = "Couleur du texte de la complétion du chat"
+brazilian_portuguese = "Cor do texto do autocompletar do chat"
+portuguese = "Cor do texto da conclusão da conversa"
+turkish = "Sohbet tamamlama metin rengi"
+polish = "Kolor tekstu uzupełniania na czacie"
+
+[[message]]
+key = "Colors for chat command and emoji completion"
+[message.translations]
+simplified_chinese = "聊天指令和表情补全的配色"
+traditional_chinese = "聊天指令和表情補全的配色"
+japanese = "チャットのコマンド・絵文字補完の配色"
+korean = "채팅 명령어 및 이모지 자동 완성 색상"
+russian = "Цвета автодополнения команд и эмодзи в чате"
+german = "Farben für die Befehls- und Emoji-Vervollständigung im Chat"
+spanish = "Colores del autocompletado de comandos y emojis del chat"
+french = "Couleurs de la complétion des commandes et émojis du chat"
+brazilian_portuguese = "Cores do autocompletar de comandos e emojis no chat"
+portuguese = "Cores da conclusão de comandos e emojis na conversa"
+turkish = "Sohbette komut ve emoji tamamlama renkleri"
+polish = "Kolory uzupełniania poleceń i emoji na czacie"
+
+[[message]]
+key = "Reset chat completion appearance"
+[message.translations]
+simplified_chinese = "恢复聊天补全默认外观"
+traditional_chinese = "恢復聊天補全預設外觀"
+japanese = "チャット補完の外観をリセット"
+korean = "채팅 자동 완성 모양 초기화"
+russian = "Сбросить оформление автодополнения в чате"
+german = "Darstellung der Chat-Vervollständigung zurücksetzen"
+spanish = "Restablecer apariencia del autocompletado del chat"
+french = "Réinitialiser l’apparence de la complétion du chat"
+brazilian_portuguese = "Redefinir aparência do autocompletar do chat"
+portuguese = "Repor aspeto da conclusão da conversa"
+turkish = "Sohbet tamamlama görünümünü sıfırla"
+polish = "Przywróć wygląd uzupełniania na czacie"
+
+[[message]]
+key = "Selected text color"
+[message.translations]
+simplified_chinese = "选中文字颜色"
+traditional_chinese = "選取文字顏色"
+japanese = "選択文字色"
+korean = "선택된 텍스트 색상"
+russian = "Цвет выбранного текста"
+german = "Farbe des ausgewählten Textes"
+spanish = "Color del texto seleccionado"
+french = "Couleur du texte sélectionné"
+brazilian_portuguese = "Cor do texto selecionado"
+portuguese = "Cor do texto selecionado"
+turkish = "Seçili metin rengi"
+polish = "Kolor zaznaczonego tekstu"
+
+[[message]]
+key = "Selection background color"
+[message.translations]
+simplified_chinese = "选中背景色"
+traditional_chinese = "選取背景色"
+japanese = "選択背景色"
+korean = "선택 배경색"
+russian = "Цвет фона выбранного пункта"
+german = "Hintergrundfarbe der Auswahl"
+spanish = "Color de fondo de selección"
+french = "Couleur de fond de la sélection"
+brazilian_portuguese = "Cor de fundo da seleção"
+portuguese = "Cor de fundo da seleção"
+turkish = "Seçim arka plan rengi"
+polish = "Kolor tła zaznaczenia"
+
+[[message]]
+key = "Chat emoji completion"
+[message.translations]
+simplified_chinese = "聊天表情补全"
+traditional_chinese = "聊天表情補全"
+japanese = "チャットの絵文字補完"
+korean = "채팅 이모지 자동 완성"
+russian = "Автодополнение эмодзи в чате"
+german = "Emoji-Vervollständigung im Chat"
+spanish = "Autocompletado de emojis en el chat"
+french = "Complétion des émojis dans le chat"
+brazilian_portuguese = "Autocompletar emojis no chat"
+portuguese = "Completar emojis na conversa"
+turkish = "Sohbette emoji tamamlama"
+polish = "Uzupełnianie emoji na czacie"
+
+[[message]]
 key = "Chat fade smooth time (milliseconds)"
 [message.translations]
 simplified_chinese = "聊天消息淡出过渡时长（毫秒）"
@@ -8157,6 +8333,22 @@ brazilian_portuguese = "Elástico com recuo"
 portuguese = "Retorno elástico"
 turkish = "Elastik geri tepme"
 polish = "Elastyczny z odbiciem"
+
+[[message]]
+key = "Emoji completion"
+[message.translations]
+simplified_chinese = "表情补全"
+traditional_chinese = "表情補全"
+japanese = "絵文字補完"
+korean = "이모지 자동 완성"
+russian = "Автодополнение эмодзи"
+german = "Emoji-Vervollständigung"
+spanish = "Autocompletado de emojis"
+french = "Complétion des émojis"
+brazilian_portuguese = "Autocompletar emojis"
+portuguese = "Completar emojis"
+turkish = "Emoji tamamlama"
+polish = "Uzupełnianie emoji"
 
 [[message]]
 key = "Emotes are disabled."
@@ -25746,6 +25938,22 @@ brazilian_portuguese = "Mostrar título do dummy localmente"
 portuguese = "Mostrar título do dummy localmente"
 turkish = "Kukla unvanını yerel olarak göster"
 polish = "Pokazuj tytuł dummy lokalnie"
+
+[[message]]
+key = "Show emoji completion in chat"
+[message.translations]
+simplified_chinese = "在聊天中显示表情补全"
+traditional_chinese = "在聊天中顯示表情補全"
+japanese = "チャットで絵文字補完を表示"
+korean = "채팅에서 이모지 자동 완성 표시"
+russian = "Показывать автодополнение эмодзи в чате"
+german = "Emoji-Vervollständigung im Chat anzeigen"
+spanish = "Mostrar autocompletado de emojis en el chat"
+french = "Afficher la complétion des émojis dans le chat"
+brazilian_portuguese = "Mostrar sugestões de emojis no chat"
+portuguese = "Mostrar sugestões de emojis na conversa"
+turkish = "Sohbette emoji tamamlamayı göster"
+polish = "Pokaż uzupełnianie emoji na czacie"
 
 [[message]]
 key = "Show feat-003 shared UI primitives dogfood page (takes over QmClient settings page, for visual verification of 11 primitives + spring/easing animations)"

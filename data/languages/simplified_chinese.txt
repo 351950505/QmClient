@@ -1445,6 +1445,9 @@ Background image in menu
 Background music volume
 == 背景音乐音量
 
+Background opacity
+== 背景透明度
+
 Background stroke color
 == 背景描边颜色
 
@@ -1895,6 +1898,27 @@ Chat command
 Chat command (e.g. showall 1)
 == 聊天指令（例如：showall 1）
 
+Chat completion appearance
+== 聊天补全外观
+
+Chat completion background color
+== 聊天补全背景色
+
+Chat completion background opacity
+== 聊天补全背景透明度
+
+Chat completion selected text color
+== 聊天补全选中文字颜色
+
+Chat completion selection background color
+== 聊天补全选中背景色
+
+Chat completion text color
+== 聊天补全文字颜色
+
+Chat emoji completion
+== 聊天表情补全
+
 Chat export cancelled
 == 已取消聊天导出
 
@@ -2272,6 +2296,9 @@ Colorize ping on scoreboard
 
 Colors
 == 颜色
+
+Colors for chat command and emoji completion
+== 聊天指令和表情补全的配色
 
 Colors in chat
 == 在聊天栏中的颜色
@@ -3946,6 +3973,9 @@ Elastic back
 
 Elevated
 == 提升的
+
+Emoji completion
+== 表情补全
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == 表情轮和绑定轮动画时长（毫秒，0=无动画，1000=1 秒）
@@ -10301,6 +10331,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == 将全部或单个调参变量重置为默认值
 
+Reset chat completion appearance
+== 恢复聊天补全默认外观
+
 Reset chat on escape
 == 按退出键时重置聊天
 
@@ -10937,11 +10970,17 @@ Selected item color
 Selected part: %d
 == 所选部件：%d
 
+Selected text color
+== 选中文字颜色
+
 Selected timertype is not supported by your client
 == 你当前客户端不支持所选计时器类型
 
 Selection
 == 已选项
+
+Selection background color
+== 选中背景色
 
 Self
 == 自身
@@ -11467,6 +11506,9 @@ Show dummy title locally
 
 Show dummy velocity in movement info HUD
 == 在运动信息 HUD 中显示分身速度
+
+Show emoji completion in chat
+== 在聊天中显示表情补全
 
 Show enemy color in chat
 == 在聊天中显示敌对颜色

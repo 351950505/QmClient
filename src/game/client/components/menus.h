@@ -3305,6 +3305,7 @@ private:
 	void RenderQmAppearancePresetContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
 	void RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
 	void RenderQmTooltipContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
+	void RenderQmChatCompletionContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
 	void RenderQmFunctionImeContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmFunctionBetterScoreboardContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmFunctionBlockWordsContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);

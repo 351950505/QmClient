@@ -1445,6 +1445,9 @@ Background image in menu
 Background music volume
 == Volume de la musique de fond
 
+Background opacity
+== Opacité de l'arrière-plan
+
 Background stroke color
 == Couleur du trait d'arrière-plan
 
@@ -1895,6 +1898,27 @@ Chat command
 Chat command (e.g. showall 1)
 == Commande de chat (ex. : showall 1)
 
+Chat completion appearance
+== Apparence de la complétion du chat
+
+Chat completion background color
+== Couleur de fond de la complétion du chat
+
+Chat completion background opacity
+== Opacité du fond de la complétion du chat
+
+Chat completion selected text color
+== Couleur du texte sélectionné de la complétion du chat
+
+Chat completion selection background color
+== Couleur de fond de la sélection de la complétion du chat
+
+Chat completion text color
+== Couleur du texte de la complétion du chat
+
+Chat emoji completion
+== Complétion des émojis dans le chat
+
 Chat export cancelled
 == Exportation du chat annulée
 
@@ -2272,6 +2296,9 @@ Colorize ping on scoreboard
 
 Colors
 == Couleurs
+
+Colors for chat command and emoji completion
+== Couleurs de la complétion des commandes et émojis du chat
 
 Colors in chat
 == Couleurs dans le tchat
@@ -3946,6 +3973,9 @@ Elastic back
 
 Elevated
 == Élevé
+
+Emoji completion
+== Complétion des émojis
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == Durée de l'animation de la roue d'émoticônes et de raccourcis (ms, 0=Pas d'animation, 1000=1 sec)
@@ -10301,6 +10331,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == Réinitialiser toutes ou une variable de tuning à la valeur par défaut
 
+Reset chat completion appearance
+== Réinitialiser l’apparence de la complétion du chat
+
 Reset chat on escape
 == Réinitialiser le chat sur Échap
 
@@ -10937,11 +10970,17 @@ Selected item color
 Selected part: %d
 == Partie sélectionnée : %d
 
+Selected text color
+== Couleur du texte sélectionné
+
 Selected timertype is not supported by your client
 == Le type de chronomètre sélectionné n'est pas pris en charge par votre client
 
 Selection
 == Sélection
+
+Selection background color
+== Couleur de fond de la sélection
 
 Self
 == Soi
@@ -11467,6 +11506,9 @@ Show dummy title locally
 
 Show dummy velocity in movement info HUD
 == Afficher la vitesse du Dummy dans le HUD d'info de mouvement
+
+Show emoji completion in chat
+== Afficher la complétion des émojis dans le chat
 
 Show enemy color in chat
 == Afficher la couleur ennemie dans le chat
