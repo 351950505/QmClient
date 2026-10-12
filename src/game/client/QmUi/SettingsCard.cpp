@@ -94,7 +94,7 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	const float UiScale = Ctx.m_UiScale > 0.0f ? Ctx.m_UiScale : 1.0f;
 	SSettingsCardVisualState DrawState = State;
 	SSettingsCardFrame DrawFrame = ResolveSettingsCardDrawFrame(Frame, State.m_DrawOffsetX, State.m_DrawOffsetY);
-	CUIRect InfoButton;
+	CUIRect InfoButton{};
 	if(Spec.m_pInfo != nullptr && Spec.m_pInfo[0] != '\0')
 	{
 		InfoButton = ResolveSettingsCardInfoRect(DrawFrame);
