@@ -198652,14 +198652,14 @@
     },
     {
       "file": "src/test/unit/qmclient/client/qm_module_layout_adapter_test.cpp",
-      "line": 291,
+      "line": 292,
       "text": "重复 stableId: ",
       "category": "test_only",
       "reason": "test fixture or assertion text"
     },
     {
       "file": "src/test/unit/qmclient/client/qm_module_layout_adapter_test.cpp",
-      "line": 380,
+      "line": 381,
       "text": " 列变化",
       "category": "test_only",
       "reason": "test fixture or assertion text"

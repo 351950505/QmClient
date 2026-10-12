@@ -83,13 +83,10 @@ namespace qm_card_catalog
 		const auto RenderChatCompletion = [pMenus = Ctx.m_pMenus, Metrics = Ctx.m_Metrics](CUIRect &Content, const bool PrewarmOnly) {
 			QmCardRenderHook::RenderQmChatCompletionContent(pMenus, Content, Metrics, PrewarmOnly);
 		};
-		MakeModuleCard(Ctx, qm_module::EQmModuleId::ChatCompletion, "qm:chat_completion", "Chat completion appearance", "Colors for chat command and emoji completion",
-			[RenderChatCompletion, ReadOnly = Ctx.m_ReadOnly](CUIRect &Content) { RenderChatCompletion(Content, ReadOnly); },
-			[RenderChatCompletion](float ContentWidth) {
+		MakeModuleCard(Ctx, qm_module::EQmModuleId::ChatCompletion, "qm:chat_completion", "Chat completion appearance", "Colors for chat command and emoji completion", [RenderChatCompletion, ReadOnly = Ctx.m_ReadOnly](CUIRect &Content) { RenderChatCompletion(Content, ReadOnly); }, [RenderChatCompletion](float ContentWidth) {
 				CUIRect Probe{0.0f, 0.0f, ContentWidth, 9999.0f};
 				RenderChatCompletion(Probe, true);
-				return Probe.y;
-			}, 0u, {}, Out);
+				return Probe.y; }, 0u, {}, Out);
 		return true;
 	}
 }
