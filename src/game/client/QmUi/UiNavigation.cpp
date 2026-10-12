@@ -55,13 +55,12 @@ namespace ui_widget
 		// 激活位置不再用页签下方的下划线小块表达。
 		SCapsuleTabBarStyle Style;
 		Style.m_IndicatorColor = Ctx.m_pTheme != nullptr ? Ctx.m_pTheme->m_Accent : ui_token::color::ACCENT_PRIMARY;
-		CapsuleTabBarChrome(Ctx, BuildUiAnimNodeKey(MakeUiScopeHash("ui_widget_tabbar_capsule"), reinterpret_cast<uint64_t>(pActive)), vTabSlots.data(), Count, *pActive, Style);
+		*pActive = CapsuleTabBar(Ctx, BuildUiAnimNodeKey(MakeUiScopeHash("ui_widget_tabbar_capsule"), reinterpret_cast<uint64_t>(pActive)), vTabSlots.data(), Count, *pActive, Style);
 
 		for(int i = 0; i < Count; ++i)
 		{
 			const int Checked = (*pActive == i) ? 1 : 0;
-			if(Ctx.m_pMenus->DoButton_MenuTab(&ButtonPool[i], ppLabels[i], Checked, &vTabSlots[static_cast<std::size_t>(i)], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true) != 0)
-				*pActive = i;
+			Ctx.m_pMenus->DoButton_MenuTab(&ButtonPool[i], ppLabels[i], Checked, &vTabSlots[static_cast<std::size_t>(i)], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true);
 		}
 
 		return *pActive;
@@ -82,6 +81,15 @@ namespace ui_widget
 		if(!Ctx.m_pUi->MouseHovered(&Row))
 			return -1;
 		return CapsuleTabBarSlotAtPoint(pSlots, Count, Ctx.m_pUi->MouseX(), Ctx.m_pUi->MouseY(), Slop);
+	}
+
+	int CapsuleTabBar(const IUiContext &Ctx, const uint64_t GroupId, const CUIRect *pSlots, const int Count, int ActiveIndex, const SCapsuleTabBarStyle &Style, const ColorRGBA *pSlotTints)
+	{
+		const int Pressed = CapsuleTabBarPressedIndex(Ctx, pSlots, Count);
+		if(Pressed >= 0)
+			ActiveIndex = Pressed;
+		CapsuleTabBarChrome(Ctx, GroupId, pSlots, Count, ActiveIndex, Style, pSlotTints);
+		return ActiveIndex;
 	}
 
 	void CapsuleTabBarChrome(const IUiContext &Ctx, const uint64_t GroupId, const CUIRect &RowRect, const CUIRect *pActiveSlot, const SCapsuleTabBarStyle &Style, const SCapsuleTabBarTints &Tints)

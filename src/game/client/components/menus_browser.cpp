@@ -1507,18 +1507,16 @@ void CMenus::RenderServerbrowserFilters(CUIRect View)
 		static EFilterTab s_ActiveTab = FILTERTAB_COUNTRIES;
 		static EFilterTab s_PrevFilterTab = FILTERTAB_COUNTRIES;
 		static float s_FilterTabDirection = 0.0f;
+		const CUIRect aFilterTabSlots[] = {CountriesTab, TypesTab};
+		const int Pressed = ui_widget::CapsuleTabBarPressedIndex(TabBarUiContext(), aFilterTabSlots, std::size(aFilterTabSlots), 0.0f);
+		if(Pressed >= 0)
+			s_ActiveTab = static_cast<EFilterTab>(Pressed);
 
 		static CButtonContainer s_CountriesButton;
-		if(DoButton_MenuTab(&s_CountriesButton, Localize("Countries"), s_ActiveTab == FILTERTAB_COUNTRIES, &CountriesTab, IGraphics::CORNER_TL, nullptr, &ColorInactive, &ColorActive, nullptr, 4.0f))
-		{
-			s_ActiveTab = FILTERTAB_COUNTRIES;
-		}
+		DoButton_MenuTab(&s_CountriesButton, Localize("Countries"), s_ActiveTab == FILTERTAB_COUNTRIES, &CountriesTab, IGraphics::CORNER_TL, nullptr, &ColorInactive, &ColorActive, nullptr, 4.0f);
 
 		static CButtonContainer s_TypesButton;
-		if(DoButton_MenuTab(&s_TypesButton, Localize("Types"), s_ActiveTab == FILTERTAB_TYPES, &TypesTab, IGraphics::CORNER_TR, nullptr, &ColorInactive, &ColorActive, nullptr, 4.0f))
-		{
-			s_ActiveTab = FILTERTAB_TYPES;
-		}
+		DoButton_MenuTab(&s_TypesButton, Localize("Types"), s_ActiveTab == FILTERTAB_TYPES, &TypesTab, IGraphics::CORNER_TR, nullptr, &ColorInactive, &ColorActive, nullptr, 4.0f);
 
 		if(s_ActiveTab != s_PrevFilterTab)
 		{
@@ -3567,7 +3565,7 @@ void CMenus::RenderServerbrowserFavoriteMaps(CUIRect View)
 	const char *apWorkspaceTabLabelPtrs[4] = {aaWorkspaceTabLabels[0], aaWorkspaceTabLabels[1], aaWorkspaceTabLabels[2], aaWorkspaceTabLabels[3]};
 	// 胶囊滑块配色按浏览器面板表面自适应。
 	const ui_widget::SCapsuleTabBarStyle WorkspaceTabStyle = CapsuleTabBarStyleFor(TabInactiveColor);
-	const int NewWorkspaceTab = DoSegmentedChoice(s_aFavoriteMapsWorkspaceTabButtons, apWorkspaceTabLabelPtrs, 4, s_FavoriteMapsWorkspaceTab, WorkspaceTabs, Layout.m_TabHeight * 0.20f, &WorkspaceTabStyle);
+	const int NewWorkspaceTab = DoNavigationTabs(s_aFavoriteMapsWorkspaceTabButtons, apWorkspaceTabLabelPtrs, 4, s_FavoriteMapsWorkspaceTab, WorkspaceTabs, Layout.m_TabHeight * 0.20f, &WorkspaceTabStyle);
 	if(NewWorkspaceTab != s_FavoriteMapsWorkspaceTab)
 		s_FavoriteMapsWorkspaceTab = NewWorkspaceTab;
 	View.HSplitTop(Layout.m_SectionGap, nullptr, &View);
@@ -4059,24 +4057,23 @@ void CMenus::RenderServerbrowserTabBar(CUIRect TabBar)
 			ActiveToolboxTab = (int)Tab;
 	}
 	const IUiContext ToolboxTabBarCtx = TabBarUiContext();
-	ui_widget::CapsuleTabBarChrome(ToolboxTabBarCtx, MakeUiScopeHash("browser_toolbox_tabs_capsule"), ui_widget::CapsuleTabBarRowRect(aToolboxTabSlots, std::size(aToolboxTabSlots)), ActiveToolboxTab >= 0 ? &aToolboxTabSlots[ActiveToolboxTab] : nullptr, CapsuleTabBarStyleFor(BrowserPanelColor(1.0f)));
+	ActiveToolboxTab = ui_widget::CapsuleTabBar(ToolboxTabBarCtx, MakeUiScopeHash("browser_toolbox_tabs_capsule"), aToolboxTabSlots, std::size(aToolboxTabSlots), ActiveToolboxTab, CapsuleTabBarStyleFor(BrowserPanelColor(1.0f)));
+	if(ActiveToolboxTab >= 0)
+		g_Config.m_UiToolboxPage = aToolboxTabPages[ActiveToolboxTab];
 
 	TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
 	TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 
 	static CButtonContainer s_FilterTabButton;
-	if(DoButton_MenuTab(&s_FilterTabButton, FONT_ICON_LIST_UL, g_Config.m_UiToolboxPage == UI_TOOLBOX_PAGE_FILTERS, &FilterTabButton, IGraphics::CORNER_ALL, &m_aAnimatorsSmallPage[SMALL_TAB_BROWSER_FILTER], nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true))
-		g_Config.m_UiToolboxPage = UI_TOOLBOX_PAGE_FILTERS;
+	DoButton_MenuTab(&s_FilterTabButton, FONT_ICON_LIST_UL, g_Config.m_UiToolboxPage == UI_TOOLBOX_PAGE_FILTERS, &FilterTabButton, IGraphics::CORNER_ALL, &m_aAnimatorsSmallPage[SMALL_TAB_BROWSER_FILTER], nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true);
 	GameClient()->m_Tooltips.DoToolTip(&s_FilterTabButton, &FilterTabButton, Localize("Server filter"));
 
 	static CButtonContainer s_InfoTabButton;
-	if(DoButton_MenuTab(&s_InfoTabButton, FONT_ICON_INFO, g_Config.m_UiToolboxPage == UI_TOOLBOX_PAGE_INFO, &InfoTabButton, IGraphics::CORNER_ALL, &m_aAnimatorsSmallPage[SMALL_TAB_BROWSER_INFO], nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true))
-		g_Config.m_UiToolboxPage = UI_TOOLBOX_PAGE_INFO;
+	DoButton_MenuTab(&s_InfoTabButton, FONT_ICON_INFO, g_Config.m_UiToolboxPage == UI_TOOLBOX_PAGE_INFO, &InfoTabButton, IGraphics::CORNER_ALL, &m_aAnimatorsSmallPage[SMALL_TAB_BROWSER_INFO], nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true);
 	GameClient()->m_Tooltips.DoToolTip(&s_InfoTabButton, &InfoTabButton, Localize("Server info"));
 
 	static CButtonContainer s_FriendsTabButton;
-	if(DoButton_MenuTab(&s_FriendsTabButton, FONT_ICON_HEART, g_Config.m_UiToolboxPage == UI_TOOLBOX_PAGE_FRIENDS, &FriendsTabButton, IGraphics::CORNER_ALL, &m_aAnimatorsSmallPage[SMALL_TAB_BROWSER_FRIENDS], nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true))
-		g_Config.m_UiToolboxPage = UI_TOOLBOX_PAGE_FRIENDS;
+	DoButton_MenuTab(&s_FriendsTabButton, FONT_ICON_HEART, g_Config.m_UiToolboxPage == UI_TOOLBOX_PAGE_FRIENDS, &FriendsTabButton, IGraphics::CORNER_ALL, &m_aAnimatorsSmallPage[SMALL_TAB_BROWSER_FRIENDS], nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true);
 	GameClient()->m_Tooltips.DoToolTip(&s_FriendsTabButton, &FriendsTabButton, Localize("Friends"));
 
 	TextRender()->SetRenderFlags(0);

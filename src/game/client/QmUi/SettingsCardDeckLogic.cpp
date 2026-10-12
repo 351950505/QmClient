@@ -3,6 +3,7 @@
 #include <base/system.h>
 
 #include <game/client/QmUi/QmAnim.h>
+#include <game/client/QmUi/QmAnimResolve.h>
 #include <game/client/QmUi/QmCardRegistry.h>
 #include <game/client/QmUi/SettingsCardGeometry.h>
 
@@ -115,6 +116,39 @@ bool CSettingsCardDeckFrameRuntime::ConsumeEntryCycle()
 		return false;
 	m_EntryDisplayCycle = m_DisplayCycle;
 	return true;
+}
+
+float CSettingsCardDeckFrameRuntime::ResolveEntryOffset(CUiV2AnimationRuntime &AnimRuntime, const uint64_t OwnerId, const char *pTab, const SCardMotionSpec &Motion)
+{
+	if(!EntryCyclePending() && !m_EntryWasActive)
+		return 0.0f;
+
+	if(Motion.m_ContinuousEntry)
+	{
+		// 轨道属于可见 Deck，不随分类字符串变化；预热 Deck 使用自己的实例。
+		const uint64_t NodeKey = BuildUiAnimNodeKey(str_quickhash("settings-card-deck-continuous-entry"), OwnerId);
+		return ResolveContinuousEntryOffset(AnimRuntime, NodeKey, Motion);
+	}
+
+	const uint64_t NodeKey = BuildUiAnimNodeKey(str_quickhash("settings-card-deck-entry"), str_quickhash(pTab != nullptr ? pTab : ""));
+	if(ConsumeEntryCycle())
+	{
+		AnimRuntime.SetValue(NodeKey, EUiAnimProperty::POS_Y, m_AnimateEntry ? Motion.m_EntryDistance : 0.0f);
+		m_EntryWasActive = m_AnimateEntry && Motion.m_EntryDuration > 0.0f;
+	}
+	if(m_EntryWasActive && Motion.m_EntryDuration > 0.0f)
+	{
+		CountEntryAnimationResolve();
+		const float Offset = ResolveUiAnimValue(AnimRuntime, NodeKey, EUiAnimProperty::POS_Y, 0.0f, Motion.m_EntryDuration, EEasing::EASE_OUT);
+		m_EntryWasActive = AnimRuntime.HasActiveAnimation(NodeKey, EUiAnimProperty::POS_Y);
+		return Offset;
+	}
+	if(m_EntryWasActive)
+	{
+		AnimRuntime.SetValue(NodeKey, EUiAnimProperty::POS_Y, 0.0f);
+		m_EntryWasActive = false;
+	}
+	return 0.0f;
 }
 
 float CSettingsCardDeckFrameRuntime::ResolveContinuousEntryOffset(CUiV2AnimationRuntime &AnimRuntime, const uint64_t NodeKey, const SCardMotionSpec &Motion)

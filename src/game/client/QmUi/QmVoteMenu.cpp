@@ -65,7 +65,7 @@ void CMenus::RenderServerControl(CUIRect MainView)
 	static CButtonContainer s_aPages[2];
 	const char *apPages[] = {Localize("DDNet map library"), Localize("Server control")};
 	const auto Style = CapsuleTabBarStyleFor(ms_ColorTabbarActive);
-	m_QmVoteMenu.m_ShowLibrary = DoSegmentedChoice(s_aPages, apPages, 2, m_QmVoteMenu.m_ShowLibrary ? 0 : 1, Navigation, 8.0f, &Style) == 0;
+	m_QmVoteMenu.m_ShowLibrary = DoNavigationTabs(s_aPages, apPages, 2, m_QmVoteMenu.m_ShowLibrary ? 0 : 1, Navigation, 8.0f, &Style) == 0;
 	if(m_QmVoteMenu.m_ShowLibrary)
 		RenderVoteMapLibrary(MainView);
 	else
