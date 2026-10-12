@@ -12542,6 +12542,15 @@ Some map sounds could not be loaded. Check the local console for details.
 Something hookable
 == フック可能なブロック
 
+Sort by favorites
+== お気に入り順に並べ替え
+
+Sort by number of friends
+== フレンド数順に並べ替え
+
+Sort by number of QmClient players
+== QmClientプレイヤー数順に並べ替え
+
 Sort column in ghost list
 == ゴーストリストのソート列
 

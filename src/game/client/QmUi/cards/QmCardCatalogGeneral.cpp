@@ -235,7 +235,8 @@ namespace qm_card_catalog
 					(g_Config.m_ClAutoScreenshot != 0) +
 					(g_Config.m_ClAutoStatboardScreenshot != 0) +
 					(g_Config.m_ClAutoCSV != 0);
-				return 16.0f * GeneralMetrics.m_RowStep + 2.0f * GeneralMetrics.m_SectionGap + EnabledRows * (GeneralMetrics.m_RowStep + GeneralMetrics.m_LineSpacing);
+				return 16.0f * GeneralMetrics.m_RowStep + 2.0f * GeneralMetrics.m_SectionGap + EnabledRows * (GeneralMetrics.m_RowStep + GeneralMetrics.m_LineSpacing) +
+				       (qm_mobile_spectator::Enabled() ? GeneralMetrics.m_ButtonHeight + GeneralMetrics.m_LineSpacing : 0.0f);
 			};
 			Out.m_VisibilityController = true;
 			Out.m_PreLayoutInput = [pMenus, GeneralMetrics](CUIRect Content) {
@@ -303,6 +304,18 @@ namespace qm_card_catalog
 				DirectoryHintProps.m_StopAtEnd = true;
 				DirectoryHintProps.m_MinimumFontSize = 6.0f;
 				pMenus->Ui()->DoLabel(&Button, Localize("Leave empty to use the default directory. Relative paths use the config directory."), GeneralMetrics.m_BodySize, TEXTALIGN_ML, DirectoryHintProps);
+				if(qm_mobile_spectator::Enabled())
+				{
+					CUIRect Demos, Videos;
+					Content.HSplitTop(GeneralMetrics.m_LineSpacing, nullptr, &Content);
+					Content.HSplitTop(GeneralMetrics.m_ButtonHeight, &Button, &Content);
+					Button.VSplitMid(&Demos, &Videos, GeneralMetrics.m_LineSpacing);
+					static CButtonContainer s_Demos, s_Videos;
+					if(pMenus->DoButton_Menu(&s_Demos, Localize("Demos directory"), 0, &Demos))
+						pMenus->GameClient()->m_QmMobileSpectator.ShowMediaFiles(false);
+					if(pMenus->DoButton_Menu(&s_Videos, Localize("Videos directory"), 0, &Videos))
+						pMenus->GameClient()->m_QmMobileSpectator.ShowMediaFiles(true);
+				}
 				Content.HSplitTop(GeneralMetrics.m_SectionGap, nullptr, &Content);
 				SQmCardBuildContext WatermarkCtx;
 				WatermarkCtx.m_pMenus = pMenus;

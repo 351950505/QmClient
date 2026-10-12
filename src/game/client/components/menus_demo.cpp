@@ -3416,9 +3416,14 @@ void CMenus::RenderDemoBrowserButtons(CUIRect ButtonsView, bool WasListboxItemAc
 		static CButtonContainer s_DemosDirectoryButton;
 		if(DoButton_Menu(&s_DemosDirectoryButton, BrowsingScreenshots ? Localize("Screenshots directory") : Localize("Demos directory"), 0, &DemosDirectoryButton))
 		{
-			char aBuf[IO_MAX_PATH_LENGTH];
-			Storage()->GetCompletePath(pSelectedItem->m_StorageType, m_aCurrentDemoFolder[0] == '\0' ? pBaseFolder : m_aCurrentDemoFolder, aBuf, sizeof(aBuf));
-			Client()->ViewFile(aBuf);
+			if(qm_mobile_spectator::Enabled() && !BrowsingScreenshots)
+				GameClient()->m_QmMobileSpectator.ShowMediaFiles(false);
+			else
+			{
+				char aBuf[IO_MAX_PATH_LENGTH];
+				Storage()->GetCompletePath(pSelectedItem->m_StorageType, m_aCurrentDemoFolder[0] == '\0' ? pBaseFolder : m_aCurrentDemoFolder, aBuf, sizeof(aBuf));
+				Client()->ViewFile(aBuf);
+			}
 		}
 		GameClient()->m_Tooltips.DoToolTip(&s_DemosDirectoryButton, &DemosDirectoryButton, BrowsingScreenshots ? Localize("Open the folder containing screenshots") : Localize("Open the folder containing demo files"));
 	}

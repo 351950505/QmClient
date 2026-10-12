@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <vector>
 
 TEST(QmImeFocus, ClosedOwnersRejectStaleActiveInputs)
 {
@@ -185,4 +186,254 @@ TEST(QmImePlatform, EmptyTextEventDoesNotMutateBuffer)
 	EXPECT_FALSE(QmImeTextEventShouldMutateBuffer(""));
 	EXPECT_TRUE(QmImeTextEventShouldMutateBuffer("a"));
 	EXPECT_TRUE(QmImeTextEventShouldMutateBuffer("你"));
+}
+
+TEST(QmImeCandidateState, FirstSdlSnapshotDoesNotRequireNativeOpenNotify)
+{
+	CQmImeCandidateState State;
+	const char *apCandidates[] = {"1 的", "2 地"};
+
+	ASSERT_TRUE(State.AcceptsSdlCandidates());
+	State.UpdateFromSdl(apCandidates, 2, 0, true);
+
+	const auto &Candidates = State.Candidates();
+	EXPECT_EQ(Candidates.m_vCandidates, (std::vector<std::string>{"的", "地"}));
+	EXPECT_EQ(Candidates.m_SelectedIndex, 0);
+	EXPECT_EQ(Candidates.m_PageStart, 0);
+	EXPECT_EQ(Candidates.m_PageSize, 2);
+	EXPECT_EQ(Candidates.m_TotalCount, 2);
+	EXPECT_TRUE(QmImePopupShouldBeVisible(Candidates.m_vCandidates.size()));
+}
+
+TEST(QmImeCandidateState, ReplacingSnapshotsCanReturnToSingleCandidate)
+{
+	CQmImeCandidateState State;
+	const char *apFirstCandidates[] = {"1 的"};
+	const char *apLongerCandidates[] = {"1 大", "2 打", "3 答"};
+
+	State.UpdateFromSdl(apFirstCandidates, 1, 0, true);
+	ASSERT_EQ(State.Candidates().m_vCandidates, (std::vector<std::string>{"的"}));
+	State.UpdateFromSdl(apLongerCandidates, 3, 1, true);
+	ASSERT_EQ(State.Candidates().m_vCandidates, (std::vector<std::string>{"大", "打", "答"}));
+	State.UpdateFromSdl(apFirstCandidates, 1, 0, true);
+
+	EXPECT_EQ(State.Candidates().m_vCandidates, (std::vector<std::string>{"的"}));
+	EXPECT_EQ(State.Candidates().m_SelectedIndex, 0);
+	EXPECT_EQ(State.Candidates().m_PageSize, 1);
+	EXPECT_EQ(State.Candidates().m_TotalCount, 1);
+	EXPECT_TRUE(QmImePopupShouldBeVisible(State.Candidates().m_vCandidates.size()));
+}
+
+TEST(QmImeCandidateState, SdlRefreshPrefersNativePageAndMetadata)
+{
+	CQmImeCandidateState State;
+	const char *apSdlCandidates[] = {"1 旧词"};
+	SQmImeCandidateList NativeCandidates;
+	NativeCandidates.m_vCandidates = {"第一页", "第二页"};
+	NativeCandidates.m_SelectedIndex = 1;
+	NativeCandidates.m_PageStart = 10;
+	NativeCandidates.m_PageSize = 5;
+	NativeCandidates.m_TotalCount = 23;
+
+	State.UpdateFromSdl(apSdlCandidates, 1, 0, true, NativeCandidates);
+
+	const auto &Candidates = State.Candidates();
+	EXPECT_EQ(Candidates.m_vCandidates, NativeCandidates.m_vCandidates);
+	EXPECT_EQ(Candidates.m_SelectedIndex, 1);
+	EXPECT_EQ(Candidates.m_PageStart, 10);
+	EXPECT_EQ(Candidates.m_PageSize, 5);
+	EXPECT_EQ(Candidates.m_TotalCount, 23);
+}
+
+TEST(QmImeCandidateState, MissingNativePageFallsBackToSdlSnapshot)
+{
+	CQmImeCandidateState State;
+	SQmImeCandidateList PreviousCandidates;
+	PreviousCandidates.m_vCandidates = {"旧词"};
+	PreviousCandidates.m_PageStart = 5;
+	PreviousCandidates.m_PageSize = 5;
+	PreviousCandidates.m_TotalCount = 12;
+	State.UpdateFromNative(PreviousCandidates, true);
+	const char *apSdlCandidates[] = {"1 新词", "2 输入"};
+
+	State.UpdateFromSdl(apSdlCandidates, 2, 1, true, std::nullopt);
+
+	const auto &Candidates = State.Candidates();
+	EXPECT_EQ(Candidates.m_vCandidates, (std::vector<std::string>{"新词", "输入"}));
+	EXPECT_EQ(Candidates.m_SelectedIndex, 1);
+	EXPECT_EQ(Candidates.m_PageStart, 0);
+	EXPECT_EQ(Candidates.m_PageSize, 2);
+	EXPECT_EQ(Candidates.m_TotalCount, 2);
+}
+
+TEST(QmImeCandidateState, EmptyNativePageFallsBackToSdlSnapshot)
+{
+	CQmImeCandidateState State;
+	const char *apSdlCandidates[] = {"1 新词"};
+
+	State.UpdateFromSdl(apSdlCandidates, 1, 0, true, SQmImeCandidateList{});
+
+	EXPECT_EQ(State.Candidates().m_vCandidates, (std::vector<std::string>{"新词"}));
+	EXPECT_EQ(State.Candidates().m_SelectedIndex, 0);
+}
+
+TEST(QmImeCandidateState, WindowsSdlCandidatesRemoveSingleDigitSpacePrefix)
+{
+	CQmImeCandidateState State;
+	const char *apCandidates[] = {"1 中文", "9 候选", "0 末项"};
+
+	State.UpdateFromSdl(apCandidates, 3, 2, true);
+
+	EXPECT_EQ(State.Candidates().m_vCandidates, (std::vector<std::string>{"中文", "候选", "末项"}));
+	EXPECT_EQ(State.Candidates().m_SelectedIndex, 2);
+}
+
+TEST(QmImeCandidateState, WindowsSdlCandidatesPreserveContentWithoutNumberPrefix)
+{
+	CQmImeCandidateState State;
+	const char *apCandidates[] = {"中文", "1. 中文", "10 中文", " 1 中文", "1\t中文", "１ 中文"};
+
+	State.UpdateFromSdl(apCandidates, 6, 0, true);
+
+	EXPECT_EQ(State.Candidates().m_vCandidates,
+		(std::vector<std::string>{"中文", "1. 中文", "10 中文", " 1 中文", "1\t中文", "１ 中文"}));
+}
+
+TEST(QmImeCandidateState, NonWindowsSdlCandidatesPreserveNumberedContent)
+{
+	CQmImeCandidateState State;
+	const char *apCandidates[] = {"1 中文", "2 候选"};
+
+	State.UpdateFromSdl(apCandidates, 2, 0, false);
+
+	EXPECT_EQ(State.Candidates().m_vCandidates, (std::vector<std::string>{"1 中文", "2 候选"}));
+}
+
+TEST(QmImeCandidateState, InvalidSdlSelectionDoesNotSelectCandidate)
+{
+	CQmImeCandidateState State;
+	const char *apCandidates[] = {"1 中文", "2 候选"};
+	for(int SelectedIndex : {-1, 2, 99})
+	{
+		SCOPED_TRACE(SelectedIndex);
+		State.UpdateFromSdl(apCandidates, 2, SelectedIndex, true);
+		EXPECT_EQ(State.Candidates().m_SelectedIndex, -1);
+		EXPECT_EQ(State.Candidates().m_vCandidates.size(), 2u);
+	}
+}
+
+TEST(QmImeCandidateState, EndingCompositionRejectsLateSdlAndNativeCandidates)
+{
+	CQmImeCandidateState State;
+	const char *apCandidates[] = {"1 旧词"};
+	State.UpdateFromSdl(apCandidates, 1, 0, true);
+	State.EndComposition();
+	ASSERT_FALSE(State.AcceptsSdlCandidates());
+	ASSERT_TRUE(State.Candidates().m_vCandidates.empty());
+	SQmImeCandidateList NativeCandidates;
+	NativeCandidates.m_vCandidates = {"迟到候选"};
+
+	State.UpdateFromSdl(apCandidates, 1, 0, true, NativeCandidates);
+	EXPECT_TRUE(State.Candidates().m_vCandidates.empty());
+	State.UpdateFromNative(NativeCandidates, false);
+	EXPECT_TRUE(State.Candidates().m_vCandidates.empty());
+	EXPECT_FALSE(State.AcceptsSdlCandidates());
+}
+
+TEST(QmImeCandidateState, ResumingCompositionAcceptsSdlWithoutNativeOpenNotify)
+{
+	CQmImeCandidateState State;
+	State.EndComposition();
+	State.ResumeComposition();
+	ASSERT_TRUE(State.AcceptsSdlCandidates());
+	const char *apCandidates[] = {"1 新词"};
+
+	State.UpdateFromSdl(apCandidates, 1, 0, true);
+
+	EXPECT_EQ(State.Candidates().m_vCandidates, (std::vector<std::string>{"新词"}));
+}
+
+TEST(QmImeCandidateState, NativeOpenAcceptsCandidatesAfterCompositionEnded)
+{
+	CQmImeCandidateState State;
+	State.EndComposition();
+	SQmImeCandidateList NativeCandidates;
+	NativeCandidates.m_vCandidates = {"新词"};
+	NativeCandidates.m_SelectedIndex = 0;
+
+	State.UpdateFromNative(NativeCandidates, true);
+
+	EXPECT_TRUE(State.AcceptsSdlCandidates());
+	EXPECT_EQ(State.Candidates().m_vCandidates, NativeCandidates.m_vCandidates);
+	EXPECT_EQ(State.Candidates().m_SelectedIndex, 0);
+}
+
+TEST(QmImeCandidateState, FailedNativeChangeKeepsPreviousPage)
+{
+	CQmImeCandidateState State;
+	SQmImeCandidateList NativeCandidates;
+	NativeCandidates.m_vCandidates = {"候选"};
+	NativeCandidates.m_SelectedIndex = 0;
+	NativeCandidates.m_PageStart = 5;
+	NativeCandidates.m_PageSize = 5;
+	NativeCandidates.m_TotalCount = 13;
+	State.UpdateFromNative(NativeCandidates, true);
+
+	State.UpdateFromNative(std::nullopt, false);
+
+	const auto &Candidates = State.Candidates();
+	EXPECT_EQ(Candidates.m_vCandidates, NativeCandidates.m_vCandidates);
+	EXPECT_EQ(Candidates.m_SelectedIndex, 0);
+	EXPECT_EQ(Candidates.m_PageStart, 5);
+	EXPECT_EQ(Candidates.m_PageSize, 5);
+	EXPECT_EQ(Candidates.m_TotalCount, 13);
+}
+
+TEST(QmImeCandidateState, FailedNativeOpenClearsPreviousPageAndAllowsSdlFallback)
+{
+	CQmImeCandidateState State;
+	const char *apOldCandidates[] = {"1 旧词"};
+	State.UpdateFromSdl(apOldCandidates, 1, 0, true);
+
+	State.UpdateFromNative(std::nullopt, true);
+
+	ASSERT_TRUE(State.Candidates().m_vCandidates.empty());
+	ASSERT_TRUE(State.AcceptsSdlCandidates());
+	const char *apNewCandidates[] = {"1 新词"};
+	State.UpdateFromSdl(apNewCandidates, 1, 0, true);
+	EXPECT_EQ(State.Candidates().m_vCandidates, (std::vector<std::string>{"新词"}));
+}
+
+TEST(QmImeCandidateState, EmptySdlSnapshotClearsCandidatesAndAllowsReopening)
+{
+	CQmImeCandidateState State;
+	const char *apCandidates[] = {"1 候选"};
+	State.UpdateFromSdl(apCandidates, 1, 0, true);
+	SQmImeCandidateList NativeCandidates;
+	NativeCandidates.m_vCandidates = {"旧候选"};
+
+	State.UpdateFromSdl(nullptr, 0, -1, true, NativeCandidates);
+
+	ASSERT_TRUE(State.Candidates().m_vCandidates.empty());
+	EXPECT_EQ(State.Candidates().m_SelectedIndex, -1);
+	EXPECT_EQ(State.Candidates().m_PageStart, 0);
+	EXPECT_EQ(State.Candidates().m_PageSize, 0);
+	EXPECT_EQ(State.Candidates().m_TotalCount, 0);
+	ASSERT_TRUE(State.AcceptsSdlCandidates());
+	State.UpdateFromSdl(apCandidates, 1, 0, true);
+	EXPECT_EQ(State.Candidates().m_vCandidates, (std::vector<std::string>{"候选"}));
+}
+
+TEST(QmImeCandidateState, ClearingPageDoesNotResumeEndedComposition)
+{
+	CQmImeCandidateState State;
+	State.EndComposition();
+
+	State.Clear();
+	State.UpdateFromSdl(nullptr, 0, -1, true);
+
+	EXPECT_FALSE(State.AcceptsSdlCandidates());
+	const char *apCandidates[] = {"1 旧词"};
+	State.UpdateFromSdl(apCandidates, 1, 0, true);
+	EXPECT_TRUE(State.Candidates().m_vCandidates.empty());
 }

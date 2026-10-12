@@ -12542,6 +12542,15 @@ Some map sounds could not be loaded. Check the local console for details.
 Something hookable
 == 可鉤物體
 
+Sort by favorites
+== 按收藏排序
+
+Sort by number of friends
+== 按好友人數排序
+
+Sort by number of QmClient players
+== 按 QmClient 玩家人數排序
+
 Sort column in ghost list
 == 幽靈列表中的排序列
 

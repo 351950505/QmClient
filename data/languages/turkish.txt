@@ -12542,6 +12542,15 @@ Some map sounds could not be loaded. Check the local console for details.
 Something hookable
 == Kancalanabilir bir şey
 
+Sort by favorites
+== Favorilere göre sırala
+
+Sort by number of friends
+== Arkadaş sayısına göre sırala
+
+Sort by number of QmClient players
+== QmClient oyuncu sayısına göre sırala
+
 Sort column in ghost list
 == Hayalet listesinde sıralama sütunu
 

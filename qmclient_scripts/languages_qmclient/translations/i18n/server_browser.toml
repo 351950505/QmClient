@@ -1905,6 +1905,54 @@ turkish = "Solo"
 polish = "Solo"
 
 [[message]]
+key = "Sort by favorites"
+[message.translations]
+simplified_chinese = "按收藏排序"
+traditional_chinese = "按收藏排序"
+japanese = "お気に入り順に並べ替え"
+korean = "즐겨찾기순 정렬"
+russian = "Сортировать по избранному"
+german = "Nach Favoriten sortieren"
+spanish = "Ordenar por favoritos"
+french = "Trier par favoris"
+brazilian_portuguese = "Ordenar por favoritos"
+portuguese = "Ordenar por favoritos"
+turkish = "Favorilere göre sırala"
+polish = "Sortuj według ulubionych"
+
+[[message]]
+key = "Sort by number of friends"
+[message.translations]
+simplified_chinese = "按好友人数排序"
+traditional_chinese = "按好友人數排序"
+japanese = "フレンド数順に並べ替え"
+korean = "친구 수순 정렬"
+russian = "Сортировать по числу друзей"
+german = "Nach Anzahl der Freunde sortieren"
+spanish = "Ordenar por número de amigos"
+french = "Trier par nombre d’amis"
+brazilian_portuguese = "Ordenar por número de amigos"
+portuguese = "Ordenar por número de amigos"
+turkish = "Arkadaş sayısına göre sırala"
+polish = "Sortuj według liczby znajomych"
+
+[[message]]
+key = "Sort by number of QmClient players"
+[message.translations]
+simplified_chinese = "按 QmClient 玩家人数排序"
+traditional_chinese = "按 QmClient 玩家人數排序"
+japanese = "QmClientプレイヤー数順に並べ替え"
+korean = "QmClient 플레이어 수순 정렬"
+russian = "Сортировать по числу игроков QmClient"
+german = "Nach Anzahl der QmClient-Spieler sortieren"
+spanish = "Ordenar por número de jugadores de QmClient"
+french = "Trier par nombre de joueurs QmClient"
+brazilian_portuguese = "Ordenar por número de jogadores do QmClient"
+portuguese = "Ordenar por número de jogadores do QmClient"
+turkish = "QmClient oyuncu sayısına göre sırala"
+polish = "Sortuj według liczby graczy QmClient"
+
+[[message]]
 key = "Start and connect to local server"
 [message.translations]
 simplified_chinese = "启动并连接到本地服务器"

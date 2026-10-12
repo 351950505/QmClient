@@ -82,6 +82,7 @@
 #include "components/qmclient/hammer_hit_detection.h"
 #include "components/qmclient/hud_notifications/hud_notifications.h"
 #include "components/qmclient/input_overlay.h"
+#include "components/qmclient/mobile_spectator.h"
 #include "components/qmclient/monitoring/monitoring.h"
 #include "components/qmclient/music_app_watcher.h"
 #include "components/qmclient/music_lyrics/music_lyrics_integration.h"
@@ -306,6 +307,7 @@ public:
 	CQmAxiomScores m_QmAxiomScores;
 	CQmChatEmoji m_QmChatEmoji;
 	CQmMonitoring m_QmMonitoring;
+	CQmMobileSpectator m_QmMobileSpectator;
 	CQmHudNotifications m_QmHudNotifications;
 	CQmWaterHammerIndicator m_QmWaterHammerIndicator;
 	CQmWeaponTrajectory m_QmWeaponTrajectory;

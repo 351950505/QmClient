@@ -687,6 +687,7 @@ void CGameClient::OnConsoleInit()
 	AddComponent(&m_ImportantAlert, "important_alert");
 	AddComponent(&m_DebugHud, "debug_hud");
 	AddComponent(&m_TouchControls, "touch_controls");
+	AddComponent(&m_QmMobileSpectator, "mobile_spectator");
 	AddComponent(&m_Scoreboard, "scoreboard");
 	AddComponent(&m_Statboard, "statboard");
 	AddComponent(&m_Motd, "motd");
@@ -721,6 +722,7 @@ void CGameClient::OnConsoleInit()
 						  &m_HudEditor,
 						  &m_TClient, // TClient repeat message
 						  &m_Controls,
+						  &m_QmMobileSpectator,
 						  &m_TouchControls,
 						  &m_Binds});
 
@@ -2748,6 +2750,8 @@ void CGameClient::FormatStreamerVoteText(const char *pText, char *pBuf, int BufS
 void CGameClient::PrepareInputForSend(int *pData, int Size, bool Dummy)
 {
 	m_FastPractice.PrepareInputForSend(pData, Size, Dummy);
+	if(qm_mobile_spectator::Enabled() && Size >= (int)sizeof(CNetObj_PlayerInput))
+		qm_mobile_spectator::NeutralizeGameplayInput(*reinterpret_cast<CNetObj_PlayerInput *>(pData));
 }
 
 void CGameClient::OnRelease()
@@ -6378,6 +6382,8 @@ void CGameClient::CClientData::CSixup::Reset()
 
 void CGameClient::SendSwitchTeam(int Team)
 {
+	if(qm_mobile_spectator::Enabled() && Team != TEAM_SPECTATORS)
+		return;
 	if(Team == TEAM_SPECTATORS)
 		m_FastPractice.PrepareForSpectating();
 
