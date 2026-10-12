@@ -479,6 +479,7 @@ Background Draw
 Background draw
 Background image in menu
 Background music volume
+Background opacity
 Background stroke color
 Background stroke width
 Baidu Translate
@@ -629,6 +630,13 @@ Chat bubble text color
 Chat bubble transparency (0-100)
 Chat command
 Chat command (e.g. showall 1)
+Chat completion appearance
+Chat completion background color
+Chat completion background opacity
+Chat completion selected text color
+Chat completion selection background color
+Chat completion text color
+Chat emoji completion
 Chat export cancelled
 Chat export failed
 Chat fade smooth time (milliseconds)
@@ -755,6 +763,7 @@ Color of hook line not hitting anything
 Color tee outlines by team for spectating
 Colorize ping on scoreboard
 Colors
+Colors for chat command and emoji completion
 Colors in chat
 Colors in scoreboard
 Colors of the hook collision line, in case of a possible collision with:
@@ -1313,6 +1322,7 @@ Editor
 Elastic
 Elastic back
 Elevated
+Emoji completion
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 Emote assets
 Emote commands are: /emote surprise /emote blink /emote close /emote angry /emote happy /emote pain /emote normal
@@ -3430,6 +3440,7 @@ Reset a config to its default value
 Reset All
 Reset all drawings on the background
 Reset all or one tuning variable to default
+Reset chat completion appearance
 Reset chat on escape
 Reset colors
 Reset column widths
@@ -3642,8 +3653,10 @@ Selected button not visible
 Selected candidate %d/%d under cursor.
 Selected item color
 Selected part: %d
+Selected text color
 Selected timertype is not supported by your client
 Selection
+Selection background color
 Self
 Self and friends
 Self only
@@ -3819,6 +3832,7 @@ Show dummy mini view window
 Show dummy position in movement info HUD
 Show dummy title locally
 Show dummy velocity in movement info HUD
+Show emoji completion in chat
 Show enemy color in chat
 Show enemy color in scoreboard
 Show enemy color in spectator menu

@@ -1442,6 +1442,9 @@ Background image in menu
 Background music volume
 == 배경 음악 볼륨
 
+Background opacity
+== 배경 불투명도
+
 Background stroke color
 == 배경 스트로크 색상
 
@@ -1892,6 +1895,27 @@ Chat command
 Chat command (e.g. showall 1)
 == 채팅 명령어 (예: showall 1)
 
+Chat completion appearance
+== 채팅 자동 완성 모양
+
+Chat completion background color
+== 채팅 자동 완성 배경색
+
+Chat completion background opacity
+== 채팅 자동 완성 배경 불투명도
+
+Chat completion selected text color
+== 채팅 자동 완성 선택된 텍스트 색상
+
+Chat completion selection background color
+== 채팅 자동 완성 선택 배경색
+
+Chat completion text color
+== 채팅 자동 완성 텍스트 색상
+
+Chat emoji completion
+== 채팅 이모지 자동 완성
+
 Chat export cancelled
 == 채팅 내보내기가 취소되었습니다
 
@@ -2269,6 +2293,9 @@ Colorize ping on scoreboard
 
 Colors
 == 색상
+
+Colors for chat command and emoji completion
+== 채팅 명령어 및 이모지 자동 완성 색상
 
 Colors in chat
 == 채팅에서의 색상
@@ -3943,6 +3970,9 @@ Elastic back
 
 Elevated
 == 승격됨
+
+Emoji completion
+== 이모지 자동 완성
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == 이모트 및 바인딩 휠 애니메이션 시간 (ms, 0=애니메이션 없음, 1000=1초)
@@ -10295,6 +10325,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == 모든 또는 하나의 튜닝 변수를 기본값으로 초기화
 
+Reset chat completion appearance
+== 채팅 자동 완성 모양 초기화
+
 Reset chat on escape
 == Escape 키로 채팅 초기화
 
@@ -10931,11 +10964,17 @@ Selected item color
 Selected part: %d
 == 선택한 부품: %d
 
+Selected text color
+== 선택된 텍스트 색상
+
 Selected timertype is not supported by your client
 == 선택한 타이머 유형을 클라이언트에서 지원하지 않습니다
 
 Selection
 == 선택 항목
+
+Selection background color
+== 선택 배경색
 
 Self
 == 자신
@@ -11461,6 +11500,9 @@ Show dummy title locally
 
 Show dummy velocity in movement info HUD
 == 이동 정보 HUD에 더미 속도 표시
+
+Show emoji completion in chat
+== 채팅에서 이모지 자동 완성 표시
 
 Show enemy color in chat
 == 채팅에서 적 색상 표시

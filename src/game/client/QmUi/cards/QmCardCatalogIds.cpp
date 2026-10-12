@@ -21,6 +21,7 @@ namespace qm_card_catalog
 			"qm:appearance_preset",
 			"qm:tooltip",
 			"qm:console",
+			"qm:chat_completion",
 			"qm:chat_bubble",
 			"qm:focus_mode",
 			"qm:camera_view",

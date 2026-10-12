@@ -1442,6 +1442,9 @@ Background image in menu
 Background music volume
 == Громкость фоновой музыки
 
+Background opacity
+== Непрозрачность фона
+
 Background stroke color
 == Цвет фонового штриха
 
@@ -1892,6 +1895,27 @@ Chat command
 Chat command (e.g. showall 1)
 == Команда чата (например: showall 1)
 
+Chat completion appearance
+== Оформление автодополнения в чате
+
+Chat completion background color
+== Цвет фона автодополнения в чате
+
+Chat completion background opacity
+== Непрозрачность фона автодополнения в чате
+
+Chat completion selected text color
+== Цвет выбранного текста автодополнения в чате
+
+Chat completion selection background color
+== Цвет фона выбранного пункта автодополнения в чате
+
+Chat completion text color
+== Цвет текста автодополнения в чате
+
+Chat emoji completion
+== Автодополнение эмодзи в чате
+
 Chat export cancelled
 == Экспорт чата отменён
 
@@ -2269,6 +2293,9 @@ Colorize ping on scoreboard
 
 Colors
 == Цвета
+
+Colors for chat command and emoji completion
+== Цвета автодополнения команд и эмодзи в чате
 
 Colors in chat
 == Цвета в чате
@@ -3943,6 +3970,9 @@ Elastic back
 
 Elevated
 == Повышено
+
+Emoji completion
+== Автодополнение эмодзи
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == Длительность анимации колеса эмоций и привязок (мс, 0=Нет анимации, 1000=1 сек)
@@ -10295,6 +10325,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == Сбросить все или одну переменную тюнинга до значения по умолчанию
 
+Reset chat completion appearance
+== Сбросить оформление автодополнения в чате
+
 Reset chat on escape
 == Сбрасывать чат при нажатии Escape
 
@@ -10931,11 +10964,17 @@ Selected item color
 Selected part: %d
 == Выбранная часть: %d
 
+Selected text color
+== Цвет выбранного текста
+
 Selected timertype is not supported by your client
 == Только себе
 
 Selection
 == Выбор
+
+Selection background color
+== Цвет фона выбранного пункта
 
 Self
 == Себя
@@ -11461,6 +11500,9 @@ Show dummy title locally
 
 Show dummy velocity in movement info HUD
 == Показывать скорость дамми в HUD информации о движении
+
+Show emoji completion in chat
+== Показывать автодополнение эмодзи в чате
 
 Show enemy color in chat
 == Показывать вражеский цвет в чате

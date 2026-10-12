@@ -377,6 +377,8 @@ private:
 	// 斜杠指令用法提示：/xxx 下方显示的一行小字说明
 	bool BuildCommandUsagePreview(const char *pInput, char *pBuf, size_t BufSize) const;
 	bool HandleCommandHudInput(const IInput::CEvent &Event);
+	void UpdateCommandHudCandidates();
+	void ApplyCommandHudCompletion(const std::string &Completion, size_t Cursor);
 	void RenderCommandHud(float X, float Bottom, float Width, float FontSize, const CUIRect &ChatRect, const CUIRect &TargetRect);
 	EChatSendResult SendChatQueued(int Team, const char *pLine, bool AllowOutgoingTranslation);
 	int CountInitializedLines() const;

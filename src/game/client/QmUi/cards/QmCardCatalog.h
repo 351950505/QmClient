@@ -122,6 +122,7 @@ namespace qm_card_catalog
 	bool BuildAppearancePresetCard(const SQmCardBuildContext &Ctx, SSettingsCardDefinition &Out);
 	bool BuildConsoleCard(const SQmCardBuildContext &Ctx, SSettingsCardDefinition &Out);
 	bool BuildTooltipCard(const SQmCardBuildContext &Ctx, SSettingsCardDefinition &Out);
+	bool BuildChatCompletionCard(const SQmCardBuildContext &Ctx, SSettingsCardDefinition &Out);
 	bool BuildBindCard(const SQmCardBuildContext &Ctx, SSettingsCardDefinition &Out);
 
 	// 卡片模块调用菜单内容渲染/输入助手的受控入口（CMenus 只对本结构开放友元）。
@@ -171,6 +172,7 @@ namespace qm_card_catalog
 		static void RenderQmAppearancePresetContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
 		static void RenderQmConsoleContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
 		static void RenderQmTooltipContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
+		static void RenderQmChatCompletionContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
 		static void RenderQmFunctionImeContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 		static void RenderQmFunctionBetterScoreboardContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 		static void RenderQmFunctionJumpHintContent(CMenus *pMenus, CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);

@@ -3175,6 +3175,7 @@ if(CLIENT)
     QmUi/QmColorGradient.h
     QmUi/QmGradientGeometry.h
     QmUi/QmImeAppearance.h
+    QmUi/QmChatCompletionAppearance.h
     QmUi/QmImeCandidateLayout.h
     QmUi/QmInputMotion.h
     QmUi/QmLineInputMotion.cpp
@@ -3287,6 +3288,7 @@ if(CLIENT)
     QmUi/cards/QmChatGradientEditor.cpp
     QmUi/cards/QmCardCatalogConsole.cpp
     QmUi/cards/QmCardCatalogTooltip.cpp
+    QmUi/cards/QmCardCatalogChatCompletion.cpp
     QmUi/cards/QmCardCatalogFunctionMetrics.h
     QmUi/cards/QmCardCatalogHud.cpp
     QmUi/cards/QmCardCatalogInternal.h

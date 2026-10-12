@@ -1442,6 +1442,9 @@ Background image in menu
 Background music volume
 == 背景音楽の音量
 
+Background opacity
+== 背景の不透明度
+
 Background stroke color
 == 背景ストロークの色
 
@@ -1892,6 +1895,27 @@ Chat command
 Chat command (e.g. showall 1)
 == チャットコマンド（例：showall 1）
 
+Chat completion appearance
+== チャット補完の外観
+
+Chat completion background color
+== チャット補完の背景色
+
+Chat completion background opacity
+== チャット補完の背景不透明度
+
+Chat completion selected text color
+== チャット補完の選択文字色
+
+Chat completion selection background color
+== チャット補完の選択背景色
+
+Chat completion text color
+== チャット補完の文字色
+
+Chat emoji completion
+== チャットの絵文字補完
+
 Chat export cancelled
 == チャットのエクスポートをキャンセルしました
 
@@ -2269,6 +2293,9 @@ Colorize ping on scoreboard
 
 Colors
 == 色
+
+Colors for chat command and emoji completion
+== チャットのコマンド・絵文字補完の配色
 
 Colors in chat
 == チャット内の色
@@ -3943,6 +3970,9 @@ Elastic back
 
 Elevated
 == 昇格
+
+Emoji completion
+== 絵文字補完
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == エモートとバインディングホイールのアニメーション時間（ms、0=アニメーションなし、1000=1 秒）
@@ -10295,6 +10325,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == すべての、または1つのチューニング変数をデフォルトにリセット
 
+Reset chat completion appearance
+== チャット補完の外観をリセット
+
 Reset chat on escape
 == Escape キーでチャットをリセット
 
@@ -10931,11 +10964,17 @@ Selected item color
 Selected part: %d
 == 選択中のパーツ：%d
 
+Selected text color
+== 選択文字色
+
 Selected timertype is not supported by your client
 == 選択したタイマータイプはお使いのクライアントでサポートされていません
 
 Selection
 == 選択
+
+Selection background color
+== 選択背景色
 
 Self
 == 自身
@@ -11461,6 +11500,9 @@ Show dummy title locally
 
 Show dummy velocity in movement info HUD
 == 移動情報 HUD にダミー速度を表示
+
+Show emoji completion in chat
+== チャットで絵文字補完を表示
 
 Show enemy color in chat
 == チャットで敵の色を表示

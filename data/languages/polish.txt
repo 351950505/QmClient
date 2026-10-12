@@ -1442,6 +1442,9 @@ Background image in menu
 Background music volume
 == Głośność muzyki w tle
 
+Background opacity
+== Przezroczystość tła
+
 Background stroke color
 == Kolor pociągnięcia tła
 
@@ -1892,6 +1895,27 @@ Chat command
 Chat command (e.g. showall 1)
 == Komenda czatu (np. showall 1)
 
+Chat completion appearance
+== Wygląd uzupełniania na czacie
+
+Chat completion background color
+== Kolor tła uzupełniania na czacie
+
+Chat completion background opacity
+== Nieprzezroczystość tła uzupełniania na czacie
+
+Chat completion selected text color
+== Kolor zaznaczonego tekstu uzupełniania na czacie
+
+Chat completion selection background color
+== Kolor tła zaznaczenia uzupełniania na czacie
+
+Chat completion text color
+== Kolor tekstu uzupełniania na czacie
+
+Chat emoji completion
+== Uzupełnianie emoji na czacie
+
 Chat export cancelled
 == Anulowano eksport czatu
 
@@ -2269,6 +2293,9 @@ Colorize ping on scoreboard
 
 Colors
 == Kolory
+
+Colors for chat command and emoji completion
+== Kolory uzupełniania poleceń i emoji na czacie
 
 Colors in chat
 == Kolory na czacie
@@ -3943,6 +3970,9 @@ Elastic back
 
 Elevated
 == Podwyższone
+
+Emoji completion
+== Uzupełnianie emoji
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == Czas trwania animacji koła emotek i wiązań (ms, 0=Brak animacji, 1000=1 sekunda)
@@ -10295,6 +10325,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == Zresetuj wszystkie lub jedną zmienną strojenia do domyślnej
 
+Reset chat completion appearance
+== Przywróć wygląd uzupełniania na czacie
+
 Reset chat on escape
 == Resetuj czat po naciśnięciu Escape
 
@@ -10931,11 +10964,17 @@ Selected item color
 Selected part: %d
 == Wybrana część: %d
 
+Selected text color
+== Kolor zaznaczonego tekstu
+
 Selected timertype is not supported by your client
 == Wybrany typ timera nie jest obsługiwany przez twój klient
 
 Selection
 == Wybór
+
+Selection background color
+== Kolor tła zaznaczenia
 
 Self
 == Ja
@@ -11461,6 +11500,9 @@ Show dummy title locally
 
 Show dummy velocity in movement info HUD
 == Pokaż prędkość kukły w HUD informacji o ruchu
+
+Show emoji completion in chat
+== Pokaż uzupełnianie emoji na czacie
 
 Show enemy color in chat
 == Pokaż kolor wroga na czacie
