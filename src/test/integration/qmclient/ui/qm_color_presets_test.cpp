@@ -19,7 +19,7 @@ TEST(QmColorPresets, ApplyingPresetUpdatesBoundColorAndPreservesAlpha)
 		EXPECT_FLOAT_EQ(Context.m_HslaColor.a, 0.35f);
 		EXPECT_FLOAT_EQ(Context.m_HsvaColor.a, 0.35f);
 		EXPECT_EQ(BoundColor, Context.m_HslaColor.Pack(true));
-		EXPECT_EQ(Context.m_State, CUi::EEditState::ONE_GO);
+		EXPECT_EQ(Context.m_State, EEditState::ONE_GO);
 	}
 }
 

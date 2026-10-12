@@ -205,6 +205,8 @@ bool CUIRect::Inside(vec2 Point) const
 
 void CUIRect::Draw(ColorRGBA Color, int Corners, float Rounding) const
 {
+	if(ms_pUi != nullptr && ms_pUi->DrawingSuppressed())
+		return;
 	if(ms_pUi != nullptr)
 		Rounding = ms_pUi->QmSurfaceRounding(Rounding);
 	if(Color.a > 0.0f && Color.a < 1.0f)
@@ -224,6 +226,8 @@ void CUIRect::Draw(ColorRGBA Color, int Corners, float Rounding) const
 
 void CUIRect::Draw4(ColorRGBA ColorTopLeft, ColorRGBA ColorTopRight, ColorRGBA ColorBottomLeft, ColorRGBA ColorBottomRight, int Corners, float Rounding) const
 {
+	if(ms_pUi != nullptr && ms_pUi->DrawingSuppressed())
+		return;
 	if(ms_pUi != nullptr)
 		Rounding = ms_pUi->QmSurfaceRounding(Rounding);
 	const float MaximumAlpha = std::max({ColorTopLeft.a, ColorTopRight.a, ColorBottomLeft.a, ColorBottomRight.a});
@@ -234,6 +238,8 @@ void CUIRect::Draw4(ColorRGBA ColorTopLeft, ColorRGBA ColorTopRight, ColorRGBA C
 
 void CUIRect::DrawOutline(ColorRGBA Color) const
 {
+	if(ms_pUi != nullptr && ms_pUi->DrawingSuppressed())
+		return;
 	const IGraphics::CLineItem aArray[] = {
 		IGraphics::CLineItem(x, y, x + w, y),
 		IGraphics::CLineItem(x + w, y, x + w, y + h),

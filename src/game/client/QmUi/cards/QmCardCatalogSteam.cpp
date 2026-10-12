@@ -6,6 +6,9 @@
 #include <engine/steam.h>
 #include <engine/textrender.h>
 
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsLabelMetadata.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/components/menus.h>
@@ -32,7 +35,8 @@ namespace
 
 void CMenus::RenderQmSteamContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly)
 {
-	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();
+	CSettingsContentLayoutFlow Flow(Content);
+	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly() || Flow.Declaring();
 	static std::shared_ptr<CSteamProbeJob> s_pProbe;
 	static SSteamClientInfo s_Info;
 	static bool s_HasResult = false;
@@ -40,7 +44,7 @@ void CMenus::RenderQmSteamContent(CUIRect &Content, const SSettingsContentMetric
 	static std::string s_CheckedManualPath;
 	static CLineInputBuffered<1024> s_ManualPathInput;
 	static CButtonContainer s_DetectButton;
-	if(!s_ManualPathInput.IsActive() && str_comp(s_ManualPathInput.GetString(), g_Config.m_QmSteamClientPath) != 0)
+	if(Flow.Input() && !s_ManualPathInput.IsActive() && str_comp(s_ManualPathInput.GetString(), g_Config.m_QmSteamClientPath) != 0)
 		s_ManualPathInput.Set(g_Config.m_QmSteamClientPath);
 	if(!ReadOnly && s_pProbe != nullptr && s_pProbe->Done())
 	{
@@ -54,25 +58,27 @@ void CMenus::RenderQmSteamContent(CUIRect &Content, const SSettingsContentMetric
 		s_pProbe.reset();
 	}
 	IUiContext Ctx = SettingsUiContext("settings_steam", Metrics.m_UiScale);
-	RenderQmFunctionCheckboxRow(Content, Metrics.m_LineHeight, Metrics.m_LineSpacing,
-		&g_Config.m_QmSteamAutoLaunch, "qm-steam-auto-launch",
-		Localize("Launch Steam automatically when starting externally"), &g_Config.m_QmSteamAutoLaunch, ReadOnly);
 	CUIRect Row;
-	SLabelProperties WrapProps;
-	WrapProps.m_MaxWidth = Content.w;
+	if(Flow.Control("qm-steam-auto-launch", Metrics.m_LineHeight, Row))
+		RenderQmFunctionCheckbox(&g_Config.m_QmSteamAutoLaunch, "qm-steam-auto-launch", Localize("Launch Steam automatically when starting externally"), &g_Config.m_QmSteamAutoLaunch, &Row, ReadOnly);
+	Flow.Space(Metrics.m_LineSpacing);
+	const auto TextRow = [&](const char *pId, const char *pText, float Size) {
+		Flow.Text(pId, pText, 0.0f, Size, Metrics.m_LineSpacing, [this](const char *pValue, float Width, float FontSize) { return TextRender()->TextBoundingBox(FontSize, pValue, -1, Width).m_H + FontSize * 0.25f; }, [this, pId, Size](const CUIRect &TextRect, const char *pValue) {
+				SLabelProperties Props;
+				Props.m_MaxWidth = TextRect.w;
+				DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, pId, &TextRect, pValue, Size, TEXTALIGN_ML, Props); }, Metrics.m_LineHeight);
+	};
 	const char *pPathLabel = Localize("Steam client path (leave empty to detect automatically)");
-	const float LabelHeight = std::max(Metrics.m_LineHeight, TextRender()->TextBoundingBox(Metrics.m_SmallSize, pPathLabel, -1, std::max(1.0f, Content.w)).m_H);
-	Content.HSplitTop(LabelHeight, &Row, &Content);
-	Ui()->DoLabel(&Row, pPathLabel, Metrics.m_SmallSize, TEXTALIGN_ML, WrapProps);
-	Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
-	Content.HSplitTop(Metrics.m_LineHeight, &Row, &Content);
-	if(ui_widget::InputField(Ctx, &s_ManualPathInput, Row, "", Metrics.m_BodySize) && !ReadOnly)
-		str_copy(g_Config.m_QmSteamClientPath, s_ManualPathInput.GetString());
-	Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
-	Content.HSplitTop(Metrics.m_LineHeight, &Row, &Content);
-	if(ui_widget::SecondaryButton(Ctx, &s_DetectButton, Localize("Detect Steam again"), Row, ReadOnly || s_pProbe != nullptr))
-		s_RefreshRequested = true;
-	Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
+	const auto PathPresentation = ResolveSettingsLabelPresentation("qm-steam-client-path", pPathLabel, [](const char *pKey) { return Localize(pKey); });
+	TextRow("qm-steam-client-path", PathPresentation.m_pText, Metrics.m_SmallSize);
+	if(Flow.Control("qm-steam-path-input", Metrics.m_LineHeight, Row))
+		if(ui_widget::InputField(Ctx, &s_ManualPathInput, Row, "", Metrics.m_BodySize) && !ReadOnly)
+			str_copy(g_Config.m_QmSteamClientPath, s_ManualPathInput.GetString());
+	Flow.Space(Metrics.m_LineSpacing);
+	if(Flow.Control("qm-steam-detect", Metrics.m_LineHeight, Row))
+		if(ui_widget::SecondaryButton(Ctx, &s_DetectButton, Localize("Detect Steam again"), Row, PrewarmOnly || s_pProbe != nullptr) && Flow.Input() && !ReadOnly)
+			s_RefreshRequested = true;
+	Flow.Space(Metrics.m_LineSpacing);
 	if(!ReadOnly && s_pProbe == nullptr && (s_RefreshRequested || (!s_ManualPathInput.IsActive() && (!s_HasResult || s_CheckedManualPath != g_Config.m_QmSteamClientPath))))
 	{
 		s_pProbe = std::make_shared<CSteamProbeJob>(g_Config.m_QmSteamClientPath);
@@ -90,29 +96,20 @@ void CMenus::RenderQmSteamContent(CUIRect &Content, const SSettingsContentMetric
 		pStatus = Localize("Steam is installed but not running");
 	else
 		pStatus = Localize("Steam is installed");
-	float StatusHeight = Metrics.m_LineHeight;
-	const char *apStatuses[] = {Localize("Checking Steam..."), Localize("Steam not found"), Localize("Steam is running"), Localize("Steam is installed but not running"), Localize("Steam is installed")};
-	for(const char *pText : apStatuses)
-		StatusHeight = std::max(StatusHeight, TextRender()->TextBoundingBox(Metrics.m_BodySize, pText, -1, std::max(1.0f, Content.w)).m_H);
-	Content.HSplitTop(StatusHeight, &Row, &Content);
-	Ui()->DoLabel(&Row, pStatus, Metrics.m_BodySize, TEXTALIGN_ML, WrapProps);
-	Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
-	Content.HSplitTop(Metrics.m_LineHeight, &Row, &Content);
-	SLabelProperties Props;
-	Props.m_MaxWidth = Row.w;
-	Props.m_EllipsisAtEnd = true;
-	Ui()->DoLabel(&Row, s_HasResult ? s_Info.m_aPath : "", Metrics.m_SmallSize, TEXTALIGN_ML, Props);
-	if(s_HasResult && s_Info.m_aPath[0] != '\0')
-		GameClient()->m_Tooltips.DoToolTipForRect(&s_Info, &Row, s_Info.m_aPath);
-	Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
+	TextRow("qm-steam-status", pStatus, Metrics.m_BodySize);
+	if(Flow.Control("qm-steam-resolved-path", Metrics.m_LineHeight, Row))
+	{
+		SLabelProperties Props;
+		Props.m_MaxWidth = Row.w;
+		Props.m_EllipsisAtEnd = true;
+		Ui()->DoLabel(&Row, s_HasResult ? s_Info.m_aPath : "", Metrics.m_SmallSize, TEXTALIGN_ML, Props);
+		if(s_HasResult && s_Info.m_aPath[0] != '\0')
+			GameClient()->m_Tooltips.DoToolTipForRect(&s_Info, &Row, s_Info.m_aPath);
+	}
+	Flow.Space(Metrics.m_LineSpacing);
 	const char *pInvalidPath = Localize("Manual Steam path is invalid; using automatic detection");
 	const char *pSelectHelp = Localize("Enter the Steam client program path, without command arguments");
-	const float HelpHeight = std::max({Metrics.m_LineHeight,
-		TextRender()->TextBoundingBox(Metrics.m_SmallSize, pInvalidPath, -1, std::max(1.0f, Content.w)).m_H,
-		TextRender()->TextBoundingBox(Metrics.m_SmallSize, pSelectHelp, -1, std::max(1.0f, Content.w)).m_H});
-	Content.HSplitTop(HelpHeight, &Row, &Content);
-	Ui()->DoLabel(&Row, s_HasResult && s_Info.m_ManualPathRejected ? pInvalidPath : pSelectHelp, Metrics.m_SmallSize, TEXTALIGN_ML, WrapProps);
-	Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
+	TextRow("qm-steam-help", s_HasResult && s_Info.m_ManualPathRejected ? pInvalidPath : pSelectHelp, Metrics.m_SmallSize);
 }
 
 namespace qm_card_catalog
@@ -127,12 +124,8 @@ namespace qm_card_catalog
 			"Steam integration",
 			"Automatically launch Steam when the client is started externally, so Steam can track your playtime",
 			[Ctx](CUIRect &Content) { QmCardRenderHook::RenderQmSteamContent(Ctx.m_pMenus, Content, Ctx.m_Metrics, Ctx.m_ReadOnly); },
-			[Metrics = Ctx.m_Metrics](float) {
-				return CardRows(Metrics, 7.0f);
-			},
-			g_Config.m_QmSteamAutoLaunch != 0 ? 1u : 0u,
-			{},
 			Out);
+		UseDeclaredModuleContent(Ctx, Out);
 		return true;
 	}
 } // namespace qm_card_catalog

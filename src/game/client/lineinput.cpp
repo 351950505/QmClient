@@ -435,8 +435,9 @@ bool CLineInput::ProcessInput(const IInput::CEvent &Event)
 	return KeyHandled;
 }
 
-STextBoundingBox CLineInput::Render(const CUIRect *pRect, float FontSize, int Align, bool Changed, float LineWidth, float LineSpacing, const std::vector<STextColorSplit> &vColorSplits)
+STextBoundingBox CLineInput::Render(const CUIRect *pRect, float FontSize, int Align, bool Changed, float LineWidth, float LineSpacing, const std::vector<STextColorSplit> &vColorSplits, ERenderMode Mode)
 {
+	const bool Draw = Mode == ERenderMode::DRAW;
 	const ColorRGBA PreviousTextColor = TextRender()->GetTextColor();
 	const ColorRGBA PreviousTextOutlineColor = TextRender()->GetTextOutlineColor();
 	const ColorRGBA PreviousTextSelectionColor = TextRender()->GetTextSelectionColor();
@@ -446,7 +447,8 @@ STextBoundingBox CLineInput::Render(const CUIRect *pRect, float FontSize, int Al
 	// update derived attributes to handle external changes to the buffer
 	UpdateStrData();
 
-	m_WasRendered = true;
+	if(Draw)
+		m_WasRendered = true;
 
 	const char *pDisplayStr = GetDisplayedString();
 	const bool HasComposition = Input()->HasComposition();
@@ -464,6 +466,8 @@ STextBoundingBox CLineInput::Render(const CUIRect *pRect, float FontSize, int Al
 	}
 
 	CTextCursor Cursor;
+	if(!Draw)
+		Cursor.m_Flags &= ~TEXTFLAG_RENDER;
 	// 光标和选区都不进入文本容器。选区先通过无渲染预遍历计算并绘制，
 	// 再绘制文字，避免全选覆盖文字或污染后续 UI 文本的容器命令。
 	Cursor.m_RenderCursor = false;
@@ -483,8 +487,9 @@ STextBoundingBox CLineInput::Render(const CUIRect *pRect, float FontSize, int Al
 			DisplayStrBuffer = DisplayStr.substr(0, DisplayCursorOffset) + Input()->GetComposition() + DisplayStr.substr(DisplayCursorOffset);
 			pDisplayStr = DisplayStrBuffer.c_str();
 		}
-		m_InputMotion.Update(pDisplayStr, time_get_nanoseconds(), g_Config.m_QmUiMotionLevel,
-			!IsPlaceholder && !IsHidden() && !m_MouseSelection.m_Selecting && (HasComposition || !HasSelection()));
+		if(Draw)
+			m_InputMotion.Update(pDisplayStr, time_get_nanoseconds(), g_Config.m_QmUiMotionLevel,
+				!IsPlaceholder && !IsHidden() && !m_MouseSelection.m_Selecting && (HasComposition || !HasSelection()));
 
 		const STextBoundingBox BoundingBox = TextRender()->TextBoundingBox(FontSize, pDisplayStr, -1, LineWidth, LineSpacing);
 		// 单行时按可见字形高度做视觉垂直居中，与 DoLabel(TEXTALIGN_M?) 的观感一致；
@@ -536,13 +541,15 @@ STextBoundingBox CLineInput::Render(const CUIRect *pRect, float FontSize, int Al
 					SetSelection(OffsetFromDisplayToActual(NewSelectionStart), OffsetFromDisplayToActual(NewSelectionEnd));
 				}
 
-				RenderSelection(SelectionCursor, TextRender()->GetTextSelectionColor());
+				if(Draw)
+					RenderSelection(SelectionCursor, TextRender()->GetTextSelectionColor());
 				Cursor.m_CursorMode = TEXT_CURSOR_CURSOR_MODE_SET;
 				Cursor.m_CursorCharacter = SelectionCursor.m_CursorCharacter;
 				Cursor.m_CalculateSelectionMode = TEXT_CURSOR_SELECTION_MODE_NONE;
 			}
 			// 缩放仅进入主文字绘制，选区预遍历和实际光标仍使用原排版。
-			m_InputMotion.FillCharOffsets(Cursor.m_vCharOffsets);
+			if(Draw)
+				m_InputMotion.FillCharOffsets(Cursor.m_vCharOffsets);
 			TextRender()->TextEx(&Cursor, pDisplayStr);
 		};
 
@@ -597,11 +604,16 @@ STextBoundingBox CLineInput::Render(const CUIRect *pRect, float FontSize, int Al
 		if(Cursor.m_HasCursorRenderedPosition)
 		{
 			m_CaretPosition = Cursor.m_CursorRenderedPosition;
-			RenderCaret(Cursor, Cursor.m_ForceCursorRendering, TextRender()->GetTextColor(), TextRender()->GetTextOutlineColor());
+			// INPUT 消费编辑通知后，DRAW 仍应从可见光标周期开始。
+			if(!Draw && Cursor.m_ForceCursorRendering)
+				m_CaretBlinkStartTime = time_get_nanoseconds();
+			if(Draw)
+				RenderCaret(Cursor, Cursor.m_ForceCursorRendering, TextRender()->GetTextColor(), TextRender()->GetTextOutlineColor());
 			// 主 Cursor 已完成文本、选择区、光标和 IME 锚点位置计算，不能再创建一套
 			// 重复文字容器。第二次 TextEx 会为同一输入额外插入图形命令，并在 caret
 			// 闪烁边界与主容器交错。
-			SetCompositionWindowPosition(m_CaretPosition + vec2(0.0f, Cursor.m_AlignedFontSize / 2.0f), Cursor.m_AlignedFontSize);
+			if(Draw)
+				SetCompositionWindowPosition(m_CaretPosition + vec2(0.0f, Cursor.m_AlignedFontSize / 2.0f), Cursor.m_AlignedFontSize);
 		}
 	}
 	else

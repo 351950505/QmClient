@@ -4,86 +4,38 @@
 
 #include "QmColorGradient.h"
 
-#include <engine/client/rounded_rect_directions.h>
 #include <engine/graphics.h>
-#include <engine/shared/config.h>
 
 #include <game/client/ui.h>
 
 #include <algorithm>
-#include <array>
 
 namespace
 {
-
-	void DrawRoundedSurfaceFallback(IGraphics *pGraphics, const SRoundedSurfacePlan &Plan, const ColorRGBA &Fill, const ColorRGBA &Border, int Corners)
+	void DrawRoundedSurfaceBorder(IGraphics *pGraphics, const SRoundedSurfacePlan &Plan, const ColorRGBA &Border, int Corners)
 	{
-		CUIRect Inner = Plan.m_Rect;
-		Inner.Margin(Plan.m_BorderWidth, &Inner);
-		if(Inner.w <= 0.0f || Inner.h <= 0.0f)
+		if(Border.a <= 0.0f || Plan.m_BorderWidth <= 0.0f)
+			return;
+		if(Plan.m_UseSdf)
 		{
-			pGraphics->DrawRect(Plan.m_Rect.x, Plan.m_Rect.y, Plan.m_Rect.w, Plan.m_Rect.h, Border, Corners, Plan.m_Radius);
+			IGraphics::SRoundedRectSdfParams Params;
+			Params.m_Rect = vec4(Plan.m_Rect.x, Plan.m_Rect.y, Plan.m_Rect.w, Plan.m_Rect.h);
+			Params.m_FillColor = vec4(0, 0, 0, 0);
+			Params.m_BorderColor = vec4(Border.r, Border.g, Border.b, Border.a);
+			Params.m_CornerRadii = Plan.m_CornerRadii;
+			Params.m_Params = vec4(Plan.m_BorderWidth, Plan.m_PixelSize, Plan.m_PixelSize * 2.0f, 0.0f);
+			pGraphics->RenderRoundedRectSdf(Params);
 			return;
 		}
-
-		static CQmRoundedRectDirections s_Directions;
-		const int NumSegments = std::clamp(g_Config.m_QmRectCornerSegments & ~1, CQmRoundedRectDirections::MIN_SEGMENTS, CQmRoundedRectDirections::MAX_SEGMENTS);
-		const vec2 *pDirections = s_Directions.Get(NumSegments);
-		constexpr int MAX_POINTS = 4 * (CQmRoundedRectDirections::MAX_SEGMENTS + 1);
-		std::array<vec2, MAX_POINTS> aOuter, aInner;
-		std::array<IGraphics::CFreeformItem, MAX_POINTS> aQuads;
-		int NumPoints = 0;
-		constexpr int aCorners[] = {IGraphics::CORNER_TL, IGraphics::CORNER_TR, IGraphics::CORNER_BR, IGraphics::CORNER_BL};
-		for(int Corner = 0; Corner < 4; ++Corner)
-		{
-			const bool Right = Corner == 1 || Corner == 2;
-			const bool Bottom = Corner >= 2;
-			const float Radius = Corners & aCorners[Corner] ? Plan.m_Radius : 0.0f;
-			const float InnerRadius = std::max(0.0f, Radius - Plan.m_BorderWidth);
-			const vec2 Center(Plan.m_Rect.x + (Right ? Plan.m_Rect.w - Radius : Radius), Plan.m_Rect.y + (Bottom ? Plan.m_Rect.h - Radius : Radius));
-			const vec2 InnerCenter(Inner.x + (Right ? Inner.w - InnerRadius : InnerRadius), Inner.y + (Bottom ? Inner.h - InnerRadius : InnerRadius));
-			// 方角只保留两侧端点；内圆角消失时，边框自然收束到内方角。
-			for(int i = 0; i <= NumSegments; i += Radius > 0.0f ? 1 : NumSegments)
-			{
-				const vec2 Direction = pDirections[i];
-				const vec2 aNormalsForCorner[] = {vec2(-Direction.x, -Direction.y), vec2(Direction.y, -Direction.x), Direction, vec2(-Direction.y, Direction.x)};
-				const vec2 Normal = aNormalsForCorner[Corner];
-				aOuter[NumPoints] = Center + Normal * Radius;
-				aInner[NumPoints++] = InnerCenter + Normal * InnerRadius;
-			}
-		}
-
+		const auto aMesh = ResolveRoundedSurfaceBorderMesh(Plan, Corners);
 		pGraphics->TextureClear();
 		pGraphics->QuadsBegin();
-		// 边框和填充共用内轮廓，各自只提交自己的区域，半透明颜色不会整面叠加。
-		if(Border.a > 0.0f)
-		{
-			for(int i = 0; i < NumPoints; ++i)
-			{
-				const int Next = (i + 1) % NumPoints;
-				aQuads[i] = IGraphics::CFreeformItem(aOuter[i], aOuter[Next], aInner[i], aInner[Next]);
-			}
-			pGraphics->SetColor(Border);
-			pGraphics->QuadsDrawFreeform(aQuads.data(), NumPoints);
-		}
-		if(Fill.a > 0.0f)
-		{
-			const vec2 Center = Inner.Center();
-			int NumFillQuads = 0;
-			for(int i = 0; i < NumPoints; i += 2)
-			{
-				// 局部圆角可能产生奇数个节点，最后一项只补闭合三角形。
-				const int End = i + 2 < NumPoints ? i + 2 : 0;
-				aQuads[NumFillQuads++] = IGraphics::CFreeformItem(Center, aInner[i], aInner[End], aInner[(i + 1) % NumPoints]);
-			}
-			pGraphics->SetColor(Fill);
-			pGraphics->QuadsDrawFreeform(aQuads.data(), NumFillQuads);
-		}
+		pGraphics->SetColor(Border);
+		pGraphics->QuadsDrawFreeform(aMesh.data(), aMesh.size());
 		pGraphics->QuadsEnd();
-		// 复用图形前端的外缘羽化，内轮廓不再叠画填充的抗锯齿。
+		// 仅给环带外缘补羽化，保持透明填充内部不被边框覆盖。
 		pGraphics->DrawRoundedRectAntialias(Plan.m_Rect.x, Plan.m_Rect.y, Plan.m_Rect.w, Plan.m_Rect.h, Plan.m_Radius, Corners, Border);
 	}
-
 }
 
 bool DrawRoundedSurface(IGraphics *pGraphics, const CUIRect &Rect, const ColorRGBA &Fill, const ColorRGBA &Border, const SRoundedSurfaceParams &Params)
@@ -111,13 +63,18 @@ bool DrawRoundedSurface(IGraphics *pGraphics, const CUIRect &Rect, const ColorRG
 		return true;
 	}
 
-	DrawRoundedSurfaceFallback(pGraphics, Plan, Fill, Border, Params.m_Corners);
+	CUIRect Inner = Plan.m_Rect;
+	Inner.Margin(Plan.m_BorderWidth, &Inner);
+	if(Inner.w > 0.0f && Inner.h > 0.0f)
+		pGraphics->DrawRect(Inner.x, Inner.y, Inner.w, Inner.h, Fill, Params.m_Corners, std::max(0.0f, Plan.m_Radius - Plan.m_BorderWidth));
+	// 边框仅覆盖环带；整块边框垫底会透过半透明填色污染输入框内部。
+	DrawRoundedSurfaceBorder(pGraphics, Plan, Border, Params.m_Corners);
 	return true;
 }
 
 bool DrawRoundedSurface(CUi *pUi, const CUIRect &Rect, const ColorRGBA &Fill, const ColorRGBA &Border, const float Radius, const float BorderWidth, const int Corners)
 {
-	if(pUi == nullptr)
+	if(pUi == nullptr || pUi->DrawingSuppressed())
 		return false;
 	SRoundedSurfaceParams Params;
 	Params.m_Radius = pUi->QmSurfaceRounding(Radius);
@@ -148,7 +105,7 @@ bool DrawRoundedGradientSurface(IGraphics *pGraphics, const CUIRect &Rect, const
 	CUIRect Inner = Plan.m_Rect;
 	if(Plan.m_BorderWidth > 0.0f)
 	{
-		DrawRoundedSurface(pGraphics, Plan.m_Rect, ColorRGBA(), Border, Params);
+		DrawRoundedSurfaceBorder(pGraphics, Plan, Border, Params.m_Corners);
 		Inner.Margin(Plan.m_BorderWidth, &Inner);
 	}
 	if(Inner.w <= 0.0f || Inner.h <= 0.0f)

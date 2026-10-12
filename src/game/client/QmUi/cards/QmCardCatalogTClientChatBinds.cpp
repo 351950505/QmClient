@@ -25,6 +25,7 @@
 #include <game/client/QmUi/QmDropdown.h>
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsFontSelection.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiForms.h>
@@ -78,6 +79,9 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientChatBindsCard(const qm_car
 	ApplyTClientContentMetrics(Ctx.m_Metrics);
 	CPerfTimer RenderTimer;
 	const bool ReadOnly = Ctx.m_ReadOnly || Pass != qm_card_catalog::ETClientCardPass::RENDER;
+	std::unique_ptr<CUiRenderOnlyGuard> pRenderOnlyGuard;
+	if(ReadOnly && !Ui()->RenderOnly())
+		pRenderOnlyGuard = std::make_unique<CUiRenderOnlyGuard>(Ui());
 	const float UiScale = SettingsPageUiScale(MainView.w);
 	const SSettingsPageLayoutFrame Page = Ctx.m_Page;
 	IUiContext TClientChatBindsTextInputCtx = SettingsUiContext("settings_tclient_chatbinds_text_inputs", UiScale);
@@ -89,17 +93,18 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientChatBindsCard(const qm_car
 
 	auto DoBindchatDefault = [&](CUIRect &Column, CBindChat::CBindDefault &BindDefault) {
 		CUIRect Button, Input, Title;
-		Column.HSplitTop(MarginSmall, nullptr, &Column);
-		Column.HSplitTop(LineSize, &Button, &Column);
+		CSettingsContentLayoutFlow Flow(Column);
+		if(!Flow.Control(BindDefault.m_Bind.m_aCommand, LineSize, Button, MarginSmall))
+			return;
 		CBindChat::CBind *pOldBind = GameClient()->m_BindChat.GetBind(BindDefault.m_Bind.m_aCommand);
 		static char s_aTempName[BINDCHAT_MAX_NAME] = "";
 		char *pName = pOldBind == nullptr ? s_aTempName : pOldBind->m_aName;
-		Button.VSplitLeft(210.0f, &Title, &Input);
+		SplitSettingsControlRow(Button, CurrentSettingsContentMetrics(), &Title, &Input);
 		CUIElement &TitleElement = SettingsTextElement(SETTINGS_TCLIENT, TCLIENT_TAB_BINDCHAT, BindDefault.m_pTitle);
 		DoSettingsLabelStreamed(TitleElement, &Title, Localize(BindDefault.m_pTitle), FontSize, TEXTALIGN_ML, TClientFixedLabelProperties(FontSize, Title.w));
 		BindDefault.m_LineInput.SetBuffer(pName, BINDCHAT_MAX_NAME);
 		BindDefault.m_LineInput.SetEmptyText(BindDefault.m_Bind.m_aName);
-		if(!ReadOnly && ui_widget::InputField(TClientChatBindsTextInputCtx, &BindDefault.m_LineInput, Input, BindDefault.m_Bind.m_aName, EditBoxFontSize) && BindDefault.m_LineInput.IsActive())
+		if(ui_widget::InputField(TClientChatBindsTextInputCtx, &BindDefault.m_LineInput, Input, BindDefault.m_Bind.m_aName, EditBoxFontSize) && !ReadOnly && !Ui()->RenderOnly() && BindDefault.m_LineInput.IsActive())
 		{
 			if(!pOldBind && pName[0] != '\0')
 			{
@@ -112,17 +117,12 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientChatBindsCard(const qm_car
 			if(pOldBind && pName[0] == '\0')
 				GameClient()->m_BindChat.RemoveBind(pName);
 		}
-		else if(ReadOnly)
-			DoSettingsLabel(SETTINGS_TCLIENT, TCLIENT_TAB_BINDCHAT, BindDefault.m_Bind.m_aName, &Input, pName, FontSize, TEXTALIGN_ML);
 	};
 
 	constexpr const char *apStableIds[] = {
 		"deck:tclient-chat-binds-kaomoji",
 		"deck:tclient-chat-binds-warlist",
 		"deck:tclient-chat-binds-other",
-	};
-	const auto MeasureCard = [](size_t Index, float) {
-		return CBindChat::BIND_DEFAULTS[Index].second.size() * (MarginSmall + LineSize);
 	};
 	const auto RenderCard = [&](size_t Index, CUIRect &Content) {
 		for(CBindChat::CBindDefault &BindDefault : CBindChat::BIND_DEFAULTS[Index].second)
@@ -135,10 +135,9 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientChatBindsCard(const qm_car
 	{
 		if(str_comp(pStableId, apStableIds[Index]) != 0)
 			continue;
-		const float Height = MeasureCard(Index, Content.w);
-		if(Pass == qm_card_catalog::ETClientCardPass::RENDER)
-			RenderCard(Index, Content);
-		return {Height, CardRevision};
+		const float SavedY = Content.y;
+		RenderCard(Index, Content);
+		return {Content.y - SavedY, CardRevision};
 	}
 	return {0.0f, CardRevision};
 }

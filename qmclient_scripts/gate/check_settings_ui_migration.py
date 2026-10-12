@@ -234,7 +234,7 @@ _PAGE_SOURCE = {
 	"qmclient_function": Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
 	"qmclient_visual": Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
 	"contributors": Path("src/game/client/components/menus_credits.cpp"),
-	"global_search": Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
+	"global_search": Path("src/game/client/QmUi/SettingsSearchPage.cpp"),
 	"tclient": Path("src/game/client/components/tclient/menus_tclient.cpp"),
 	"tclient_bind_wheel": Path("src/game/client/components/tclient/menus_tclient.cpp"),
 	"tclient_chat_binds": Path("src/game/client/components/tclient/menus_tclient.cpp"),

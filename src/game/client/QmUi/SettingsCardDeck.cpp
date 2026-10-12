@@ -3,6 +3,7 @@
 #include "QmAnimResolve.h"
 #include "QmCardRegistry.h"
 #include "SettingsCardCollapseState.h"
+#include "SettingsCardContentBridge.h"
 #include "SettingsCardInfo.h"
 #include "SettingsCardWidth.h"
 #include "UiContext.h"
@@ -53,6 +54,7 @@ namespace
 
 void CSettingsCardDeck::ResetDefinitionViewState()
 {
+	m_ObservedContentChanged = false;
 	// Definition state is indexed by the current card-order model. A different
 	// tab or stable-id set may reuse the same indices, so retaining these
 	// values would make the new view inherit heights, animation tracks and
@@ -61,6 +63,8 @@ void CSettingsCardDeck::ResetDefinitionViewState()
 	m_vContentHeights.clear();
 	m_vContentWidths.clear();
 	m_vMeasureRevisions.clear();
+	m_vContentLayouts.clear();
+	m_vContentLayoutCaches.clear();
 	m_vDefinitionsByState.clear();
 	m_vBoundDefinitionStateIndices.clear();
 	m_vActiveStateIndices.clear();
@@ -83,6 +87,16 @@ void CSettingsCardDeck::ResetDefinitionViewState()
 	m_PreparedDefinitionTab.clear();
 	m_FrameRuntime.OnTabChanged();
 	m_SuppressHoverFeedbackOnce = true;
+}
+
+ESettingsCardRenderPass CSettingsCardDeck::RenderPassMode(const IUiContext &Ctx)
+{
+	// 定义捕获只读状态；后台重建后回到前台必须重新绑定，避免卡片持续失活。
+	if(Ctx.m_pUi == nullptr)
+		return ESettingsCardRenderPass::INTERACTIVE;
+	if(Ctx.m_pUi->MeasurementOnly())
+		return ESettingsCardRenderPass::MEASUREMENT;
+	return Ctx.m_pUi->BackgroundRender() ? ESettingsCardRenderPass::BACKGROUND : ESettingsCardRenderPass::INTERACTIVE;
 }
 
 void CSettingsCardDeck::PrepareDefinitions(const std::vector<SSettingsCardDefinition> &vCards, const qm_card_order::CModel &Model)
@@ -114,6 +128,8 @@ void CSettingsCardDeck::PrepareDefinitions(const std::vector<SSettingsCardDefini
 	m_vContentHeights.resize(Model.Count(), -1.0f);
 	m_vContentWidths.resize(Model.Count(), -1.0f);
 	m_vMeasureRevisions.resize(Model.Count(), UINT64_MAX);
+	m_vContentLayouts.resize(Model.Count());
+	m_vContentLayoutCaches.resize(Model.Count());
 }
 
 void CSettingsCardDeck::RequestReveal(const char *pStableId)
@@ -125,7 +141,6 @@ void CSettingsCardDeck::BeginDisplayCycle(uint64_t DisplayCycle, bool AnimateEnt
 {
 	if(m_FrameRuntime.BeginDisplayCycle(DisplayCycle, AnimateEntry))
 	{
-		m_Focus.Reset();
 		m_Drag.Reset();
 		m_SuppressHoverFeedbackOnce = true;
 		m_HasScrollOffset = false;
@@ -150,20 +165,25 @@ SSettingsCardDeckResult CSettingsCardDeck::Render(const IUiContext &Ctx, const S
 	return RenderInternal(Ctx, Layout, pTab, vCards, Model, pScrollRegion, Input, Motion, VisualOptions, true);
 }
 
-SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx, const SSettingsPageLayoutFrame &Layout, const char *pTab, const std::vector<SSettingsCardDefinition> &vCards, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &RawInput, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions, bool PersistentDefinitions)
+SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &InputCtx, const SSettingsPageLayoutFrame &Layout, const char *pTab, const std::vector<SSettingsCardDefinition> &vCards, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &RawInput, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions, bool PersistentDefinitions)
 {
-	SSettingsCardDeckInput Input = ResolveSettingsCardDeckPointerInput(RawInput, Ctx.m_pUi != nullptr && Ctx.m_pUi->PointerInputBlocked());
+	IUiContext Ctx = InputCtx;
+	// 后台仍是可见页面：Deck 的几何动画继续消费原轨道，输入仍由 RenderOnly 隔离。
+	// 不依赖旧卡片是否清空上下文中的动画指针；真正的测量不会碰可见动画。
+	if(Ctx.m_pUi != nullptr && Ctx.m_pUi->BackgroundRender() && !Ctx.m_pUi->MeasurementOnly() && Ctx.m_pAnim == nullptr)
+		Ctx.m_pAnim = Ctx.m_pUi->QmAnimationRuntime();
+	SSettingsCardDeckInput Input = ResolveSettingsCardDeckPointerInput(RawInput, Ctx.m_pUi != nullptr && (Ctx.m_pUi->RenderOnly() || Ctx.m_pUi->PointerInputBlocked()));
 	SSettingsCardDeckResult Result;
+	if(Ctx.m_pUi != nullptr && Ctx.m_pUi->RenderOnly())
+		m_Drag.Reset();
 	m_FrameRuntime.BeginFrame(Input.m_pDiagnostics);
 	if(pTab == nullptr)
 	{
-		m_Focus.Reset();
 		return Result;
 	}
 	const bool TabChanged = m_LastRenderedTab != pTab;
 	if(TabChanged)
 	{
-		m_Focus.Reset();
 		if(Ctx.m_pUi != nullptr)
 			for(const char *pStableId : m_vPreparedStableIds)
 				Ctx.m_pUi->CloseInteractionSource(this, pStableId);
@@ -199,8 +219,16 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 		{
 			// Definitions revision 表示测量闭包或其依赖状态已经改变。同 stable ID
 			// 不能继续复用旧高度，否则动态行会被旧卡片矩形裁掉。
-			std::fill(m_vContentHeights.begin(), m_vContentHeights.end(), -1.0f);
-			std::fill(m_vMeasureRevisions.begin(), m_vMeasureRevisions.end(), UINT64_MAX);
+			// 声明式内容按真实行属性失效，保留旧高度用于发现几何变化。
+			// 旧测量闭包仍遵守定义/环境版本的失效合同。
+			for(const int StateIndex : m_vBoundDefinitionStateIndices)
+			{
+				if(!m_vDefinitionsByState[StateIndex]->m_ResolveContentLayout)
+				{
+					m_vContentHeights[StateIndex] = -1.0f;
+					m_vMeasureRevisions[StateIndex] = UINT64_MAX;
+				}
+			}
 			m_InvalidateMeasurementsOnDefinitionsPrepare = false;
 		}
 		m_CachedDefinitionsDirty = false;
@@ -242,6 +270,8 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 	vec2 ScrollOffset(0.0f, 0.0f);
 	if(pScrollRegion != nullptr)
 		pScrollRegion->Begin(&ScrollViewport, &ScrollOffset, Input.m_pScrollParams);
+	else
+		ScrollOffset.y = ResolveSettingsCardDeckPassiveScrollOffset(Ctx.m_pUi != nullptr && Ctx.m_pUi->BackgroundRender(), m_HasScrollOffset, m_LastScrollOffsetY);
 	if(std::abs(m_LastViewportHeight - ScrollViewport.h) > 0.01f)
 	{
 		m_LastViewportHeight = ScrollViewport.h;
@@ -260,7 +290,8 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 	OffsetRectY(DrawLayout.m_aColumns[0], ScrollOffset.y);
 	OffsetRectY(DrawLayout.m_aColumns[1], ScrollOffset.y);
 
-	bool MeasuredGeometryChanged = false;
+	bool MeasuredGeometryChanged = m_ObservedContentChanged;
+	m_ObservedContentChanged = false;
 	bool ContentHeightTargetChanged = false;
 	bool ContentHeightAnimationActive = false;
 	auto BuildPreparedCards = [&](const std::array<std::vector<int>, 3> &aDisplayColumns) {
@@ -294,8 +325,18 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 				CachedMeasureRevision = pDefinition->m_MeasureRevision;
 				CachedContentHeight = -1.0f;
 			}
-			if(SettingsCardDeckNeedsContentMeasure(Collapsed, pDefinition->m_MeasureEachFrame, CachedContentHeight))
+			if(pDefinition->m_ResolveContentLayout && !Collapsed)
 			{
+				const auto pLayout = pDefinition->m_ResolveContentLayout(m_vContentLayoutCaches[StateIndex], ContentWidth);
+				if(pLayout != m_vContentLayouts[StateIndex] && Input.m_pDiagnostics != nullptr)
+					m_FrameRuntime.CountMeasure();
+				m_vContentLayouts[StateIndex] = pLayout;
+				CachedContentHeight = pLayout ? pLayout->Height() : 0.0f;
+				MeasuredGeometryChanged = MeasuredGeometryChanged || SettingsCardDeckContentHeightChanged(PreviousContentHeight, CachedContentHeight);
+			}
+			else if(SettingsCardDeckNeedsContentMeasure(Collapsed, pDefinition->m_MeasureEachFrame, CachedContentHeight))
+			{
+				m_vContentLayouts[StateIndex].reset();
 				if(Input.m_pDiagnostics != nullptr)
 					m_FrameRuntime.CountMeasure();
 				// m_Measure 是卡片定义的布局合同。模块卡片在构建时把它绑定到
@@ -341,7 +382,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 				pDefinition->m_LeadingHeaderActionWidth, pDefinition->m_Spec.m_pInfo != nullptr && pDefinition->m_Spec.m_pInfo[0] != '\0');
 			const SSettingsCardColumnFrame Placement = DrawLayout.m_TwoColumns ? m_PackingPlan.Append(Column, Frame.m_Rect.h, LeadingFullWidth) : SingleColumnPlan.Append(Frame.m_Rect.h);
 			Frame = ResolveSettingsCardDrawFrame(Frame, 0.0f, Placement.m_Y - Frame.m_Rect.y);
-			m_vPreparedCards.push_back({pDefinition, StateIndex, Column, Frame, TargetContentHeight, HeightInitializedThisFrame, Runtime.m_ContentHeightWasActive});
+			m_vPreparedCards.push_back({pDefinition, StateIndex, Column, Frame, TargetContentHeight, HeightInitializedThisFrame, Runtime.m_ContentHeightWasActive, m_vContentLayouts[StateIndex]});
 		};
 		auto AppendColumn = [&](const std::vector<int> &vStateIndices, int Column, CUIRect ColumnRect) {
 			for(const int StateIndex : vStateIndices)
@@ -389,7 +430,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 	{
 		if(Ctx.m_pUi != nullptr)
 			Ctx.m_pUi->BeginPreLayoutInput();
-		for(const SPreparedCard &Card : m_vPreparedCards)
+		for(SPreparedCard &Card : m_vPreparedCards)
 		{
 			SRuntimeState &Runtime = m_vRuntimeStates[Card.m_StateIndex];
 			CUiScopedInteractionOwner InteractionOwner(Ctx.m_pUi, this, Card.m_pDefinition->m_Spec.m_pStableId);
@@ -435,8 +476,23 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 				Ctx.m_pUi->CloseInteractionSource(this, Card.m_pDefinition->m_Spec.m_pStableId);
 
 			const bool Collapsed = SettingsCardDeckResolveCollapsed(HasCustomCollapsedState, HasCustomCollapsedState && Card.m_pDefinition->m_IsCollapsed(), Runtime.m_DefaultCollapsed);
-			const bool HasPendingPreLayoutInput = Card.m_pDefinition->m_HasPendingPreLayoutInput && Card.m_pDefinition->m_HasPendingPreLayoutInput();
+			const bool HasPendingPreLayoutInput = (Card.m_pDefinition->m_HasPendingPreLayoutInput && Card.m_pDefinition->m_HasPendingPreLayoutInput()) || (Ctx.m_pUi && Ctx.m_pUi->HasPendingInteractionSelection());
 			const bool HasActiveContentContinuation = SettingsCardDeckHasActiveItemContinuation(HasPointerInput, Ctx.m_pUi != nullptr && Ctx.m_pUi->ActiveItem() != nullptr);
+			if(!Collapsed && Card.m_pContentLayout && Card.m_pDefinition->m_ContentLayoutInput && (ControllerVisible || HasActiveContentContinuation || HasPendingPreLayoutInput) && (Ctx.m_pUi == nullptr || !Ctx.m_pUi->RenderOnly()))
+			{
+				// 已迁移控件每帧建立 HotItem，并消费键盘/弹层提交；新分支只在最终布局后可绘制。
+				m_FrameRuntime.CountPreLayoutInput();
+				if(Ctx.m_pUi != nullptr)
+				{
+					const CUIRect Clip = ResolveSettingsCardContentClipRect(PreLayoutFrame.m_ContentRect, PreLayoutFrame.m_Rect, Ctx.m_UiScale);
+					Ctx.m_pUi->ClipEnable(&Clip);
+				}
+				CardGeometryChanged = qm_settings_content::ExecuteInput(*Card.m_pDefinition, Card.m_pContentLayout, m_vContentLayoutCaches[Card.m_StateIndex], PreLayoutFrame.m_ContentRect,
+							      ControllerVisible, HasActiveContentContinuation, Collapsed, Ctx.m_pUi) ||
+						      CardGeometryChanged;
+				if(Ctx.m_pUi != nullptr)
+					Ctx.m_pUi->ClipDisable();
+			}
 			if(SettingsCardDeckShouldRunPreLayoutInput(HasPointerInput, HasPendingPreLayoutInput, HasActiveContentContinuation, ControllerVisible, Collapsed, PreLayoutFrame.m_ContentRect.h) && Card.m_pDefinition->m_PreLayoutInput)
 			{
 				m_FrameRuntime.CountPreLayoutInput();
@@ -453,7 +509,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 			Ctx.m_pUi->EndPreLayoutInput();
 	}
 	// 预布局回调可能刚打开颜色选择器，原始按键快照不得驱动同帧拖动。
-	Input = ResolveSettingsCardDeckPointerInput(Input, Ctx.m_pUi != nullptr && Ctx.m_pUi->PointerInputBlocked());
+	Input = ResolveSettingsCardDeckPointerInput(Input, Ctx.m_pUi != nullptr && (Ctx.m_pUi->RenderOnly() || Ctx.m_pUi->PointerInputBlocked()));
 	RebuildActiveStateIndices();
 	if(m_vActiveStateIndices != m_vPreviousActiveStateIndices || PreLayoutGeometryChanged)
 	{
@@ -636,7 +692,6 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 			});
 		}
 	}
-	m_Focus.BeginFrame(Input.m_MousePressed, Ctx.m_pUi != nullptr && !Ctx.m_pUi->RenderOnly());
 	for(const SPreparedCard &Card : m_vPreparedCards)
 	{
 		SRuntimeState &Runtime = m_vRuntimeStates[Card.m_StateIndex];
@@ -653,7 +708,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 		}
 		SSettingsCardVisualState State;
 		State.m_DrawOffsetY = DeckEntryOffsetY;
-		State.m_ClipContent = SettingsCardDeckShouldClipContent(Card.m_Frame.m_ContentRect.w > 0.0f && Card.m_Frame.m_ContentRect.h > 0.0f, Card.m_ContentHeightAnimationActive);
+		State.m_ClipContent = Card.m_Frame.m_ContentRect.w > 0.0f && (static_cast<bool>(Card.m_pDefinition->m_RenderMeasured) || SettingsCardDeckShouldClipContent(Card.m_Frame.m_ContentRect.h > 0.0f, Card.m_ContentHeightAnimationActive));
 		if(Ctx.m_pAnim != nullptr)
 		{
 			const bool ReflowInitializedThisFrame = !Runtime.m_ReflowInitialized;
@@ -728,7 +783,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 		if(Visible || Card.m_pDefinition->m_RenderWhenClipped)
 		{
 			if(Input.m_pDiagnostics != nullptr)
-				m_FrameRuntime.CountRenderedCard(SettingsCardShouldDrawChrome(Ctx.m_pUi != nullptr && Ctx.m_pUi->RenderOnly()));
+				m_FrameRuntime.CountRenderedCard(SettingsCardShouldDrawChrome(Ctx.m_pUi != nullptr && Ctx.m_pUi->MeasurementOnly()));
 			State.m_Collapsed = Collapsed;
 			State.m_ShowDefaultCollapseButton = SettingsCardDeckUsesDefaultCollapseControl(HasCustomCollapsedState, static_cast<bool>(Card.m_pDefinition->m_PreLayoutHeaderInput));
 			State.m_HoverFeedbackEnabled = !m_SuppressHoverFeedbackOnce && !ScrollMovedThisFrame && !EntryPositionActive &&
@@ -743,18 +798,38 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 				const CUIRect Button = SettingsCardWidthButtonRect(DrawFrame);
 				if(Ctx.m_pTextRender != nullptr && Ctx.m_pUi != nullptr)
 				{
-					RenderSettingsCardHeaderIcon(Ctx, Button, Card.m_Column == 0 ? EQmIcon::BORDER_ALL : EQmIcon::ARROWS_LEFT_RIGHT, Card.m_Column == 0 ? FontIcons::FONT_ICON_BORDER_ALL : FontIcons::FONT_ICON_ARROWS_LEFT_RIGHT, State.m_DrawAlpha, &Runtime.m_WidthButtonId);
+					RenderSettingsCardHeaderIcon(InputCtx, Button, Card.m_Column == 0 ? EQmIcon::BORDER_ALL : EQmIcon::ARROWS_LEFT_RIGHT, Card.m_Column == 0 ? FontIcons::FONT_ICON_BORDER_ALL : FontIcons::FONT_ICON_ARROWS_LEFT_RIGHT, State.m_DrawAlpha, &Runtime.m_WidthButtonId);
 					if(Ctx.m_pTooltips != nullptr)
 						Ctx.m_pTooltips->DoSmallToolTip(&Runtime.m_WidthButtonId, &Button, Card.m_Column == 0 ? Localize("Default width") : Localize("Full width"), 10.0f * Ctx.m_UiScale * ui_token::font::TextScale(g_Config.m_QmUiTextScale));
 				}
 			};
-			// 命中与绘制使用同一动画矩形，且遵守弹层和滚动裁剪的输入隔离。
-			const SSettingsCardFrame FocusFrame = ResolveSettingsCardDrawFrame(Frame, State.m_DrawOffsetX, State.m_DrawOffsetY);
-			m_Focus.Observe(pStableId, Ctx.m_pUi != nullptr && !Ctx.m_pUi->PointerInputBlocked() && PointInRect(ScrollViewport, Input.m_MouseX, Input.m_MouseY) && Ctx.m_pUi->MouseHovered(&FocusFrame.m_Rect));
-			State.m_Focused = m_Focus.IsFocused(pStableId) || (Input.m_pFocusedStableId != nullptr && str_comp(Input.m_pFocusedStableId, pStableId) == 0);
-			SettingsCard(Ctx, Frame, Card.m_pDefinition->m_Spec, State, VisualOptions,
+			float ObservedHeight = -1.0f;
+			FSettingsCardRenderMeasured ContentRender = Card.m_pDefinition->m_RenderMeasured;
+			if(Card.m_pContentLayout && Card.m_pDefinition->m_ContentLayoutDraw)
+			{
+				ContentRender = [pLayout = Card.m_pContentLayout, Draw = Card.m_pDefinition->m_ContentLayoutDraw, pUi = Ctx.m_pUi](CUIRect &Content) {
+					const CUIRect Origin = Content;
+					// 只读绘制仍提交外观，但不再次处理已经完成的输入。
+					if(pUi != nullptr)
+						pUi->BeginBackgroundRender(true);
+					Draw(*pLayout, Content);
+					if(pUi != nullptr)
+						pUi->EndBackgroundRender(true);
+					Content.y = Origin.y + pLayout->Height();
+					Content.h = Origin.h - pLayout->Height();
+				};
+			}
+			State.m_Focused = Input.m_pFocusedStableId != nullptr && str_comp(Input.m_pFocusedStableId, pStableId) == 0;
+			SettingsCard(InputCtx, Frame, Card.m_pDefinition->m_Spec, State, VisualOptions,
 				SettingsCardDeckRendersContent(Collapsed) ? Card.m_pDefinition->m_Render : FSettingsCardRender{}, HeaderAction,
-				SettingsCardDeckRendersContent(Collapsed) ? Card.m_pDefinition->m_RenderMeasured : FSettingsCardRenderMeasured{}, &PointerInsideDrawFrame);
+				SettingsCardDeckRendersContent(Collapsed) ? ContentRender : FSettingsCardRenderMeasured{}, &PointerInsideDrawFrame, &ObservedHeight);
+			// 内容输入或异步结果改变布局时，下一帧自动失效并重排。
+			// 只在高度变化时再测量，空闲帧继续复用缓存。
+			if(!Card.m_pContentLayout && !Collapsed && ObservedHeight >= 0.0f && std::abs(ObservedHeight - Card.m_TargetContentHeight) > 0.5f && (Ctx.m_pUi == nullptr || !Ctx.m_pUi->RenderOnly()))
+			{
+				m_vContentHeights[Card.m_StateIndex] = -1.0f;
+				m_ObservedContentChanged = true;
+			}
 			Runtime.m_PointerInsideLastFrame = PointerInsideDrawFrame;
 			if(Ctx.m_pUi != nullptr && !Ctx.m_pUi->RenderOnly())
 			{
@@ -766,7 +841,6 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Ctx,
 			Runtime.m_PointerInsideLastFrame = false;
 	}
 
-	m_Focus.EndFrame();
 	if(pScrollRegion != nullptr)
 		pScrollRegion->End();
 	for(SRuntimeState &Runtime : m_vRuntimeStates)

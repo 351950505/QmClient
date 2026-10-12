@@ -15,7 +15,9 @@
 #include <game/client/components/qmclient/chat_command_hud.h>
 #include <game/client/components/qmclient/chat_emoji.h>
 #include <game/client/components/qmclient/chat_translate_button.h>
+#include <game/client/components/qmclient/chat_translation_notes.h>
 #include <game/client/components/qmclient/hud_notifications/hud_notifications.h>
+#include <game/client/components/qmclient/pending_chat_messages.h>
 #include <game/client/components/qmclient/qm_chat_export_metadata.h>
 #include <game/client/components/qmclient/qm_chat_log_jobs.h>
 #include <game/client/components/qmclient/qm_chat_text_layout.h>
@@ -67,25 +69,7 @@ public:
 	// 与实际发送共用额度预留策略，时间由调用者提供，便于验证限流边界与恢复。
 	static EChatSendResult ReserveChatMessage(int64_t LastSend, int64_t Now, int64_t Frequency, int &PendingCount)
 	{
-		if(LastSend + Frequency < Now)
-			return EChatSendResult::SENT;
-		if(PendingCount >= 3)
-			return EChatSendResult::REJECTED;
-		++PendingCount;
-		return EChatSendResult::QUEUED;
-	}
-
-	// 保留原文时先确认聊天入口接纳，再创建翻译后端；拒绝不能退化成只发送译文。
-	template<typename TSendOriginal, typename TStartTranslation>
-	static bool TryStartOutgoingTranslation(bool KeepOriginal, TSendOriginal &&SendOriginal, TStartTranslation &&StartTranslation)
-	{
-		if(KeepOriginal)
-		{
-			const EChatSendResult Result = SendOriginal();
-			if(Result != EChatSendResult::SENT && Result != EChatSendResult::QUEUED)
-				return false;
-		}
-		return StartTranslation(KeepOriginal);
+		return static_cast<EChatSendResult>(CPendingChatMessages::Reserve(LastSend, Now, Frequency, PendingCount));
 	}
 
 	enum
@@ -239,6 +223,8 @@ private:
 		unsigned int m_TranslationId = 0;
 
 		std::shared_ptr<CTranslateResponse> m_pTranslateResponse;
+		// 本地专用附注，不写入聊天网络消息或日志。
+		std::string m_LocalOriginal;
 	};
 
 	bool m_PrevScoreBoardShowed;
@@ -339,11 +325,14 @@ private:
 	struct CHistoryEntry
 	{
 		int m_Team;
+		int m_OriginalOffset;
 		char m_aText[1];
+		const char *InputText() const { return m_aText + (m_OriginalOffset > 0 ? m_OriginalOffset : 0); }
 	};
 	CHistoryEntry *m_pHistoryEntry;
 	CStaticRingBuffer<CHistoryEntry, 64 * 1024, CRingBufferBase::FLAG_RECYCLE> m_History;
-	int m_PendingChatCounter;
+	COutgoingChatAnnotations m_OutgoingAnnotations;
+	CPendingChatMessages m_PendingChatMessages;
 	int64_t m_LastChatSend;
 	int64_t m_aLastSoundPlayed[CHAT_NUM];
 	bool m_IsInputCensored;
@@ -380,7 +369,7 @@ private:
 	void UpdateCommandHudCandidates();
 	void ApplyCommandHudCompletion(const std::string &Completion, size_t Cursor);
 	void RenderCommandHud(float X, float Bottom, float Width, float FontSize, const CUIRect &ChatRect, const CUIRect &TargetRect);
-	EChatSendResult SendChatQueued(int Team, const char *pLine, bool AllowOutgoingTranslation);
+
 	int CountInitializedLines() const;
 	int CountVisibleLinesFrom(int BacklogLine) const;
 	void UpdatePresentationStates(int64_t Now, float DeltaSeconds, bool ShowLargeArea, bool ExtraAnimations);
@@ -650,9 +639,15 @@ public:
 	//
 	// @param Team MODE_ALL=0 MODE_TEAM=1
 	// @param pLine the chat message
-	void SendChat(int Team, const char *pLine);
+	void SendChat(int Team, const char *pLine, const char *pLocalOriginal = nullptr, int Connection = -1);
+	void InvalidateOutgoingConnection(int Connection)
+	{
+		m_PendingChatMessages.InvalidateConnection(Connection);
+		m_OutgoingAnnotations.InvalidateConnection(Connection);
+	}
+	EChatSendResult SendChatQueued(int Team, const char *pLine, bool AllowOutgoingTranslation, const char *pLocalOriginal = nullptr, int Connection = -1);
 	// Sends a chat message using the specified connection (main/dummy).
-	void SendChatOnConn(int Conn, int Team, const char *pLine, bool AllowWhitespaceOnly = false, bool HandleLocalSaveForLoadCommand = true);
+	void SendChatOnConn(int Conn, int Team, const char *pLine, bool AllowWhitespaceOnly = false, bool HandleLocalSaveForLoadCommand = true, const char *pLocalOriginal = nullptr);
 
 	// Sends a chat message to the server.
 	//

@@ -14,9 +14,10 @@ class CQmServerListCache
 	int64_t m_ReceivedAt = 0;
 	int m_SourceAge = 0;
 	bool m_RefreshFailed = false;
+	bool m_RequireLiveRefresh = false;
 
 public:
-	bool Publish(std::vector<TServer> vServers, int Age, int64_t Now)
+	bool Publish(std::vector<TServer> vServers, int Age, int64_t Now, bool RequireLiveRefresh = false)
 	{
 		if(vServers.empty())
 		{
@@ -27,11 +28,13 @@ public:
 		m_ReceivedAt = Now;
 		m_SourceAge = std::max(0, Age);
 		m_RefreshFailed = false;
+		m_RequireLiveRefresh = RequireLiveRefresh;
 		return true;
 	}
 	void RefreshFailed() { m_RefreshFailed = true; }
 	bool HasRefreshFailed() const { return m_RefreshFailed; }
-	bool IsStale(int64_t Now) const { return !m_vServers.empty() && m_SourceAge + std::max<int64_t>(0, Now - m_ReceivedAt) > 300; }
+	int64_t Age(int64_t Now) const { return m_SourceAge + std::max<int64_t>(0, Now - m_ReceivedAt); }
+	bool IsStale(int64_t Now) const { return !m_vServers.empty() && (m_RequireLiveRefresh || Age(Now) > 300); }
 	const std::vector<TServer> &Servers() const { return m_vServers; }
 };
 

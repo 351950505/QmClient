@@ -24,13 +24,29 @@ Windows 的普通版和便携版均忽略 `storage.cfg`。通用进程环境、�
 
 runner 通过 `QMCLIENT_TEST_STORAGE_ROOT` 指向场景临时目录。测试构建禁止打包，不用于发布；客户端仍拒绝用普通发布二进制运行隔离测试。已有专用测试目录也会先增量构建。Linux/macOS 沿用原隔离方式。
 
+服务器列表恢复使用真实客户端与随机 loopback 端口的 HTTP 服务，不依赖公网：
+
+```text
+python qmclient_scripts/integration/e2e_serverlist.py cmake-build-release
+```
+
+通过隔离构建中的测试命令查询 `CServerBrowser` 实际消费的列表数量和名称，并从外部驱动刷新、响应失败与恢复、退出及重启。HTTP 层下载成功日志不能单独作为列表恢复的断言。默认三层场景保留官方 master、镜像、GitHub 的生产来源身份和调度，仅在测试构建中把 HTTP 传输映射到本机服务；自定义来源场景另用隔离目录中的配置文件。此入口纳入 gate 的 `--run-qm-smoke`，独立执行时也会先增量构建；运行结果以实际日志为准。本机 HTTP 场景不证明用户线路上的 DNS、TLS 或官方多层来源可达性。
+
+实际公网 HTTPS 与客户端原生 DoH 的手动探测入口：
+
+```text
+python qmclient_scripts/integration/public_serverlist_probe.py cmake-build-release --live
+```
+
+可用 `--source official mirror github doh` 选择来源。每项启动独立存储的真实客户端，使用公开 HTTPS 地址、正常证书校验和直连环境；DoH 项只对精确官方 URL 启用生产加密解析接口。结果记录消费者数量、名称、revision、过期状态、curl 日志与正常退出码，保存到 `tmp/public-serverlist-*`。GitHub 可达但快照过期会单独记录 `stale`，不等同于新鲜列表恢复。入口必须显式传入 `--live`，不纳入常规离线 gate；返回 0 表示全部获得有效列表，2 表示存在公网无列表或观察超时，1 表示客户端或测试编排错误。成功只证明本次所在网络，不能替代故障用户线路验收。
+
 配置读写保护的 Windows 端到端入口：
 
 ```text
 python qmclient_scripts/integration/e2e_config_persistence.py <test-build-dir>
 ```
 
-两个场景验证多开时旧实例拒绝覆盖新设置，以及错误编码导致加载失败后保留原文件。测试只使用隔离存档，产物保留在 `tmp/config-persistence-*`。测试代码已补充，未执行；保存失败或配置错误弹窗会在记录日志与文件状态后结束本场景的实例。
+三个场景验证双客户端按正序和反序退出均能保存、最后退出实例的设置生效，以及错误编码导致加载失败后保留原文件。启动前检查构建开启 `DEV=ON` 和 `QMCLIENT_TEST_STORAGE=ON`，否则拒绝运行，避免访问真实用户存档。产物保留在 `tmp/config-persistence-*`；坏配置场景记录日志与原文件状态后仅结束本场景的实例。场景已更新，尚未在符合这些开关的客户端上运行；普通 Release 构建不作为此 runner 的运行证据。
 
 便携版专用端到端测试使用 `QMCLIENT_PORTABLE=ON` 的真实发布客户端，复制到 `tmp/` 后验证 `profile/` 随目录搬家、忽略目录外配置及不可写时不回退：
 

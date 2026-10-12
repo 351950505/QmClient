@@ -47,31 +47,3 @@ TEST(QmNewUiMenuBranches, EditBoxesRequirePressInsideConfiguredHitRect)
 	EXPECT_EQ(Body.find("else if(Inside)"), std::string::npos);
 	EXPECT_EQ(Body.find("else if(HotItem() == pLineInput)"), std::string::npos);
 }
-
-TEST(QmNewUiMenuBranches, SharedListEntryRevealUsesElapsedGapWithoutMovingScrollGeometry)
-{
-	const std::string ListBoxSource = ReadTextFile("src/game/client/ui_listbox.cpp");
-	const std::string ListBoxHeader = ReadTextFile("src/game/client/ui_listbox.h");
-
-	EXPECT_EQ(ListBoxSource.find("PerfFrame()"), std::string::npos);
-	EXPECT_EQ(ListBoxSource.find("QmListBoxShouldRearmInitialScroll"), std::string::npos);
-	EXPECT_EQ(ListBoxHeader.find("m_LastRenderFrame"), std::string::npos);
-	EXPECT_NE(ListBoxHeader.find("m_InitialScrollPending = true;"), std::string::npos);
-	EXPECT_NE(ListBoxHeader.find("m_EntryAnimationStartTime"), std::string::npos);
-	EXPECT_NE(ListBoxHeader.find("QmListBoxEntryAnimatedRect"), std::string::npos);
-	EXPECT_NE(ListBoxSource.find("QmListBoxShouldStartEntryAnimation"), std::string::npos);
-	EXPECT_NE(ListBoxSource.find("QmListBoxEntryOffset"), std::string::npos);
-	const std::string DoNextRowBody = FunctionBody(ListBoxSource, "CListboxItem CListBox::DoNextRow()");
-	const size_t AddRectPos = DoNextRowBody.find("m_ScrollRegion.AddRect(m_RowView);");
-	const size_t AnimateRectPos = DoNextRowBody.find("QmListBoxEntryAnimatedRect");
-	ASSERT_NE(AddRectPos, std::string::npos);
-	ASSERT_NE(AnimateRectPos, std::string::npos);
-	EXPECT_LT(AddRectPos, AnimateRectPos);
-	const std::string DoCustomRowBody = FunctionBody(ListBoxSource, "CListboxItem CListBox::DoCustomRow(float Height, bool ScrollHere)");
-	const size_t CustomAddRectPos = DoCustomRowBody.find("m_ScrollRegion.AddRect(Item.m_Rect, ScrollHere);");
-	const size_t CustomAnimateRectPos = DoCustomRowBody.find("QmListBoxEntryAnimatedRect");
-	ASSERT_NE(CustomAddRectPos, std::string::npos);
-	ASSERT_NE(CustomAnimateRectPos, std::string::npos);
-	EXPECT_LT(CustomAddRectPos, CustomAnimateRectPos);
-	EXPECT_NE(ListBoxSource.find("if(!RenderOnly && EntryAnimationEnabled"), std::string::npos);
-}

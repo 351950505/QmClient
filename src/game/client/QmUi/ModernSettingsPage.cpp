@@ -26,10 +26,11 @@
 
 void CMenus::RenderModernSettingsPage(CUIRect View, const bool PrewarmOnly)
 {
-	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();
 	std::optional<qm_tclient_cards::CUiRenderOnlyGuard> ReadOnlyGuard;
-	if(ReadOnly && !Ui()->RenderOnly())
+	if(PrewarmOnly && !Ui()->MeasurementOnly())
 		ReadOnlyGuard.emplace(Ui());
+	const bool MeasurementOnly = Ui()->MeasurementOnly();
+	const bool ReadOnly = Ui()->RenderOnly();
 	const int Page = g_Config.m_UiSettingsPage;
 	const auto &vViews = qm_settings_navigation::Views(Page);
 	if(vViews.empty())
@@ -72,7 +73,7 @@ void CMenus::RenderModernSettingsPage(CUIRect View, const bool PrewarmOnly)
 				Selected = static_cast<int>(Index);
 		}
 	}
-	if(!ReadOnly && !m_MenuTextPlanCollecting)
+	if(!MeasurementOnly && !m_MenuTextPlanCollecting)
 	{
 		if(pSelected != nullptr)
 			*pSelected = Selected;
@@ -100,7 +101,7 @@ void CMenus::RenderModernSettingsPage(CUIRect View, const bool PrewarmOnly)
 	}
 	if(Page == SETTINGS_FRIENDS && Selected == 0)
 	{
-		if(!ReadOnly)
+		if(!MeasurementOnly)
 			RenderServerbrowserFriends(View);
 		return;
 	}
@@ -109,18 +110,19 @@ void CMenus::RenderModernSettingsPage(CUIRect View, const bool PrewarmOnly)
 		RenderSettingsPlayer(View);
 		return;
 	}
-	RenderModernSettingsCards(View, vViews[Selected].m_pId, ReadOnly);
+	RenderModernSettingsCards(View, vViews[Selected].m_pId, PrewarmOnly);
 }
 
 void CMenus::RenderModernSettingsCards(CUIRect View, const char *pViewId, const bool PrewarmOnly)
 {
 	EnsureSettingsBindCache();
-	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();
 	std::optional<qm_tclient_cards::CUiRenderOnlyGuard> ReadOnlyGuard;
-	if(ReadOnly && !Ui()->RenderOnly())
+	if(PrewarmOnly && !Ui()->MeasurementOnly())
 		ReadOnlyGuard.emplace(Ui());
+	const bool MeasurementOnly = Ui()->MeasurementOnly();
+	const bool ReadOnly = Ui()->RenderOnly();
 	static std::map<std::string, CScrollRegion> s_ScrollRegions;
-	CScrollRegion *pScroll = ReadOnly ? nullptr : &s_ScrollRegions[pViewId];
+	CScrollRegion *pScroll = MeasurementOnly ? nullptr : &s_ScrollRegions[pViewId];
 	auto &Model = SettingsCardOrderModelForRenderPass();
 	qm_card_catalog::SQmCardBuildContext Ctx;
 	Ctx.m_pMenus = this;
@@ -130,7 +132,7 @@ void CMenus::RenderModernSettingsCards(CUIRect View, const char *pViewId, const 
 	Ctx.m_LabelWidth = ResolveSettingsCardLabelWidth(Ctx.m_Page.m_TwoColumns ? Ctx.m_Page.m_aColumns[0].w : Ctx.m_Page.m_ContentViewport.w, Ctx.m_Metrics);
 	Ctx.m_UiContext = SettingsUiContext(pViewId, Ctx.m_Metrics.m_UiScale);
 	Ctx.m_pScrollRegion = pScroll;
-	if(ReadOnly)
+	if(MeasurementOnly)
 	{
 		Ctx.m_UiContext.m_pAnim = nullptr;
 		Ctx.m_UiContext.m_pTree = nullptr;
@@ -183,6 +185,8 @@ void CMenus::RenderModernSettingsCards(CUIRect View, const char *pViewId, const 
 	const auto ScrollParams = QmScrollRegionParamsFromPolicy(QmResolveScrollPolicy({EQmScrollProfile::SETTINGS_OUTER}, Ctx.m_Metrics.m_UiScale, 0.0f));
 	SSettingsCardDeckInput InputState;
 	InputState.m_AllowHeaderDrag = !ReadOnly;
+	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
+	InputState.m_pScrollParams = MeasurementOnly ? nullptr : &ScrollParams;
 	if(!ReadOnly)
 	{
 		InputState.m_MouseX = Ui()->MouseX();
@@ -191,13 +195,12 @@ void CMenus::RenderModernSettingsCards(CUIRect View, const char *pViewId, const 
 		InputState.m_MouseDown = Ui()->MouseButton(0);
 		InputState.m_MouseReleased = !InputState.m_MouseDown && Ui()->LastMouseButton(0);
 		InputState.m_CtrlPressed = Input()->ModifierIsPressed();
-		InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-		InputState.m_pScrollParams = &ScrollParams;
 	}
 	auto VisualOptions = SettingsCardDeckVisualOptions();
 	if(str_comp(pViewId, "modern-tee") == 0)
 		VisualOptions.m_LeadingFullWidthCards = 2;
-	const auto Result = SettingsCardDeckForRenderPass().RenderCached(Ctx.m_UiContext, Ctx.m_Page, pViewId, Revision, BuildDefinitions, Model, pScroll, InputState, SettingsCardMotionSpec(), VisualOptions);
+	const uint64_t MeasurementEnvironmentRevision = ResolveSettingsCardDefinitionsRevision(m_SettingsCardDeckDisplayCycle, m_MenuTextPoolGeneration, View.w, 0);
+	const auto Result = SettingsCardDeckForRenderPass().RenderCached(Ctx.m_UiContext, Ctx.m_Page, pViewId, Revision, BuildDefinitions, Model, pScroll, InputState, SettingsCardMotionSpec(), VisualOptions, MeasurementEnvironmentRevision);
 	if(!ReadOnly && Result.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }

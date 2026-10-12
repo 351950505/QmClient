@@ -4,6 +4,8 @@
 #include <engine/shared/config.h>
 
 #include <game/client/QmUi/QmImeAppearance.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiSurface.h>
 #include <game/client/components/menus.h>
 #include <game/client/qm_ime_candidate_popup.h>
@@ -34,7 +36,7 @@ namespace
 		CUi *m_pUi;
 
 	public:
-		CImePrewarmScope(CUi *pUi, bool Prewarm) : m_pUi(Prewarm ? pUi : nullptr)
+		CImePrewarmScope(CUi *pUi, bool Prewarm) : m_pUi(Prewarm && pUi != nullptr && !pUi->RenderOnly() ? pUi : nullptr)
 		{
 			if(m_pUi != nullptr)
 				m_pUi->BeginRenderOnly();
@@ -49,17 +51,30 @@ namespace
 
 void CMenus::RenderQmFunctionImeContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
+	CSettingsContentLayoutFlow Flow(Content);
 	const CImePrewarmScope Prewarm(Ui(), PrewarmOnly);
 	const bool ReadOnly = Ui()->RenderOnly();
 	const auto &Metrics = CurrentSettingsContentMetrics();
 	const float RowHeight = std::max(LineHeight, Metrics.m_ButtonHeight);
-	RenderQmFunctionCheckboxRow(Content, RowHeight, LineSpacing, &g_Config.m_QmImeAutoManage, "Auto manage IME while typing", Localize("Auto manage IME while typing"), &g_Config.m_QmImeAutoManage, ReadOnly);
-	RenderQmFunctionCheckboxRow(Content, RowHeight, LineSpacing, &g_Config.m_QmNewIme, "New IME", Localize("New IME"), &g_Config.m_QmNewIme, ReadOnly);
+	{
+		CUIRect ToggleRow;
+		if(Flow.Control("Auto manage IME while typing", RowHeight, ToggleRow))
+			RenderQmFunctionCheckbox(&g_Config.m_QmImeAutoManage, "Auto manage IME while typing", Localize("Auto manage IME while typing"), &g_Config.m_QmImeAutoManage, &ToggleRow, ReadOnly);
+		Flow.Space(LineSpacing);
+	}
+	{
+		CUIRect ToggleRow;
+		if(Flow.Control("New IME", RowHeight, ToggleRow))
+			RenderQmFunctionCheckbox(&g_Config.m_QmNewIme, "New IME", Localize("New IME"), &g_Config.m_QmNewIme, &ToggleRow, ReadOnly);
+		Flow.Space(LineSpacing);
+	}
 	CUIRect Row, Label, Control;
-	const auto NextRow = [&]() {
-		Content.HSplitTop(RowHeight, &Row, &Content);
-		Content.HSplitTop(LineSpacing, nullptr, &Content);
-		Row.VSplitLeft(std::min(LabelWidth, Row.w * 0.48f), &Label, &Control);
+	const auto NextRow = [&](const char *pId) {
+		const bool HasRow = Flow.Control(pId, RowHeight, Row);
+		Flow.Space(LineSpacing);
+		if(HasRow)
+			SplitSettingsControlRow(Row, Metrics, &Label, &Control);
+		return HasRow;
 	};
 	const auto DrawLabel = [&](const char *pText) {
 		SLabelProperties Props;
@@ -67,12 +82,14 @@ void CMenus::RenderQmFunctionImeContent(CUIRect &Content, float LineHeight, floa
 		Props.m_EllipsisAtEnd = true;
 		Ui()->DoLabel(&Label, pText, BodySize, TEXTALIGN_ML, Props);
 	};
-	NextRow();
-	Ui()->DoLabel(&Row, Localize("IME appearance"), BodySize, TEXTALIGN_ML);
+	if(NextRow("ime-appearance-title"))
+	{
+		Ui()->DoLabel(&Row, Localize("IME appearance"), BodySize, TEXTALIGN_ML);
+	}
 	CUIRect Preview;
-	Content.HSplitTop(RowHeight * 4.0f, &Preview, &Content);
-	Content.HSplitTop(LineSpacing, nullptr, &Content);
-	if(!PrewarmOnly)
+	const bool HasPreview = Flow.Control("ime-preview", RowHeight * 4.0f, Preview);
+	Flow.Space(LineSpacing);
+	if(HasPreview && !PrewarmOnly && Flow.Drawing())
 	{
 		DrawRoundedSurface(Ui(), Preview, ColorRGBA(0.5f, 0.5f, 0.5f, 0.12f), ColorRGBA(), 4.0f);
 		QmImeRenderStylePreview(GameClient(), Preview);
@@ -84,11 +101,13 @@ void CMenus::RenderQmFunctionImeContent(CUIRect &Content, float LineHeight, floa
 	static CScrollRegion s_RoleScroll;
 	s_RoleDropdown.m_SelectionPopupContext.m_pScrollRegion = &s_RoleScroll;
 	const char *apRoles[] = {Localize("IME background color"), Localize("IME text color"), Localize("IME selected text color"), Localize("IME selection background color")};
-	NextRow();
-	DrawLabel(Localize("Edit color"));
-	const int NewRole = DoSettingsDropDown(&Control, s_Role, apRoles, std::size(apRoles), s_RoleDropdown);
-	if(!ReadOnly)
-		s_Role = std::clamp(NewRole, 0, 3);
+	if(NextRow("ime-color-role"))
+	{
+		DrawLabel(Localize("Edit color"));
+		const int NewRole = DoSettingsDropDown(&Control, s_Role, apRoles, std::size(apRoles), s_RoleDropdown);
+		if(!ReadOnly)
+			s_Role = std::clamp(NewRole, 0, 3);
+	}
 	const std::array<SImeColorControls, 4> aControls = {{
 		{&g_Config.m_QmImeBgColor, DefaultConfig::QmImeBgColor, g_Config.m_QmImeBgGradient, sizeof(g_Config.m_QmImeBgGradient),
 			&g_Config.m_QmImeBgGradientType, &g_Config.m_QmImeBgGradientAngle, &g_Config.m_QmImeBgGradientCenterX, &g_Config.m_QmImeBgGradientCenterY, &g_Config.m_QmImeBgGradientRange, &g_Config.m_QmImeBgGradientReverse},
@@ -105,63 +124,70 @@ void CMenus::RenderQmFunctionImeContent(CUIRect &Content, float LineHeight, floa
 	static std::array<int, 4> s_aOpacityIds;
 	const bool HasAlpha = s_Role != 0;
 	const SQmGradientPaletteBinding Palette{Settings.m_pColor, Settings.m_pGradient, Settings.m_GradientSize, HasAlpha};
-	const auto ColorRow = ResolveSettingsColorRowLayout(Content, Metrics, false);
-	Content.y += ColorRow.m_ConsumedHeight;
-	Content.h = std::max(0.0f, Content.h - ColorRow.m_ConsumedHeight);
-	CUIRect ColorLabel = ColorRow.m_LabelRect;
-	ColorLabel.w = ColorRow.m_ColorButtonRect.x + ColorRow.m_ColorButtonRect.w - ColorLabel.x;
-	SLabelProperties ColorLabelProps;
-	ColorLabelProps.m_MaxWidth = ColorLabel.w;
-	ColorLabelProps.m_EllipsisAtEnd = true;
-	Ui()->DoLabel(&ColorLabel, apRoles[s_Role], BodySize, TEXTALIGN_ML, ColorLabelProps);
-	if(DoButton_Menu(&s_aReset[s_Role], Localize("Reset"), 0, &ColorRow.m_ResetButtonRect) && !ReadOnly)
+	if(Flow.Control("ime-color-reset", ResolveSettingsColorRowLayout(Content, Metrics, false).m_ConsumedHeight, Row))
 	{
-		*Settings.m_pColor = Settings.m_DefaultColor;
-		CMessageGradient::Reset(Settings.m_pGradient, Settings.m_GradientSize);
-		*Settings.m_pType = 0;
-		*Settings.m_pAngle = 0;
-		*Settings.m_pCenterX = *Settings.m_pCenterY = 50;
-		*Settings.m_pRange = 100;
-		*Settings.m_pReverse = 0;
-		if(s_Role == 0)
-			g_Config.m_QmImeOpacity = DefaultConfig::QmImeOpacity;
+		const auto ColorRow = ResolveSettingsColorRowLayout(Row, Metrics, false);
+		CUIRect ColorLabel = ColorRow.m_LabelRect;
+		ColorLabel.w = ColorRow.m_ColorButtonRect.x + ColorRow.m_ColorButtonRect.w - ColorLabel.x;
+		SLabelProperties ColorLabelProps;
+		ColorLabelProps.m_MaxWidth = ColorLabel.w;
+		ColorLabelProps.m_EllipsisAtEnd = true;
+		Ui()->DoLabel(&ColorLabel, apRoles[s_Role], BodySize, TEXTALIGN_ML, ColorLabelProps);
+		if(DoButton_Menu(&s_aReset[s_Role], Localize("Reset"), 0, &ColorRow.m_ResetButtonRect) && !ReadOnly)
+		{
+			*Settings.m_pColor = Settings.m_DefaultColor;
+			CMessageGradient::Reset(Settings.m_pGradient, Settings.m_GradientSize);
+			*Settings.m_pType = 0;
+			*Settings.m_pAngle = 0;
+			*Settings.m_pCenterX = *Settings.m_pCenterY = 50;
+			*Settings.m_pRange = 100;
+			*Settings.m_pReverse = 0;
+			if(s_Role == 0)
+				g_Config.m_QmImeOpacity = DefaultConfig::QmImeOpacity;
+		}
 	}
 	DoColorGradientPalette(&Content, Settings.m_pColor, Settings.m_pGradient, Settings.m_GradientSize,
 		&s_aAdd[s_Role], &s_aRemove[s_Role], s_aColors[s_Role].data(), Metrics, false, HasAlpha);
 
-	NextRow();
-	DrawLabel(Localize("Opacity"));
-	int Opacity = HasAlpha ? Palette.Opacity() : g_Config.m_QmImeOpacity;
-	const int OldOpacity = Opacity;
-	RenderQmSettingsSliderWithValueInput(&s_aOpacityIds[s_Role], Control, &Opacity, 0, 100, "%", ReadOnly);
-	if(Opacity != OldOpacity && !ReadOnly)
+	if(NextRow("ime-opacity"))
 	{
-		if(HasAlpha)
-			Palette.SetOpacity(Opacity);
-		else
-			g_Config.m_QmImeOpacity = Opacity;
+		DrawLabel(Localize("Opacity"));
+		int Opacity = HasAlpha ? Palette.Opacity() : g_Config.m_QmImeOpacity;
+		const int OldOpacity = Opacity;
+		RenderQmSettingsSliderWithValueInput(&s_aOpacityIds[s_Role], Control, &Opacity, 0, 100, "%", ReadOnly);
+		if(Opacity != OldOpacity && !ReadOnly)
+		{
+			if(HasAlpha)
+				Palette.SetOpacity(Opacity);
+			else
+				g_Config.m_QmImeOpacity = Opacity;
+		}
 	}
 	static std::array<SQmGradientGeometryState, 4> s_aGeometryStates;
 	const SQmGradientGeometryBinding Geometry = {Settings.m_pType, Settings.m_pAngle, Settings.m_pCenterX, Settings.m_pCenterY, Settings.m_pRange, Settings.m_pReverse};
 	DoColorGradientGeometry(Content, Geometry, s_aGeometryStates[s_Role], Metrics, LabelWidth);
-	NextRow();
-	DrawLabel(Localize("IME font size"));
-	RenderQmSettingsSliderWithValueInput(&g_Config.m_QmImeFontSize, Control, &g_Config.m_QmImeFontSize, 75, 200, "%", ReadOnly);
-	NextRow();
-	static CButtonContainer s_ResetAll;
-	if(DoButton_Menu(&s_ResetAll, Localize("Reset IME appearance"), 0, &Row) && !ReadOnly)
+	if(NextRow("ime-font-size"))
 	{
-		for(const auto &Entry : aControls)
+		DrawLabel(Localize("IME font size"));
+		RenderQmSettingsSliderWithValueInput(&g_Config.m_QmImeFontSize, Control, &g_Config.m_QmImeFontSize, 75, 200, "%", ReadOnly);
+	}
+	if(NextRow("ime-reset-all"))
+	{
+		static CButtonContainer s_ResetAll;
+		if(DoButton_Menu(&s_ResetAll, Localize("Reset IME appearance"), 0, &Row) && !ReadOnly)
 		{
-			*Entry.m_pColor = Entry.m_DefaultColor;
-			CMessageGradient::Reset(Entry.m_pGradient, Entry.m_GradientSize);
-			*Entry.m_pType = 0;
-			*Entry.m_pAngle = 0;
-			*Entry.m_pCenterX = *Entry.m_pCenterY = 50;
-			*Entry.m_pRange = 100;
-			*Entry.m_pReverse = 0;
+			for(const auto &Entry : aControls)
+			{
+				*Entry.m_pColor = Entry.m_DefaultColor;
+				CMessageGradient::Reset(Entry.m_pGradient, Entry.m_GradientSize);
+				*Entry.m_pType = 0;
+				*Entry.m_pAngle = 0;
+				*Entry.m_pCenterX = *Entry.m_pCenterY = 50;
+				*Entry.m_pRange = 100;
+				*Entry.m_pReverse = 0;
+			}
+			g_Config.m_QmImeOpacity = DefaultConfig::QmImeOpacity;
+			g_Config.m_QmImeFontSize = DefaultConfig::QmImeFontSize;
 		}
-		g_Config.m_QmImeOpacity = DefaultConfig::QmImeOpacity;
-		g_Config.m_QmImeFontSize = DefaultConfig::QmImeFontSize;
 	}
 }

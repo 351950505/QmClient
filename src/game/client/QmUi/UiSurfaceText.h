@@ -28,8 +28,8 @@ public:
 			if(pTextRender)
 			{
 				const ColorRGBA Foreground = ResolveConfiguredTextColor(ms_Surface);
-				pTextRender->TextColor(Foreground.WithAlpha(m_PreviousText.a));
-				pTextRender->TextOutlineColor(ResolveUiSurfaceForeground(Foreground).WithAlpha(m_PreviousOutline.a));
+				pTextRender->TextColor(Foreground);
+				pTextRender->TextOutlineColor(ResolveUiSurfaceForeground(Foreground));
 			}
 		}
 	}

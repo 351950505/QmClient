@@ -22,6 +22,7 @@
 #include <game/client/components/qmclient/axiom_scores.h>
 #include <game/client/components/qmclient/modes.h>
 #include <game/client/components/qmclient/scoreboard_footer.h>
+#include <game/client/components/qmclient/scoreboard_layout.h>
 #include <game/client/components/qmclient/scoreboard_scroll.h>
 #include <game/client/components/qmclient/scoreboard_skin.h>
 #include <game/client/components/statboard.h>
@@ -1145,79 +1146,17 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 
 	// calculate measurements
 	const float HeadlineFontsize = 11.0f;
-	float LineHeight;
-	float TeeSizeMod;
-	float Spacing;
-	float RoundRadius;
-	float FontSize;
-	if(NumPlayers <= 8)
-	{
-		LineHeight = 30.0f;
-		TeeSizeMod = 0.5f;
-		Spacing = 8.0f;
-		RoundRadius = 5.0f;
-		FontSize = 12.0f;
-	}
-	else if(NumPlayers <= 12)
-	{
-		LineHeight = 25.0f;
-		TeeSizeMod = 0.45f;
-		Spacing = 2.5f;
-		RoundRadius = 5.0f;
-		FontSize = 12.0f;
-	}
-	else if(NumPlayers <= 16)
-	{
-		LineHeight = 20.0f;
-		TeeSizeMod = 0.4f;
-		Spacing = 0.0f;
-		RoundRadius = 2.5f;
-		FontSize = 12.0f;
-	}
-	else if(NumPlayers <= 24)
-	{
-		LineHeight = 13.5f;
-		TeeSizeMod = 0.3f;
-		Spacing = 0.0f;
-		RoundRadius = 2.5f;
-		FontSize = 10.0f;
-	}
-	else if(NumPlayers <= 32)
-	{
-		LineHeight = 10.0f;
-		TeeSizeMod = 0.2f;
-		Spacing = 0.0f;
-		RoundRadius = 2.5f;
-		FontSize = 8.0f;
-	}
-	else if(LowScoreboardWidth)
-	{
-		LineHeight = 7.5f;
-		TeeSizeMod = 0.125f;
-		Spacing = 0.0f;
-		RoundRadius = 1.0f;
-		FontSize = 7.0f;
-	}
-	else
-	{
-		LineHeight = 5.0f;
-		TeeSizeMod = 0.1f;
-		Spacing = 0.0f;
-		RoundRadius = 1.0f;
-		FontSize = 5.0f;
-	}
-	const float PreferredTeamFontSize = FontSize / 1.5f;
-	const float PreferredTeamModeIconSize = minimum(SCOREBOARD_TEAM_MODE_ICON_SIZE, FontSize);
 	const CUIRect PlayerRows = ScoreboardPlayerRowsRect(Scoreboard, HeadlineFontsize * 2.0f);
-	const float RowsVerticalScale = Scroll ? 1.0f : ScoreboardRowsVerticalScale(PlayerRows.h, EndRow - FirstRow, NumTeamLabels, NumTeamModeLabels, LineHeight, Spacing, PreferredTeamFontSize, PreferredTeamModeIconSize);
-	LineHeight *= RowsVerticalScale;
-	TeeSizeMod *= RowsVerticalScale;
-	Spacing *= RowsVerticalScale;
-	RoundRadius *= RowsVerticalScale;
-	FontSize *= RowsVerticalScale;
+	// 按原分列容量规划密度，短末列不能因实际人数少而放大字号。
+	const SQmScoreboardRowMetrics RowMetrics = QmScoreboardRowMetrics(PlayerRows.h, NumPlayers, NumTeamLabels, NumTeamModeLabels, Scroll);
+	const float LineHeight = RowMetrics.m_LineHeight;
+	const float TeeSizeMod = RowMetrics.m_TeeSizeMod;
+	const float Spacing = RowMetrics.m_Spacing;
+	const float RoundRadius = RowMetrics.m_RoundRadius;
+	const float FontSize = RowMetrics.m_FontSize;
 	// 练习/锁队图标随行字号等比缩小：固定 12px 在人多压缩行高时会比队伍标签文字还大。
 	// 基准场景（FontSize=12）下正好等于 SCOREBOARD_TEAM_MODE_ICON_SIZE，行为不变。
-	const float TeamModeIconSize = PreferredTeamModeIconSize * RowsVerticalScale;
+	const float TeamModeIconSize = minimum(SCOREBOARD_TEAM_MODE_ICON_SIZE, FontSize);
 
 	// 表头固定，玩家区域使用与服务器列表相同的连续坐标滚动。
 	CUIRect ScrollViewport = PlayerRows;
@@ -1913,8 +1852,9 @@ void CScoreboard::OnRender()
 	else
 		pSortLabel = TimeScore ? Localize("Current: Time") : Localize("Current: Score");
 	const float SortButtonWidth = TextRender()->TextWidth(SortButtonFontSize, pSortLabel) + 18.0f;
-	const ColorRGBA SortButtonColor = g_Config.m_QmScoreboardSortMode ? ScoreboardWithUiAlpha(ColorRGBA(0.25f, 0.55f, 0.8f, 0.6f), m_AnimContentAlpha) : ScoreboardUiColorSurface(m_AnimContentAlpha, 0.18f);
+	const ColorRGBA SortButtonColor = g_Config.m_QmScoreboardSortMode ? ScoreboardWithUiAlpha(ColorRGBA(0.25f, 0.55f, 0.8f, 0.6f), 1.0f) : ScoreboardUiColorSurface(1.0f, 0.18f);
 	auto &&DoHeaderButton = [&](CButtonContainer *pButton, const char *pLabel, CUIRect Rect, const ColorRGBA &Color) {
+		CUiScopedControlAlphaScale ControlAlpha(Ui(), m_AnimContentAlpha);
 		Rect.VMargin(4.0f, &Rect);
 		Rect.HMargin(6.0f, &Rect);
 		return Ui()->DoButton_PopupMenu(pButton, pLabel, &Rect, SortButtonFontSize, TEXTALIGN_MC, 0.0f, false, m_RenderInteractions, Color);
@@ -2124,7 +2064,7 @@ void CScoreboard::OnRender()
 		if(ShowScrollButton)
 		{
 			static CButtonContainer s_ScoreboardScrollButton;
-			const ColorRGBA ScrollButtonColor = g_Config.m_QmScoreboardScroll ? ScoreboardWithUiAlpha(ColorRGBA(0.25f, 0.55f, 0.8f, 0.6f), m_AnimContentAlpha) : ScoreboardUiColorSurface(m_AnimContentAlpha, 0.18f);
+			const ColorRGBA ScrollButtonColor = g_Config.m_QmScoreboardScroll ? ScoreboardWithUiAlpha(ColorRGBA(0.25f, 0.55f, 0.8f, 0.6f), 1.0f) : ScoreboardUiColorSurface(1.0f, 0.18f);
 			if(DoHeaderButton(&s_ScoreboardScrollButton, pScrollLabel, ScrollButton, ScrollButtonColor))
 			{
 				g_Config.m_QmScoreboardScroll ^= 1;

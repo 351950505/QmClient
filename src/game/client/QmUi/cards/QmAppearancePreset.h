@@ -19,9 +19,9 @@ namespace QmAppearancePreset
 		bool m_RequiresFont = false;
 	};
 
-	inline const std::array<SIntSetting, 9> &IntSettings()
+	inline const std::array<SIntSetting, 8> &IntSettings()
 	{
-		static const std::array<SIntSetting, 9> s_aSettings = {{
+		static const std::array<SIntSetting, 8> s_aSettings = {{
 			{Localizable("Latin font weight"), "400", &CConfig::m_QmCustomFontWeight, 400, true},
 			{Localizable("CJK font weight"), "400", &CConfig::m_QmCustomFontWeightCjk, 400, true},
 			{Localizable("Global UI size"), "100%", &CConfig::m_QmUiScale, 100},
@@ -30,7 +30,6 @@ namespace QmAppearancePreset
 			{Localizable("Menu accent panel opacity"), "30%", &CConfig::m_ClMenuPanelElevatedOpacity, 30},
 			{Localizable("Settings page opacity"), "30%", &CConfig::m_ClSettingsTabbarOpacity, 30},
 			{Localizable("Backdrop blur"), Localizable("On"), &CConfig::m_QmGaussianBlur, 1},
-			{Localizable("Popup blur"), Localizable("On"), &CConfig::m_QmUiPopupBlur, 1},
 		}};
 		return s_aSettings;
 	}

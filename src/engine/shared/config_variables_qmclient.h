@@ -84,7 +84,8 @@ MACRO_CONFIG_INT(QmUiAccentOpacity, qm_ui_accent_opacity, 24, 0, 100, CFGFLAG_CL
 MACRO_CONFIG_COL(QmUiSelectedColor, qm_ui_selected_color, 0x8F061D, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Selected item color")
 MACRO_CONFIG_COL(QmScoreboardColor, qm_scoreboard_color, 0x000000, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Scoreboard surface color")
 MACRO_CONFIG_INT(QmUiOpacity, qm_ui_opacity, 12, 0, 100, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Interface transparency")
-MACRO_CONFIG_INT(QmUiPopupBlur, qm_ui_popup_blur, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Enable frosted glass blur behind secondary popups and dropdowns")
+MACRO_CONFIG_INT(QmColorPickerShape, qm_color_picker_shape, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Color picker saturation/value area shape: 0=square, 1=wheel")
+MACRO_CONFIG_STR(QmColorPickerPalette, qm_color_picker_palette, 4096, "", CFGFLAG_CLIENT | CFGFLAG_SAVE, "Color picker saved swatches (format: name|#hex entries separated by semicolons)")
 MACRO_CONFIG_COL(QmTooltipBackgroundColor, qm_tooltip_background_color, 0xD9000066, CFGFLAG_CLIENT | CFGFLAG_SAVE | CFGFLAG_COLALPHA, "Tooltip background color")
 MACRO_CONFIG_COL(QmTooltipTextColor, qm_tooltip_text_color, 0xFF0000FF, CFGFLAG_CLIENT | CFGFLAG_SAVE | CFGFLAG_COLALPHA, "Tooltip text color")
 MACRO_CONFIG_INT(QmTooltipFontSize, qm_tooltip_font_size, 14, 10, 24, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Tooltip font size")
@@ -167,7 +168,6 @@ MACRO_CONFIG_INT(QmWaterHammerHighlight, qm_water_hammer_highlight, 1, 0, 1, CFG
 // QmVulkan 扩展总开关：0=关（纯净 Vulkan + 几何/CPU 兜底），1=自动（失败/设备丢失回退），2=强制开
 MACRO_CONFIG_INT(QmEnhancedRendering, qm_enhanced_rendering, 1, 0, 2, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Qm enhanced rendering: 0=Off pure Vulkan, 1=Auto fallback, 2=Force on")
 MACRO_CONFIG_INT(QmEnhancedSdf, qm_enhanced_sdf, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active")
-MACRO_CONFIG_INT(QmEnhancedBlur, qm_enhanced_blur, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Use Gaussian blur pipeline when enhanced rendering is active")
 MACRO_CONFIG_INT(QmEnhancedProceduralRing, qm_enhanced_procedural_ring, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Use procedural ring pipeline when enhanced rendering is active")
 
 // Report / 举报
@@ -837,7 +837,8 @@ MACRO_CONFIG_STR(QmTranslateSource, qm_translate_source, 16, "auto", CFGFLAG_CLI
 
 // Translate - Auto Outgoing - 自动翻译发送消息
 MACRO_CONFIG_INT(QmTranslateAutoOutgoing, qm_translate_auto_outgoing, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Auto-translate outgoing messages")
-MACRO_CONFIG_INT(QmTranslateOutgoingSendOriginal, qm_translate_outgoing_send_original, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Also send the original text when translating outgoing messages")
+// 保存键沿用旧版本名称；现在只控制本地原文附注，不发送原文。
+MACRO_CONFIG_INT(QmTranslateOutgoingShowOriginal, qm_translate_outgoing_send_original, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Show the original text locally below translated outgoing messages")
 MACRO_CONFIG_INT(QmTranslateAutoOutgoingMode, qm_translate_auto_outgoing_mode, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Auto-translation mode (0=Trigger on common source languages only, 1=Always translate)")
 MACRO_CONFIG_STR(QmTranslateOutgoingTarget, qm_translate_outgoing_target, 16, "en", CFGFLAG_CLIENT | CFGFLAG_SAVE, "Outgoing translation target language code")
 

@@ -1,14 +1,15 @@
 #include "QmAnimResolve.h"
 #include "QmCardRegistry.h"
 #include "QmScroll.h"
+#include "SettingsNavigation.h"
 #include "SettingsPageLayout.h"
 #include "SettingsSearchHighlight.h"
-#include "SettingsNavigation.h"
 #include "SettingsSearchSession.h"
 #include "UiContext.h"
 #include "UiForms.h"
 #include "UiSurface.h"
 #include "cards/QmCardCatalogInternal.h"
+#include "cards/QmCardCatalogTClientInternal.h"
 #include "cards/QmCardMeasureRevision.h"
 
 #include <base/system.h>
@@ -25,6 +26,7 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -84,6 +86,11 @@ void CMenus::RenderSettingsGlobalSearch(CUIRect MainView, bool PrewarmOnly)
 
 void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnly)
 {
+	std::optional<qm_tclient_cards::CUiRenderOnlyGuard> ReadOnlyGuard;
+	if(PrewarmOnly && !Ui()->MeasurementOnly())
+		ReadOnlyGuard.emplace(Ui());
+	const bool MeasurementOnly = Ui()->MeasurementOnly();
+	const bool ReadOnly = Ui()->RenderOnly();
 	const SSettingsContentMetrics Metrics = ResolveSettingsContentMetrics(MainView.w);
 	const float UiScale = Metrics.m_UiScale;
 	const float BodySize = Metrics.m_BodySize;
@@ -91,9 +98,8 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	const float LineHeight = Metrics.m_LineHeight;
 	const float LineSpacing = Metrics.m_LineSpacing;
 	const SSettingsPageLayoutFrame Page = SettingsPageLayout(MainView, UiScale);
-	const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();
 	IUiContext SearchCtx = SettingsUiContext("settings_global_search", UiScale);
-	if(ReadOnly)
+	if(MeasurementOnly)
 	{
 		SearchCtx.m_pAnim = nullptr;
 		SearchCtx.m_pTree = nullptr;
@@ -135,9 +141,9 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	static qm_card_catalog::SQmFunctionCardLayoutState s_GlobalSearchFunctionCardLayout;
 	static std::unordered_map<std::string, CButtonContainer> s_GlobalSearchActionButtons;
 	// 分类布局只用于解析搜索和导航；以下两个模型仅属于搜索页，不持久化。
-	const qm_card_order::CModel &CardOrderModel = SettingsCardOrderModel();
-	qm_card_order::CModel &DeckOrderModel = ReadOnly ? s_GlobalSearchPrewarmOrderModel : s_GlobalSearchCache.m_Model;
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_GlobalSearchPrewarmDeck : s_GlobalSearchLiveDeck;
+	const qm_card_order::CModel &CardOrderModel = SettingsCardOrderModelForRenderPass();
+	qm_card_order::CModel &DeckOrderModel = MeasurementOnly ? s_GlobalSearchPrewarmOrderModel : s_GlobalSearchCache.m_Model;
+	CSettingsCardDeck &CardDeck = MeasurementOnly ? s_GlobalSearchPrewarmDeck : s_GlobalSearchLiveDeck;
 	const char *pLanguage = g_Config.m_ClLanguagefile;
 	const uint64_t LayoutRevision = CardOrderModel.LayoutRevision();
 	if(!s_GlobalSearchCache.m_Valid || s_GlobalSearchCache.m_Search != (pModuleSearch != nullptr ? pModuleSearch : "") || s_GlobalSearchCache.m_Language != (pLanguage != nullptr ? pLanguage : "") || s_GlobalSearchCache.m_Sixup != Client()->IsSixup() || s_GlobalSearchCache.m_LayoutRevision != LayoutRevision)
@@ -219,7 +225,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	StandardPrepare.m_Page = Page;
 	StandardPrepare.m_Metrics = Metrics;
 	StandardPrepare.m_UiContext = SearchCtx;
-	StandardPrepare.m_pScrollRegion = ReadOnly ? nullptr : &s_GlobalSearchScrollRegion;
+	StandardPrepare.m_pScrollRegion = MeasurementOnly ? nullptr : &s_GlobalSearchScrollRegion;
 	std::vector<const char *> vStandardIds;
 	vStandardIds.reserve(SearchVisibleGlobalCards.size());
 	for(const auto &Card : SearchVisibleGlobalCards)
@@ -235,7 +241,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ TranslationTestLayoutRevision();
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::MeasureContentRevision(g_Localization.Languages().size(), GameClient()->m_MenuBackground.GetThemes().size());
 	if(std::any_of(SearchVisibleGlobalCards.begin(), SearchVisibleGlobalCards.end(), [](const SQmGlobalSearchCard &Card) { return str_startswith(Card.m_pStableId, "deck:controls-") != nullptr; }))
-		CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::QmCardRenderHook::PrepareControlsCards(this, MainView.w, ReadOnly, ReadOnly ? nullptr : &s_GlobalSearchScrollRegion);
+		CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::QmCardRenderHook::PrepareControlsCards(this, MainView.w, ReadOnly, MeasurementOnly ? nullptr : &s_GlobalSearchScrollRegion);
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ s_GlobalSearchFunctionCardLayout.m_BlockWordsRevision;
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ s_GlobalSearchFunctionCardLayout.m_KeywordRulesRevision;
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ s_GlobalSearchFunctionCardLayout.m_FavoriteMapsRevision;
@@ -251,7 +257,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	s_GlobalSearchCardBuild.m_Metrics = Metrics;
 	s_GlobalSearchCardBuild.m_LabelWidth = ResolveSettingsCardLabelWidth(Page.m_TwoColumns ? Page.m_aColumns[0].w : Page.m_ContentViewport.w, Metrics);
 	s_GlobalSearchCardBuild.m_UiContext = SearchCtx;
-	s_GlobalSearchCardBuild.m_pScrollRegion = ReadOnly ? nullptr : &s_GlobalSearchScrollRegion;
+	s_GlobalSearchCardBuild.m_pScrollRegion = MeasurementOnly ? nullptr : &s_GlobalSearchScrollRegion;
 	s_GlobalSearchCardBuild.m_Padding = CardStyle.m_Padding;
 	s_GlobalSearchCardBuild.m_CornerRadius = CardStyle.m_CornerRadius;
 	s_GlobalSearchCardBuild.m_pCollapsed = s_aGlobalSearchCollapsed.data();
@@ -322,30 +328,55 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 			}
 			const std::string StableId = Card.m_pStableId;
 			const auto Highlight = s_GlobalSearchCache.m_Highlights.at(StableId);
+			const auto BeforeDraw = [this, Highlight, ReadOnly] {
+				if(!ReadOnly && !Ui()->DrawingSuppressed())
+					Highlight->ClearMatches();
+			};
 			const auto AfterRender = [this, StableId, Highlight, ReadOnly] {
-				if(ReadOnly || m_SettingsSearchSession.PendingReveal() != StableId)
+				if(ReadOnly || Ui()->DrawingSuppressed() || m_SettingsSearchSession.PendingReveal() != StableId)
 					return;
 				const auto &vMatches = Highlight->Matches();
 				if(!vMatches.empty())
 				{
 					const auto Match = std::min_element(vMatches.begin(), vMatches.end(), [](const auto &A, const auto &B) { return A.m_TargetIndex < B.m_TargetIndex; });
-					s_GlobalSearchScrollRegion.AddRect(Match->m_Rect, true);
+					// 内容 DRAW 禁止普通输入，键盘定位是外层已确认的显露请求。
+					s_GlobalSearchScrollRegion.AddRect(Match->m_Rect);
+					s_GlobalSearchScrollRegion.ScrollHere();
 				}
-				m_SettingsSearchSession.FinishReveal();
+				if(!vMatches.empty() || Highlight->Targets().empty())
+					m_SettingsSearchSession.FinishReveal();
 			};
 			if(Definition.m_Render)
 			{
-				Definition.m_Render = [this, Render = std::move(Definition.m_Render), Highlight, AfterRender, ReadOnly](CUIRect Content) {
+				Definition.m_Render = [this, Render = std::move(Definition.m_Render), Highlight, BeforeDraw, AfterRender, ReadOnly](CUIRect Content) {
 					CUiScopedSettingsSearchHighlight Scope(Ui(), ReadOnly ? nullptr : Highlight.get());
+					BeforeDraw();
 					Render(Content);
 					AfterRender();
 				};
 			}
 			if(Definition.m_RenderMeasured)
 			{
-				Definition.m_RenderMeasured = [this, Render = std::move(Definition.m_RenderMeasured), Highlight, AfterRender, ReadOnly](CUIRect &Content) {
+				Definition.m_RenderMeasured = [this, Render = std::move(Definition.m_RenderMeasured), Highlight, BeforeDraw, AfterRender, ReadOnly](CUIRect &Content) {
 					CUiScopedSettingsSearchHighlight Scope(Ui(), ReadOnly ? nullptr : Highlight.get());
+					BeforeDraw();
 					Render(Content);
+					AfterRender();
+				};
+			}
+			if(Definition.m_ContentLayoutInput)
+			{
+				Definition.m_ContentLayoutInput = [this, Input = std::move(Definition.m_ContentLayoutInput), Highlight, ReadOnly](const CSettingsContentLayout &Layout, CUIRect Content) {
+					CUiScopedSettingsSearchHighlight Scope(Ui(), ReadOnly ? nullptr : Highlight.get());
+					Input(Layout, Content);
+				};
+			}
+			if(Definition.m_ContentLayoutDraw)
+			{
+				Definition.m_ContentLayoutDraw = [this, Draw = std::move(Definition.m_ContentLayoutDraw), Highlight, BeforeDraw, AfterRender, ReadOnly](const CSettingsContentLayout &Layout, CUIRect Content) {
+					CUiScopedSettingsSearchHighlight Scope(Ui(), ReadOnly ? nullptr : Highlight.get());
+					BeforeDraw();
+					Draw(Layout, Content);
 					AfterRender();
 				};
 			}
@@ -364,14 +395,14 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 			CButtonContainer *pLocateButton = &s_GlobalSearchActionButtons[std::string("locate:") + Card.m_pStableId];
 			Definition.m_LeadingHeaderActionWidth = TextRender()->TextWidth(SmallSize, Localize("Locate")) + 16.0f * UiScale;
 			Definition.m_LeadingHeaderAction = [this, Target = Card.m_Target, pLocateButton, ReadOnly, UiScale, SmallSize, SearchCtx](const SSettingsCardFrame &Frame, bool) {
-				if(ReadOnly)
+				if(Ui()->MeasurementOnly())
 					return;
 				// 定位使用 Deck 预留的最左操作区，不再覆盖宽度或说明按钮。
 				const char *pLabel = Localize("Locate");
 				const CUIRect LocateButton = Frame.m_LeadingHeaderActionRect;
 				if(LocateButton.w <= 0.0f || LocateButton.h <= 0.0f)
 					return;
-				if(Ui()->DoButtonLogic(pLocateButton, 0, &LocateButton, BUTTONFLAG_LEFT))
+				if(!ReadOnly && Ui()->DoButtonLogic(pLocateButton, 0, &LocateButton, BUTTONFLAG_LEFT))
 				{
 					NavigateToSettingsCard(Target);
 					Ui()->ReleaseActiveTextInput(&m_GlobalCardSearchInput);
@@ -379,7 +410,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 					return;
 				}
 				// 完整按钮组件：圆角底 + 居中文本，而非纯文本。
-				const bool Hovered = Ui()->MouseHovered(&LocateButton);
+				const bool Hovered = !ReadOnly && Ui()->MouseHovered(&LocateButton);
 				const float Radius = std::min(ui_token::radius::TIGHT * UiScale, std::min(LocateButton.w, LocateButton.h) * 0.25f);
 				const ColorRGBA ChromeColor(1.0f, 1.0f, 1.0f, Hovered ? 0.28f : 0.18f);
 				if(LocateButton.w < TextRender()->TextWidth(SmallSize, pLabel) + 16.0f * UiScale)
@@ -414,7 +445,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	const float CenteredOffsetY = std::max(0.0f, (Page.m_ContentViewport.h - InputChromeHeight) * 0.5f);
 	const float TargetOffsetY = HasSearchQuery ? 0.0f : CenteredOffsetY;
 	float InputOffsetY = TargetOffsetY;
-	CUiV2AnimationRuntime *pSearchAnimRuntime = ReadOnly ? nullptr : &GameClient()->UiRuntimeV2()->AnimRuntime();
+	CUiV2AnimationRuntime *pSearchAnimRuntime = MeasurementOnly ? nullptr : &GameClient()->UiRuntimeV2()->AnimRuntime();
 	if(pSearchAnimRuntime != nullptr)
 	{
 		const uint64_t InputOffsetKey = BuildUiAnimNodeKey(str_quickhash("global-search"), str_quickhash("global-search-input-offset"));
@@ -440,7 +471,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 			CUIRect Row;
 			Content.HSplitTop(LineHeight, &Row, &Content);
 			IUiContext InputCtx = SettingsUiContext("settings_global_search", UiScale);
-			if(ReadOnly)
+			if(Ui()->MeasurementOnly())
 			{
 				InputCtx.m_pAnim = nullptr;
 				InputCtx.m_pTree = nullptr;
@@ -463,9 +494,9 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 			TextRender()->TextColor(TextRender()->DefaultTextColor());
 		};
 		const auto InputHeaderAction = [this, ReadOnly, UiScale, SearchCtx](const SSettingsCardFrame &Frame, bool) mutable {
-			if(ReadOnly)
+			if(Ui()->MeasurementOnly())
 				return;
-			if(Ui()->DoButtonLogic(&s_GlobalSearchInputCollapseButton, 0, &Frame.m_HandleRect, BUTTONFLAG_LEFT))
+			if(!ReadOnly && Ui()->DoButtonLogic(&s_GlobalSearchInputCollapseButton, 0, &Frame.m_HandleRect, BUTTONFLAG_LEFT))
 				s_GlobalSearchInputCollapsed = !s_GlobalSearchInputCollapsed;
 			RenderSettingsCardCollapseButton(SearchCtx, Frame.m_HandleRect, s_GlobalSearchInputCollapsed, 1.0f, &s_GlobalSearchInputCollapseButton);
 		};
@@ -496,10 +527,11 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	InputState.m_CtrlPressed = false;
 	// 搜索结果按匹配顺序排列，不修改分类页的持久布局。
 	InputState.m_AllowHeaderDrag = false;
-	InputState.m_pFocusedStableId = ReadOnly ? nullptr : m_SettingsSearchSession.Selected().c_str();
+	InputState.m_pFocusedStableId = MeasurementOnly ? nullptr : m_SettingsSearchSession.Selected().c_str();
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
-	CardDeck.RenderCached(SearchCtx, DeckPage, "global-search", DefinitionsRevision, BuildDefinitions, DeckOrderModel, ReadOnly ? nullptr : &s_GlobalSearchScrollRegion, InputState, Motion, SettingsCardDeckVisualOptions());
+	InputState.m_pScrollParams = MeasurementOnly ? nullptr : &ScrollParams;
+	const uint64_t MeasurementEnvironmentRevision = ResolveSettingsCardDefinitionsRevision(m_SettingsCardDeckDisplayCycle, m_MenuTextPoolGeneration, MainView.w, 0);
+	CardDeck.RenderCached(SearchCtx, DeckPage, "global-search", DefinitionsRevision, BuildDefinitions, DeckOrderModel, MeasurementOnly ? nullptr : &s_GlobalSearchScrollRegion, InputState, Motion, SettingsCardDeckVisualOptions(), MeasurementEnvironmentRevision);
 }
 
 bool CMenus::HandleSettingsSearchInput(const IInput::CEvent &Event)

@@ -32,6 +32,7 @@
 #include <limits>
 #include <list>
 #include <optional>
+#include <random>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -581,6 +582,10 @@ public:
 	uint64_t SettingsSourceLoadsCompleted() const { return m_SettingsSourceLoadsCompleted; }
 	const SSettingsSourceAdmissionTelemetry &SettingsSourceAdmissionTelemetry() const { return m_SettingsSourceAdmissionTelemetry; }
 	void SetSettingsTeeVisibleSnapshot(const SSettingsTeeVisibleSnapshot &Snapshot) { m_SettingsTeeVisibleSnapshot = Snapshot; }
+	void SetSettingsVisibleSkinLoads(std::vector<std::string> Names, bool MeasurementOnly = false)
+	{
+		m_SettingsLoadViewport.Publish(std::move(Names), MeasurementOnly);
+	}
 	void PrepareSettingsThroughputForFrame();
 	void UpdateForSettingsWarmup();
 	int SettingsGpuUploadLimiterUnitsForFrame() const { return m_SettingsThroughputControllerOutput.m_GpuUploadLimitUnits; }
@@ -694,6 +699,18 @@ public:
 	bool RemoveActiveSkinQueue(const CSkinQueueEntry &Entry, int Dummy);
 	void MoveSkinQueueItem(size_t FromIndex, size_t ToIndex, int Dummy);
 	void MoveActiveSkinQueueItem(size_t FromIndex, size_t ToIndex, int Dummy);
+	// 随机重排后仍指向原来的完整条目，避免排序顺带换肤。
+	static int ShuffleSkinQueueEntries(std::vector<CSkinQueueEntry> &Queue, int CurrentIndex, uint32_t Seed)
+	{
+		if(Queue.empty())
+			return 0;
+		CurrentIndex = std::clamp(CurrentIndex, 0, (int)Queue.size() - 1);
+		const CSkinQueueEntry Current = Queue[CurrentIndex];
+		std::mt19937 Generator(Seed);
+		std::shuffle(Queue.begin(), Queue.end(), Generator);
+		return (int)std::distance(Queue.begin(), std::find(Queue.begin(), Queue.end(), Current));
+	}
+	bool ShuffleSkinQueue(int Dummy);
 	bool ApplySkinQueueIndex(size_t QueueIndex, int Dummy);
 	bool RandomSkinQueueIndex(int Dummy);
 	void TrimSkinQueueToLimit(int Dummy);
@@ -1042,6 +1059,7 @@ private:
 	int m_SettingsBackgroundLoadingWindowLimit = 0;
 	int m_SettingsBackgroundWindowHealthyFrames = 0;
 	SSettingsTeeVisibleSnapshot m_SettingsTeeVisibleSnapshot;
+	CSettingsSkinLoadViewport m_SettingsLoadViewport;
 	SSettingsSourceAdmissionTelemetry m_SettingsSourceAdmissionTelemetry;
 	SSettingsSkinThroughputControllerState m_SettingsThroughputControllerState;
 	SSettingsSkinThroughputControllerOutput m_SettingsThroughputControllerOutput;

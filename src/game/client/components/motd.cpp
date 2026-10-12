@@ -85,6 +85,7 @@ void CMotd::OnRender()
 
 	if(m_RectQuadContainer != -1)
 	{
+		Ui()->RenderGaussianBlur({RectX, RectY, RectWidth, RectHeight}, 1.0f, IGraphics::CORNER_ALL, FontSize);
 		Graphics()->TextureClear();
 		Graphics()->RenderQuadContainer(m_RectQuadContainer, -1);
 	}

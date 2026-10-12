@@ -250,6 +250,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - Devre Dışı, 1-9999 dakika
 
+0 = auto
+== 0 = otomatik
+
 0 disables timed rotation; skins only switch on random start events
 == 0, zamanlanmış döndürmeyi devre dışı bırakır; skinler yalnızca rastgele başlangıç olaylarında değişir
 
@@ -623,6 +626,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == Gölge patlaması
 
+AGC, experimental
+== AGC, deneysel
+
 Agree
 == Kabul Et
 
@@ -722,9 +728,6 @@ Alpha
 Also apply to dummy
 == Ayrıca dummy'e de uygula
 
-Also send the original text when translating outgoing messages
-== Giden mesajları çevirirken orijinal metni de gönder
-
 Always show
 == Her zaman göster
 
@@ -806,6 +809,9 @@ Anti Ping Smoothing
 Anti-spoof specific rate limit (0 = unlimited).
 == Sahteciliği önleme özel hız sınırı (0 = sınırsız).
 
+AntiPing
+== AntiPing
+
 AntiPing (latency compensation)
 == AntiPing (gecikme telafisi)
 
@@ -866,9 +872,6 @@ Apply a writable preset and edit first
 Apply Changes
 == Değişiklikleri Uygula
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== Alt pencerelerin ve açılır listelerin arkasını bulanıklaştır
-
 Apply input early before next tick for prediction
 == Tahmin için bir sonraki tick'ten önce girdiyi erken uygula
 
@@ -883,6 +886,12 @@ Apply squishy Tee deformation to other players
 
 Apply this preset
 == Bu ön ayarı uygula
+
+Apply to dummy
+== Dummy’ye uygula
+
+Apply to player
+== Oyuncuya uygula
 
 Apply watermark
 == Filigranı uygula
@@ -1063,6 +1072,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == Yenilemede tekrar bilgilerini otomatik getir
+
+Auto gain control for mic
+== Mikrofon için otomatik kazanç kontrolü
 
 Auto gain control for mic (AGC, experimental)
 == Mikrofon için otomatik kazanç kontrolü (AGC, deneysel)
@@ -1982,6 +1994,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == Bu sunucuda hileler etkin
 
+Check again
+== Tekrar kontrol et
+
 check ddnet-saves.txt in config_directory.
 == config_directory içindeki ddnet-saves.txt dosyasını kontrol edin.
 
@@ -2000,6 +2015,9 @@ Check output device, confirm headphones/speakers are still online
 Checking for existing player with your name
 == Adınızla mevcut bir oyuncu kontrol ediliyor
 
+Checking for updates...
+== Güncellemeler kontrol ediliyor…
+
 Checking Steam...
 == Steam kontrol ediliyor…
 
@@ -2014,9 +2032,6 @@ Chinese font:
 
 CHN
 == Çin
-
-Choose a GPU for this app in system graphics settings, then restart the client.
-== Sistem grafik ayarlarından bu uygulama için bir GPU seçin, ardından istemciyi yeniden başlatın.
 
 Choose colors for weapons and entity lasers
 == Choose colors for weapons and entity lasers
@@ -2282,8 +2297,11 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == Hiçbir şeye çarpmayan kanca çizgisi rengi
 
-Color presets
-== Renk ön ayarları
+Color picker saturation/value area shape: 0=square, 1=wheel
+== Renk seçicinin doygunluk/parlaklık alanı şekli: 0=kare, 1=renk çemberi
+
+Color picker saved swatches (format: name|#hex entries separated by semicolons)
+== Kaydedilen renk örnekleri (biçim: ad|#hex, girdiler noktalı virgülle ayrılır)
 
 Color tee outlines by team for spectating
 == İzleyiciler için tee konturlarını takıma göre renklendir
@@ -2329,9 +2347,6 @@ Command is not available on solo servers
 
 Command to run when joining server
 == Sunucuya katılırken çalıştırılacak komut
-
-Command workshop
-== Komut atölyesi
 
 Command:
 == Komut:
@@ -2383,6 +2398,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == Kompresör Eşiği (%)
+
+Concurrency
+== Eşzamanlılık
 
 Concurrency (0 = auto)
 == Eşzamanlılık (0 = otomatik)
@@ -2714,9 +2732,6 @@ Controller GUID of the active controller
 Controller jitter tolerance
 == Kumanda sarsıntı toleransı
 
-Controls
-== Kontroller
-
 Converse
 == Özel sohbete devam et
 
@@ -2909,17 +2924,29 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == Geçerli kesim geçersiz veya zaten eklendi
 
+Current driver
+== Geçerli sürücü
+
 Current file
 == Geçerli dosya
 
 Current GPU
 == Geçerli GPU
 
+Current graphics backend
+== Geçerli grafik arka ucu
+
 Current rescue mode: %s
 == Mevcut kurtarma modu: %s
 
 Current status
 == Mevcut durum
+
+Current version: %s
+== Mevcut sürüm: %s
+
+Current version: %s (up to date)
+== Mevcut sürüm: %s (güncel)
 
 Current: Ranks
 == Geçerli: Sıralamalar
@@ -3482,6 +3509,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == Değişiklikleri iptal et
 
+Discard update
+== Güncellemeyi sil
+
 Disconnect
 == Bağlantıyı kes
 
@@ -3644,8 +3674,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == Bu varlığı indir?
 
+Download update
+== Güncellemeyi indir
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== İndirme doğrulandı. «Çık ve kur» mevcut sürümü değiştirir; ayarlarınız korunur. «Daha sonra» seçeneği güncellemeyi istemciden çıktığınızda kurar.
+
 Downloaded
 == İndirildi
+
+Downloaded: %.1f MiB (total size unknown)
+== İndirilen: %.1f MiB (toplam boyut bilinmiyor)
 
 Downloading map
 == Harita indiriliyor
@@ -4145,8 +4184,8 @@ Enable fat skin
 Enable freeze call sound
 == Donma çağrı sesini etkinleştir
 
-Enable frosted glass blur behind secondary popups and dropdowns
-== Alt pencerelerin ve açılır listelerin arkasında bulanıklığı etkinleştir
+Enable FTAPI auto-translate
+== FTAPI otomatik çeviriyi etkinleştir
 
 Enable FTAPI auto-translate (may overload the service)
 == FTAPI otomatik çeviriyi etkinleştir (hizmeti aşırı yükleyebilir)
@@ -4364,6 +4403,9 @@ Enable tee trails
 Enable the finished indicator and wait for player data
 == Tamamlanma göstergesini açıp oyuncu verilerini bekleyin
 
+Enable thinking mode
+== Düşünme modunu etkinleştir
+
 Enable thinking mode (slower)
 == Düşünme modunu etkinleştir (daha yavaş)
 
@@ -4580,6 +4622,9 @@ Execute the specified file
 Existing Player
 == Mevcut Oyuncu
 
+Exit and install
+== Çık ve kur
+
 Exit replay view
 == Demo görünümünden çık
 
@@ -4594,6 +4639,9 @@ Expanded dropdown background color
 
 Expanded dropdown background opacity percentage
 == Açılan liste arka plan rengi — opaklık yüzdesi
+
+Experimental
+== deneysel
 
 Export
 == Dışa aktar
@@ -4730,6 +4778,9 @@ Fake CTF flags
 Fallback simple noise reduction strength
 == Yedek basit gürültü azaltma gücü
 
+Fast input
+== Hızlı giriş
+
 Fast input (reduce visual latency)
 == Hızlı giriş (görsel gecikmeyi azaltır)
 
@@ -4766,11 +4817,11 @@ Favorites
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood: tokenlar + 12 widget
 
+Feature guide and announcements
+== Özellik kılavuzu ve duyurular
+
 Feature Search
 == Özellik Arama
-
-Features
-== İşlevler
 
 Feet
 == Ayaklar
@@ -4955,6 +5006,9 @@ Font store:
 Font weight:
 == Yazı tipi kalınlığı:
 
+For Gores
+== Gores için
+
 For more info: /cmdlist
 == Daha fazla bilgi: /cmdlist
 
@@ -4978,9 +5032,6 @@ Format player names after a finish
 
 Forms
 == Formlar
-
-Found %d global cards
-== %d küresel kart bulundu
 
 Four IP addresses are already online
 == Zaten 4 IP adresi çevrimiçi
@@ -5177,9 +5228,6 @@ Game graphics assets not from Teeworlds
 Game info
 == Oyun bilgisi
 
-Game interface
-== Oyun arayüzü
-
 Game mode
 == Oyun modu
 
@@ -5318,9 +5366,6 @@ Gives you infinite jump
 Glitch
 == Hata
 
-Global card
-== Küresel kart
-
 Global card ordering (format: stableId|tab|col|order; semicolon-separated)
 == Genel kart sıralama (biçim stableId|tab|col|order; noktalı virgülle ayrılmış)
 
@@ -5428,9 +5473,6 @@ Gradient type
 
 Gradient vertical position
 == Gradyan dikey konumu
-
-Graphics
-== Grafikler
 
 Graphics backend does not support dummy mini view
 == Grafik arka ucu kuklanın mini görünümünü desteklemiyor
@@ -5710,6 +5752,9 @@ High Detail
 
 High to low
 == Yüksekten düşüğe
+
+Higher input latency
+== daha yüksek giriş gecikmesi
 
 Higher values make the wave move faster. Zero stops the movement.
 == Yüksek değerler dalgayı hızlandırır. Sıfır hareketi durdurur.
@@ -6179,9 +6224,6 @@ Input overlay Y position (percent)
 Input switch
 == Giriş anahtarı
 
-Input visualization
-== Girdi görselleştirme
-
 Insane
 == Çılgın
 
@@ -6647,6 +6689,9 @@ Last viewed client release notes
 Latency
 == Gecikme
 
+Latency compensation
+== gecikme telafisi
+
 Latency Jitter
 == Gecikme dalgalanması
 
@@ -6679,6 +6724,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == Öğren
+
+Leave empty to detect automatically
+== otomatik algılama için boş bırakın
 
 Leave empty to disable
 == Devre dışı bırakmak için boş bırakın
@@ -6971,9 +7019,6 @@ Local Time
 Local-only
 == Yalnızca yerel
 
-Locate
-== Konumunu bul
-
 Lock delay
 == Kilit gecikmesi
 
@@ -7205,6 +7250,9 @@ Map uploaded successfully.
 Mapper
 == Yapımcı
 
+Maps
+== Haritalar
+
 Maps finished
 == Tamamlanan haritalar
 
@@ -7364,6 +7412,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == gecikmeye neden olabilir
 
+May overload the service
+== hizmeti aşırı yükleyebilir
+
 Memory
 == Bellek
 
@@ -7462,6 +7513,9 @@ Milliseconds to apply quick input early
 
 Min size
 == Minimum boyut
+
+Mini debug
+== küçük hata ayıklama
 
 Mini features
 == Mini özellikler
@@ -7871,6 +7925,9 @@ Navigation size percentage
 Need to have started the map to swap with a player.
 == Bir oyuncuyla yer değiştirmek için haritayı başlatmış olmanız gerekir.
 
+Negative stability buffer
+== Negatif stabilite tamponu
+
 Negative stability buffer (for Gores)
 == Negatif stabilite tamponu (Gores için)
 
@@ -7894,9 +7951,6 @@ Netversion
 
 Network
 == Ağ
-
-Network error
-== Ağ hatası
 
 Network timeout
 == Ağ zaman aşımı
@@ -7939,6 +7993,9 @@ New preset name
 
 New random timeout code
 == Yeni rastgele zaman aşımı kodu
+
+New version available
+== Yeni sürüm mevcut
 
 Newest first
 == Önce en yeniler
@@ -8086,9 +8143,6 @@ No maps match these filters
 
 No matching assets.
 == Eşleşen varlık yok.
-
-No matching features found. Try other keywords
-== Eşleşen özellik bulunamadı. Diğer anahtar kelimeleri deneyin
 
 No matching Rank 1 replay
 == Eşleşen Rank 1 demosu yok
@@ -8338,9 +8392,6 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == Resmi
-
-Official binds
-== Resmî tuş atamaları
 
 Official community links
 == Resmi topluluk bağlantıları
@@ -8623,6 +8674,9 @@ Overwrite clan even if empty
 
 Own hook line width
 == Kendi kanca çizgisi genişliği
+
+Own team only
+== yalnızca kendi takımı
 
 p = Ping latency
 == p = Ping gecikmesi
@@ -9164,14 +9218,8 @@ Polished
 Pop wave
 == Büyütme dalgası
 
-Popup & dropdown blur
-== Açılır pencere ve liste bulanıklığı
-
 Popup animation
 == Açılır animasyon
-
-Popup blur
-== Açılır panel bulanıklığı
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == İstemci-sunucu bağlantısı için port (0=rastgele, >=1024 manuel port ayarlar)
@@ -9223,6 +9271,9 @@ Predict client movement
 
 Predict dummy movement
 == Dummy hareketini tahmin et
+
+Predict events
+== Olayları tahmin et
 
 Predict events (experimental)
 == Olayları tahmin et (deneysel)
@@ -9587,6 +9638,9 @@ Quads are used for background decoration
 Query current map info
 == Geçerli harita bilgisini sorgula
 
+Query isolated serverlist consumer state
+== Yalıtılmış sunucu listesi tüketicisinin durumunu sorgula
+
 Query map info for %s
 == %s haritasının bilgisini sorgula
 
@@ -9884,6 +9938,9 @@ Reduce antiping and player prediction when frozen
 Reduce prediction while frozen
 == Donmuşken tahmini azalt
 
+Reduce visual latency
+== görsel gecikmeyi azaltır
+
 Reduced
 == Azaltılmış
 
@@ -9898,6 +9955,9 @@ Refresh
 
 Refresh interval
 == Yenileme aralığı
+
+Refresh isolated serverlist consumer
+== Yalıtılmış sunucu listesi tüketicisini yenile
 
 Refresh Rate
 == Yenileme Hızı
@@ -9937,6 +9997,9 @@ Release date
 
 Release notes
 == Sürüm notları
+
+Release page
+== Sürüm sayfası
 
 Reload
 == Yeniden yükle
@@ -10439,9 +10502,6 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == Kaynak Önizleme VRAM Bütçe Yüzdesi (Cihazın Yerel VRAM Bütçesine Göre)
 
-Resources
-== Kaynaklar
-
 Restart
 == Yeniden Başlat
 
@@ -10694,6 +10754,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == Tekrar oynatmada oyuncu adlarını kaydet
 
+Save power by lowering update rate
+== Güncelleme hızını düşürerek güç tasarrufu sağlar
+
 Save power by lowering update rate (higher input latency)
 == Güncelleme hızını düşürerek güç tasarrufu sağlar (daha yüksek giriş gecikmesi)
 
@@ -10822,6 +10885,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == Skor Tablosu Şeffaflığı
+
+Scoreboard, chat, spectating
+== skor tablosu, sohbet, izleme
 
 Scores are private on this server
 == Bu sunucuda skorlar gizli
@@ -10970,6 +11036,9 @@ Select a map
 Select a player to manage
 == Yönetmek için bir oyuncu seçin
 
+Select a preset, then apply it to player or dummy
+== Bir ön ayar seçip oyuncuya veya dummy’ye uygula
+
 Select a saved .map file (client limit: 64 MiB).
 == Kaydedilmiş bir .map dosyası seçin (istemci sınırı: 64 MiB).
 
@@ -11012,6 +11081,9 @@ Selected text color
 Selected timertype is not supported by your client
 == Seçilen zamanlayıcı türü istemciniz tarafından desteklenmiyor
 
+Selecting download source...
+== İndirme kaynağı seçiliyor…
+
 Selection
 == Seçim
 
@@ -11047,9 +11119,6 @@ Send emote when entering freeze
 
 Send emoticon in water
 == Suda ifade gönder
-
-Send original text with translation
-== Çeviriyle birlikte orijinal metni gönder
 
 Send probability
 == Gönderme olasılığı
@@ -11431,6 +11500,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == İsim etiketinde ayrı bir satırda istemci kimliğini göster
+
+Show client IDs
+== İstemci kimliklerini göster
 
 Show client IDs (scoreboard, chat, spectating)
 == İstemci kimliklerini göster (skor tablosu, sohbet, izleme)
@@ -11903,6 +11975,9 @@ Show only servers with unfinished maps
 Show only team chat messages
 == Yalnızca takım sohbet mesajlarını göster
 
+Show original text below outgoing translation
+== Giden mesajın çevirisinin altında orijinal metni göster
+
 Show other players' coordinates
 == Diğer oyuncuların koordinatlarını göster
 
@@ -12017,6 +12092,9 @@ Show player Tee
 Show players' key presses
 == Oyuncuların tuş vuruşlarını göster
 
+Show position and angle
+== Konum ve açıyı göster
+
 Show position and angle (mini debug)
 == Konum ve açıyı göster (küçük hata ayıklama)
 
@@ -12125,6 +12203,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == Eşitlenen destekçi sohbet stillerini göster
 
+Show system fonts
+== Sistem yazı tiplerini göster
+
 Show system media info on HUD
 == HUD üzerinde sistem medya bilgilerini göster
 
@@ -12181,6 +12262,9 @@ Show the number of tees still alive
 
 Show the occasional sponsor reminder in the main menu
 == Ana menüde ara sıra destekçi hatırlatması göster
+
+Show the original text locally below translated outgoing messages
+== Orijinal metni gönderilen çevrilmiş mesajların altında yalnızca yerel olarak göster; orijinal metni sunucuya gönderme
 
 Show the pet
 == Evcil hayvanı göster
@@ -12331,6 +12415,9 @@ Shrink
 
 Shrug:
 == Omuz silkme:
+
+Shuffle skin queue
+== Skin kuyruğunu karıştır
 
 Shut down
 == Kapat
@@ -12502,6 +12589,9 @@ Slide left
 
 Slow down the demo
 == Demoyu yavaşlat
+
+Slower
+== daha yavaş
 
 Small Tee size
 == Küçük Tee boyutu
@@ -12877,6 +12967,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == Durum Şeması:
+
+Steam client path
+== Steam istemci yolu
 
 Steam client path (leave empty to detect automatically)
 == Steam istemci yolu (otomatik algılama için boş bırakın)
@@ -13304,6 +13397,9 @@ Tee 0.7
 Tee appearance
 == Tee görünümü
 
+Tee collision
+== Tee çarpışması
+
 Tee collision (Tee to Tee)
 == Tee çarpışması (Tee ile Tee)
 
@@ -13315,6 +13411,9 @@ Tee cry
 
 Tee death probe
 == Tee ölüm algısı
+
+Tee freeze probe
+== Tee dondurma algısı
 
 Tee freeze probe (Tee to Freeze)
 == Tee dondurma algısı (Tee ile Freeze)
@@ -13330,6 +13429,12 @@ Tee size
 
 Tee status bar
 == Tee durum çubuğu
+
+Tee to Freeze
+== Tee ile Freeze
+
+Tee to Tee
+== Tee ile Tee
 
 Tee trail color
 == Tee iz rengi
@@ -13537,9 +13642,6 @@ The server is running a non-standard tuning on a pure game type.
 
 The server rejected the map upload.
 == Sunucu harita yüklemesini reddetti.
-
-The update is ready and will be installed when you exit.
-== Güncelleme hazır ve çıkışta kurulacak.
 
 The watermarked screenshot was saved next to the original
 == Filigranlı ekran görüntüsü orijinalin yanına kaydedildi
@@ -14054,6 +14156,9 @@ Translate:
 Translated chat text size as a percentage of the original text (50-100)
 == Çevrilmiş sohbet metninin boyutu, özgün metin boyutunun yüzdesi olarak (50-100)
 
+Translated message could not be queued; original was not sent
+== Çevrilmiş mesaj gönderim kuyruğuna eklenemedi; orijinal metin gönderilmedi
+
 Translated text hidden due to streamer mode
 == Yayıncı modu nedeniyle çevrilen metin gizlendi
 
@@ -14063,14 +14168,14 @@ Translated text size
 Translating to %s...
 == %s diline çevriliyor...
 
-Translation backend invalid, sending original
-== Çeviri arka ucu geçersiz, orijinal metin gönderiliyor
-
 Translation button active color
 == Çeviri düğmesi açık rengi
 
 Translation button cancel color
 == Çeviri düğmesi kapalı rengi
+
+Translation canceled because the sender changed
+== Gönderen değiştiği için çeviri iptal edildi
 
 Translation color alpha migration completed flag
 == Çeviri renkleri alfa taşıma tamamlama işareti
@@ -14089,9 +14194,6 @@ Translation menu selected color
 
 Translation model was not found. Check the model name.
 == Çeviri modeli bulunamadı. Model adını kontrol edin.
-
-Translation queue full, sending original
-== Çeviri kuyruğu dolu, orijinal metin gönderiliyor
 
 Translation service
 == Çeviri hizmeti
@@ -14248,9 +14350,6 @@ UI server address
 
 UI size percentage
 == UI boyut yüzdesi
-
-UI/UX
-== UI/UX
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == %d seçili öğe silinemiyor. İlk başarısız öğe '%s'.
@@ -14465,11 +14564,11 @@ Update notice
 Update or add a specific war group
 == Belirli bir savaş grubunu güncelle veya ekle
 
-Update package available
-== Bu sürüm için güncelleme paketi mevcut
-
 Update Rate
 == Güncelleme Hızı
+
+Update ready to install
+== Güncelleme kuruluma hazır
 
 Upload .map files. Server and admin passwords: s.
 == .map dosyalarını yükleyin. Sunucu ve yönetici şifreleri: s.
@@ -14569,9 +14668,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == Oyuncu göstergelerini yönlendirmek için düşman listesini kullan
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== Gelişmiş işleme etkin olduğunda Gauss bulanıklığı işlem hattını kullan
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == Yüksek bant genişliği modunu kullan (sunucu bant genişliğini iki katına çıkarır, yalnızca LAN)
@@ -14704,6 +14800,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == Hız
+
+Verifying downloaded update...
+== İndirilen güncelleme doğrulanıyor…
 
 Version
 == Sürüm

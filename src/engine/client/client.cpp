@@ -5822,9 +5822,10 @@ bool CClient::HandleQmGraphicsFatalError()
 	if(pFatalError[0] != '\0' && str_find(pFatalError, "device lost") != nullptr && g_Config.m_QmEnhancedRendering == 1)
 	{
 		g_Config.m_QmEnhancedRendering = 0;
+		g_Config.m_QmGaussianBlur = 0;
 		QmEnhancedAutoFallback = true;
-		str_copy(aQmFallbackInfo, "device lost with qm_enhanced_rendering=AUTO; persisted qm_enhanced_rendering=0 (pure Vulkan) and requested auto-restart");
-		log_error("gfx", "device lost while qm_enhanced_rendering=AUTO; persisting qm_enhanced_rendering=0 and auto-restarting with pure Vulkan");
+		str_copy(aQmFallbackInfo, "device lost with qm_enhanced_rendering=AUTO; disabled enhanced rendering and backdrop blur, requested auto-restart");
+		log_error("gfx", "device lost while qm_enhanced_rendering=AUTO; disabling enhanced rendering and backdrop blur before auto-restart");
 	}
 
 	char aGpuInfo[512];
@@ -5881,7 +5882,7 @@ bool CClient::HandleQmGraphicsFatalError()
 	if(QmEnhancedAutoFallback)
 	{
 		// 配置会在 Run() 主循环结束后的正常保存流程里落盘；
-		// 下一次启动即以纯净 Vulkan 运行，不再进入本分支。
+		// 下一次启动关闭增强绘制与模糊提交，不再进入本分支。
 		log_info("gfx", "auto-restarting client to finish the enhanced-rendering fallback");
 		SetState(IClient::STATE_RESTARTING);
 	}

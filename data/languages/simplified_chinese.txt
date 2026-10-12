@@ -250,6 +250,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - 禁用，1-9999 分钟
 
+0 = auto
+== 0 = 自动
+
 0 disables timed rotation; skins only switch on random start events
 == 0 表示不做时间轮换；仅在随机起点事件时切换皮肤
 
@@ -623,6 +626,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == 残影弹出
 
+AGC, experimental
+== AGC，实验性
+
 Agree
 == 同意
 
@@ -722,9 +728,6 @@ Alpha
 Also apply to dummy
 == 同时应用到分身
 
-Also send the original text when translating outgoing messages
-== 翻译发出的消息时同时发送原文
-
 Always show
 == 始终显示
 
@@ -806,6 +809,9 @@ Anti Ping Smoothing
 Anti-spoof specific rate limit (0 = unlimited).
 == 反欺骗特定速率限制（0 表示无限制）
 
+AntiPing
+== 延迟补偿
+
 AntiPing (latency compensation)
 == 延迟补偿（AntiPing）
 
@@ -866,9 +872,6 @@ Apply a writable preset and edit first
 Apply Changes
 == 应用更改
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== 对二级弹窗与下拉列表背后的内容应用模糊
-
 Apply input early before next tick for prediction
 == 在下一 tick 前提前应用输入进行预测
 
@@ -883,6 +886,12 @@ Apply squishy Tee deformation to other players
 
 Apply this preset
 == 应用此预设
+
+Apply to dummy
+== 应用到分身
+
+Apply to player
+== 应用到本体
 
 Apply watermark
 == 应用水印
@@ -1063,6 +1072,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == 刷新时是否自动获取回放信息
+
+Auto gain control for mic
+== 自动平衡麦克风音量
 
 Auto gain control for mic (AGC, experimental)
 == 自动平衡麦克风音量（AGC，实验性）
@@ -1982,6 +1994,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == 本服务器已开启作弊功能
 
+Check again
+== 重新检查
+
 check ddnet-saves.txt in config_directory.
 == 请查看 config_directory 下的 ddnet-saves.txt。
 
@@ -2000,6 +2015,9 @@ Check output device, confirm headphones/speakers are still online
 Checking for existing player with your name
 == 正在查找该昵称的 DDNet 记录
 
+Checking for updates...
+== 正在检查更新…
+
 Checking Steam...
 == 正在检测 Steam…
 
@@ -2014,9 +2032,6 @@ Chinese font:
 
 CHN
 == 中国
-
-Choose a GPU for this app in system graphics settings, then restart the client.
-== 在系统图形设置中为此程序选择 GPU，然后重启客户端。
 
 Choose colors for weapons and entity lasers
 == 选择武器和实体激光的颜色
@@ -2282,8 +2297,11 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == 未击中任何物体时的钩索线颜色
 
-Color presets
-== 颜色预设
+Color picker saturation/value area shape: 0=square, 1=wheel
+== 取色器饱和度/明度区域形态：0=方图，1=色环
+
+Color picker saved swatches (format: name|#hex entries separated by semicolons)
+== 取色器已保存色样（格式：名称|#十六进制颜色，各条目以分号分隔）
 
 Color tee outlines by team for spectating
 == 按队伍为 Tee 描边着色，便于旁观区分
@@ -2329,9 +2347,6 @@ Command is not available on solo servers
 
 Command to run when joining server
 == 加入服务器时运行的命令
-
-Command workshop
-== 命令工坊
 
 Command:
 == 指令：
@@ -2383,6 +2398,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == 压缩器阈值（百分比）
+
+Concurrency
+== 并发数
 
 Concurrency (0 = auto)
 == 并发数（0 = 自动）
@@ -2714,9 +2732,6 @@ Controller GUID of the active controller
 Controller jitter tolerance
 == 摇杆死区
 
-Controls
-== 控制
-
 Converse
 == 继续私聊
 
@@ -2909,17 +2924,29 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == 当前裁剪无效或已添加
 
+Current driver
+== 当前驱动
+
 Current file
 == 当前文件
 
 Current GPU
-== 当前 GPU
+== 当前显卡
+
+Current graphics backend
+== 当前图形后端
 
 Current rescue mode: %s
 == 当前救援模式：%s
 
 Current status
 == 当前状态
+
+Current version: %s
+== 当前版本：%s
+
+Current version: %s (up to date)
+== 当前版本：%s（已是最新）
 
 Current: Ranks
 == 当前：查分
@@ -3482,6 +3509,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == 放弃更改
 
+Discard update
+== 丢弃更新
+
 Disconnect
 == 断开连接
 
@@ -3644,8 +3674,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == 确定要下载此资源吗？
 
+Download update
+== 下载更新
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== 下载已校验。点击“退出并安装”可替换当前版本，设置会保留。点击“稍后”将在退出客户端时安装。
+
 Downloaded
 == 已下载
+
+Downloaded: %.1f MiB (total size unknown)
+== 已下载：%.1f MiB（总大小未知）
 
 Downloading map
 == 正在下载地图
@@ -4145,8 +4184,8 @@ Enable fat skin
 Enable freeze call sound
 == 启用冻结呼叫声
 
-Enable frosted glass blur behind secondary popups and dropdowns
-== 启用二级弹窗与下拉列表背景模糊
+Enable FTAPI auto-translate
+== 启用 FTAPI 自动翻译
 
 Enable FTAPI auto-translate (may overload the service)
 == 启用 FTAPI 自动翻译（可能导致服务过载）
@@ -4364,6 +4403,9 @@ Enable tee trails
 Enable the finished indicator and wait for player data
 == 启用完成状态指示，并等待玩家数据加载
 
+Enable thinking mode
+== 启用思考模式
+
 Enable thinking mode (slower)
 == 启用思考模式（较慢）
 
@@ -4580,6 +4622,9 @@ Execute the specified file
 Existing Player
 == 玩家已存在
 
+Exit and install
+== 退出并安装
+
 Exit replay view
 == 退出回放查看
 
@@ -4594,6 +4639,9 @@ Expanded dropdown background color
 
 Expanded dropdown background opacity percentage
 == 展开列表背景 — 不透明度百分比
+
+Experimental
+== 实验性
 
 Export
 == 导出
@@ -4730,6 +4778,9 @@ Fake CTF flags
 Fallback simple noise reduction strength
 == 回退后的简单降噪强度
 
+Fast input
+== 快速输入
+
 Fast input (reduce visual latency)
 == 快速输入（降低视觉延迟）
 
@@ -4766,11 +4817,11 @@ Favorites
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood：tokens + 12 widgets
 
+Feature guide and announcements
+== 功能指南与公告
+
 Feature Search
 == 功能搜索
-
-Features
-== 功能
 
 Feet
 == 脚
@@ -4955,6 +5006,9 @@ Font store:
 Font weight:
 == 字体字重：
 
+For Gores
+== 用于 Gores
+
 For more info: /cmdlist
 == 更多命令请查看：/cmdlist
 
@@ -4978,9 +5032,6 @@ Format player names after a finish
 
 Forms
 == 表单
-
-Found %d global cards
-== 匹配到 %d 张全局卡片
 
 Four IP addresses are already online
 == 已有 4 个 IP 在线，请等待其他会话离线
@@ -5177,9 +5228,6 @@ Game graphics assets not from Teeworlds
 Game info
 == 游戏信息
 
-Game interface
-== 游戏界面
-
 Game mode
 == 游戏模式
 
@@ -5318,9 +5366,6 @@ Gives you infinite jump
 Glitch
 == 故障
 
-Global card
-== 全局卡片
-
 Global card ordering (format: stableId|tab|col|order; semicolon-separated)
 == 全局卡片排序（格式 stableId|tab|col|order; 分号分隔）
 
@@ -5428,9 +5473,6 @@ Gradient type
 
 Gradient vertical position
 == 渐变垂直位置
-
-Graphics
-== 图像
 
 Graphics backend does not support dummy mini view
 == 当前图形后端不支持分身小窗
@@ -5710,6 +5752,9 @@ High Detail
 
 High to low
 == 由高到低
+
+Higher input latency
+== 增加输入延迟
 
 Higher values make the wave move faster. Zero stops the movement.
 == 数值越大，波浪越快；设为零时停止运动。
@@ -6179,9 +6224,6 @@ Input overlay Y position (percent)
 Input switch
 == 输入切换
 
-Input visualization
-== 输入可视化
-
 Insane
 == 疯狂
 
@@ -6647,6 +6689,9 @@ Last viewed client release notes
 Latency
 == 延迟
 
+Latency compensation
+== AntiPing
+
 Latency Jitter
 == 延迟抖动
 
@@ -6679,6 +6724,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == 教程 Wiki
+
+Leave empty to detect automatically
+== 留空自动检测
 
 Leave empty to disable
 == 留空以禁用
@@ -6971,9 +7019,6 @@ Local Time
 Local-only
 == 仅本地资源
 
-Locate
-== 定位
-
 Lock delay
 == 锁队延迟
 
@@ -7205,6 +7250,9 @@ Map uploaded successfully.
 Mapper
 == 作者
 
+Maps
+== 地图
+
 Maps finished
 == 已过地图
 
@@ -7364,6 +7412,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == 可能会产生延迟
 
+May overload the service
+== 可能导致服务过载
+
 Memory
 == 内存
 
@@ -7462,6 +7513,9 @@ Milliseconds to apply quick input early
 
 Min size
 == 最小尺寸
+
+Mini debug
+== 小型调试
 
 Mini features
 == 梦の百宝箱
@@ -7871,6 +7925,9 @@ Navigation size percentage
 Need to have started the map to swap with a player.
 == 你需要先开始地图，才能和其他玩家交换位置
 
+Negative stability buffer
+== 负稳定性缓冲
+
 Negative stability buffer (for Gores)
 == 负稳定性缓冲（用于 Gores）
 
@@ -7894,9 +7951,6 @@ Netversion
 
 Network
 == 网络
-
-Network error
-== 网络错误
 
 Network timeout
 == 网络超时
@@ -7939,6 +7993,9 @@ New preset name
 
 New random timeout code
 == 随机生成新的超时代码
+
+New version available
+== 有新版本可用
 
 Newest first
 == 最新发布优先
@@ -8086,9 +8143,6 @@ No maps match these filters
 
 No matching assets.
 == 没有匹配的材质。
-
-No matching features found. Try other keywords
-== 未找到匹配的功能模块。请尝试其他关键词
 
 No matching Rank 1 replay
 == 没有匹配的 Rank 1 回放
@@ -8338,9 +8392,6 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == 官方
-
-Official binds
-== 官方绑定
 
 Official community links
 == 官方社区入口
@@ -8623,6 +8674,9 @@ Overwrite clan even if empty
 
 Own hook line width
 == 自己的钩索辅助线宽度
+
+Own team only
+== 仅显示同队伍
 
 p = Ping latency
 == p = Ping 延迟
@@ -9164,14 +9218,8 @@ Polished
 Pop wave
 == 放大凸起
 
-Popup & dropdown blur
-== 弹窗与下拉列表模糊
-
 Popup animation
 == 弹出动画
-
-Popup blur
-== 弹出面板模糊
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == 用于客户端连接到服务器的端口（0 选择随机端口，1024 或更高设置手动端口）
@@ -9223,6 +9271,9 @@ Predict client movement
 
 Predict dummy movement
 == 预测分身移动
+
+Predict events
+== 预测事件
 
 Predict events (experimental)
 == 预测事件（实验性）
@@ -9587,6 +9638,9 @@ Quads are used for background decoration
 Query current map info
 == 查询当前地图信息
 
+Query isolated serverlist consumer state
+== 查询隔离服务器列表消费者状态
+
 Query map info for %s
 == 查询地图 %s 的信息
 
@@ -9884,6 +9938,9 @@ Reduce antiping and player prediction when frozen
 Reduce prediction while frozen
 == 冻结时降低预测量
 
+Reduce visual latency
+== 降低视觉延迟
+
 Reduced
 == 精简
 
@@ -9898,6 +9955,9 @@ Refresh
 
 Refresh interval
 == 刷新间隔
+
+Refresh isolated serverlist consumer
+== 刷新隔离服务器列表消费者
 
 Refresh Rate
 == 刷新率
@@ -9937,6 +9997,9 @@ Release date
 
 Release notes
 == 更新说明
+
+Release page
+== 版本发布页
 
 Reload
 == 重新加载
@@ -10439,9 +10502,6 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == 资源预览显存预算百分比（基于设备本地显存预算）
 
-Resources
-== 资源
-
 Restart
 == 重新开始
 
@@ -10694,6 +10754,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == 在回放中保存玩家名称
 
+Save power by lowering update rate
+== 降低刷新率以节约功耗
+
 Save power by lowering update rate (higher input latency)
 == 降低刷新率以节约功耗（增加输入延迟）
 
@@ -10822,6 +10885,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == 计分板透明度
+
+Scoreboard, chat, spectating
+== 计分板、聊天、观战
 
 Scores are private on this server
 == 本服务器的成绩是私密的
@@ -10970,6 +11036,9 @@ Select a map
 Select a player to manage
 == 选择玩家以查看和管理
 
+Select a preset, then apply it to player or dummy
+== 先选择预设，再应用到本体或分身
+
 Select a saved .map file (client limit: 64 MiB).
 == 选择已保存的 .map 文件（客户端上限：64 MiB）。
 
@@ -11012,6 +11081,9 @@ Selected text color
 Selected timertype is not supported by your client
 == 你当前客户端不支持所选计时器类型
 
+Selecting download source...
+== 正在选择下载源…
+
 Selection
 == 已选项
 
@@ -11047,9 +11119,6 @@ Send emote when entering freeze
 
 Send emoticon in water
 == 水中发送表情
-
-Send original text with translation
-== 翻译发送的消息时同时发送原文
 
 Send probability
 == 发送概率
@@ -11431,6 +11500,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == 在铭牌中的单独行中显示客户端 ID
+
+Show client IDs
+== 显示客户端 ID
 
 Show client IDs (scoreboard, chat, spectating)
 == 显示客户端 ID（计分板、聊天、观战）
@@ -11903,6 +11975,9 @@ Show only servers with unfinished maps
 Show only team chat messages
 == 只显示队伍聊天消息
 
+Show original text below outgoing translation
+== 在出站译文下方显示原文
+
 Show other players' coordinates
 == 显示他人坐标
 
@@ -12017,6 +12092,9 @@ Show player Tee
 Show players' key presses
 == 显示按键
 
+Show position and angle
+== 显示位置和角度
+
 Show position and angle (mini debug)
 == 显示位置和角度（小型调试）
 
@@ -12125,6 +12203,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == 显示同步的赞助者发言样式
 
+Show system fonts
+== 显示系统字体
+
 Show system media info on HUD
 == 在 HUD 上显示系统媒体信息
 
@@ -12181,6 +12262,9 @@ Show the number of tees still alive
 
 Show the occasional sponsor reminder in the main menu
 == 在主菜单偶尔显示赞助提醒
+
+Show the original text locally below translated outgoing messages
+== 只在本地发送译文下方显示原文，不向服务器发送原文
 
 Show the pet
 == 显示宠物
@@ -12331,6 +12415,9 @@ Shrink
 
 Shrug:
 == 耸肩：
+
+Shuffle skin queue
+== 皮肤队列随机排序
 
 Shut down
 == 关闭
@@ -12502,6 +12589,9 @@ Slide left
 
 Slow down the demo
 == 减慢播放速度
+
+Slower
+== 较慢
 
 Small Tee size
 == 小 Tee 尺寸
@@ -12877,6 +12967,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == 状态方案：
+
+Steam client path
+== Steam 客户端路径
 
 Steam client path (leave empty to detect automatically)
 == Steam 客户端路径（留空自动检测）
@@ -13304,6 +13397,9 @@ Tee 0.7
 Tee appearance
 == Tee 外观
 
+Tee collision
+== Tee 碰撞
+
 Tee collision (Tee to Tee)
 == Tee 碰撞（Tee 与 Tee）
 
@@ -13315,6 +13411,9 @@ Tee cry
 
 Tee death probe
 == Tee 死亡探针
+
+Tee freeze probe
+== Tee 冻结探针
 
 Tee freeze probe (Tee to Freeze)
 == Tee 冻结探针（Tee 与 Freeze）
@@ -13330,6 +13429,12 @@ Tee size
 
 Tee status bar
 == Tee 状态栏
+
+Tee to Freeze
+== Tee 与 Freeze
+
+Tee to Tee
+== Tee 与 Tee
 
 Tee trail color
 == Tee 拖尾颜色
@@ -13537,9 +13642,6 @@ The server is running a non-standard tuning on a pure game type.
 
 The server rejected the map upload.
 == 服务器拒绝了地图上传。
-
-The update is ready and will be installed when you exit.
-== 更新已准备就绪，将在退出客户端时安装。
 
 The watermarked screenshot was saved next to the original
 == 带水印的截图已保存到原图旁边
@@ -14054,6 +14156,9 @@ Translate:
 Translated chat text size as a percentage of the original text (50-100)
 == 聊天译文字号相对于原文字号的百分比（50-100）
 
+Translated message could not be queued; original was not sent
+== 译文未能加入发送队列，原文未发送
+
 Translated text hidden due to streamer mode
 == 由于主播模式，隐藏翻译文本
 
@@ -14063,14 +14168,14 @@ Translated text size
 Translating to %s...
 == 正在翻译为 %s……
 
-Translation backend invalid, sending original
-== 翻译后端无效，发送原文
-
 Translation button active color
 == 翻译按钮开启时的颜色
 
 Translation button cancel color
 == 翻译按钮取消时的颜色
+
+Translation canceled because the sender changed
+== 发送者已改变，翻译已取消
 
 Translation color alpha migration completed flag
 == 翻译颜色透明度迁移已完成标记
@@ -14089,9 +14194,6 @@ Translation menu selected color
 
 Translation model was not found. Check the model name.
 == 未找到翻译模型，请检查模型名称。
-
-Translation queue full, sending original
-== 翻译队列已满，发送原文
 
 Translation service
 == 翻译服务
@@ -14248,9 +14350,6 @@ UI server address
 
 UI size percentage
 == UI 大小百分比
-
-UI/UX
-== 界面与体验
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == 无法删除 %d 个选中项。第一个失败项是“%s”。
@@ -14465,11 +14564,11 @@ Update notice
 Update or add a specific war group
 == 更新或添加指定敌对分组
 
-Update package available
-== 此版本有可下载的更新包
-
 Update Rate
 == 客户端刷新率
+
+Update ready to install
+== 更新已准备就绪，可以安装
 
 Upload .map files. Server and admin passwords: s.
 == 上传 .map 文件；服务器密码和管理密码均为 s。
@@ -14569,9 +14668,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == 用敌对列表驱动玩家指示器
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== 启用增强渲染时使用高斯模糊管线
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == 使用高带宽模式。服务器所需的带宽加倍。仅限局域网使用
@@ -14704,6 +14800,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == 速度
+
+Verifying downloaded update...
+== 正在校验已下载的更新…
 
 Version
 == 版本
@@ -16173,6 +16272,10 @@ All combined
 == 所有组合
 
 [Editor]
+All commands
+== 全部指令
+
+[Editor]
 Allow all unknown settings
 == 允许所有未知设置
 
@@ -17085,8 +17188,8 @@ Enter a room code to join a collaboration room.
 == 输入房间码以加入协作房间。
 
 [Editor]
-Enter a server setting. Press Ctrl+Space or Ctrl+Shift+Space, or click ... to show available settings. If the IME reserves the shortcut, use ... .
-== 输入服务器设置。按 Ctrl+Space、Ctrl+Shift+Space，或点击 ... 显示可用设置。输入法占用快捷键时，请点击 ... 。
+Enter a server setting. Press Ctrl+Space or Ctrl+Shift+Space to complete at the cursor. Click All commands to browse every command without changing the text until you select one. If the IME reserves the shortcut, use the button.
+== 输入服务器设置。按 Ctrl+Space 或 Ctrl+Shift+Space 补全光标处的内容。点击“全部指令”可浏览所有指令，选择前保留当前文本。输入法占用快捷键时，请使用按钮。
 
 [Editor]
 Enter the room code

@@ -69,6 +69,9 @@ CHttpRequestCurl::~CHttpRequestCurl()
 {
 	dbg_assert(m_File == nullptr, "HTTP request file was not closed");
 	curl_slist_free_all(m_pRequestHeaders);
+	curl_slist_free_all(m_pDnsBootstrap);
+	if(m_pDnsShare)
+		curl_share_cleanup(m_pDnsShare);
 }
 
 void CHttpRequestCurl::Header(const char *pNameColonValue)
@@ -131,6 +134,28 @@ bool CHttpRequestCurl::ConfigureHandle(CURL *pHandle)
 	{
 		// 吊销分发点缺失或离线时尽力校验，保留 Schannel 对已知吊销证书的拒绝。
 		curl_easy_setopt(pHandle, CURLOPT_SSL_OPTIONS, static_cast<long>(CURLSSLOPT_REVOKE_BEST_EFFORT));
+	}
+	if(m_ServerListDnsFallback)
+	{
+		// 独立 DNS 缓存防止 multi 复用普通解析的错误地址；连接同样不能复用。
+		m_pDnsShare = curl_share_init();
+		if(!m_pDnsShare || curl_share_setopt(m_pDnsShare, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS) != CURLSHE_OK)
+			return false;
+		m_pDnsBootstrap = curl_slist_append(nullptr, "dns.alidns.com:443:223.5.5.5,223.6.6.6");
+		if(!m_pDnsBootstrap)
+			return false;
+		if(curl_easy_setopt(pHandle, CURLOPT_SHARE, m_pDnsShare) != CURLE_OK ||
+			curl_easy_setopt(pHandle, CURLOPT_DOH_URL, "https://dns.alidns.com/dns-query") != CURLE_OK ||
+			curl_easy_setopt(pHandle, CURLOPT_RESOLVE, m_pDnsBootstrap) != CURLE_OK)
+			return false;
+		curl_easy_setopt(pHandle, CURLOPT_DOH_SSL_VERIFYPEER, 1L);
+		curl_easy_setopt(pHandle, CURLOPT_DOH_SSL_VERIFYHOST, 2L);
+		curl_easy_setopt(pHandle, CURLOPT_SSL_VERIFYPEER, 1L);
+		curl_easy_setopt(pHandle, CURLOPT_SSL_VERIFYHOST, 2L);
+		curl_easy_setopt(pHandle, CURLOPT_FRESH_CONNECT, 1L);
+		curl_easy_setopt(pHandle, CURLOPT_FORBID_REUSE, 1L);
+		// 恢复请求不能被重定向扩展到任意其他域名。
+		curl_easy_setopt(pHandle, CURLOPT_FOLLOWLOCATION, 0L);
 	}
 	curl_easy_setopt(pHandle, CURLOPT_URL, m_aUrl);
 	if(m_ProxyConfigured)
@@ -364,28 +389,41 @@ size_t CHttpRequestCurl::OnHeader(char *pHeader, size_t HeaderSize)
 	// `pHeader` is NOT null-terminated.
 	// `pHeader` has a trailing newline.
 
-	if(HeaderSize <= 1)
+	if(HeaderSize <= 1 || (HeaderSize == 2 && pHeader[0] == '\r' && pHeader[1] == '\n'))
 	{
 		m_ResponseHeadersEnded = true;
+		m_ResultHeadersReceivedAt = time_get_nanoseconds();
 		return HeaderSize;
 	}
-	if(m_ResponseHeadersEnded)
+	// 每个 HTTP 响应块重新开始；重定向、CONNECT 与 1xx 的 Age 不得泄漏到最终结果。
+	if(HeaderSize >= 5 && std::string_view(pHeader, HeaderSize).starts_with("HTTP/"))
 	{
-		// redirect, clear old headers
 		m_ResponseHeadersEnded = false;
+		m_ResultAge = {};
+		m_ResultHeadersReceivedAt = {};
 		m_ResultDate = {};
 		m_ResultLastModified = {};
 		m_ResultRetryAfterSeconds = {};
 		m_ResultContentRange = {};
-	}
-	// 重定向和 CONNECT 的响应头不能被当成最终分段响应。
-	if(HeaderSize >= 5 && std::string_view(pHeader, HeaderSize).starts_with("HTTP/"))
-	{
 		const std::string_view Line(pHeader, HeaderSize);
 		const auto Space = Line.find(' ');
 		if(Space != std::string_view::npos)
 			std::from_chars(Line.data() + Space + 1, Line.data() + Line.size(), m_StatusCode);
-		m_ResultContentRange = {};
+	}
+	if(HeaderSize >= 4 && str_startswith_nocase(pHeader, "Age:"))
+	{
+		std::string_view Value(pHeader + 4, HeaderSize - 4);
+		while(!Value.empty() && (Value.front() == ' ' || Value.front() == '\t'))
+			Value.remove_prefix(1);
+		while(!Value.empty() && (Value.back() == ' ' || Value.back() == '\t' || Value.back() == '\r' || Value.back() == '\n'))
+			Value.remove_suffix(1);
+		int64_t Age = 0;
+		const auto Parsed = std::from_chars(Value.data(), Value.data() + Value.size(), Age);
+		// 超出整数范围的合法 delta-seconds 仍表示已知超龄，不能降成未知的新数据。
+		if(Parsed.ec == std::errc::result_out_of_range && !Value.empty() && std::all_of(Value.begin(), Value.end(), [](char Character) { return Character >= '0' && Character <= '9'; }))
+			m_ResultAge = std::numeric_limits<int64_t>::max();
+		if(!Value.empty() && Value.front() >= '0' && Value.front() <= '9' && Parsed.ec == std::errc{} && Parsed.ptr == Value.data() + Value.size())
+			m_ResultAge = std::max(m_ResultAge.value_or(0), Age);
 	}
 	static const char CONTENT_RANGE[] = "Content-Range:";
 	if(HeaderSize >= sizeof(CONTENT_RANGE) - 1 && str_startswith_nocase(pHeader, CONTENT_RANGE))

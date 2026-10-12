@@ -250,6 +250,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - Отключено, 1-9999 минут
 
+0 = auto
+== 0 = авто
+
 0 disables timed rotation; skins only switch on random start events
 == 0 отключает ротацию по времени; скины меняются только при случайном старте
 
@@ -623,6 +626,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == Всплытие послесвечения
 
+AGC, experimental
+== AGC, экспериментально
+
 Agree
 == Согласиться
 
@@ -722,9 +728,6 @@ Alpha
 Also apply to dummy
 == Также применить к дамми
 
-Also send the original text when translating outgoing messages
-== Также отправлять оригинальный текст при переводе исходящих сообщений
-
 Always show
 == Всегда показывать
 
@@ -806,6 +809,9 @@ Anti Ping Smoothing
 Anti-spoof specific rate limit (0 = unlimited).
 == Ограничение скорости для анти-спуфинга (0 = без ограничений)
 
+AntiPing
+== AntiPing
+
 AntiPing (latency compensation)
 == AntiPing (компенсация задержки)
 
@@ -866,9 +872,6 @@ Apply a writable preset and edit first
 Apply Changes
 == Применить изменения
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== Размывать фон подокон и выпадающих списков
-
 Apply input early before next tick for prediction
 == Применять ввод заранее до следующего тика для предсказания
 
@@ -883,6 +886,12 @@ Apply squishy Tee deformation to other players
 
 Apply this preset
 == Применить этот пресет
+
+Apply to dummy
+== Применить к Дами
+
+Apply to player
+== Применить к игроку
 
 Apply watermark
 == Применить водяной знак
@@ -1063,6 +1072,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == Автоматически получать информацию о повторе при обновлении
+
+Auto gain control for mic
+== Авторегулировка усиления микрофона
 
 Auto gain control for mic (AGC, experimental)
 == Авторегулировка усиления микрофона (AGC, экспериментально)
@@ -1982,6 +1994,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == На этом сервере читы включены
 
+Check again
+== Проверить снова
+
 check ddnet-saves.txt in config_directory.
 == Проверьте ddnet-saves.txt в config_directory.
 
@@ -2000,6 +2015,9 @@ Check output device, confirm headphones/speakers are still online
 Checking for existing player with your name
 == Проверка существующего игрока с вашим именем
 
+Checking for updates...
+== Проверка обновлений…
+
 Checking Steam...
 == Проверка Steam…
 
@@ -2014,9 +2032,6 @@ Chinese font:
 
 CHN
 == Китай
-
-Choose a GPU for this app in system graphics settings, then restart the client.
-== Выберите GPU для этого приложения в системных настройках графики, затем перезапустите клиент.
 
 Choose colors for weapons and entity lasers
 == Choose colors for weapons and entity lasers
@@ -2282,8 +2297,11 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == Цвет линии захвата, когда ни во что не попали
 
-Color presets
-== Цветовые пресеты
+Color picker saturation/value area shape: 0=square, 1=wheel
+== Форма области насыщенности/яркости: 0=квадрат, 1=цветовой круг
+
+Color picker saved swatches (format: name|#hex entries separated by semicolons)
+== Сохранённые образцы цвета (формат: имя|#hex, записи разделены точкой с запятой)
 
 Color tee outlines by team for spectating
 == Раскрашивать контур ти по командам для зрителей
@@ -2329,9 +2347,6 @@ Command is not available on solo servers
 
 Command to run when joining server
 == Команда, выполняемая при подключении к серверу
-
-Command workshop
-== Мастерская команд
 
 Command:
 == Команда:
@@ -2383,6 +2398,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == Порог компрессора (%)
+
+Concurrency
+== Конкурентность
 
 Concurrency (0 = auto)
 == Конкурентность (0 = авто)
@@ -2714,9 +2732,6 @@ Controller GUID of the active controller
 Controller jitter tolerance
 == Допуск дрожания контроллера
 
-Controls
-== Управление
-
 Converse
 == Продолжить личное сообщение
 
@@ -2909,17 +2924,29 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == Текущий отрезок недействителен или уже добавлен
 
+Current driver
+== Текущий драйвер
+
 Current file
 == Текущий файл
 
 Current GPU
 == Текущий GPU
 
+Current graphics backend
+== Текущий графический бэкенд
+
 Current rescue mode: %s
 == Текущий режим спасения: %s
 
 Current status
 == Текущий статус
+
+Current version: %s
+== Текущая версия: %s
+
+Current version: %s (up to date)
+== Текущая версия: %s (актуальная)
 
 Current: Ranks
 == Текущее: Ранги
@@ -3482,6 +3509,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == Отменить изменения
 
+Discard update
+== Удалить обновление
+
 Disconnect
 == Отключиться
 
@@ -3644,8 +3674,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == Скачать этот ресурс?
 
+Download update
+== Скачать обновление
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== Загрузка проверена. Нажмите «Выйти и установить», чтобы заменить текущую версию; настройки сохранятся. Если выбрать «Позже», обновление установится при выходе из клиента.
+
 Downloaded
 == Скачано
+
+Downloaded: %.1f MiB (total size unknown)
+== Загружено: %.1f MiB (общий размер неизвестен)
 
 Downloading map
 == Загрузка карты
@@ -4145,8 +4184,8 @@ Enable fat skin
 Enable freeze call sound
 == Включить звук вызова заморозки
 
-Enable frosted glass blur behind secondary popups and dropdowns
-== Включить размытие фона подокон и списков
+Enable FTAPI auto-translate
+== Включить автоперевод FTAPI
 
 Enable FTAPI auto-translate (may overload the service)
 == Включить автоперевод FTAPI (может перегрузить сервис)
@@ -4364,6 +4403,9 @@ Enable tee trails
 Enable the finished indicator and wait for player data
 == Включите индикатор прохождения и дождитесь данных игрока
 
+Enable thinking mode
+== Включить режим размышления
+
 Enable thinking mode (slower)
 == Включить режим размышления (медленнее)
 
@@ -4580,6 +4622,9 @@ Execute the specified file
 Existing Player
 == Существующий игрок
 
+Exit and install
+== Выйти и установить
+
 Exit replay view
 == Выйти из просмотра реплея
 
@@ -4594,6 +4639,9 @@ Expanded dropdown background color
 
 Expanded dropdown background opacity percentage
 == Цвет фона раскрытого списка — непрозрачность в процентах
+
+Experimental
+== экспериментально
 
 Export
 == Экспорт
@@ -4730,6 +4778,9 @@ Fake CTF flags
 Fallback simple noise reduction strength
 == Запасная простая сила шумоподавления
 
+Fast input
+== Быстрый ввод
+
 Fast input (reduce visual latency)
 == Быстрый ввод (уменьшает визуальную задержку)
 
@@ -4766,11 +4817,11 @@ Favorites
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood: токены + 12 виджетов
 
+Feature guide and announcements
+== Руководство по функциям и объявления
+
 Feature Search
 == Поиск функций
-
-Features
-== Функции
 
 Feet
 == Ноги
@@ -4955,6 +5006,9 @@ Font store:
 Font weight:
 == Насыщенность шрифта:
 
+For Gores
+== для Gores
+
 For more info: /cmdlist
 == Подробнее: /cmdlist
 
@@ -4978,9 +5032,6 @@ Format player names after a finish
 
 Forms
 == Формы
-
-Found %d global cards
-== Найдено %d глобальных карточек
 
 Four IP addresses are already online
 == Уже подключены 4 IP-адреса
@@ -5177,9 +5228,6 @@ Game graphics assets not from Teeworlds
 Game info
 == Информация об игре
 
-Game interface
-== Игровой интерфейс
-
 Game mode
 == Игровой режим
 
@@ -5318,9 +5366,6 @@ Gives you infinite jump
 Glitch
 == Глитч
 
-Global card
-== Глобальная карточка
-
 Global card ordering (format: stableId|tab|col|order; semicolon-separated)
 == Глобальная сортировка карточек (формат stableId|tab|col|order; разделитель точка с запятой)
 
@@ -5428,9 +5473,6 @@ Gradient type
 
 Gradient vertical position
 == Вертикальное положение градиента
-
-Graphics
-== Графика
 
 Graphics backend does not support dummy mini view
 == Графический движок не поддерживает мини-окно двойника
@@ -5710,6 +5752,9 @@ High Detail
 
 High to low
 == От высокого к низкому
+
+Higher input latency
+== более высокая задержка ввода
 
 Higher values make the wave move faster. Zero stops the movement.
 == Чем больше значение, тем быстрее движется волна. Ноль останавливает движение.
@@ -6179,9 +6224,6 @@ Input overlay Y position (percent)
 Input switch
 == Переключение ввода
 
-Input visualization
-== Визуализация ввода
-
 Insane
 == Безумие
 
@@ -6647,6 +6689,9 @@ Last viewed client release notes
 Latency
 == Задержка
 
+Latency compensation
+== компенсация задержки
+
 Latency Jitter
 == Джиттер задержки
 
@@ -6679,6 +6724,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == Обучение
+
+Leave empty to detect automatically
+== пусто — автоопределение
 
 Leave empty to disable
 == Оставьте пустым для отключения
@@ -6971,9 +7019,6 @@ Local Time
 Local-only
 == Только локально
 
-Locate
-== Найти
-
 Lock delay
 == Задержка блокировки
 
@@ -7205,6 +7250,9 @@ Map uploaded successfully.
 Mapper
 == Автор
 
+Maps
+== Карты
+
 Maps finished
 == Пройдено карт
 
@@ -7364,6 +7412,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == может вызвать задержку
 
+May overload the service
+== может перегрузить сервис
+
 Memory
 == Память
 
@@ -7462,6 +7513,9 @@ Milliseconds to apply quick input early
 
 Min size
 == Минимальный размер
+
+Mini debug
+== мини-отладка
 
 Mini features
 == Мини-функции
@@ -7871,6 +7925,9 @@ Navigation size percentage
 Need to have started the map to swap with a player.
 == Необходимо начать карту, чтобы обменяться с игроком.
 
+Negative stability buffer
+== Буфер отрицательной стабильности
+
 Negative stability buffer (for Gores)
 == Буфер отрицательной стабильности (для Gores)
 
@@ -7894,9 +7951,6 @@ Netversion
 
 Network
 == Сеть
-
-Network error
-== Ошибка сети
 
 Network timeout
 == Тайм-аут сети
@@ -7939,6 +7993,9 @@ New preset name
 
 New random timeout code
 == Новый случайный код тайм-аута
+
+New version available
+== Доступна новая версия
 
 Newest first
 == Сначала новые
@@ -8086,9 +8143,6 @@ No maps match these filters
 
 No matching assets.
 == Нет подходящих ресурсов.
-
-No matching features found. Try other keywords
-== Совпадающих функций не найдено. Попробуйте другие ключевые слова.
 
 No matching Rank 1 replay
 == Нет подходящего реплея ранга 1
@@ -8338,9 +8392,6 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == Официально
-
-Official binds
-== Стандартные привязки
 
 Official community links
 == Официальные ссылки сообщества
@@ -8623,6 +8674,9 @@ Overwrite clan even if empty
 
 Own hook line width
 == Ширина собственной линии крюка
+
+Own team only
+== только своя команда
 
 p = Ping latency
 == p = Пинг
@@ -9164,14 +9218,8 @@ Polished
 Pop wave
 == Волна увеличения
 
-Popup & dropdown blur
-== Размытие окон и списков
-
 Popup animation
 == Анимация всплытия
-
-Popup blur
-== Размытие всплывающих панелей
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == Порт для подключения клиента к серверу (0 = случайный, >=1024 задаёт ручной порт)
@@ -9223,6 +9271,9 @@ Predict client movement
 
 Predict dummy movement
 == Прогнозировать движение дамми
+
+Predict events
+== Предсказывать события
 
 Predict events (experimental)
 == Предсказывать события (экспериментально)
@@ -9587,6 +9638,9 @@ Quads are used for background decoration
 Query current map info
 == Запросить информацию о текущей карте
 
+Query isolated serverlist consumer state
+== Запросить состояние изолированного потребителя списка серверов
+
 Query map info for %s
 == Запросить информацию о карте %s
 
@@ -9884,6 +9938,9 @@ Reduce antiping and player prediction when frozen
 Reduce prediction while frozen
 == Уменьшать предсказание во время заморозки
 
+Reduce visual latency
+== уменьшает визуальную задержку
+
 Reduced
 == Уменьшенный
 
@@ -9898,6 +9955,9 @@ Refresh
 
 Refresh interval
 == Интервал обновления
+
+Refresh isolated serverlist consumer
+== Обновить изолированный потребитель списка серверов
 
 Refresh Rate
 == Частота обновления
@@ -9937,6 +9997,9 @@ Release date
 
 Release notes
 == Примечания к выпуску
+
+Release page
+== Страница выпуска
 
 Reload
 == Перезагрузить
@@ -10439,9 +10502,6 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == Бюджет видеопамяти для предпросмотра ресурсов (в процентах от локального бюджета устройства)
 
-Resources
-== Ресурсы
-
 Restart
 == Перезапустить
 
@@ -10694,6 +10754,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == Сохранять имена игроков в записи
 
+Save power by lowering update rate
+== Экономия энергии за счёт снижения частоты обновления
+
 Save power by lowering update rate (higher input latency)
 == Экономия энергии за счёт снижения частоты обновления (более высокая задержка ввода)
 
@@ -10822,6 +10885,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == Прозрачность таблицы лидеров
+
+Scoreboard, chat, spectating
+== таблица лидеров, чат, наблюдение
 
 Scores are private on this server
 == Очки на этом сервере приватны
@@ -10970,6 +11036,9 @@ Select a map
 Select a player to manage
 == Выберите игрока для управления
 
+Select a preset, then apply it to player or dummy
+== Выберите пресет, затем примените его к игроку или Дами
+
 Select a saved .map file (client limit: 64 MiB).
 == Выберите сохранённый файл .map (лимит клиента: 64 MiB).
 
@@ -11012,6 +11081,9 @@ Selected text color
 Selected timertype is not supported by your client
 == Только себе
 
+Selecting download source...
+== Выбор источника загрузки…
+
 Selection
 == Выбор
 
@@ -11047,9 +11119,6 @@ Send emote when entering freeze
 
 Send emoticon in water
 == Вероятность отправки
-
-Send original text with translation
-== Отправлять оригинальный текст вместе с переводом
 
 Send probability
 == Отправить исходный язык
@@ -11431,6 +11500,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == Показывать ID клиента на отдельной строке в табличке с именем
+
+Show client IDs
+== Показывать ID клиента
 
 Show client IDs (scoreboard, chat, spectating)
 == Показывать ID клиента (таблица лидеров, чат, наблюдение)
@@ -11903,6 +11975,9 @@ Show only servers with unfinished maps
 Show only team chat messages
 == Показывать только сообщения командного чата
 
+Show original text below outgoing translation
+== Показывать оригинал под переводом исходящего сообщения
+
 Show other players' coordinates
 == Показывать координаты других игроков
 
@@ -12017,6 +12092,9 @@ Show player Tee
 Show players' key presses
 == Показывать нажатия клавиш игроков
 
+Show position and angle
+== Показывать позицию и угол
+
 Show position and angle (mini debug)
 == Показывать позицию и угол (мини-отладка)
 
@@ -12125,6 +12203,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == Показывать синхронизированные стили чата спонсоров
 
+Show system fonts
+== Показывать системные шрифты
+
 Show system media info on HUD
 == Отображать информацию о системном медиаплеере на HUD
 
@@ -12181,6 +12262,9 @@ Show the number of tees still alive
 
 Show the occasional sponsor reminder in the main menu
 == Иногда показывать напоминание о спонсорстве в главном меню
+
+Show the original text locally below translated outgoing messages
+== Показывать оригинал под отправленными переведёнными сообщениями только локально, не отправляя оригинал на сервер
 
 Show the pet
 == Показать питомца
@@ -12331,6 +12415,9 @@ Shrink
 
 Shrug:
 == Пожатие плечами:
+
+Shuffle skin queue
+== Перемешать очередь скинов
 
 Shut down
 == Завершить работу
@@ -12502,6 +12589,9 @@ Slide left
 
 Slow down the demo
 == Замедлить демо
+
+Slower
+== медленнее
 
 Small Tee size
 == Размер маленького Tee
@@ -12877,6 +12967,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == Схема состояния:
+
+Steam client path
+== Путь к клиенту Steam
 
 Steam client path (leave empty to detect automatically)
 == Путь к клиенту Steam (пусто — автоопределение)
@@ -13304,6 +13397,9 @@ Tee 0.7
 Tee appearance
 == Внешний вид Tee
 
+Tee collision
+== Столкновение Tee
+
 Tee collision (Tee to Tee)
 == Столкновение Tee (Tee с Tee)
 
@@ -13315,6 +13411,9 @@ Tee cry
 
 Tee death probe
 == Проверка смерти Tee
+
+Tee freeze probe
+== Проверка заморозки Tee
 
 Tee freeze probe (Tee to Freeze)
 == Проверка заморозки Tee (Tee с Freeze)
@@ -13330,6 +13429,12 @@ Tee size
 
 Tee status bar
 == Строка состояния ти
+
+Tee to Freeze
+== Tee с Freeze
+
+Tee to Tee
+== Tee с Tee
 
 Tee trail color
 == Цвет следа ти
@@ -13537,9 +13642,6 @@ The server is running a non-standard tuning on a pure game type.
 
 The server rejected the map upload.
 == Сервер отклонил загрузку карты.
-
-The update is ready and will be installed when you exit.
-== Обновление готово и будет установлено при выходе.
 
 The watermarked screenshot was saved next to the original
 == Снимок с водяным знаком сохранён рядом с оригиналом
@@ -14054,6 +14156,9 @@ Translate:
 Translated chat text size as a percentage of the original text (50-100)
 == Размер текста перевода чата в процентах от размера исходного текста (50-100)
 
+Translated message could not be queued; original was not sent
+== Не удалось добавить переведённое сообщение в очередь отправки; оригинал не был отправлен
+
 Translated text hidden due to streamer mode
 == Переведённый текст скрыт из-за режима стримера
 
@@ -14063,14 +14168,14 @@ Translated text size
 Translating to %s...
 == Перевод на %s...
 
-Translation backend invalid, sending original
-== Бэкенд перевода недействителен, отправка оригинала
-
 Translation button active color
 == Цвет кнопки перевода во включённом состоянии
 
 Translation button cancel color
 == Цвет кнопки перевода в отключённом состоянии
+
+Translation canceled because the sender changed
+== Перевод отменён, поскольку отправитель изменился
 
 Translation color alpha migration completed flag
 == Флаг завершения переноса альфа-канала цветов перевода
@@ -14089,9 +14194,6 @@ Translation menu selected color
 
 Translation model was not found. Check the model name.
 == Модель перевода не найдена. Проверьте её имя.
-
-Translation queue full, sending original
-== Очередь перевода заполнена, отправка оригинала
 
 Translation service
 == Сервис перевода
@@ -14248,9 +14350,6 @@ UI server address
 
 UI size percentage
 == Размер UI (%)
-
-UI/UX
-== UI/UX
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == Не удалось удалить %d выбранных элементов. Первый неудачный элемент: «%s».
@@ -14465,11 +14564,11 @@ Update notice
 Update or add a specific war group
 == Обновить или добавить конкретную вражескую группу
 
-Update package available
-== Пакет обновления для этой версии доступен
-
 Update Rate
 == Частота обновления
+
+Update ready to install
+== Обновление готово к установке
 
 Upload .map files. Server and admin passwords: s.
 == Загрузите файлы .map. Пароли сервера и администратора: s.
@@ -14569,9 +14668,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == Использовать список врагов для управления индикаторами игроков
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== Использовать конвейер гауссова размытия при включённом расширенном рендеринге
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == Использовать режим высокой пропускной способности (удваивает пропускную способность сервера, только LAN)
@@ -14704,6 +14800,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == Скорость
+
+Verifying downloaded update...
+== Проверка загруженного обновления…
 
 Version
 == Версия

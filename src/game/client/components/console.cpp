@@ -1993,8 +1993,8 @@ void CGameConsole::OnRender()
 
 	const float ConsoleHeight = ConsoleHeightScale * MaxConsoleHeight;
 
-	const ColorRGBA ShadowColor = ColorRGBA(0.0f, 0.0f, 0.0f, 0.4f);
-	const ColorRGBA TransparentColor = ColorRGBA(0.0f, 0.0f, 0.0f, 0.0f);
+	const ColorRGBA ShadowColor = Palette.m_Shadow;
+	const ColorRGBA TransparentColor = ShadowColor.WithAlpha(0.0f);
 
 	const bool RestoreUiEnabled = Ui()->Enabled();
 	{
@@ -2009,9 +2009,11 @@ void CGameConsole::OnRender()
 	}
 
 	// 在日志和控制台背板之前保存底层画面，二级面板不透出清晰日志。
-	if(SettingsOpen && g_Config.m_QmUiPopupBlur)
+	if(SettingsOpen && g_Config.m_QmGaussianBlur)
 		Ui()->PrepareGaussianBlur();
 
+	// 两种控制台均只模糊底层画面一次，背板与工具栏沿用同一终端配色。
+	Ui()->RenderGaussianBlur({0.0f, 0.0f, Screen.w, ConsoleHeight}, ConsoleHeightScale, IGraphics::CORNER_NONE, 0.0f);
 	// 本地和远程控制台共用终端表面，命令、认证与日志仍由各自实例处理。
 	QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, ConsoleHeight}, Palette.m_aColors[QmConsoleAppearance::BACKGROUND]);
 	QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, RowHeight}, Palette.m_Panel);
@@ -2019,7 +2021,7 @@ void CGameConsole::OnRender()
 	// bottom border
 	Graphics()->TextureClear();
 	Graphics()->QuadsBegin();
-	Graphics()->SetColor(Palette.m_Panel);
+	Graphics()->SetColor(Palette.m_Border);
 	IGraphics::CQuadItem QuadItemBorder(0.0f, ConsoleHeight, Screen.w, 1.0f);
 	Graphics()->QuadsDrawTL(&QuadItemBorder, 1);
 	Graphics()->QuadsEnd();

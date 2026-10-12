@@ -1,5 +1,5 @@
-#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/SettingsCardGeometry.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/cards/QmCardMeasureRevision.h>
 
 #include <gtest/gtest.h>

@@ -14,11 +14,49 @@
 
 #include <gtest/gtest.h>
 
+TEST(SettingsPageLayout, UpdateContentFitsShortViewportAtLargeScale)
+{
+	const CUIRect Content{20, 60, 420, 148};
+	const float Scale = ui_widget::ResolveUpdatePanelContentScale(Content, 2.0f);
+	EXPECT_GT(Scale, 0.0f);
+	EXPECT_LT(Scale, 1.0f);
+	// 版本与状态在标题栏小字；单行操作与下载进度之外，仍可显示至少两行发布说明。
+	const float BodySize = ui_token::font::BODY * Scale;
+	const float Gap = ui_token::spacing::MD * Scale;
+	const float Actions = BodySize * ui_token::secondary_panel::UPDATE_ACTION_LINE_FACTOR + Gap;
+	const float Progress = BodySize * 1.7f + std::max(4.0f, Gap) + Gap;
+	EXPECT_GE(Content.h - Actions - Progress, 2.0f * BodySize);
+}
+
+TEST(SettingsPageLayout, UpdateContentKeepsRequestedScaleWhenSpaceAllows)
+{
+	EXPECT_FLOAT_EQ(ui_widget::ResolveUpdatePanelContentScale({0, 0, 600, 350}, 1.0f), 1.0f);
+	EXPECT_FLOAT_EQ(ui_widget::ResolveUpdatePanelContentScale({0, 0, 600, 350}, 0.5f), 0.5f);
+}
+
+TEST(SettingsPageLayout, UpdateSecondaryPanelFollowsViewportHeight)
+{
+	const CUIRect Viewport{0, 0, 1200, 600};
+	const CUIRect Panel = ResolveSettingsSecondaryPanelRect(Viewport, ESettingsSecondaryPanelKind::UPDATE, 1.0f);
+	// 更新面板与公告面板一致占满可用高度，不再使用固定扁窗高度。
+	EXPECT_FLOAT_EQ(Panel.h, Viewport.h - 4.0f * ui_token::spacing::LG);
+	EXPECT_FLOAT_EQ(Panel.y, (Viewport.h - Panel.h) * 0.5f);
+	EXPECT_FLOAT_EQ(Panel.w, std::min(ui_token::secondary_panel::UPDATE_WIDTH, Viewport.w - 2.0f * std::min(ui_token::spacing::LG, Viewport.w * 0.04f)));
+}
+
 #include <array>
 #include <limits>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+
+TEST(SettingsCardDeckScroll, BackgroundKeepsTheLiveOffsetWhileMeasurementStartsAtOrigin)
+{
+	EXPECT_FLOAT_EQ(ResolveSettingsCardDeckPassiveScrollOffset(true, true, -180.0f), -180.0f);
+	EXPECT_FLOAT_EQ(ResolveSettingsCardDeckPassiveScrollOffset(false, true, -180.0f), 0.0f);
+	EXPECT_FLOAT_EQ(ResolveSettingsCardDeckPassiveScrollOffset(true, false, -180.0f), 0.0f);
+	EXPECT_FLOAT_EQ(ResolveSettingsCardDeckPassiveScrollOffset(true, true, -40.0f), -40.0f);
+}
 
 TEST(SettingsPageLayout, ReleaseViewportMatrixKeepsCardsAndNavigationInsideTheWindow)
 {
@@ -102,11 +140,11 @@ TEST(SettingsPageLayout, SegmentedControlsKeepReadableSizeInNarrowAndWideContent
 		const CUIRect View{10.0f, 20.0f, Width, 100.0f};
 		const SSettingsRadioRowLayout Row = ResolveSettingsRadioRowLayout(View, 4, Metrics);
 		EXPECT_GE(ResolveSettingsRadioFontSize(Metrics), 12.0f);
-		EXPECT_GE(Row.m_ButtonsRect.h, 24.0f);
+		EXPECT_FLOAT_EQ(Row.m_ButtonsRect.h, Metrics.m_ButtonHeight);
 		EXPECT_LE(Row.m_ButtonsRect.y + Row.m_ButtonsRect.h, View.y + Row.m_Height);
 		EXPECT_LE(Row.m_ButtonsRect.x + Row.m_ButtonsRect.w, View.x + View.w);
-		if(Row.m_Stacked)
-			EXPECT_GE(Row.m_ButtonsRect.y, Row.m_LabelRect.y + Row.m_LabelRect.h + Metrics.m_LineSpacing);
+		EXPECT_FLOAT_EQ(Row.m_ButtonsRect.y, Row.m_LabelRect.y);
+		EXPECT_FLOAT_EQ(Row.m_Height, Metrics.m_LineHeight);
 		const SSettingsNestedRadioRowLayout Nested = ResolveSettingsNestedRadioRowLayout(View, Metrics);
 		EXPECT_EQ(Nested.m_ContainerRect.h, Row.m_ButtonsRect.h);
 		EXPECT_FLOAT_EQ(Nested.m_ContainerRect.y + Nested.m_ContainerRect.h, View.y + Nested.m_Height);
@@ -365,14 +403,14 @@ TEST(SettingsPageLayout, GpuControlsHideWithoutMultipleAdapters)
 			}
 }
 
-TEST(SettingsPageLayout, SelectableMultipleAdaptersUseOneDropdownWithoutSystemInstructions)
+TEST(SettingsPageLayout, SelectableMultipleAdaptersAlsoOfferAvailableSystemSettings)
 {
 	for(const bool HasSystemSettings : {false, true})
 	{
 		const auto Control = ResolveSettingsGpuControl(2, true, HasSystemSettings);
 		EXPECT_TRUE(Control.m_ShowSelector);
-		EXPECT_FALSE(Control.m_ShowSystemSettings);
-		EXPECT_EQ(Control.RowCount(), 1);
+		EXPECT_EQ(Control.m_ShowSystemSettings, HasSystemSettings);
+		EXPECT_EQ(Control.RowCount(), HasSystemSettings ? 2 : 1);
 	}
 }
 
@@ -381,7 +419,7 @@ TEST(SettingsPageLayout, SystemManagedMultipleAdaptersOnlyOfferSupportedSystemSe
 	const auto Windows = ResolveSettingsGpuControl(2, false, true);
 	EXPECT_FALSE(Windows.m_ShowSelector);
 	EXPECT_TRUE(Windows.m_ShowSystemSettings);
-	EXPECT_EQ(Windows.RowCount(), 3);
+	EXPECT_EQ(Windows.RowCount(), 1);
 	const auto WithoutSystemSettings = ResolveSettingsGpuControl(2, false, false);
 	EXPECT_FALSE(WithoutSystemSettings.m_ShowSelector);
 	EXPECT_FALSE(WithoutSystemSettings.m_ShowSystemSettings);
@@ -396,9 +434,39 @@ TEST(SettingsPageLayout, GpuControlsRecoverAcrossAdapterAndBackendChanges)
 	EXPECT_EQ(Control.RowCount(), 0);
 	Control = ResolveSettingsGpuControl(2, true, true);
 	EXPECT_TRUE(Control.m_ShowSelector);
-	EXPECT_EQ(Control.RowCount(), 1);
+	EXPECT_EQ(Control.RowCount(), 2);
 	Control = ResolveSettingsGpuControl(0, false, true);
 	EXPECT_EQ(Control.RowCount(), 0);
+}
+
+TEST(SettingsPageLayout, RuntimeGraphicsInfoSeparatesVulkanDriverFromActualApi)
+{
+	const auto Info = ResolveSettingsGraphicsRuntimeInfo("Vulkan 1.4.341 (driver: 610.88.0.0)", "Vulkan", 1, 4, 0);
+	EXPECT_EQ(Info.m_Backend, "Vulkan 1.4.341");
+	EXPECT_EQ(Info.m_Driver, "610.88.0.0");
+}
+
+TEST(SettingsPageLayout, RuntimeGraphicsInfoSeparatesOpenGlAndGlesDriverDescriptions)
+{
+	const auto Gl = ResolveSettingsGraphicsRuntimeInfo("4.6.0 NVIDIA 610.88", "OpenGL", 4, 6, 0);
+	EXPECT_EQ(Gl.m_Backend, "OpenGL 4.6.0");
+	EXPECT_EQ(Gl.m_Driver, "NVIDIA 610.88");
+	const auto Es = ResolveSettingsGraphicsRuntimeInfo("OpenGL ES 3.2 Mesa 24.0", "GLES", 3, 2, 0);
+	EXPECT_EQ(Es.m_Backend, "GLES 3.2.0");
+	EXPECT_EQ(Es.m_Driver, "Mesa 24.0");
+}
+
+TEST(SettingsPageLayout, RuntimeGraphicsInfoNeverInventsUnavailableDriverVersions)
+{
+	const auto Metal = ResolveSettingsGraphicsRuntimeInfo("Metal native", "", 0, 0, 0);
+	EXPECT_EQ(Metal.m_Backend, "Metal native");
+	EXPECT_TRUE(Metal.m_Driver.empty());
+	const auto Gl = ResolveSettingsGraphicsRuntimeInfo("4.6", "OpenGL", 4, 6, 0);
+	EXPECT_EQ(Gl.m_Backend, "OpenGL 4.6.0");
+	EXPECT_TRUE(Gl.m_Driver.empty());
+	const auto Empty = ResolveSettingsGraphicsRuntimeInfo(nullptr, nullptr, 0, 0, 0);
+	EXPECT_TRUE(Empty.m_Backend.empty());
+	EXPECT_TRUE(Empty.m_Driver.empty());
 }
 
 TEST(QmConsoleSettingsPanelLayout, PresetFitsContentAndCustomExpandsWithinScreen)
@@ -467,20 +535,6 @@ TEST(QmConsoleSettingsPanelLayout, ActivePopupWheelOwnerWinsAndConsumesOnlyOnce)
 	EXPECT_FLOAT_EQ(Delta, -1.0f);
 }
 
-TEST(QmConsoleSettingsPanelLayout, CustomColorRowsConsumeButtonHeightWithoutTrailingGap)
-{
-	for(float Width : {160.0f, 320.0f, 440.0f})
-	{
-		SCOPED_TRACE(Width);
-		const auto Metrics = ResolveSettingsContentMetrics(Width);
-		const auto Row = ResolveSettingsColorRowLayout({0, 0, Width, 1000}, Metrics, false, false);
-		EXPECT_FLOAT_EQ(Row.m_ConsumedHeight, Metrics.m_ButtonHeight);
-		EXPECT_FLOAT_EQ(QmConsoleSettingsLayout::ContentHeight(Metrics, true, 10) -
-					QmConsoleSettingsLayout::ContentHeight(Metrics, false, 10),
-			9.0f * Row.m_ConsumedHeight);
-	}
-}
-
 TEST(SettingsPageLayout, LegacyRnnoiseModeDoesNotReserveFallbackRows)
 {
 	for(const float Width : {420.0f, 700.0f, 1000.0f})
@@ -492,5 +546,23 @@ TEST(SettingsPageLayout, LegacyRnnoiseModeDoesNotReserveFallbackRows)
 		EXPECT_FLOAT_EQ(ResolveQmHudVoiceHeight(Metrics, true, true, true, -1, true, true), DisabledHeight);
 		EXPECT_FLOAT_EQ(ResolveQmHudVoiceHeight(Metrics, true, true, true, 99, true, true), DisabledHeight);
 		EXPECT_GT(ResolveQmHudVoiceHeight(Metrics, true, true, true, 1, true, true), DisabledHeight);
+	}
+}
+
+TEST(SettingsPageLayout, PairedControlsPreservePrimarySpaceAndSupportInPlaceSplitting)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(1000);
+	for(const float Width : {0.0f, 1.0f, 24.0f, 150.0f, 500.0f})
+	{
+		SCOPED_TRACE(Width);
+		CUIRect Primary{40, 60, Width, Metrics.m_LineHeight};
+		CUIRect Secondary;
+		SplitSettingsPairedControls(Primary, Metrics, &Primary, &Secondary);
+		EXPECT_GE(Primary.w, Width * 0.4f);
+		EXPECT_GE(Secondary.w, 0.0f);
+		EXPECT_GE(Secondary.x, Primary.x + Primary.w);
+		EXPECT_NEAR(Secondary.x + Secondary.w, 40.0f + Width, 0.0001f);
+		EXPECT_FLOAT_EQ(Primary.h, Metrics.m_LineHeight);
+		EXPECT_FLOAT_EQ(Secondary.h, Primary.h);
 	}
 }

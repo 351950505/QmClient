@@ -2260,7 +2260,7 @@ void CTClient::CheckHammerWakeupActions()
 			continue;
 		const auto &ClientData = GameClient()->m_aClients[ClientId];
 		Input.m_aSpectating[Dummy] = ClientData.m_Paused || ClientData.m_Spec ||
-			(Dummy == Input.m_ActiveConnection && GameClient()->m_Snap.m_SpecInfo.m_Active);
+					     (Dummy == Input.m_ActiveConnection && GameClient()->m_Snap.m_SpecInfo.m_Active);
 		const auto &Character = GameClient()->m_Snap.m_aCharacters[ClientId];
 		if(!Character.m_HasExtendedData || Character.m_pPrevExtendedData == nullptr)
 			continue;

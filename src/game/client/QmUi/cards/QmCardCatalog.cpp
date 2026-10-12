@@ -1,10 +1,15 @@
 #include "QmCardCatalogInternal.h"
 
+#include <engine/textrender.h>
+
 #include <game/client/QmUi/QmCardRegistry.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
+#include <game/client/components/menus.h>
 #include <game/client/ui.h>
 #include <game/localization.h>
 
 #include <algorithm>
+#include <optional>
 #include <utility>
 
 namespace qm_card_catalog
@@ -17,13 +22,14 @@ namespace qm_card_catalog
 				return false;
 			return std::any_of(vStableIds.begin(), vStableIds.end(), [pStableId](const char *pCandidate) { return str_comp(pCandidate, pStableId) == 0; });
 		}
-
-		uint64_t FoldRevision(uint64_t Hash, const uint64_t Revision)
-		{
-			return Hash * 1099511628211ULL ^ Revision;
-		}
 	} // namespace
 
+	void UseDeclaredModuleContent(const SQmCardBuildContext &Ctx, SSettingsCardDefinition &Out)
+	{
+		if(Ctx.m_pMenus == nullptr || !Out.m_RenderMeasured)
+			return;
+		qm_settings_content::UseDeclaredContent(Out, Ctx.m_UiContext.m_pUi, QmCardRenderHook::TextRenderer(Ctx.m_pMenus));
+	}
 	void MakeModuleCard(
 		const SQmCardBuildContext &Ctx,
 		const qm_module::EQmModuleId Id,
@@ -31,9 +37,6 @@ namespace qm_card_catalog
 		const char *pTitle,
 		const char *pSubtitle,
 		const FSettingsCardRenderMeasured &Render,
-		FSettingsCardMeasure Measure,
-		const uint64_t MeasureRevision,
-		FSettingsCardPreLayoutInput PreLayoutInput,
 		SSettingsCardDefinition &Out)
 	{
 		// 标题与描述以 QmCardRegistry 为唯一事实源；构建期未注册时退回卡片模块自带的默认串。
@@ -43,13 +46,6 @@ namespace qm_card_catalog
 
 		Out = {};
 		Out.m_Spec = {pStableId, pRegisteredTitle != nullptr ? pRegisteredTitle : Localize(pTitle), pRegisteredSubtitle != nullptr ? pRegisteredSubtitle : Localize(pSubtitle)};
-		// 统一使用内容回调探测实际消费高度。传入的静态 Measure 只作为桥接上下文
-		// 不可用时的兜底，避免新增卡片再次出现“渲染行数与测量常量不同步”。
-		Out.m_Measure = [pMenus = Ctx.m_pMenus, Render, Measure = std::move(Measure)](const float ContentWidth) {
-			if(pMenus != nullptr && Render)
-				return QmCardRenderHook::MeasureContent(pMenus, Render, ContentWidth);
-			return Measure ? std::max(0.0f, Measure(ContentWidth)) : 0.0f;
-		};
 		Out.m_Render = [Render](CUIRect Content) { Render(Content); };
 		Out.m_RenderMeasured = Render;
 		if(Ctx.m_pCollapsed != nullptr)
@@ -79,8 +75,6 @@ namespace qm_card_catalog
 			const IUiContext CardCtx = Ctx.m_UiContext;
 			Out.m_HeaderAction = [CardCtx, pCollapseButtons, Index](const SSettingsCardFrame &Frame, const bool Collapsed) { RenderSettingsCardCollapseButton(CardCtx, Frame.m_HandleRect, Collapsed, 1.0f, &pCollapseButtons[Index]); };
 		}
-		Out.m_MeasureRevision = MeasureRevision;
-		Out.m_PreLayoutInput = std::move(PreLayoutInput);
 	}
 
 	SQmFunctionCardLayoutState ResolveFunctionCardLayoutState(size_t FavoriteMapCount)
@@ -113,6 +107,10 @@ namespace qm_card_catalog
 		qm_module::EQmModuleId Id = qm_module::EQmModuleId::Info;
 		if(!qm_module::QmModuleIdFromStableId(pStableId, &Id))
 			return false;
+		if(Id == qm_module::EQmModuleId::Voice)
+			return BuildFunctionCard(Ctx, Id, Out);
+		if(Id == qm_module::EQmModuleId::ChatCompletion)
+			return BuildChatCompletionCard(Ctx, Out);
 		if(str_comp(pStableId, "qm:steam") == 0)
 			return BuildSteamCard(Ctx, Id, Out);
 		if(ContainsStableId(VisualCardStableIds(), pStableId))

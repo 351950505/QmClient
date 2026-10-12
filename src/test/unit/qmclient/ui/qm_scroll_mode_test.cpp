@@ -1,6 +1,6 @@
-#include <game/client/QmUi/QmScroll.h>
-
 #include <engine/shared/config.h>
+
+#include <game/client/QmUi/QmScroll.h>
 
 #include <gtest/gtest.h>
 

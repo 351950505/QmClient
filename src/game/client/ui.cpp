@@ -35,6 +35,20 @@
 
 using namespace FontIcons;
 
+namespace
+{
+	void MeasureEditBoxText(ITextRender *pTextRender, CLineInput *pLineInput, float FontSize, float LineWidth = -1.0f, float LineSpacing = 0.0f)
+	{
+		// 纯测量只收集字形和尺寸，不运行真实输入框的选区、光标及 IME 生命周期。
+		if(pLineInput->IsHidden())
+			return;
+		const char *pText = pLineInput->GetDisplayedString();
+		if(pText[0] == '\0' && pLineInput->GetEmptyText() != nullptr)
+			pText = pLineInput->GetEmptyText();
+		pTextRender->TextBoundingBox(FontSize, pText, -1, LineWidth, LineSpacing);
+	}
+}
+
 void CUIElement::Init(CUi *pUI, int RequestedRectCount)
 {
 	dbg_assert(m_pUI == nullptr, "UI element can only be registered once.");
@@ -143,6 +157,8 @@ void CUIElement::SUIElementRect::Reset()
 
 void CUIElement::SUIElementRect::Draw(const CUIRect *pRect, ColorRGBA Color, int Corners, float Rounding)
 {
+	if(m_pParent->Ui()->DrawingSuppressed())
+		return;
 	Rounding = m_pParent->Ui()->QmSurfaceRounding(Rounding);
 	bool NeedsRecreate = false;
 	if(m_UIRectQuadContainer == -1 || m_Width != pRect->w || m_Height != pRect->h || m_QuadColor != Color || m_Rounding != Rounding || m_Corners != Corners)
@@ -198,6 +214,7 @@ ITextRender *CUIElementBase::TextRender() const { return ms_pUi->TextRender(); }
 
 void CUi::Init(IKernel *pKernel)
 {
+	m_ControlAlphaScale = 1.0f;
 	m_pClient = pKernel->RequestInterface<IClient>();
 	m_pGraphics = pKernel->RequestInterface<IGraphics>();
 	m_pInput = pKernel->RequestInterface<IInput>();
@@ -509,12 +526,108 @@ void CUi::BeginWheelOwnershipFrame()
 
 void CUi::RegisterWheelOwner(const void *pOwnerId, EUiWheelOwnerPriority Priority, const CUIRect &HotRect, bool Eligible)
 {
-	QmRegisterWheelOwnerCandidate(m_WheelOwnership, {pOwnerId, Priority, HotRect, Eligible}, MousePos(), Enabled());
+	QmRegisterWheelOwnerCandidate(m_WheelOwnership, {pOwnerId, Priority, HotRect, Eligible && !WheelInputBlocked(pOwnerId)}, MousePos(), Enabled());
 }
 
 bool CUi::TryConsumeWheel(const void *pOwnerId, float *pDelta)
 {
-	return QmTryConsumeWheel(m_WheelOwnership, pOwnerId, pDelta);
+	return !WheelInputBlocked(pOwnerId) && QmTryConsumeWheel(m_WheelOwnership, pOwnerId, pDelta);
+}
+
+bool CUi::WheelInputBlocked(const void *pOwnerId) const
+{
+	if(RenderOnly() || !Enabled())
+		return true;
+	const auto Top = std::find_if(m_vPopupMenus.rbegin(), m_vPopupMenus.rend(), [](const SPopupMenu &Popup) { return !Popup.m_Closing; });
+	if(Top == m_vPopupMenus.rend())
+		return false;
+	// 父回调可为活动子列表预登记，但自己的正文不得抢先消费子层滚轮。
+	if(pOwnerId == Top->m_pId)
+		return false;
+	if(m_RenderingPopupMenus)
+		return m_pRenderingPopupId != Top->m_pId;
+	return std::any_of(m_vPopupMenus.begin(), m_vPopupMenus.end(), [](const SPopupMenu &Popup) {
+		return !Popup.m_Closing && Popup.m_Props.m_CenterInViewport && Popup.m_Props.m_BlockUnderlyingScroll;
+	});
+}
+
+void CUi::SetKeyboardFocus(const void *pId)
+{
+	if(RenderOnly() || UnderlyingPointerInputBlocked())
+		return;
+	m_KeyboardFocus = {};
+	m_KeyboardFocus.m_pItem = pId;
+	m_KeyboardFocus.m_pPopupId = m_pRenderingPopupId;
+	m_KeyboardFocus.m_Source.Assign(m_pInteractionContext, m_pInteractionCardId, PopupSourceFrame());
+	m_KeyboardFocus.m_Frame = PopupSourceFrame();
+}
+
+void CUi::QueuePopupFocusRestore(const SPopupFocus &Focus)
+{
+	m_PendingPopupFocus = Focus;
+	m_PendingPopupFocus.m_Frame = PopupSourceFrame();
+}
+
+void CUi::RestorePopupFocus(const void *pId, CLineInput *pLineInput)
+{
+	if(RenderOnly() || UnderlyingPointerInputBlocked() || m_PendingPopupFocus.m_pItem != pId ||
+		m_PendingPopupFocus.m_pPopupId != m_pRenderingPopupId)
+		return;
+	if(m_PendingPopupFocus.m_Source.Context() != m_pInteractionContext ||
+		(m_PendingPopupFocus.m_Source.CardId() != nullptr ?
+				!m_PendingPopupFocus.m_Source.Matches(m_pInteractionContext, m_pInteractionCardId) :
+				m_pInteractionCardId != nullptr))
+		return;
+	const bool RestoreText = pLineInput != nullptr && m_PendingPopupFocus.m_pTextInput == pLineInput;
+	m_PendingPopupFocus = {};
+	SetKeyboardFocus(pId);
+	if(RestoreText)
+	{
+		// 只在真实控件确认存活后解引用，保留其光标与选择，不模拟鼠标按下。
+		m_pLastActiveItem = pLineInput;
+		TrackActiveTextInput(pLineInput);
+		pLineInput->Activate(EInputPriority::UI);
+	}
+}
+
+int CUi::DoButtonGroupKeyboard(const void *const *ppIds, const bool *pEnabled, int Count)
+{
+	if(RenderOnly() || UnderlyingPointerInputBlocked() || !Enabled() || CLineInput::GetActiveInput() != nullptr || Count <= 0)
+		return -1;
+	int Focused = -1;
+	for(int Index = 0; Index < Count; ++Index)
+	{
+		RestorePopupFocus(ppIds[Index]);
+		if(m_KeyboardFocus.m_pItem == ppIds[Index])
+			Focused = Index;
+	}
+	const bool Tab = CLineInput::GetActiveInput() == nullptr && ConsumeHotkey(HOTKEY_TAB);
+	const bool Backward = Tab ? Input()->ShiftIsPressed() : Focused >= 0 && ConsumeHotkey(HOTKEY_LEFT);
+	const bool Forward = !Tab && Focused >= 0 && ConsumeHotkey(HOTKEY_RIGHT);
+	if(Tab || Backward || Forward || (Focused >= 0 && !pEnabled[Focused]))
+	{
+		const int Step = Backward ? -1 : 1;
+		int Next = Focused >= 0 ? Focused : Backward ? 0 :
+							       Count - 1;
+		Focused = -1;
+		for(int Attempt = 0; Attempt < Count; ++Attempt)
+		{
+			Next = (Next + Step + Count) % Count;
+			if(pEnabled[Next])
+			{
+				Focused = Next;
+				break;
+			}
+		}
+		SetKeyboardFocus(Focused >= 0 ? ppIds[Focused] : nullptr);
+	}
+	if(Focused >= 0)
+	{
+		m_KeyboardFocus.m_Frame = PopupSourceFrame();
+		if(pEnabled[Focused] && ConsumeHotkey(HOTKEY_ENTER))
+			return Focused;
+	}
+	return -1;
 }
 
 void CUi::TrackActiveTextInput(CLineInput *pLineInput)
@@ -548,6 +661,10 @@ void CUi::ReleaseTrackedTextInput()
 void CUi::Update()
 {
 	m_PopupSourceClock.Update(Client()->PerfFrame());
+	if(!IsPopupOpen() && PopupSourceFrame() > m_KeyboardFocus.m_Frame + 1)
+		m_KeyboardFocus = {};
+	if(PopupSourceFrame() > m_PendingPopupFocus.m_Frame + 1)
+		m_PendingPopupFocus = {};
 	PruneInteractionSources(true);
 	// 孤儿阻断弹窗兜底清扫：要求来源每帧刷新的弹窗（下拉选择弹层等）若连续
 	// 两帧未刷新，说明来源渲染已停止且当前没有任何 RenderPopupMenus 调用方
@@ -565,7 +682,7 @@ void CUi::Update()
 			continue;
 		}
 		// ClosePopupMenu 至少移除目标自身（并按栈序连带其上方子弹窗），索引不前进
-		ClosePopupMenu(PopupMenu.m_pId, true);
+		ClosePopupMenu(PopupMenu.m_pId, true, false);
 	}
 	BeginWheelOwnershipFrame();
 	m_MenuUiFirstWheelPerf = false;
@@ -605,7 +722,7 @@ void CUi::Update()
 			// Scroll currently hovered scroll region with touch scroll gesture.
 			if(m_TouchState.m_ScrollAmount != vec2(0.0f, 0.0f))
 			{
-				if(m_pHotScrollRegion != nullptr)
+				if(m_pHotScrollRegion != nullptr && !RenderOnly() && !IsPopupOpen())
 				{
 					m_pHotScrollRegion->ScrollRelativeDirect(-m_TouchState.m_ScrollAmount * pScreen->Size());
 				}
@@ -885,9 +1002,9 @@ void CUi::MapScreen()
 	Graphics()->MapScreen(pScreen->x, pScreen->y, pScreen->w, pScreen->h);
 }
 
-float CUi::PixelSize()
+float CUi::PixelSize() const
 {
-	return Screen()->w / Graphics()->ScreenWidth();
+	return QmUiVirtualScreenHeight(g_Config.m_QmUiScale) * Graphics()->ScreenAspect() / Graphics()->ScreenWidth();
 }
 
 void CUi::BeginRenderOnly()
@@ -1053,6 +1170,8 @@ void CUi::EndQuadBatch() const
 
 void CUi::RenderBatchableRect(const CUIRect *pRect, ColorRGBA Color, int Corners, float Rounding) const
 {
+	if(DrawingSuppressed())
+		return;
 	if(Color.a > 0.0f && Color.a < 1.0f && GaussianBlurScopeActive())
 		const_cast<CUi *>(this)->RenderGaussianBlur(*pRect, GaussianBlurScopeAlpha(), Corners, Rounding);
 	const int QuadContainerIndex = QuadBatchRectContainer(pRect->w, pRect->h, Rounding, Corners);
@@ -1069,6 +1188,7 @@ int CUi::DoButtonLogic(const void *pId, int Checked, const CUIRect *pRect, const
 {
 	if(RenderOnly())
 		return 0;
+	RestorePopupFocus(pId);
 
 	int ReturnValue = 0;
 	const bool Inside = MouseHovered(pRect);
@@ -1121,6 +1241,8 @@ int CUi::DoButtonLogic(const void *pId, int Checked, const CUIRect *pRect, const
 	if(Inside && NoRelevantButtonsPressed)
 		SetHotItem(pId);
 
+	if(ReturnValue != 0)
+		SetKeyboardFocus(pId);
 	return ReturnValue;
 }
 
@@ -1474,7 +1596,7 @@ const char *CUi::PrepareCardLabel(const CUIRect *pRect, const char *pText, bool 
 
 void CUi::ObserveSettingsSearchLabel(const CUIRect *pRect, std::string_view Text, bool IconFont) const
 {
-	if(m_pSettingsSearchHighlight == nullptr || pRect == nullptr || RenderOnly() || RenderingPopupMenus() || IconFont || !m_pSettingsSearchHighlight->ObserveLabel(Text, *pRect))
+	if(m_pSettingsSearchHighlight == nullptr || pRect == nullptr || MeasurementOnly() || (BackgroundRender() && m_ContentDrawDepth != m_BackgroundRenderDepth) || RenderingPopupMenus() || IconFont || !m_pSettingsSearchHighlight->ObserveLabel(Text, *pRect))
 		return;
 	DrawSettingsSearchHighlight(*pRect);
 }
@@ -1482,7 +1604,7 @@ void CUi::ObserveSettingsSearchLabel(const CUIRect *pRect, std::string_view Text
 void CUi::DrawSettingsSearchHighlight(const CUIRect &Rect) const
 {
 	// 预布局只记录命中坐标，最终绘制仍由卡片的正常渲染阶段负责。
-	if(PreLayoutInput() || !m_pSettingsSearchHighlight->TryMarkHighlightDrawn(Rect))
+	if(DrawingSuppressed() || !m_pSettingsSearchHighlight->TryMarkHighlightDrawn(Rect))
 		return;
 	const ColorRGBA Accent = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(std::clamp(g_Config.m_QmUiAccentOpacity / 100.0f, 0.0f, 1.0f));
 	SRoundedSurfaceParams Params;
@@ -1493,16 +1615,26 @@ void CUi::DrawSettingsSearchHighlight(const CUIRect &Rect) const
 	DrawRoundedSurface(Graphics(), Rect, ScaleBackgroundAlpha(Accent.WithMultipliedAlpha(0.16f)), ScaleBackgroundAlpha(Accent.WithMultipliedAlpha(0.70f)), Params);
 }
 
+void CUi::DoText(float X, float Y, float Size, const char *pText, float LineWidth) const
+{
+	if(DrawingSuppressed())
+		return;
+	FlushQuadBatch();
+	TextRender()->Text(X, Y, Size, pText, LineWidth);
+}
+
 CLabelResult CUi::DoLabel(const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps) const
 {
+	if(PreLayoutInput())
+		return {};
 	pText = PrepareCardLabel(pRect, pText);
 	ObserveSettingsSearchLabel(pRect, pText, TextRender()->GetFontPreset() != EFontPreset::DEFAULT_FONT);
 	const SQmIconLabelGlyphs Icons = QmIconLabelGlyphs(TextRender()->GetFontPreset(), pText);
 	const CQmIconLabelFontScope FontScope(*TextRender(), Icons);
-	if(Icons.m_Count > 0 && pRect->w >= Size * Icons.m_Count && pRect->h >= Size && LabelProps.m_vColorSplits.empty() && LabelProps.m_MaxWidth < 0 && DrawCachedQmIconLabel(*pRect, pText, Size, Align, Icons.m_Count))
+	if(!DrawingSuppressed() && Icons.m_Count > 0 && pRect->w >= Size * Icons.m_Count && pRect->h >= Size && LabelProps.m_vColorSplits.empty() && LabelProps.m_MaxWidth < 0 && DrawCachedQmIconLabel(*pRect, pText, Size, Align, Icons.m_Count))
 		return CLabelResult{};
 
-	const int Flags = GetFlagsForLabelProperties(LabelProps, nullptr);
+	const int Flags = GetFlagsForLabelProperties(LabelProps, nullptr) & (MeasurementOnly() ? ~TEXTFLAG_RENDER : ~0);
 	const SCursorAndBoundingBox TextBounds = CalcFontSizeCursorHeightAndBoundingBox(TextRender(), pText, Flags, Size, pRect->w, LabelProps);
 	const vec2 CursorPos = CalcAlignedCursorPos(pRect, TextBounds.m_TextSize, Align, TextBounds.m_LineCount == 1 ? &TextBounds.m_BiggestCharacterHeight : nullptr);
 
@@ -1510,10 +1642,12 @@ CLabelResult CUi::DoLabel(const CUIRect *pRect, const char *pText, float Size, i
 	Cursor.SetPosition(CursorPos);
 	Cursor.m_FontSize = Size;
 	Cursor.m_Flags |= Flags;
+	if(MeasurementOnly())
+		Cursor.m_Flags &= ~TEXTFLAG_RENDER;
 	Cursor.m_vColorSplits = LabelProps.m_vColorSplits;
 	Cursor.m_LineWidth = (float)LabelProps.m_MaxWidth;
 	FlushQuadBatch();
-	if(Icons.m_Count > 0)
+	if(Icons.m_Count > 0 && !MeasurementOnly())
 	{
 		const EQmIcon Icon = Icons.m_Count == 1 ? Icons.m_aIcons[0] : EQmIcon::COUNT;
 		const ColorRGBA IconColor = ConfiguredQmUiIconColor(TextRender()->GetTextColor(), Icon);
@@ -1571,7 +1705,7 @@ void CUi::DoLabel(CUIElement::SUIElementRect &RectEl, const CUIRect *pRect, cons
 
 void CUi::RenderLabelTextContainerAligned(const CUIElement::SUIElementRect &RectEl, const CUIRect *pRect, int Align) const
 {
-	if(pRect == nullptr || !RectEl.m_UITextContainer.Valid())
+	if(DrawingSuppressed() || pRect == nullptr || !RectEl.m_UITextContainer.Valid())
 		return;
 	ObserveSettingsSearchLabel(pRect, RectEl.m_SettingsSearchLabel, RectEl.m_FontPreset != EFontPreset::DEFAULT_FONT);
 
@@ -1589,6 +1723,7 @@ void CUi::RenderLabelTextContainerAligned(const CUIElement::SUIElementRect &Rect
 
 void CUi::DoLabelStreamed(CUIElement::SUIElementRect &RectEl, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps, int StrLen, const CTextCursor *pReadCursor, bool Render, bool *pTextContainerRecreated) const
 {
+	Render = Render && !DrawingSuppressed();
 	if(StrLen < 0 && pReadCursor == nullptr)
 		pText = PrepareCardLabel(pRect, pText, Render);
 	const int Flags = GetFlagsForLabelProperties(LabelProps, pReadCursor);
@@ -1679,17 +1814,23 @@ bool CUi::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 	const CUIRect *pHitRect = RenderOptions.m_pHitRect != nullptr ? RenderOptions.m_pHitRect : pRect;
 	CUIRect Textbox;
 	pRect->VMargin(VSpacing, &Textbox);
-	if(RenderOnly())
+	if(MeasurementOnly())
+	{
+		MeasureEditBoxText(TextRender(), pLineInput, FontSize);
+		return false;
+	}
+	if(RenderOnly() || !RenderOptions.m_ProcessInput)
 	{
 		if(RenderOptions.m_DrawBackground)
 			DrawRoundedSurface(this, *pRect, ResolveConfiguredInputSurface(), ColorRGBA(), EditBoxRounding, 0.0f, Corners);
 		ClipEnable(pRect);
-		Textbox.x -= pLineInput->GetScrollOffset();
-		pLineInput->Render(&Textbox, FontSize, Align, false, -1.0f, 0.0f, vColorSplits);
+		Textbox.x -= pLineInput->IsEmpty() ? 0.0f : pLineInput->GetScrollOffset();
+		pLineInput->Render(&Textbox, FontSize, Align, false, -1.0f, 0.0f, vColorSplits, PreLayoutInput() ? CLineInput::ERenderMode::GEOMETRY : CLineInput::ERenderMode::DRAW);
 		ClipDisable();
 		return false;
 	}
 
+	RestorePopupFocus(pLineInput, pLineInput);
 	const bool Inside = MouseHovered(pHitRect);
 	bool Active = m_pLastActiveItem == pLineInput;
 	const bool Changed = pLineInput->WasChanged();
@@ -1790,7 +1931,7 @@ bool CUi::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 		DrawRoundedSurface(this, *pRect, ResolveConfiguredInputSurface(), ColorRGBA(), EditBoxRounding, 0.0f, Corners);
 	ClipEnable(pRect);
 	Textbox.x -= ScrollOffset;
-	const STextBoundingBox BoundingBox = pLineInput->Render(&Textbox, FontSize, Align, Changed || CursorChanged, -1.0f, 0.0f, vColorSplits);
+	const STextBoundingBox BoundingBox = pLineInput->Render(&Textbox, FontSize, Align, Changed || CursorChanged, -1.0f, 0.0f, vColorSplits, PreLayoutInput() ? CLineInput::ERenderMode::GEOMETRY : CLineInput::ERenderMode::DRAW);
 	ClipDisable();
 
 	// Scroll left or right if necessary
@@ -1813,22 +1954,36 @@ bool CUi::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 
 bool CUi::DoEditBoxMultiLine(CLineInput *pLineInput, const CUIRect *pRect, float FontSize, float LineSpacing, int TextAlign, const SEditBoxRenderOptions &RenderOptions)
 {
-	DoConfigTooltip(pLineInput, RenderOptions.m_pHitRect != nullptr ? RenderOptions.m_pHitRect : pRect, pLineInput->GetString());
-	CUiScopedSurfaceText SurfaceText(TextRender(), ResolveConfiguredInputSurface(), RenderOptions.m_DrawBackground);
 	if(pLineInput == nullptr || pRect == nullptr)
 		return false;
-
-	const CUIRect *pHitRect = RenderOptions.m_pHitRect != nullptr ? RenderOptions.m_pHitRect : pRect;
-	const bool Inside = MouseHovered(pHitRect);
-	bool Active = ActiveItem() == pLineInput || pLineInput->IsActive();
-	const bool Changed = pLineInput->WasChanged();
-	const bool CursorChanged = pLineInput->WasCursorChanged();
-	const bool ClickedOutside = (MouseButtonClicked(0) || MouseButtonClicked(1)) && !Inside;
+	DoConfigTooltip(pLineInput, RenderOptions.m_pHitRect != nullptr ? RenderOptions.m_pHitRect : pRect, pLineInput->GetString());
+	CUiScopedSurfaceText SurfaceText(TextRender(), ResolveConfiguredInputSurface(), RenderOptions.m_DrawBackground);
 
 	constexpr float VSpacing = 2.0f;
 	CUIRect Textbox;
 	pRect->VMargin(VSpacing, &Textbox);
 	const float LineWidth = Textbox.w;
+	if(MeasurementOnly())
+	{
+		MeasureEditBoxText(TextRender(), pLineInput, FontSize, LineWidth, LineSpacing);
+		return false;
+	}
+	if(RenderOnly() || !RenderOptions.m_ProcessInput)
+	{
+		if(RenderOptions.m_DrawBackground)
+			DrawRoundedSurface(this, *pRect, ResolveConfiguredInputSurface(), ColorRGBA(), ui_token::radius::TIGHT);
+		ClipEnable(pRect);
+		pLineInput->Render(&Textbox, FontSize, TextAlign, false, LineWidth, LineSpacing, {}, PreLayoutInput() ? CLineInput::ERenderMode::GEOMETRY : CLineInput::ERenderMode::DRAW);
+		ClipDisable();
+		return false;
+	}
+	RestorePopupFocus(pLineInput, pLineInput);
+	const CUIRect *pHitRect = RenderOptions.m_pHitRect != nullptr ? RenderOptions.m_pHitRect : pRect;
+	const bool Inside = MouseHovered(pHitRect);
+	bool Active = ActiveItem() == pLineInput || pLineInput->IsActive();
+	const bool ClickedOutside = (MouseButtonClicked(0) || MouseButtonClicked(1)) && !Inside;
+	const bool Changed = pLineInput->WasChanged();
+	const bool CursorChanged = pLineInput->WasCursorChanged();
 
 	bool JustGotActive = false;
 	if(CheckActiveItem(pLineInput))
@@ -1902,7 +2057,7 @@ bool CUi::DoEditBoxMultiLine(CLineInput *pLineInput, const CUIRect *pRect, float
 	if(RenderOptions.m_DrawBackground)
 		DrawRoundedSurface(this, *pRect, ResolveConfiguredInputSurface(), ColorRGBA(), ui_token::radius::TIGHT);
 	ClipEnable(pRect);
-	pLineInput->Render(&Textbox, FontSize, TextAlign, Changed || CursorChanged, LineWidth, LineSpacing);
+	pLineInput->Render(&Textbox, FontSize, TextAlign, Changed || CursorChanged, LineWidth, LineSpacing, {}, PreLayoutInput() ? CLineInput::ERenderMode::GEOMETRY : CLineInput::ERenderMode::DRAW);
 	ClipDisable();
 
 	pLineInput->SetScrollOffset(0.0f);
@@ -1931,7 +2086,7 @@ bool CUi::DoClearableEditBox(CLineInput *pLineInput, const CUIRect *pRect, float
 
 	bool ReturnValue = DoEditBox(pLineInput, &EditBox, FontSize, Corners & ~IGraphics::CORNER_R, vColorSplits, TEXTALIGN_ML, RenderOptions);
 
-	DrawRoundedSurface(this, ClearButton, ScaleBackgroundAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f * ButtonColorMul(pLineInput->GetClearButtonId()))), ColorRGBA(), EditBoxRounding, 0.0f, Corners & ~IGraphics::CORNER_L);
+	DrawRoundedSurface(this, ClearButton, ScaleControlAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f * ButtonColorMul(pLineInput->GetClearButtonId()))), ColorRGBA(), EditBoxRounding, 0.0f, Corners & ~IGraphics::CORNER_L);
 	TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 	DoLabel(&ClearButton, "×", ClearButton.h * CUi::ms_FontmodHeight * 0.8f, TEXTALIGN_MC);
 	TextRender()->SetRenderFlags(PreviousRenderFlags);
@@ -1942,7 +2097,7 @@ bool CUi::DoClearableEditBox(CLineInput *pLineInput, const CUIRect *pRect, float
 	if(DoButtonLogic(pLineInput->GetClearButtonId(), 0, &ClearButton, BUTTONFLAG_LEFT))
 	{
 		CUiScopedGaussianBlurSuppression GaussianBlurSuppression(this);
-		ClearButton.Draw(ScaleBackgroundAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f * ButtonColorMul(pLineInput->GetClearButtonId()))), Corners & ~IGraphics::CORNER_L, EditBoxRounding);
+		ClearButton.Draw(ScaleControlAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.33f * ButtonColorMul(pLineInput->GetClearButtonId()))), Corners & ~IGraphics::CORNER_L, EditBoxRounding);
 		TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 		DoLabel(&ClearButton, "×", ClearButton.h * CUi::ms_FontmodHeight * 0.8f, TEXTALIGN_MC);
 		TextRender()->SetRenderFlags(0);
@@ -1992,7 +2147,7 @@ bool CUi::DoEditBox_Search(CLineInput *pLineInput, const CUIRect *pRect, float F
 
 void CUi::DoConfigTooltip(const void *pId, const CUIRect *pRect, const void *pValue, const void *pSecondValue)
 {
-	if(m_pSettingsSearchHighlight != nullptr && pRect != nullptr && !RenderOnly() && !RenderingPopupMenus())
+	if(m_pSettingsSearchHighlight != nullptr && pRect != nullptr && !MeasurementOnly() && (!BackgroundRender() || m_ContentDrawDepth == m_BackgroundRenderDepth) && !RenderingPopupMenus())
 	{
 		// 配置地址提供完整行的几何，后续标签绘制共用去重记录。
 		bool Matched = m_pSettingsSearchHighlight->ObserveConfig(pValue, *pRect);
@@ -2003,6 +2158,24 @@ void CUi::DoConfigTooltip(const void *pId, const CUIRect *pRect, const void *pVa
 	}
 	if(m_pQmTooltips != nullptr)
 		m_pQmTooltips->DoConfigToolTip(pId, pRect, pValue, pSecondValue);
+}
+
+void CUi::DoButtonTooltip(const void *pId, const CUIRect *pRect, const char *pText)
+{
+	if(!RenderOnly() && m_pQmTooltips != nullptr && pText != nullptr)
+		m_pQmTooltips->DoToolTipForRect(pId, pRect, pText);
+}
+
+void CUi::DoTooltip(const void *pId, const CUIRect *pNearRect, const char *pText, float WidthHint)
+{
+	if(m_pQmTooltips != nullptr)
+		m_pQmTooltips->DoToolTip(pId, pNearRect, pText, WidthHint);
+}
+
+void CUi::DoSmallTooltip(const void *pId, const CUIRect *pNearRect, const char *pText, float FontSize, float WidthHint)
+{
+	if(m_pQmTooltips != nullptr)
+		m_pQmTooltips->DoSmallToolTip(pId, pNearRect, pText, FontSize, WidthHint);
 }
 
 const SUiTheme &CUi::QmControlTheme()
@@ -2023,6 +2196,8 @@ const SUiTheme &CUi::QmControlTheme()
 
 int CUi::DoButton_Menu(CUIElement &UIElement, const CButtonContainer *pId, const std::function<const char *()> &GetTextLambda, const CUIRect *pRect, const SMenuButtonProperties &Props)
 {
+	if(PreLayoutInput())
+		return Props.m_Enabled && Props.m_Checked >= 0 ? DoButtonLogic(pId, Props.m_Checked, pRect, Props.m_Flags) : 0;
 	CUiScopedGaussianBlurSuppression GaussianBlurSuppression(this);
 	ui_widget::SButtonSurfaceOptions SurfaceOptions;
 	SurfaceOptions.m_Enabled = Props.m_Enabled && Props.m_Checked >= 0;
@@ -2040,6 +2215,24 @@ int CUi::DoButton_Menu(CUIElement &UIElement, const CButtonContainer *pId, const
 	{
 		Text.VSplitRight(pRect->h * 0.25f, &Text, nullptr);
 		Text.VSplitRight(pRect->h * 0.75f, &Text, &DropDownIcon);
+	}
+
+	if(RenderOnly())
+	{
+		// 后台保留触发器完整外观，不初始化或改写菜单输入缓存。
+		const EFontPreset PreviousPreset = TextRender()->GetFontPreset();
+		if(Props.m_UseIconFont)
+			TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+		if(!SurfaceOptions.m_Enabled)
+		{
+			TextRender()->TextColor(TextRender()->GetTextColor().WithAlpha(TextRender()->GetTextColor().a * 0.65f));
+			TextRender()->TextOutlineColor(TextRender()->GetTextOutlineColor().WithAlpha(TextRender()->GetTextOutlineColor().a * 0.65f));
+		}
+		DoLabel(&Text, GetTextLambda(), FontSize, TEXTALIGN_MC);
+		TextRender()->SetFontPreset(PreviousPreset);
+		if(Props.m_ShowDropDownIcon)
+			DoLabel_QmIcon(&DropDownIcon, EQmIcon::CIRCLE_CHEVRON_DOWN, FONT_ICON_CIRCLE_CHEVRON_DOWN, DropDownIcon.h * CUi::ms_FontmodHeight, TEXTALIGN_MR);
+		return 0;
 	}
 
 	// 只缓存文字。背景和状态反馈由公共按钮绘制，避免为每个状态重复缓存矩形。
@@ -2196,6 +2389,9 @@ int CUi::DoButton_PopupMenu(CButtonContainer *pButtonContainer, const char *pTex
 	Options.m_Color = ButtonColor;
 	const ColorRGBA Fill = ui_widget::DrawButtonSurface(ui_widget::ControlContext(this), pButtonContainer, *pRect, Options);
 	CUiScopedSurfaceText SurfaceText(TextRender(), Fill);
+	// 表面选择前景色后仍须遵守父层显隐，不能恢复成不透明文字。
+	TextRender()->TextColor(ScaleControlAlpha(TextRender()->GetTextColor()));
+	TextRender()->TextOutlineColor(ScaleControlAlpha(TextRender()->GetTextOutlineColor()));
 
 	CUIRect Label;
 	pRect->Margin(Padding, &Label);
@@ -2496,13 +2692,13 @@ float CUi::DoScrollbarV(const void *pId, const CUIRect *pRect, float Current)
 	if(QmAnimationRuntime() != nullptr)
 	{
 		const auto Style = ResolveUiSliderStyle(QmControlTheme(), CUiScopedSurfaceText::CurrentSurface(), HotItem() == pId, CheckActiveItem(pId));
-		DrawRoundedSurface(this, Rail, ScaleBackgroundAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
+		DrawRoundedSurface(this, Rail, ScaleControlAlpha(Style.m_Track), ColorRGBA(), ui_token::radius::PILL);
 		ui_widget::DrawScrollbarHandle(ui_widget::ControlContext(this), pId, Handle);
 	}
 	else
 	{
-		DrawRoundedSurface(this, Rail, ScaleBackgroundAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.25f)), ColorRGBA(), Rail.w / 2.0f);
-		DrawRoundedSurface(this, Handle, ScaleBackgroundAlpha(ms_ScrollBarColorFunction.GetColor(CheckActiveItem(pId), HotItem() == pId)), ColorRGBA(), Handle.w / 2.0f);
+		DrawRoundedSurface(this, Rail, ScaleControlAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.25f)), ColorRGBA(), Rail.w / 2.0f);
+		DrawRoundedSurface(this, Handle, ScaleControlAlpha(ms_ScrollBarColorFunction.GetColor(CheckActiveItem(pId), HotItem() == pId)), ColorRGBA(), Handle.w / 2.0f);
 	}
 
 	return ReturnValue;
@@ -2531,17 +2727,17 @@ void CUi::RenderScrollbarH(const void *pId, const CUIRect *pRect, float Current,
 	VisualRail.VMargin(HandleSize * 0.5f, &VisualRail);
 	VisualRail.h = std::clamp(pRect->h * 0.12f, 2.0f, 3.0f);
 	VisualRail.y = pRect->y + (pRect->h - VisualRail.h) * 0.5f;
-	VisualRail.Draw(ScaleBackgroundAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.28f)), IGraphics::CORNER_ALL, VisualRail.h * 0.5f);
+	VisualRail.Draw(ScaleControlAlpha(ColorRGBA(1.0f, 1.0f, 1.0f, 0.28f)), IGraphics::CORNER_ALL, VisualRail.h * 0.5f);
 	if(pColorInner)
 	{
-		Handle.Draw(ScaleBackgroundAlpha(ColorRGBA(0.08f, 0.08f, 0.08f, 0.75f)), IGraphics::CORNER_ALL, HandleSize * 0.5f);
+		Handle.Draw(ScaleControlAlpha(ColorRGBA(0.08f, 0.08f, 0.08f, 0.75f)), IGraphics::CORNER_ALL, HandleSize * 0.5f);
 		CUIRect InnerHandle;
 		Handle.Margin(2.0f, &InnerHandle);
-		InnerHandle.Draw(ScaleBackgroundAlpha(pColorInner->Multiply(HandleColor)), IGraphics::CORNER_ALL, InnerHandle.h * 0.5f);
+		InnerHandle.Draw(ScaleControlAlpha(pColorInner->Multiply(HandleColor)), IGraphics::CORNER_ALL, InnerHandle.h * 0.5f);
 	}
 	else
 	{
-		Handle.Draw(ScaleBackgroundAlpha(HandleColor), IGraphics::CORNER_ALL, HandleSize * 0.5f);
+		Handle.Draw(ScaleControlAlpha(HandleColor), IGraphics::CORNER_ALL, HandleSize * 0.5f);
 	}
 }
 

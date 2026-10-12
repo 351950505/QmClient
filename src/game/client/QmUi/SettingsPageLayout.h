@@ -18,6 +18,9 @@
 #include <array>
 #include <cstdint>
 #include <initializer_list>
+#include <string>
+#include <utility>
+#include <vector>
 
 struct SSettingsPageLayoutFrame
 {
@@ -46,11 +49,36 @@ struct SSettingsShellLayoutFrame
 	bool m_TwoColumns = false;
 };
 
-// 大型二级面板沿用字体商店的视口占比与尺寸上限。
-inline CUIRect ResolveSettingsSecondaryPanelRect(const CUIRect &Viewport)
+enum class ESettingsSecondaryPanelKind
 {
-	const float Width = std::min(780.0f, std::max(0.0f, Viewport.w) * 0.74f);
-	const float Height = std::min(470.0f, std::max(0.0f, Viewport.h) * 0.74f);
+	LIBRARY,
+	NEWS,
+	UPDATE,
+};
+
+// 共享布局策略沿用各用途原有尺寸；狭小视口仍夹在可用范围内。
+inline CUIRect ResolveSettingsSecondaryPanelRect(const CUIRect &Viewport, const ESettingsSecondaryPanelKind Kind = ESettingsSecondaryPanelKind::LIBRARY, const float UiScale = 1.0f)
+{
+	const float Scale = std::clamp(UiScale, 0.5f, 2.0f);
+	float Width;
+	float Height;
+	if(Kind == ESettingsSecondaryPanelKind::NEWS)
+	{
+		Width = std::min(ui_token::secondary_panel::NEWS_WIDTH * Scale, std::max(0.0f, Viewport.w - 2.0f * ui_token::spacing::LG));
+		Height = std::max(0.0f, Viewport.h - 4.0f * ui_token::spacing::LG);
+	}
+	else if(Kind == ESettingsSecondaryPanelKind::UPDATE)
+	{
+		const float Padding = std::min(ui_token::spacing::LG * Scale, std::max(0.0f, Viewport.w) * 0.04f);
+		Width = std::min(ui_token::secondary_panel::UPDATE_WIDTH * Scale, std::max(0.0f, Viewport.w - 2.0f * Padding));
+		// 发布说明通常很长，高度与公告面板一致占满可用视口，不再使用固定扁窗。
+		Height = std::max(0.0f, Viewport.h - 4.0f * ui_token::spacing::LG);
+	}
+	else
+	{
+		Width = std::min(ui_token::secondary_panel::LIBRARY_WIDTH, std::max(0.0f, Viewport.w) * ui_token::secondary_panel::LIBRARY_VIEWPORT_FRACTION);
+		Height = std::min(ui_token::secondary_panel::LIBRARY_HEIGHT, std::max(0.0f, Viewport.h) * ui_token::secondary_panel::LIBRARY_VIEWPORT_FRACTION);
+	}
 	return CUIRect{Viewport.x + (Viewport.w - Width) * 0.5f, Viewport.y + (Viewport.h - Height) * 0.5f, Width, Height};
 }
 
@@ -60,24 +88,46 @@ struct SSettingsSubTabLayoutFrame
 	CUIRect m_ContentRect;
 };
 
+// 文本、预览和多行编辑器消费实际测量高度，不参与单行控件的高度策略。
+inline void ConsumeSettingsMeasuredRow(CUIRect &Content, const float RowHeight, CUIRect *pRow)
+{
+	Content.HSplitTop(RowHeight, pRow, &Content);
+}
+inline float ResolveSettingsControlFontSize(const float BodySize)
+{
+	return std::max(ui_token::font::BODY, BodySize);
+}
+
+inline float ResolveSettingsControlHeight(const float BodySize, const float UiScale = 1.0f)
+{
+	const float ExistingRowHeight = std::clamp(ui_token::settings::ROW_HEIGHT * UiScale, ui_token::settings::MIN_ROW_HEIGHT, ui_token::settings::ROW_HEIGHT);
+	return std::max(ExistingRowHeight, ResolveSettingsControlFontSize(BodySize) + 2.0f * ui_token::settings::CONTROL_PADDING_Y);
+}
+
 struct SSettingsContentMetrics
 {
 	float m_UiScale = 1.0f;
 	float m_TextScale = 1.0f;
-	float m_LineHeight = 20.0f;
-	float m_BodySize = 12.0f;
-	float m_SmallSize = 10.0f;
-	float m_HeadlineSize = 14.0f;
-	float m_LineSpacing = 5.0f;
-	float m_RowStep = 25.0f;
-	float m_InputHeight = 20.0f;
-	float m_ButtonHeight = 20.0f;
-	float m_SectionGap = 10.0f;
-	float m_BadgeHeight = 16.0f;
-	float m_ListRowHeight = 20.0f;
+	float m_LineHeight = ResolveSettingsControlHeight(ui_token::font::BODY);
+	float m_BodySize = ui_token::font::BODY;
+	float m_SmallSize = ui_token::font::SMALL;
+	float m_HeadlineSize = ui_token::font::HEADLINE;
+	float m_LineSpacing = ui_token::settings::ROW_GAP;
+	float m_RowStep = ResolveSettingsControlHeight(ui_token::font::BODY) + ui_token::settings::ROW_GAP;
+	float m_InputHeight = ResolveSettingsControlHeight(ui_token::font::BODY);
+	float m_ButtonHeight = ResolveSettingsControlHeight(ui_token::font::BODY);
+	float m_SectionGap = 2.0f * ui_token::settings::ROW_GAP;
+	float m_BadgeHeight = ui_token::settings::BADGE_HEIGHT;
+	float m_ListRowHeight = ui_token::settings::ROW_HEIGHT;
 	float m_LabelWidth = 120.0f;
 	float m_CardGap = ui_token::settings::CARD_GAP;
 };
+
+// 普通单行控件由公共 Metrics 决定高度，页面不能另外传入局部数值。
+inline void ConsumeSettingsControlRow(CUIRect &Content, const SSettingsContentMetrics &Metrics, CUIRect *pRow)
+{
+	ConsumeSettingsMeasuredRow(Content, Metrics.m_LineHeight, pRow);
+}
 
 struct SSettingsCardDeckDisplayCycleState
 {
@@ -146,12 +196,51 @@ struct SSettingsConfigRowMetrics
 	float m_RowHeight = 0.0f;
 };
 
+// 胶囊的最长选项宽度按文字、字号与字体版本缓存，稳定帧不重复测字。
+class CSettingsChoiceWidthCache
+{
+	std::vector<std::string> m_vLabels;
+	float m_FontSize = -1.0f;
+	float m_Width = 0.0f;
+	uint64_t m_FontRevision = 0;
+	bool m_Initialized = false;
+
+public:
+	template<typename TMeasure>
+	float Resolve(const std::vector<const char *> &vLabels, const float FontSize, const uint64_t FontRevision, TMeasure &&Measure)
+	{
+		return Resolve(vLabels.data(), vLabels.size(), FontSize, FontRevision, std::forward<TMeasure>(Measure));
+	}
+
+	template<typename TMeasure>
+	float Resolve(const char *const *ppLabels, const size_t Count, const float FontSize, const uint64_t FontRevision, TMeasure &&Measure)
+	{
+		bool Changed = !m_Initialized || m_FontSize != FontSize || m_FontRevision != FontRevision || m_vLabels.size() != Count;
+		for(size_t i = 0; !Changed && i < Count; ++i)
+			Changed = m_vLabels[i] != (ppLabels[i] != nullptr ? ppLabels[i] : "");
+		if(!Changed)
+			return m_Width;
+		m_vLabels.resize(Count);
+		m_Width = 0.0f;
+		for(size_t i = 0; i < Count; ++i)
+		{
+			m_vLabels[i] = ppLabels[i] != nullptr ? ppLabels[i] : "";
+			if(!m_vLabels[i].empty())
+				m_Width = std::max(m_Width, Measure(m_vLabels[i].c_str(), FontSize));
+		}
+		m_FontSize = FontSize;
+		m_FontRevision = FontRevision;
+		m_Initialized = true;
+		return m_Width;
+	}
+};
+
 struct SSettingsRadioRowLayout
 {
-	CUIRect m_LabelRect;
-	CUIRect m_ButtonsRect;
+	CUIRect m_LabelRect{};
+	CUIRect m_ButtonsRect{};
 	float m_Height = 0.0f;
-	bool m_Stacked = false;
+	bool m_UseDropdown = false;
 };
 
 inline float ResolveSettingsUiScale(const float ContentWidth)
@@ -171,8 +260,9 @@ inline SSettingsContentMetrics ResolveSettingsContentMetrics(const float Content
 	SSettingsContentMetrics Metrics;
 	Metrics.m_UiScale = ResolveSettingsUiScale(ContentWidth);
 	Metrics.m_TextScale = ui_token::font::TextScale(TextScalePercent);
-	Metrics.m_LineHeight = std::clamp(ui_token::settings::ROW_HEIGHT * Metrics.m_UiScale, 16.0f, ui_token::settings::ROW_HEIGHT) * Metrics.m_TextScale;
 	Metrics.m_BodySize = std::clamp(ui_token::font::BODY * Metrics.m_UiScale, 10.0f, ui_token::font::BODY) * Metrics.m_TextScale;
+	// 所有单行控件共用高度；窄视口保留胶囊文字的可读下限和上下内边距。
+	Metrics.m_LineHeight = ResolveSettingsControlHeight(Metrics.m_BodySize / Metrics.m_TextScale, Metrics.m_UiScale) * Metrics.m_TextScale;
 	Metrics.m_SmallSize = ResolveSettingsSmallFontSize(Metrics.m_UiScale) * Metrics.m_TextScale;
 	Metrics.m_HeadlineSize = std::clamp(ui_token::font::HEADLINE * Metrics.m_UiScale, 12.0f, ui_token::font::HEADLINE) * Metrics.m_TextScale;
 	Metrics.m_LineSpacing = std::clamp(ui_token::settings::ROW_GAP * Metrics.m_UiScale, 3.0f, ui_token::settings::ROW_GAP) * Metrics.m_TextScale;
@@ -197,7 +287,150 @@ inline float ResolveSettingsCardLabelWidth(const float CardContentWidth, const S
 	const float Gap = 8.0f * Scale;
 	const float MinimumLabelWidth = 96.0f * Scale;
 	const float PreferredLabelWidth = std::max(0.0f, CardContentWidth) * 0.32f;
-	return std::clamp(PreferredLabelWidth, MinimumLabelWidth, std::max(MinimumLabelWidth, CardContentWidth - MinimumControlWidth - Gap));
+	return std::min(std::max(0.0f, CardContentWidth) * 0.45f, std::clamp(PreferredLabelWidth, MinimumLabelWidth, std::max(MinimumLabelWidth, CardContentWidth - MinimumControlWidth - Gap)));
+}
+
+// 普通设置行只声明控件用途；同一用途由公共列布局决定宽度和对齐。
+enum class ESettingsControlWidth
+{
+	NUMBER,
+	SHORT_CHOICE,
+	LONG_CHOICE,
+	ACTION,
+	FILL,
+};
+
+struct SSettingsControlRowLayout
+{
+	CUIRect m_LabelRect{};
+	CUIRect m_ControlRect{};
+};
+
+inline float ResolveSettingsControlWidth(float AvailableWidth, const SSettingsContentMetrics &Metrics, ESettingsControlWidth Role, float MeasuredWidth = 0.0f)
+{
+	const float Available = std::max(0.0f, AvailableWidth);
+	const float Scale = Metrics.m_UiScale > 0.0f ? Metrics.m_UiScale : 1.0f;
+	if(Role == ESettingsControlWidth::NUMBER)
+		// 数值框沿用既有 26%、74–128 范围；单位宽度计入下限。
+		return std::min(Available, std::clamp(Available * 0.26f, std::min(128.0f, 74.0f + std::max(0.0f, MeasuredWidth)), 128.0f));
+	if(Role == ESettingsControlWidth::SHORT_CHOICE)
+		return std::min(Available, std::max(160.0f * Scale, MeasuredWidth));
+	if(Role == ESettingsControlWidth::ACTION)
+		return std::min(Available, std::max(72.0f * Scale, MeasuredWidth));
+	return Available;
+}
+
+inline SSettingsControlRowLayout ResolveSettingsControlRowLayout(const CUIRect &Row, const SSettingsContentMetrics &Metrics, ESettingsControlWidth Role = ESettingsControlWidth::FILL, float MeasuredWidth = 0.0f)
+{
+	SSettingsControlRowLayout Layout;
+	const float Width = std::max(0.0f, Row.w);
+	const float LabelWidth = ResolveSettingsCardLabelWidth(Width, Metrics);
+	const float Gap = std::min(std::max(0.0f, Metrics.m_LineSpacing), std::max(0.0f, Width - LabelWidth));
+	const float ControlX = Row.x + LabelWidth + Gap;
+	const float Available = std::max(0.0f, Row.x + Width - ControlX);
+	const float ControlWidth = ResolveSettingsControlWidth(Available, Metrics, Role, MeasuredWidth);
+	Layout.m_LabelRect = {Row.x, Row.y, LabelWidth, Row.h};
+	Layout.m_ControlRect = {ControlX, Row.y, ControlWidth, Row.h};
+	return Layout;
+}
+
+inline void SplitSettingsControlRow(const CUIRect &Row, const SSettingsContentMetrics &Metrics, CUIRect *pLabel, CUIRect *pControl, ESettingsControlWidth Role = ESettingsControlWidth::FILL, float MeasuredWidth = 0.0f)
+{
+	const auto Layout = ResolveSettingsControlRowLayout(Row, Metrics, Role, MeasuredWidth);
+	if(pLabel != nullptr)
+		*pLabel = Layout.m_LabelRect;
+	if(pControl != nullptr)
+		*pControl = Layout.m_ControlRect;
+}
+
+struct SSettingsChoiceLayout
+{
+	static constexpr int MAX_SEGMENTS = 16;
+	std::array<CUIRect, MAX_SEGMENTS> m_aSlots{};
+	int m_SegmentCount = 0;
+	bool m_UseDropdown = false;
+};
+
+// 主控件填充余宽，同行短选项最多占一半，窄行不挤出父区域。
+inline void SplitSettingsPairedControls(const CUIRect &Row, const SSettingsContentMetrics &Metrics, CUIRect *pPrimary, CUIRect *pSecondary)
+{
+	const float Available = std::max(0.0f, Row.w);
+	const float Gap = std::min(std::max(0.0f, Metrics.m_LineSpacing), Available * 0.1f);
+	const float SecondaryWidth = ResolveSettingsControlWidth((Available - Gap) * 0.5f, Metrics, ESettingsControlWidth::SHORT_CHOICE);
+	const CUIRect Primary{Row.x, Row.y, Available - Gap - SecondaryWidth, Row.h};
+	const CUIRect Secondary{Row.x + Primary.w + Gap, Row.y, SecondaryWidth, Row.h};
+	if(pPrimary != nullptr)
+		*pPrimary = Primary;
+	if(pSecondary != nullptr)
+		*pSecondary = Secondary;
+}
+
+struct SSettingsActionGroupLayout
+{
+	std::array<CUIRect, SSettingsChoiceLayout::MAX_SEGMENTS> m_aButtons{};
+	int m_Count = 0;
+};
+
+enum class ESettingsActionGroupWidth
+{
+	FILL,
+	CONTENT
+};
+
+// 纯按钮行默认等分填满；混合行显式按内容取宽。窄屏保留独立按钮，不新增行高。
+inline SSettingsActionGroupLayout ResolveSettingsActionGroupLayout(const CUIRect &Row, int Count, const SSettingsContentMetrics &Metrics, float MeasuredWidth, ESettingsActionGroupWidth WidthPolicy = ESettingsActionGroupWidth::FILL)
+{
+	SSettingsActionGroupLayout Layout;
+	if(Count <= 0 || Count > (int)Layout.m_aButtons.size())
+		return Layout;
+	Layout.m_Count = Count;
+	const float Available = std::max(0.0f, Row.w);
+	const float Gap = Count > 1 ? std::min(std::max(0.0f, Metrics.m_LineSpacing), Available / (2.0f * Count - 1.0f)) : 0.0f;
+	const float SlotWidth = std::max(0.0f, Available - Gap * (Count - 1)) / Count;
+	const float Width = WidthPolicy == ESettingsActionGroupWidth::FILL ? SlotWidth : ResolveSettingsControlWidth(SlotWidth, Metrics, ESettingsControlWidth::ACTION, MeasuredWidth);
+	for(int Index = 0; Index < Count; ++Index)
+		Layout.m_aButtons[Index] = {Row.x + Index * (Width + Gap), Row.y, Width, std::max(0.0f, Row.h)};
+	return Layout;
+}
+
+struct SSettingsInputActionsLayout
+{
+	CUIRect m_Input{};
+	SSettingsActionGroupLayout m_Actions;
+};
+
+// 输入同行的图标按行高取正方形；窄屏最多占一半，保留输入可用空间。
+inline SSettingsInputActionsLayout ResolveSettingsInputActionsLayout(const CUIRect &Controls, int Count, const SSettingsContentMetrics &Metrics, float MeasuredActionWidth = -1.0f)
+{
+	SSettingsInputActionsLayout Layout;
+	Layout.m_Input = Controls;
+	Layout.m_Input.w = std::max(0.0f, Controls.w);
+	if(Count <= 0 || Count > SSettingsChoiceLayout::MAX_SEGMENTS)
+		return Layout;
+	const float Gap = std::min(std::max(0.0f, Metrics.m_LineSpacing), Layout.m_Input.w * 0.1f);
+	const float PreferredWidth = MeasuredActionWidth >= 0.0f ? MeasuredActionWidth : std::max(0.0f, Controls.h);
+	const float ActionWidth = std::min(PreferredWidth * Count + Gap * (Count - 1), std::max(0.0f, Layout.m_Input.w - Gap) * 0.5f);
+	Layout.m_Input.w = std::max(0.0f, Layout.m_Input.w - ActionWidth - Gap);
+	const CUIRect Actions{Controls.x + Layout.m_Input.w + Gap, Controls.y, ActionWidth, Controls.h};
+	Layout.m_Actions = ResolveSettingsActionGroupLayout(Actions, Count, Metrics, PreferredWidth, ESettingsActionGroupWidth::CONTENT);
+	return Layout;
+}
+
+inline SSettingsChoiceLayout ResolveSettingsChoiceLayout(const CUIRect &Controls, const int Count, const float MeasuredOptionWidth)
+{
+	SSettingsChoiceLayout Layout;
+	if(Count <= 0)
+		return Layout;
+	const float MinimumWidth = std::max({72.0f, Controls.h * 3.0f, MeasuredOptionWidth});
+	Layout.m_UseDropdown = Count > SSettingsChoiceLayout::MAX_SEGMENTS || std::max(0.0f, Controls.w) / Count < MinimumWidth;
+	if(!Layout.m_UseDropdown)
+	{
+		Layout.m_SegmentCount = Count;
+		CUIRect Remaining = Controls;
+		for(int i = 0; i < Count; ++i)
+			Remaining.VSplitLeft(Remaining.w / (Count - i), &Layout.m_aSlots[i], &Remaining);
+	}
+	return Layout;
 }
 
 inline SSettingsConfigRowMetrics ResolveSettingsConfigRowMetrics(const bool Compact, const bool Stacked, const float LineHeight, const float RowSpacing, const float HelpHeight, const float ColorControlHeight, const float VerticalPadding)
@@ -378,15 +611,53 @@ struct SSettingsGpuControl
 	bool m_ShowSelector = false;
 	bool m_ShowSystemSettings = false;
 
-	int RowCount() const { return m_ShowSelector ? 1 : m_ShowSystemSettings ? 3 :
-										  0; }
+	int RowCount() const { return (m_ShowSelector ? 1 : 0) + (m_ShowSystemSettings ? 1 : 0); }
 };
 
 inline SSettingsGpuControl ResolveSettingsGpuControl(size_t AdapterCount, bool CanSelect, bool HasSystemSettings)
 {
 	if(AdapterCount <= 1)
 		return {};
-	return {CanSelect, !CanSelect && HasSystemSettings};
+	return {CanSelect, HasSystemSettings};
+}
+
+struct SSettingsGraphicsRuntimeInfo
+{
+	std::string m_Backend;
+	std::string m_Driver;
+};
+
+// 后端已有运行时字符串包含 API 与驱动两部分；只拆分已知格式，不猜测缺失的驱动版本。
+inline SSettingsGraphicsRuntimeInfo ResolveSettingsGraphicsRuntimeInfo(const char *pVersion, const char *pDetectedBackend, int Major, int Minor, int Patch)
+{
+	SSettingsGraphicsRuntimeInfo Info;
+	const std::string Version = pVersion != nullptr ? pVersion : "";
+	const size_t Driver = Version.find(" (driver: ");
+	if(Driver != std::string::npos)
+	{
+		Info.m_Backend = Version.substr(0, Driver);
+		const size_t End = Version.find(')', Driver + 10);
+		Info.m_Driver = Version.substr(Driver + 10, End == std::string::npos ? std::string::npos : End - Driver - 10);
+	}
+	else if(Major > 0 && pDetectedBackend != nullptr && pDetectedBackend[0] != '\0')
+	{
+		Info.m_Backend = std::string(pDetectedBackend) + " " + std::to_string(Major) + "." + std::to_string(Minor) + "." + std::to_string(Patch);
+		// OpenGL / GLES 的驱动描述位于 API 版本之后，ES 可带厂商配置前缀。
+		const size_t ApiStart = Version.find_first_of("0123456789");
+		if(ApiStart != std::string::npos)
+		{
+			const size_t ApiEnd = Version.find(' ', ApiStart);
+			if(ApiEnd != std::string::npos)
+			{
+				const size_t Description = Version.find_first_not_of(' ', ApiEnd);
+				if(Description != std::string::npos)
+					Info.m_Driver = Version.substr(Description);
+			}
+		}
+	}
+	else
+		Info.m_Backend = Version;
+	return Info;
 }
 
 // 列表 viewport 只允许显示完整行。列表控件的行距由调用方显式消费，
@@ -502,7 +773,7 @@ inline float ResolveSettingsTeeQueuePresetHeight(const SSettingsContentMetrics &
 {
 	// 操作图标与标题同一行，列表区域仅保留必要内边距。
 	const float PresetRowSpacing = Metrics.m_LineSpacing * 0.5f;
-	return Metrics.m_LineSpacing * 4.0f + Metrics.m_LineHeight + ResolveSettingsListViewportHeight(VisiblePresetRows, Metrics.m_ListRowHeight, PresetRowSpacing);
+	return Metrics.m_LineSpacing * 5.0f + Metrics.m_LineHeight + Metrics.m_ButtonHeight + ResolveSettingsListViewportHeight(VisiblePresetRows, Metrics.m_ListRowHeight, PresetRowSpacing);
 }
 
 inline int ResolveSettingsTeeVisiblePresetRows(const int PresetCount)
@@ -691,41 +962,29 @@ inline SSettingsColorRowLayout ResolveSettingsColorRowLayout(const CUIRect &View
 
 inline float ResolveSettingsRadioFontSize(const SSettingsContentMetrics &Metrics)
 {
-	return std::max(12.0f * Metrics.m_TextScale, Metrics.m_BodySize);
+	return ResolveSettingsControlFontSize(Metrics.m_BodySize / Metrics.m_TextScale) * Metrics.m_TextScale;
 }
 
 inline float ResolveSettingsRadioButtonHeight(const SSettingsContentMetrics &Metrics)
 {
-	// 胶囊内边距之外仍保留文字上下留白，不随窄内容区压成细线。
-	return std::max(Metrics.m_ButtonHeight, ResolveSettingsRadioFontSize(Metrics) + 12.0f * Metrics.m_TextScale);
+	// 胶囊与输入框、下拉及按钮消费同一个尺寸，不能另算一套行高。
+	return Metrics.m_ButtonHeight;
 }
 
-inline SSettingsRadioRowLayout ResolveSettingsRadioRowLayout(const CUIRect &View, const int OptionCount, const SSettingsContentMetrics &Metrics)
+inline SSettingsRadioRowLayout ResolveSettingsRadioRowLayout(const CUIRect &View, const int OptionCount, const SSettingsContentMetrics &Metrics, const float MeasuredOptionWidth = 0.0f)
 {
 	SSettingsRadioRowLayout Layout;
 	if(OptionCount <= 0 || View.w <= 0.0f)
 		return Layout;
 
-	const float Gap = Metrics.m_LineSpacing;
 	const float ButtonHeight = ResolveSettingsRadioButtonHeight(Metrics);
-	// 字号存在下限，因此窄屏控件宽度不能继续按 UiScale 同比例缩小。
-	// 为标签和每个选项保留可读宽度，空间不足时统一换到下一行。
-	const float LabelWidth = std::max(96.0f, ResolveSettingsCardLabelWidth(View.w, Metrics));
-	const float MinimumOptionWidth = std::max(72.0f, ButtonHeight * 3.0f);
-	const float RequiredInlineWidth = LabelWidth + Gap + MinimumOptionWidth * OptionCount;
-	Layout.m_Stacked = View.w < RequiredInlineWidth;
-	if(Layout.m_Stacked)
-	{
-		Layout.m_LabelRect = {View.x, View.y, View.w, Metrics.m_LineHeight};
-		Layout.m_ButtonsRect = {View.x, View.y + Metrics.m_LineHeight + Gap, View.w, ButtonHeight};
-		Layout.m_Height = Metrics.m_LineHeight + Gap + ButtonHeight;
-	}
-	else
-	{
-		Layout.m_Height = std::max(Metrics.m_LineHeight, ButtonHeight);
-		Layout.m_LabelRect = {View.x, View.y, LabelWidth, Layout.m_Height};
-		Layout.m_ButtonsRect = {View.x + LabelWidth + Gap, View.y, std::max(0.0f, View.w - LabelWidth - Gap), ButtonHeight};
-	}
+	// 标签和控件始终同一行。文字放不下时切换共享下拉，不叠行或压缩字号。
+	Layout.m_Height = std::max(Metrics.m_LineHeight, ButtonHeight);
+	const auto Columns = ResolveSettingsControlRowLayout({View.x, View.y, View.w, Layout.m_Height}, Metrics, ESettingsControlWidth::LONG_CHOICE);
+	Layout.m_LabelRect = Columns.m_LabelRect;
+	Layout.m_ButtonsRect = Columns.m_ControlRect;
+	Layout.m_ButtonsRect.h = ButtonHeight;
+	Layout.m_UseDropdown = ResolveSettingsChoiceLayout(Layout.m_ButtonsRect, OptionCount, MeasuredOptionWidth).m_UseDropdown;
 	return Layout;
 }
 
@@ -804,44 +1063,6 @@ inline SSettingsNestedRadioSlots ResolveSettingsNestedRadioSlots(const CUIRect &
 	return Slots;
 }
 
-// 多档分段行的落位：控件行够宽时用等宽胶囊分段（一行排完，标签不换行）；
-// 主内容区太窄、分段会被挤到贴边时，退回「标签一行 + 可换行分段行」的普通分段行，
-// 高度随之变化，所以测量、预布局与绘制三个阶段必须共用这一个解析结果。
-// MinOptionWidth 由调用方按真实最长标签给出（胶囊分段没有内边距，这个值通常远小于
-// ResolveSettingsRadioRowLayout 的 72px 下限）；给 0 时退回保守估算。
-// 胶囊分段的标签独占上一行、控件行用满整行宽度，判定因此只有「档数 × 单档宽度」；
-// 若照并排的分段行那样再预扣一列标签宽，两列卡片这类正常宽度会白白退回旧分段行。
-struct SSettingsSegmentedRowLayout
-{
-	bool m_Capsule = false;
-	CUIRect m_LabelRect{};
-	CUIRect m_ContainerRect{};
-	float m_Height = 0.0f;
-};
-
-inline SSettingsSegmentedRowLayout ResolveSettingsSegmentedRowLayout(const CUIRect &View, const int OptionCount, const SSettingsContentMetrics &Metrics, const float MinOptionWidth = 0.0f)
-{
-	SSettingsSegmentedRowLayout Layout;
-	if(View.w <= 0.0f)
-		return Layout;
-
-	const float RequiredPerOption = MinOptionWidth > 0.0f ? MinOptionWidth : std::max(72.0f, Metrics.m_ButtonHeight * 3.0f);
-	if(View.w >= RequiredPerOption * (float)std::max(1, OptionCount))
-	{
-		const SSettingsNestedRadioRowLayout Capsule = ResolveSettingsNestedRadioRowLayout(View, Metrics);
-		Layout.m_Capsule = true;
-		Layout.m_LabelRect = Capsule.m_LabelRect;
-		Layout.m_ContainerRect = Capsule.m_ContainerRect;
-		Layout.m_Height = Capsule.m_Height;
-		return Layout;
-	}
-
-	const SSettingsRadioRowLayout Radio = ResolveSettingsRadioRowLayout(View, OptionCount, Metrics);
-	Layout.m_LabelRect = Radio.m_LabelRect;
-	Layout.m_ContainerRect = Radio.m_ButtonsRect;
-	Layout.m_Height = Radio.m_Height;
-	return Layout;
-}
 inline float ResolveSettingsControllerAxisPickerHeight(const int AxisCount, const int MaxAxisCount, const float RowHeight, const float RowSpacing)
 {
 	return (std::clamp(AxisCount, 0, std::max(0, MaxAxisCount)) + 1) * (std::max(0.0f, RowHeight) + std::max(0.0f, RowSpacing));

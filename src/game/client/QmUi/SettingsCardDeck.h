@@ -4,6 +4,7 @@
 #include "QmCardRegistry.h"
 #include "SettingsCard.h"
 #include "SettingsCardDeckLogic.h"
+#include "SettingsContentLayout.h"
 #include "SettingsPageLayout.h"
 
 #include <array>
@@ -21,6 +22,10 @@ struct SSettingsCardDefinition
 	FSettingsCardMeasure m_Measure;
 	FSettingsCardRender m_Render;
 	FSettingsCardRenderMeasured m_RenderMeasured;
+	// 已迁移内容声明：每帧比较真实尺寸属性，稳定布局复用；输入和绘制共用结果。
+	std::function<std::shared_ptr<const CSettingsContentLayout>(CSettingsContentLayoutCache &, float)> m_ResolveContentLayout;
+	std::function<void(const CSettingsContentLayout &, CUIRect)> m_ContentLayoutInput;
+	std::function<void(const CSettingsContentLayout &, CUIRect)> m_ContentLayoutDraw;
 	FSettingsCardPreLayoutInput m_PreLayoutInput;
 	FSettingsCardHasPendingPreLayoutInput m_HasPendingPreLayoutInput;
 	FSettingsCardPreLayoutHeaderInput m_PreLayoutHeaderInput;
@@ -83,17 +88,22 @@ class CSettingsCardDeck
 public:
 	SSettingsCardDeckResult Render(const IUiContext &Ctx, const SSettingsPageLayoutFrame &Layout, const char *pTab, const std::vector<SSettingsCardDefinition> &vCards, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &Input, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions);
 	template<typename FBuildDefinitions>
-	SSettingsCardDeckResult RenderCached(const IUiContext &Ctx, const SSettingsPageLayoutFrame &Layout, const char *pTab, uint64_t DefinitionsRevision, FBuildDefinitions &&BuildDefinitions, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &Input, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions)
+	SSettingsCardDeckResult RenderCached(const IUiContext &Ctx, const SSettingsPageLayoutFrame &Layout, const char *pTab, uint64_t DefinitionsRevision, FBuildDefinitions &&BuildDefinitions, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &Input, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions, uint64_t MeasurementEnvironmentRevision = UINT64_MAX)
 	{
-		if(SettingsCardDeckDefinitionsCacheKeyChanged(m_CachedDefinitionsInitialized, m_CachedDefinitionsRevision, DefinitionsRevision, m_CachedDefinitionsTab.c_str(), pTab))
+		const ESettingsCardRenderPass RenderPass = RenderPassMode(Ctx);
+		if(SettingsCardDeckDefinitionsCacheKeyChanged(m_CachedDefinitionsInitialized, m_CachedDefinitionsRevision, DefinitionsRevision, m_CachedDefinitionsTab.c_str(), pTab, m_CachedDefinitionsRenderPass, RenderPass))
 		{
 			m_vCachedDefinitions.clear();
 			BuildDefinitions(m_vCachedDefinitions);
 			m_CachedDefinitionsRevision = DefinitionsRevision;
+			m_CachedDefinitionsRenderPass = RenderPass;
 			m_CachedDefinitionsTab = pTab != nullptr ? pTab : "";
 			m_CachedDefinitionsInitialized = true;
 			m_CachedDefinitionsDirty = true;
-			m_InvalidateMeasurementsOnDefinitionsPrepare = true;
+			// 定义刷新不等于所有内容变化。显式环境版本允许按单卡版本保留邻卡缓存；
+			// 尚未迁移的调用方继续保留旧的全组失效合同。
+			m_InvalidateMeasurementsOnDefinitionsPrepare = MeasurementEnvironmentRevision == UINT64_MAX || m_MeasurementEnvironmentRevision != MeasurementEnvironmentRevision;
+			m_MeasurementEnvironmentRevision = MeasurementEnvironmentRevision;
 		}
 		return RenderInternal(Ctx, Layout, pTab, m_vCachedDefinitions, Model, pScrollRegion, Input, Motion, VisualOptions, true);
 	}
@@ -110,6 +120,7 @@ private:
 		float m_TargetContentHeight = 0.0f;
 		bool m_FirstLayout = false;
 		bool m_ContentHeightAnimationActive = false;
+		std::shared_ptr<const CSettingsContentLayout> m_pContentLayout;
 	};
 
 	struct SRuntimeState
@@ -147,12 +158,14 @@ private:
 		void Reset() { *this = {}; }
 	};
 
+	static ESettingsCardRenderPass RenderPassMode(const IUiContext &Ctx);
 	void PrepareDefinitions(const std::vector<SSettingsCardDefinition> &vCards, const qm_card_order::CModel &Model);
 	void ResetDefinitionViewState();
 	SSettingsCardDeckResult RenderInternal(const IUiContext &Ctx, const SSettingsPageLayoutFrame &Layout, const char *pTab, const std::vector<SSettingsCardDefinition> &vCards, qm_card_order::CModel &Model, CScrollRegion *pScrollRegion, const SSettingsCardDeckInput &Input, const SCardMotionSpec &Motion, const SSettingsCardDeckVisualOptions &VisualOptions, bool PersistentDefinitions);
 
 	CSettingsCardDeckFrameRuntime m_FrameRuntime;
 	bool m_SuppressHoverFeedbackOnce = false;
+	bool m_ObservedContentChanged = false;
 	bool m_HasPointerPosition = false;
 	bool m_HasScrollOffset = false;
 	float m_LastPointerX = 0.0f;
@@ -162,14 +175,17 @@ private:
 	std::string m_LastRenderedTab;
 	std::string m_PendingRevealStableId;
 	SDragState m_Drag;
-	qm_card_registry::CCardFocus m_Focus;
 	std::vector<SRuntimeState> m_vRuntimeStates;
 	std::vector<float> m_vContentHeights;
 	std::vector<float> m_vContentWidths;
 	std::vector<uint64_t> m_vMeasureRevisions;
+	std::vector<std::shared_ptr<const CSettingsContentLayout>> m_vContentLayouts;
+	std::vector<CSettingsContentLayoutCache> m_vContentLayoutCaches;
 	std::vector<SSettingsCardDefinition> m_vCachedDefinitions;
 	std::string m_CachedDefinitionsTab;
 	uint64_t m_CachedDefinitionsRevision = 0;
+	ESettingsCardRenderPass m_CachedDefinitionsRenderPass = ESettingsCardRenderPass::INTERACTIVE;
+	uint64_t m_MeasurementEnvironmentRevision = UINT64_MAX;
 	bool m_CachedDefinitionsInitialized = false;
 	bool m_CachedDefinitionsDirty = false;
 	bool m_InvalidateMeasurementsOnDefinitionsPrepare = false;
