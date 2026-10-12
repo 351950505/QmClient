@@ -2410,6 +2410,7 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 
 	const bool DemoBrowserScreenshotsActive = ActivePage == PAGE_DEMOS && DemoBrowserBrowsingScreenshots();
 	const bool DemoBrowserReplaysActive = ActivePage == PAGE_DEMOS && !DemoBrowserBrowsingScreenshots();
+	const bool MobileSpectator = qm_mobile_spectator::Enabled();
 	auto OpenDemoBrowser = [&](const EDemoBrowserSource Source) {
 		SetDemoBrowserSource(Source);
 		NewPage = PAGE_DEMOS;
@@ -2448,7 +2449,7 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 	static CButtonContainer s_EditorButton;
 	// 编辑器按钮并入右侧滑块导航，统一绘制在槽位收集完成后。
 	aRightNavSlots[2] = Button;
-	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &Button, Localize("Editor"));
+	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &Button, MobileSpectator ? Localize("Videos directory") : Localize("Editor"));
 
 	// 截图/回放并入滑块导航槽位（离线与在线同构）。
 	Box.VSplitRight(MenubarIconGap, &Box, nullptr);
@@ -2492,11 +2493,14 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 	}
 	GameClient()->m_Tooltips.DoToolTip(&s_DemoButton, &aRightNavSlots[1], Localize("Demos"));
 
-	if(DoMenuTabV2_QmIcon(&s_EditorButton, EQmIcon::PEN_TO_SQUARE, FONT_ICON_PEN_TO_SQUARE, false, &aRightNavSlots[2], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true))
+	if(DoMenuTabV2_QmIcon(&s_EditorButton, MobileSpectator ? EQmIcon::VIDEO : EQmIcon::PEN_TO_SQUARE, MobileSpectator ? FONT_ICON_VIDEO : FONT_ICON_PEN_TO_SQUARE, false, &aRightNavSlots[2], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true))
 	{
-		g_Config.m_ClEditor = 1;
+		if(MobileSpectator)
+			GameClient()->m_QmMobileSpectator.ShowMediaFiles(true);
+		else
+			g_Config.m_ClEditor = 1;
 	}
-	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &aRightNavSlots[2], Localize("Editor"));
+	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &aRightNavSlots[2], MobileSpectator ? Localize("Videos directory") : Localize("Editor"));
 
 	if(DoMenuTabV2_QmIcon(&s_SettingsButton, EQmIcon::GEAR, FONT_ICON_GEAR, ActivePage == PAGE_SETTINGS, &aRightNavSlots[3], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true))
 	{

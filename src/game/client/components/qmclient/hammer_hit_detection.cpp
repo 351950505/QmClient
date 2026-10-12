@@ -317,7 +317,12 @@ SQmHammerWakeupDecision QmDecideHammerWakeupActions(const SQmHammerWakeupDecisio
 	}
 
 	const bool ActiveExternalWakeup = aExternalWakeup[Active];
-	Result.m_UnspecActiveConnection = Input.m_AutoUnspec && Input.m_ActiveSpectating && ActiveExternalWakeup;
+	const bool UnspecBoth = Input.m_AutoUnspecBoth && (aExternalWakeup[0] || aExternalWakeup[1]);
+	for(int Connection = 0; Connection < 2; ++Connection)
+	{
+		Result.m_aUnspec[Connection] = Input.m_aSpectating[Connection] &&
+			(UnspecBoth || (Input.m_AutoUnspec && Connection == Active && ActiveExternalWakeup));
+	}
 	Result.m_CloseChat = Input.m_AutoCloseChat && Input.m_ChatActive && ActiveExternalWakeup;
 
 	if(Input.m_AutoSwitch && Input.m_aWasInFreeze[0] && Input.m_aWasInFreeze[1])
@@ -326,6 +331,28 @@ SQmHammerWakeupDecision QmDecideHammerWakeupActions(const SQmHammerWakeupDecisio
 			Result.m_SwitchToConnection = 0;
 		else if(Active == 0 && aExternalWakeup[1] && Input.m_aInFreeze[0])
 			Result.m_SwitchToConnection = 1;
+	}
+	return Result;
+}
+
+void CQmHammerWakeupActionTracker::Reset()
+{
+	for(int &Tick : m_aLastUnspecSnapshotTick)
+		Tick = -1;
+}
+
+SQmHammerWakeupDecision CQmHammerWakeupActionTracker::Decide(const SQmHammerWakeupDecisionInput &Input, int SnapshotTick)
+{
+	SQmHammerWakeupDecision Result = QmDecideHammerWakeupActions(Input);
+	for(int Connection = 0; Connection < 2; ++Connection)
+	{
+		if(!Result.m_aUnspec[Connection])
+			continue;
+		// 切换主副 Tee 会重载观察连接的快照，/spec 不能对同一帧重复切换。
+		if(SnapshotTick <= m_aLastUnspecSnapshotTick[Connection])
+			Result.m_aUnspec[Connection] = false;
+		else
+			m_aLastUnspecSnapshotTick[Connection] = SnapshotTick;
 	}
 	return Result;
 }

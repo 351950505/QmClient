@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == Automatyczne wyciszanie podczas mówienia
 
+Auto unspec both tees when either is hammered awake
+== Wyłącz obserwowanie obu Tee, gdy którykolwiek zostanie odmrożony młotkiem
+
 Auto unspec on unfreeze
 == Automatyczne wyłączanie obserwowania po odmrożeniu
 
@@ -4579,6 +4582,9 @@ Existing Player
 
 Exit replay view
 == Zakończ podgląd nagrania
+
+Exit spectating on both tees when either is hammered awake by another player
+== Wyłącz obserwowanie obu Tee, gdy inny gracz odmrozi młotkiem któregokolwiek z nich
 
 Expand console
 == Rozwiń konsolę
@@ -12577,6 +12583,15 @@ Some map sounds could not be loaded. Check the local console for details.
 
 Something hookable
 == Coś do zahaczenia
+
+Sort by favorites
+== Sortuj według ulubionych
+
+Sort by number of friends
+== Sortuj według liczby znajomych
+
+Sort by number of QmClient players
+== Sortuj według liczby graczy QmClient
 
 Sort column in ghost list
 == Kolumna sortowania na liście duchów

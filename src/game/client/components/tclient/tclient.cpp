@@ -2242,10 +2242,10 @@ void CTClient::CheckHammerWakeupActions()
 
 	SQmHammerWakeupDecisionInput Input;
 	Input.m_ActiveConnection = g_Config.m_ClDummy;
-	Input.m_ActiveSpectating = GameClient()->m_Snap.m_SpecInfo.m_Active;
 	Input.m_ChatActive = GameClient()->m_Chat.IsActive();
 	Input.m_ShowPopup = g_Config.m_QmFreezeWakeupPopup != 0;
 	Input.m_AutoUnspec = g_Config.m_QmAutoUnspecOnUnfreeze != 0;
+	Input.m_AutoUnspecBoth = g_Config.m_QmAutoUnspecBothOnUnfreeze != 0;
 	Input.m_AutoSwitch = g_Config.m_QmAutoSwitchOnUnfreeze != 0 && Client()->DummyConnected();
 	Input.m_AutoCloseChat = g_Config.m_QmAutoCloseChatOnUnfreeze != 0;
 	const int SnapshotTick = Client()->GameTick(Input.m_ActiveConnection);
@@ -2258,6 +2258,9 @@ void CTClient::CheckHammerWakeupActions()
 		const int ClientId = GameClient()->m_aLocalIds[Dummy];
 		if(ClientId < 0 || ClientId >= MAX_CLIENTS)
 			continue;
+		const auto &ClientData = GameClient()->m_aClients[ClientId];
+		Input.m_aSpectating[Dummy] = ClientData.m_Paused || ClientData.m_Spec ||
+			(Dummy == Input.m_ActiveConnection && GameClient()->m_Snap.m_SpecInfo.m_Active);
 		const auto &Character = GameClient()->m_Snap.m_aCharacters[ClientId];
 		if(!Character.m_HasExtendedData || Character.m_pPrevExtendedData == nullptr)
 			continue;
@@ -2267,29 +2270,31 @@ void CTClient::CheckHammerWakeupActions()
 						       DetectFreezeWakeupType(GameClient(), ClientId, SnapshotTick) == EFreezeWakeupType::EXTERNAL_HAMMER;
 	}
 
-	const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
+	const SQmHammerWakeupDecision Decision = m_HammerWakeupActionTracker.Decide(Input, SnapshotTick);
 	for(int Dummy = 0; Dummy < NUM_DUMMIES; ++Dummy)
 	{
 		if(Decision.m_aShowPopup[Dummy])
 			AddFreezeWakeupPopup(Dummy);
 	}
 
-	if(Decision.m_UnspecActiveConnection)
+	for(int Dummy = 0; Dummy < NUM_DUMMIES; ++Dummy)
 	{
+		if(!Decision.m_aUnspec[Dummy])
+			continue;
 		if(Client()->IsSixup())
 		{
 			protocol7::CNetMsg_Cl_Say Msg;
 			Msg.m_Mode = protocol7::CHAT_ALL;
 			Msg.m_Target = -1;
 			Msg.m_pMessage = "/spec";
-			Client()->SendPackMsg(Input.m_ActiveConnection, &Msg, MSGFLAG_VITAL, true);
+			Client()->SendPackMsg(Dummy, &Msg, MSGFLAG_VITAL, true);
 		}
 		else
 		{
 			CNetMsg_Cl_Say Msg;
 			Msg.m_Team = 0;
 			Msg.m_pMessage = "/spec";
-			Client()->SendPackMsg(Input.m_ActiveConnection, &Msg, MSGFLAG_VITAL);
+			Client()->SendPackMsg(Dummy, &Msg, MSGFLAG_VITAL);
 		}
 	}
 
@@ -2930,6 +2935,7 @@ void CTClient::OnStateChange(int NewState, int OldState)
 	for(auto &AirRescuePositions : m_aAirRescuePositions)
 		AirRescuePositions = {};
 	ClearFreezeWakeupPopups();
+	m_HammerWakeupActionTracker.Reset();
 
 	if(NewState != IClient::STATE_ONLINE)
 	{

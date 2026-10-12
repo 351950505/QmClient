@@ -396,6 +396,7 @@ MACRO_CONFIG_INT(QmDeepflyMode, qm_deepfly_mode, 0, 0, 3, CFGFLAG_CLIENT, "Deepf
 
 // Auto Unspec on Unfreeze / 解冻自动取消旁观
 MACRO_CONFIG_INT(QmAutoUnspecOnUnfreeze, qm_auto_unspec_on_unfreeze, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Auto-unspec when unfrozen")
+MACRO_CONFIG_INT(QmAutoUnspecBothOnUnfreeze, qm_auto_unspec_both_on_unfreeze, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Exit spectating on both tees when either is hammered awake by another player")
 
 // Auto-Switch on Unfreeze / HJ大佬辅助 - 自动切换到解冻的Tee
 MACRO_CONFIG_INT(QmAutoSwitchOnUnfreeze, qm_auto_switch_on_unfreeze, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Auto-switch to first unfrozen when both frozen")

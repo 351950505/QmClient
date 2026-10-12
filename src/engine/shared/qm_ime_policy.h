@@ -9,6 +9,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 inline bool QmImeShouldUseSystemCandidateUi()
 {
@@ -91,13 +94,98 @@ inline EQmImeCandidateReloadAction QmImeResolveCandidateReloadAction(bool LoadSu
 	return LoadSucceeded ? EQmImeCandidateReloadAction::REPLACE : EQmImeCandidateReloadAction::KEEP_PREVIOUS;
 }
 
-// 提交后是否抑制过期 CHANGECANDIDATE（打开新候选页时解除）
+// 提交后是否抑制过期 CHANGECANDIDATE（新的组合串或打开通知解除）。
 inline bool QmImeShouldSuppressStaleCandidateReload(bool SuppressFlag, bool IsOpenNotify)
 {
 	if(IsOpenNotify)
 		return false;
 	return SuppressFlag;
 }
+
+// IMM 快照保留分页；SDL 快照在原生通知缺失或列表尚未就绪时补齐当前页。
+struct SQmImeCandidateList
+{
+	std::vector<std::string> m_vCandidates;
+	int m_SelectedIndex = -1;
+	int m_PageStart = 0;
+	int m_PageSize = 0;
+	int m_TotalCount = 0;
+};
+
+class CQmImeCandidateState
+{
+public:
+	const SQmImeCandidateList &Candidates() const { return m_Candidates; }
+	bool AcceptsSdlCandidates() const { return !m_SuppressStaleReload; }
+	void ResumeComposition() { m_SuppressStaleReload = false; }
+
+	void Clear()
+	{
+		m_Candidates.m_vCandidates.clear();
+		m_Candidates.m_SelectedIndex = -1;
+		m_Candidates.m_PageStart = 0;
+		m_Candidates.m_PageSize = 0;
+		m_Candidates.m_TotalCount = 0;
+	}
+
+	void EndComposition()
+	{
+		Clear();
+		m_SuppressStaleReload = true;
+	}
+
+	void UpdateFromNative(std::optional<SQmImeCandidateList> List, bool IsOpenNotify)
+	{
+		const bool Suppress = QmImeShouldSuppressStaleCandidateReload(m_SuppressStaleReload, IsOpenNotify);
+		if(IsOpenNotify)
+			ResumeComposition();
+		switch(QmImeResolveCandidateReloadAction(List.has_value(), IsOpenNotify, Suppress))
+		{
+		case EQmImeCandidateReloadAction::REPLACE:
+			m_Candidates = std::move(*List);
+			break;
+		case EQmImeCandidateReloadAction::CLEAR:
+			Clear();
+			break;
+		case EQmImeCandidateReloadAction::KEEP_PREVIOUS:
+			break;
+		}
+	}
+
+	void UpdateFromSdl(const char *const *ppCandidates, int Count, int SelectedIndex, bool WindowsNumberedCandidates, std::optional<SQmImeCandidateList> NativeCandidates = std::nullopt)
+	{
+		if(Count <= 0 || ppCandidates == nullptr)
+		{
+			Clear();
+			return;
+		}
+		if(!AcceptsSdlCandidates())
+			return;
+
+		if(NativeCandidates.has_value() && !NativeCandidates->m_vCandidates.empty())
+		{
+			m_Candidates = std::move(*NativeCandidates);
+			return;
+		}
+
+		Clear();
+		m_Candidates.m_vCandidates.reserve(Count);
+		for(int i = 0; i < Count; ++i)
+		{
+			const char *pCandidate = ppCandidates[i] != nullptr ? ppCandidates[i] : "";
+			// SDL 的 Windows 后端已加上一位数字和空格，候选窗会自行绘制序号。
+			if(WindowsNumberedCandidates && pCandidate[0] >= '0' && pCandidate[0] <= '9' && pCandidate[1] == ' ')
+				pCandidate += 2;
+			m_Candidates.m_vCandidates.emplace_back(pCandidate);
+		}
+		m_Candidates.m_SelectedIndex = SelectedIndex >= 0 && SelectedIndex < Count ? SelectedIndex : -1;
+		m_Candidates.m_PageSize = m_Candidates.m_TotalCount = Count;
+	}
+
+private:
+	SQmImeCandidateList m_Candidates;
+	bool m_SuppressStaleReload = false;
+};
 
 // 正在输入法组合输入期间，回车、退格、删除与方向键由 IME 内部消费，避免误篡改外部输入框内容。
 inline bool QmImeKeyConsumedByComposition(int Key)

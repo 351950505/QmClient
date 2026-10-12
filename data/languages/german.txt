@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == Automatisch entstummen beim Sprechen
 
+Auto unspec both tees when either is hammered awake
+== Beide Tees aus dem Zuschauermodus holen, wenn einer mit dem Hammer aufgetaut wird
+
 Auto unspec on unfreeze
 == Beim Auftauen automatisch aus Zuschauermodus
 
@@ -4579,6 +4582,9 @@ Existing Player
 
 Exit replay view
 == Replay-Ansicht beenden
+
+Exit spectating on both tees when either is hammered awake by another player
+== Den Zuschauermodus für beide Tees beenden, wenn ein anderer Spieler einen davon mit dem Hammer auftaut
 
 Expand console
 == Konsole vergrößern
@@ -12577,6 +12583,15 @@ Some map sounds could not be loaded. Check the local console for details.
 
 Something hookable
 == Etwas einhakbar
+
+Sort by favorites
+== Nach Favoriten sortieren
+
+Sort by number of friends
+== Nach Anzahl der Freunde sortieren
+
+Sort by number of QmClient players
+== Nach Anzahl der QmClient-Spieler sortieren
 
 Sort column in ghost list
 == Sortierspalte in der Geisterliste

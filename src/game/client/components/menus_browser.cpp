@@ -582,6 +582,7 @@ void CMenus::RenderServerbrowserServerList(CUIRect View, bool &WasListboxItemAct
 
 		if(Col.m_Id == COL_FRIENDS)
 		{
+			GameClient()->m_Tooltips.DoToolTip(&Col.m_Id, &Col.m_Rect, Localize("Sort by number of friends"));
 			TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
 			TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 			Ui()->DoLabel_QmIcon(&Col.m_Rect, EQmIcon::HEART, FONT_ICON_HEART, 14.0f, TEXTALIGN_MC);
@@ -590,11 +591,16 @@ void CMenus::RenderServerbrowserServerList(CUIRect View, bool &WasListboxItemAct
 		}
 		else if(Col.m_Id == COL_FLAG_FAV)
 		{
+			GameClient()->m_Tooltips.DoToolTip(&Col.m_Id, &Col.m_Rect, Localize("Sort by favorites"));
 			TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
 			TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 			Ui()->DoLabel_QmIcon(&Col.m_Rect, EQmIcon::STAR, FONT_ICON_STAR, 14.0f, TEXTALIGN_MC);
 			TextRender()->SetRenderFlags(0);
 			TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
+		}
+		else if(Col.m_Id == COL_QM_CLIENTS)
+		{
+			GameClient()->m_Tooltips.DoToolTip(&Col.m_Id, &Col.m_Rect, Localize("Sort by number of QmClient players"));
 		}
 	}
 

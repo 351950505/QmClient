@@ -3582,6 +3582,9 @@ if(CLIENT)
     components/qmclient/skin_source_job.cpp
     components/qmclient/skin_source_job.h
     components/qmclient/media_paths.h
+    components/qmclient/mobile_spectator.cpp
+    components/qmclient/mobile_spectator.h
+    components/qmclient/mobile_spectator_controls.h
     components/qmclient/screenshot_manager.cpp
     components/qmclient/config_package.cpp
     components/qmclient/config_package.h
@@ -4584,6 +4587,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/integration/qmclient/client/qm_deepfly_bind_test.cpp
     src/test/unit/qmclient/client/qm_spectator_tele_search_test.cpp
     src/test/unit/qmclient/client/qm_spectator_friend_priority_test.cpp
+    src/test/unit/qmclient/client/qm_mobile_spectator_test.cpp
     src/test/unit/qmclient/client/qm_friend_enter_tracker_test.cpp
     src/test/unit/qmclient/client/qm_friend_online_tracker_test.cpp
     src/test/unit/qmclient/client/qm_friends_category_drag_test.cpp
@@ -4776,7 +4780,6 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_hud_notifications_legacy_contract_test.cpp
     src/test/contract/qmclient/client/qm_hud_editor_contract_test.cpp
     src/test/unit/qmclient/client/country_flag_anim_start_time_test.cpp
-    src/test/contract/qmclient/client/qm_ime_platform_contract_test.cpp
     src/test/unit/qmclient/client/qm_ime_platform_test.cpp
     src/test/unit/qmclient/client/qm_serverlist_cache_test.cpp
     src/test/unit/qmclient/client/qm_input_overlay_count_test.cpp

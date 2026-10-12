@@ -14,6 +14,7 @@ public class ClientActivity extends SDLActivity {
 	private static final int COMMAND_RESTART_APP = SDLActivity.COMMAND_USER + 1;
 
 	private String[] launchArguments = new String[0];
+	private QmMediaExporter mediaExporter;
 
 	private final Object serverServiceMonitor = new Object();
 	private Messenger serverServiceMessenger = null;
@@ -57,10 +58,35 @@ public class ClientActivity extends SDLActivity {
 		}
 
 		super.onCreate(savedInstanceState);
+		mediaExporter = new QmMediaExporter(this, savedInstanceState);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle state) {
+		if(mediaExporter != null)
+			mediaExporter.saveState(state);
+		super.onSaveInstanceState(state);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if(mediaExporter != null && mediaExporter.onActivityResult(requestCode, resultCode, data))
+			return;
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+	// 由 SDL 主线程通过 JNI 调用，原生对话框在 Android UI 线程打开。
+	public void showMediaFiles(String directory, boolean videos, String[] excluded) {
+		runOnUiThread(() -> {
+			if(mediaExporter != null)
+				mediaExporter.browse(directory, videos, excluded);
+		});
 	}
 
 	@Override
 	protected void onDestroy() {
+		if(mediaExporter != null)
+			mediaExporter.close();
 		super.onDestroy();
 		synchronized(serverServiceMonitor) {
 			if(serverServiceMessenger != null) {

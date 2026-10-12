@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == Konuşurken otomatik sessizi aç
 
+Auto unspec both tees when either is hammered awake
+== Biri çekiçle çözüldüğünde iki Tee de seyirci modundan çıksın
+
 Auto unspec on unfreeze
 == Çözülünce otomatik seyirciden çık
 
@@ -4579,6 +4582,9 @@ Existing Player
 
 Exit replay view
 == Demo görünümünden çık
+
+Exit spectating on both tees when either is hammered awake by another player
+== Başka bir oyuncu birini çekiçle çözdüğünde iki Tee de seyirci modundan çıksın
 
 Expand console
 == Konsolu genişlet
@@ -12577,6 +12583,15 @@ Some map sounds could not be loaded. Check the local console for details.
 
 Something hookable
 == Kancalanabilir bir şey
+
+Sort by favorites
+== Favorilere göre sırala
+
+Sort by number of friends
+== Arkadaş sayısına göre sırala
+
+Sort by number of QmClient players
+== QmClient oyuncu sayısına göre sırala
 
 Sort column in ghost list
 == Hayalet listesinde sıralama sütunu

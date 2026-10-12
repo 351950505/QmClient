@@ -379,6 +379,7 @@ Auto team lock
 Auto translate received messages
 Auto translate sent messages
 Auto unmute when speaking
+Auto unspec both tees when either is hammered awake
 Auto unspec on unfreeze
 Auto vote on map change after min duration (0=Off, 1=Oppose, 2=Agree)
 Auto weapon switch
@@ -1525,6 +1526,7 @@ Execute on join
 Execute the specified file
 Existing Player
 Exit replay view
+Exit spectating on both tees when either is hammered awake by another player
 Expand console
 Expanded dropdown background color
 Expanded dropdown background opacity percentage
@@ -4191,6 +4193,9 @@ Some fonts could not be loaded. Check the local console for details.
 Some map images could not be loaded. Check the local console for details.
 Some map sounds could not be loaded. Check the local console for details.
 Something hookable
+Sort by favorites
+Sort by number of friends
+Sort by number of QmClient players
 Sort column in ghost list
 Sort column in replay browser
 Sort order in ghost list

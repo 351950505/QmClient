@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == Activar micrófono automáticamente al hablar
 
+Auto unspec both tees when either is hammered awake
+== Sacar a ambos Tees del modo espectador cuando uno sea descongelado con el martillo
+
 Auto unspec on unfreeze
 == Eliminar espectador automático al descongelar
 
@@ -4579,6 +4582,9 @@ Existing Player
 
 Exit replay view
 == Salir de la vista de demo
+
+Exit spectating on both tees when either is hammered awake by another player
+== Salir del modo espectador con ambos Tees cuando otro jugador descongele a cualquiera con el martillo
 
 Expand console
 == Expandir consola
@@ -12577,6 +12583,15 @@ Some map sounds could not be loaded. Check the local console for details.
 
 Something hookable
 == Algo enganchable
+
+Sort by favorites
+== Ordenar por favoritos
+
+Sort by number of friends
+== Ordenar por número de amigos
+
+Sort by number of QmClient players
+== Ordenar por número de jugadores de QmClient
 
 Sort column in ghost list
 == Columna de ordenación en la lista de fantasmas

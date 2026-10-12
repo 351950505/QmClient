@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == 発話時に自動ミュート解除
 
+Auto unspec both tees when either is hammered awake
+== どちらかがハンマーで解凍されたら両方の Tee の観戦を解除
+
 Auto unspec on unfreeze
 == 凍結解除時に自動で観戦解除
 
@@ -4579,6 +4582,9 @@ Existing Player
 
 Exit replay view
 == リプレイ視聴を終了
+
+Exit spectating on both tees when either is hammered awake by another player
+== どちらかが他のプレイヤーのハンマーで解凍されたら両方の Tee の観戦を解除
 
 Expand console
 == コンソールを展開
@@ -12577,6 +12583,15 @@ Some map sounds could not be loaded. Check the local console for details.
 
 Something hookable
 == フック可能なブロック
+
+Sort by favorites
+== お気に入り順に並べ替え
+
+Sort by number of friends
+== フレンド数順に並べ替え
+
+Sort by number of QmClient players
+== QmClientプレイヤー数順に並べ替え
 
 Sort column in ghost list
 == ゴーストリストのソート列

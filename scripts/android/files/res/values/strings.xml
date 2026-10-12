@@ -11,4 +11,12 @@
 	<string name="server_notification_channel_description">Notification to control the local DDNet-Server while it\'s running.</string>
 	<string name="server_error_external_files_inaccessible">Error starting DDNet-Server: could not access external files directory.</string>
 	<string name="server_error_exit_code">DDNet-Server stopped with error code \'%1$d\'.</string>
+	<string name="qm_media_demos">Demo files</string>
+	<string name="qm_media_videos">Video files</string>
+	<string name="qm_media_export">Save to device</string>
+	<string name="qm_media_share">Share file</string>
+	<string name="qm_media_empty">No finished recordings in this folder.</string>
+	<string name="qm_media_copying">Copying file…</string>
+	<string name="qm_media_exported">File saved to the selected location.</string>
+	<string name="qm_media_failed">Could not access or copy this file. Check the destination and available space, then try again.</string>
 </resources>

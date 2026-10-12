@@ -1142,6 +1142,9 @@ Auto translate sent messages
 Auto unmute when speaking
 == 말할 때 자동 음소거 해제
 
+Auto unspec both tees when either is hammered awake
+== 어느 한 Tee가 망치로 해동되면 두 Tee 모두 관전 해제
+
 Auto unspec on unfreeze
 == 얼음 해제 시 자동 관전 해제
 
@@ -4579,6 +4582,9 @@ Existing Player
 
 Exit replay view
 == 리플레이 보기 종료
+
+Exit spectating on both tees when either is hammered awake by another player
+== 어느 한 Tee가 다른 플레이어의 망치로 해동되면 두 Tee 모두 관전 해제
 
 Expand console
 == 콘솔 확장
@@ -12577,6 +12583,15 @@ Some map sounds could not be loaded. Check the local console for details.
 
 Something hookable
 == 갈고리 가능한 블록
+
+Sort by favorites
+== 즐겨찾기순 정렬
+
+Sort by number of friends
+== 친구 수순 정렬
+
+Sort by number of QmClient players
+== QmClient 플레이어 수순 정렬
 
 Sort column in ghost list
 == 고스트 목록 정렬 열
