@@ -77,6 +77,9 @@ void ExecuteAndroidServerCommand(const char *pCommand);
  */
 bool IsAndroidServerRunning();
 
+// 打开应用内媒体列表，导出与分享由系统 UI 完成；排除仍在录制的文件。
+bool ShowAndroidMediaFiles(const char *pDirectory, bool Videos, const char *const *ppExcluded, size_t NumExcluded);
+
 /**
  * Requests the audio record permission on Android.
  *

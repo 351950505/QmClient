@@ -194,7 +194,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3741
+      "line": 3746
     },
     {
       "key": "%d teams",
@@ -229,7 +229,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5491
+      "line": 5499
     },
     {
       "key": "%d:%02d.%03dmin",
@@ -292,28 +292,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5497
+      "line": 5505
     },
     {
       "key": "%i minutes left",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5497
+      "line": 5505
     },
     {
       "key": "%i second left",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5501
+      "line": 5509
     },
     {
       "key": "%i seconds left",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5501
+      "line": 5509
     },
     {
       "key": "%s (/%s %s)",
@@ -859,7 +859,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4957
+      "line": 4961
     },
     {
       "key": "(Update required)",
@@ -1041,7 +1041,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2279
+      "line": 2283
     },
     {
       "key": "1% low",
@@ -1062,14 +1062,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2280
+      "line": 2284
     },
     {
       "key": "3 stars",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2281
+      "line": 2285
     },
     {
       "key": "3D background",
@@ -1083,7 +1083,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2282
+      "line": 2286
     },
     {
       "key": "45° Aim",
@@ -1104,7 +1104,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2283
+      "line": 2287
     },
     {
       "key": "9+ new mentions",
@@ -1538,13 +1538,6 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4805
-    },
-    {
-      "key": "A folder with this name already exists",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
       "line": 4809
     },
     {
@@ -1552,7 +1545,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4881
+      "line": 4813
+    },
+    {
+      "key": "A folder with this name already exists",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 4885
     },
     {
       "key": "A manual source file takes priority over the selected candidate. Only this variant is replaced.",
@@ -1601,7 +1601,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4805
+      "line": 4809
     },
     {
       "key": "A Tee",
@@ -1629,42 +1629,42 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4449
+      "line": 4453
     },
     {
       "key": "Abort",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4666
+      "line": 4670
     },
     {
       "key": "Abort",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4771
+      "line": 4775
     },
     {
       "key": "Abort",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4855
+      "line": 4859
     },
     {
       "key": "Abort",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5454
+      "line": 5462
     },
     {
       "key": "Abort",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5570
+      "line": 5578
     },
     {
       "key": "Abort",
@@ -1699,14 +1699,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3252
+      "line": 3256
     },
     {
       "key": "Activate all",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3210
+      "line": 3214
     },
     {
       "key": "Activate tee history writing full game data to disk (warning: uses lots of disk space)",
@@ -1860,7 +1860,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2454
+      "line": 2458
     },
     {
       "key": "Add",
@@ -2063,7 +2063,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6238
+      "line": 6244
     },
     {
       "key": "Add a skin as a favorite",
@@ -2196,7 +2196,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6235
+      "line": 6241
     },
     {
       "key": "Add Entry",
@@ -2574,14 +2574,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4706
+      "line": 4710
     },
     {
       "key": "Address",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1659
+      "line": 1663
     },
     {
       "key": "Address to bind the external console. Anything other than \"localhost\" is dangerous.",
@@ -2728,7 +2728,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2518
+      "line": 2522
     },
     {
       "key": "Advanced mode",
@@ -3225,7 +3225,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2278
+      "line": 2282
     },
     {
       "key": "Allow /map.",
@@ -3386,14 +3386,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1416
+      "line": 1420
     },
     {
       "key": "allowed",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1797
+      "line": 1801
     },
     {
       "key": "Allows maps to render with more detail",
@@ -3575,7 +3575,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2487
+      "line": 2491
     },
     {
       "key": "Angle",
@@ -4247,7 +4247,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3618
+      "line": 3623
     },
     {
       "key": "Are you sure that you want to delete '%s'?",
@@ -4275,21 +4275,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3612
+      "line": 3617
     },
     {
       "key": "Are you sure that you want to delete the folder '%s'?",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3612
+      "line": 3617
     },
     {
       "key": "Are you sure that you want to delete the screenshot '%s'?",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3612
+      "line": 3617
     },
     {
       "key": "Are you sure that you want to delete this button?",
@@ -4310,14 +4310,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3506
+      "line": 3511
     },
     {
       "key": "Are you sure that you want to disconnect and play this demo?",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3580
+      "line": 3584
     },
     {
       "key": "Are you sure that you want to disconnect and switch to a different server?",
@@ -4331,14 +4331,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 701
+      "line": 704
     },
     {
       "key": "Are you sure that you want to disconnect?",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 650
+      "line": 651
     },
     {
       "key": "Are you sure that you want to import the touch controls from the clipboard? This will overwrite your current touch controls.",
@@ -4352,7 +4352,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4480
+      "line": 4484
     },
     {
       "key": "Are you sure that you want to remove '%s' from your war groups?",
@@ -4408,7 +4408,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4475
+      "line": 4479
     },
     {
       "key": "Are you sure you want to delete this asset?",
@@ -4429,7 +4429,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4523
+      "line": 4527
     },
     {
       "key": "Arrow assets",
@@ -4688,14 +4688,14 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6230
+      "line": 6236
     },
     {
       "key": "Authenticate to rcon with a username",
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6231
+      "line": 6237
     },
     {
       "key": "Authentication",
@@ -5178,7 +5178,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2568
+      "line": 2572
     },
     {
       "key": "Auto switch to the tee that got unfrozen",
@@ -5731,7 +5731,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 282
+      "line": 283
     },
     {
       "key": "Automatically create statboard csv",
@@ -5794,7 +5794,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 279
+      "line": 280
     },
     {
       "key": "Automatically record demos",
@@ -5857,7 +5857,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 280
+      "line": 281
     },
     {
       "key": "Automatically take game over screenshot",
@@ -5871,7 +5871,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 281
+      "line": 282
     },
     {
       "key": "Automatically take statboard screenshot",
@@ -6536,7 +6536,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6246
+      "line": 6252
     },
     {
       "key": "Best",
@@ -7243,7 +7243,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2734
+      "line": 2738
     },
     {
       "key": "browser(internet)",
@@ -7439,7 +7439,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2485
+      "line": 2489
     },
     {
       "key": "Call vote",
@@ -7453,14 +7453,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2737
+      "line": 2741
     },
     {
       "key": "Call vote",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2328
+      "line": 2332
     },
     {
       "key": "Call vote",
@@ -7726,14 +7726,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5264
+      "line": 5270
     },
     {
       "key": "Cancel",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5298
+      "line": 5306
     },
     {
       "key": "Cancel",
@@ -7768,7 +7768,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 923
+      "line": 927
     },
     {
       "key": "Cancel",
@@ -8132,14 +8132,14 @@
       "category": "register_help",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 742
+      "line": 744
     },
     {
       "key": "Change settings",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2199
+      "line": 2203
     },
     {
       "key": "Change sound source shape.",
@@ -8916,7 +8916,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4509
+      "line": 4513
     },
     {
       "key": "Checking Steam...",
@@ -9427,7 +9427,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2519
+      "line": 2523
     },
     {
       "key": "Classic Next",
@@ -9455,7 +9455,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2520
+      "line": 2524
     },
     {
       "key": "Classic Nut",
@@ -9483,7 +9483,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2522
+      "line": 2526
     },
     {
       "key": "Classic PowerShell",
@@ -9518,7 +9518,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2521
+      "line": 2525
     },
     {
       "key": "Classic title glow",
@@ -9735,7 +9735,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2685
+      "line": 2689
     },
     {
       "key": "Click to copy the map name",
@@ -9847,7 +9847,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2935
+      "line": 2939
     },
     {
       "key": "Client frame time is abnormal",
@@ -9931,7 +9931,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3271
+      "line": 3275
     },
     {
       "key": "Clip H",
@@ -9994,7 +9994,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 942
+      "line": 946
     },
     {
       "key": "Close",
@@ -10631,7 +10631,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1678
+      "line": 1682
     },
     {
       "key": "Compact",
@@ -11275,21 +11275,21 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 1221
+      "line": 1223
     },
     {
       "key": "Connect dummy",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 459
+      "line": 460
     },
     {
       "key": "Connect dummy",
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6208
+      "line": 6214
     },
     {
       "key": "Connect dummy automatically for solo split mode",
@@ -11331,7 +11331,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6216
+      "line": 6222
     },
     {
       "key": "Connected",
@@ -11352,21 +11352,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5506
+      "line": 5514
     },
     {
       "key": "Connected",
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 938
+      "line": 940
     },
     {
       "key": "Connected",
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1620
+      "line": 1623
     },
     {
       "key": "Connected, no one is speaking",
@@ -11401,14 +11401,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 463
+      "line": 464
     },
     {
       "key": "Connecting to",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5407
+      "line": 5415
     },
     {
       "key": "Connection disconnected",
@@ -11506,7 +11506,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 958
+      "line": 962
     },
     {
       "key": "Console",
@@ -11856,14 +11856,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4622
+      "line": 4626
     },
     {
       "key": "Continue anyway?",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4627
+      "line": 4631
     },
     {
       "key": "Contributors",
@@ -12087,7 +12087,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2674
+      "line": 2678
     },
     {
       "key": "Copy",
@@ -12115,7 +12115,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1699
+      "line": 1703
     },
     {
       "key": "Copy name",
@@ -12269,14 +12269,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5307
+      "line": 5315
     },
     {
       "key": "Could not connect dummy",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 3491
+      "line": 3497
     },
     {
       "key": "Could not connect to the translation service. Please try again later.",
@@ -12297,14 +12297,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5183
+      "line": 5187
     },
     {
       "key": "Could not find online Tutorial server.\\nStarting and connecting to local server…",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5218
+      "line": 5222
     },
     {
       "key": "Could not find your Team",
@@ -12339,7 +12339,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5128
+      "line": 5132
     },
     {
       "key": "Could not get server list from master server",
@@ -12374,7 +12374,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1091
+      "line": 1095
     },
     {
       "key": "Could not load sponsor QR code. Check the Base64 data",
@@ -12388,14 +12388,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1107
+      "line": 1111
     },
     {
       "key": "Could not load touch controls from file. See local console for details.",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1066
+      "line": 1070
     },
     {
       "key": "Could not load touch controls from file. See local console for details.",
@@ -12479,7 +12479,7 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 1220
+      "line": 1222
     },
     {
       "key": "Could not save configuration package.",
@@ -12493,7 +12493,7 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 3304
+      "line": 3310
     },
     {
       "key": "Could not save title credential",
@@ -13669,14 +13669,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3699
+      "line": 3703
     },
     {
       "key": "Data source",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3700
+      "line": 3704
     },
     {
       "key": "Date",
@@ -13690,14 +13690,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3053
+      "line": 3057
     },
     {
       "key": "Date",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3379
+      "line": 3383
     },
     {
       "key": "Days",
@@ -13830,7 +13830,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3610
+      "line": 3614
     },
     {
       "key": "DDNet releases",
@@ -13872,7 +13872,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3730
+      "line": 3734
     },
     {
       "key": "DDNet/total CPU",
@@ -13914,42 +13914,42 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4486
+      "line": 4490
     },
     {
       "key": "DDRaceNetwork · DDNet",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3699
+      "line": 3703
     },
     {
       "key": "ddstats.tw ID stats",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3729
+      "line": 3733
     },
     {
       "key": "Deactivate",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3252
+      "line": 3256
     },
     {
       "key": "Deactivate all",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3210
+      "line": 3214
     },
     {
       "key": "Deactivate ghost",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3611
+      "line": 3615
     },
     {
       "key": "Death",
@@ -14782,14 +14782,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3276
+      "line": 3280
     },
     {
       "key": "Delete",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3568
+      "line": 3572
     },
     {
       "key": "Delete",
@@ -14887,14 +14887,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3613
+      "line": 3618
     },
     {
       "key": "Delete demo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3623
+      "line": 3628
     },
     {
       "key": "Delete envelope %d",
@@ -14908,14 +14908,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3613
+      "line": 3618
     },
     {
       "key": "Delete folder",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3623
+      "line": 3628
     },
     {
       "key": "Delete group",
@@ -14957,28 +14957,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3613
+      "line": 3618
     },
     {
       "key": "Delete screenshot",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3623
+      "line": 3628
     },
     {
       "key": "Delete selected items",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3619
+      "line": 3624
     },
     {
       "key": "Delete selected items",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3623
+      "line": 3628
     },
     {
       "key": "Delete skin",
@@ -15139,7 +15139,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 298
+      "line": 299
     },
     {
       "key": "Demo directory",
@@ -15209,7 +15209,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 750
+      "line": 754
     },
     {
       "key": "Demo Player",
@@ -15251,7 +15251,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2493
+      "line": 2494
     },
     {
       "key": "Demos",
@@ -15273,6 +15273,13 @@
       "source": "src/game/editor/proof_mode.cpp",
       "context": "Editor",
       "line": 32
+    },
+    {
+      "key": "Demos directory",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
+      "context": "",
+      "line": 314
     },
     {
       "key": "Demos directory",
@@ -15741,56 +15748,56 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3506
+      "line": 3511
     },
     {
       "key": "Disconnect",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 458
+      "line": 459
     },
     {
       "key": "Disconnect",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 661
+      "line": 662
     },
     {
       "key": "Disconnect",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3580
+      "line": 3584
     },
     {
       "key": "Disconnect dummy",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 468
+      "line": 469
     },
     {
       "key": "Disconnect dummy",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 701
+      "line": 704
     },
     {
       "key": "Disconnect dummy",
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6209
+      "line": 6215
     },
     {
       "key": "Disconnect from the server",
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6217
+      "line": 6223
     },
     {
       "key": "Disconnected",
@@ -15825,14 +15832,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4441
+      "line": 4445
     },
     {
       "key": "Disconnected",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 7921
+      "line": 7945
     },
     {
       "key": "Disconnected",
@@ -16322,7 +16329,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3591
+      "line": 3595
     },
     {
       "key": "Download skins",
@@ -16350,7 +16357,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3557
+      "line": 3562
     },
     {
       "key": "Download this asset?",
@@ -16392,14 +16399,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5489
+      "line": 5497
     },
     {
       "key": "Downloading rank 1 demo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3557
+      "line": 3562
     },
     {
       "key": "Downloading update...",
@@ -16798,7 +16805,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 679
+      "line": 682
     },
     {
       "key": "Dummy",
@@ -16903,7 +16910,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2529
+      "line": 2533
     },
     {
       "key": "Dummy",
@@ -17764,7 +17771,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 471
+      "line": 472
     },
     {
       "key": "Edit individual Tee 7 skin parts",
@@ -17918,7 +17925,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 917
+      "line": 921
     },
     {
       "key": "Edit touch controls",
@@ -17946,14 +17953,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2451
+      "line": 2452
     },
     {
       "key": "Editor",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2499
+      "line": 2503
     },
     {
       "key": "Editor",
@@ -18954,7 +18961,7 @@
       "category": "register_help",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 749
+      "line": 751
     },
     {
       "key": "Enable map compatibility mode using the specified bug (example: grenade-doubleexplosion@ddnet.tw)",
@@ -20039,14 +20046,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4800
-    },
-    {
-      "key": "Error",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
-      "line": 4805
+      "line": 4804
     },
     {
       "key": "Error",
@@ -20060,14 +20060,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4821
+      "line": 4813
     },
     {
       "key": "Error",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4873
+      "line": 4825
     },
     {
       "key": "Error",
@@ -20088,14 +20088,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5346
-    },
-    {
-      "key": "Error",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
-      "line": 5350
+      "line": 4885
     },
     {
       "key": "Error",
@@ -20109,28 +20102,49 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5583
+      "line": 5358
+    },
+    {
+      "key": "Error",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 5362
+    },
+    {
+      "key": "Error",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 5591
     },
     {
       "key": "Error",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3743
+      "line": 3748
+    },
+    {
+      "key": "Error",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/mobile_spectator.cpp",
+      "context": "",
+      "line": 143
     },
     {
       "key": "Error checking player name",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5307
+      "line": 5315
     },
     {
       "key": "Error joining Tutorial server",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5183
+      "line": 5187
     },
     {
       "key": "Error loading communities",
@@ -20144,49 +20158,49 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5614
+      "line": 5622
     },
     {
       "key": "Error loading demo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3662
+      "line": 3667
     },
     {
       "key": "Error loading demo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3677
+      "line": 3682
     },
     {
       "key": "Error loading demo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3627
+      "line": 3631
     },
     {
       "key": "Error loading touch controls",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1066
+      "line": 1070
     },
     {
       "key": "Error loading touch controls",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1091
+      "line": 1095
     },
     {
       "key": "Error loading touch controls",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1107
+      "line": 1111
     },
     {
       "key": "Error loading touch controls",
@@ -20214,21 +20228,21 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 3815
+      "line": 3821
     },
     {
       "key": "Error saving settings",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 4699
+      "line": 4705
     },
     {
       "key": "Error saving settings",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 4760
+      "line": 4766
     },
     {
       "key": "Error saving settings",
@@ -20578,7 +20592,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2527
+      "line": 2531
     },
     {
       "key": "Exact bound nickname",
@@ -20683,7 +20697,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2263
+      "line": 2267
     },
     {
       "key": "Excluded",
@@ -20760,7 +20774,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4500
+      "line": 4504
     },
     {
       "key": "Exit",
@@ -20774,7 +20788,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3599
+      "line": 3603
     },
     {
       "key": "Exit the editor",
@@ -21187,21 +21201,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3366
+      "line": 3370
     },
     {
       "key": "Failed",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3655
+      "line": 3659
     },
     {
       "key": "Failed",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3670
+      "line": 3674
     },
     {
       "key": "Failed during initialization. Try to change gfx_backend to OpenGL or Vulkan in qmclient/settings.cfg in the config directory and try again.",
@@ -21215,7 +21229,7 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 4067
+      "line": 4073
     },
     {
       "key": "Failed to convert image from file \"%s\".",
@@ -21465,6 +21479,13 @@
     {
       "key": "Failed to open the directory '%s'.",
       "category": "localize_or_localizable",
+      "source": "src/game/client/components/qmclient/mobile_spectator.cpp",
+      "context": "Editor",
+      "line": 142
+    },
+    {
+      "key": "Failed to open the directory '%s'.",
+      "category": "localize_or_localizable",
       "source": "src/game/editor/file_browser.cpp",
       "context": "Editor",
       "line": 420
@@ -21509,7 +21530,7 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 3785
+      "line": 3791
     },
     {
       "key": "Failed to save camera path",
@@ -21523,42 +21544,42 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5583
+      "line": 5591
     },
     {
       "key": "Failed to save demo",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 5303
+      "line": 5309
     },
     {
       "key": "Failed to save demo",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 5313
+      "line": 5319
     },
     {
       "key": "Failed to save demo",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 5512
+      "line": 5518
     },
     {
       "key": "Failed to save demo",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 5530
+      "line": 5536
     },
     {
       "key": "Failed to save demo",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 7172
+      "line": 7166
     },
     {
       "key": "Failed to save demo",
@@ -21649,14 +21670,14 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 5440
+      "line": 5446
     },
     {
       "key": "Failed to save video",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4877
+      "line": 4881
     },
     {
       "key": "Failed to swap framebuffers. Try to update your GPU drivers.",
@@ -21761,7 +21782,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 485
+      "line": 486
     },
     {
       "key": "Fast practice",
@@ -21810,14 +21831,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1723
+      "line": 1727
     },
     {
       "key": "Favorite friend",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3277
+      "line": 3281
     },
     {
       "key": "Favorite icon color",
@@ -21859,7 +21880,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2553
+      "line": 2557
     },
     {
       "key": "Favorite map",
@@ -21880,21 +21901,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1738
+      "line": 1742
     },
     {
       "key": "Favorite map",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2688
+      "line": 2692
     },
     {
       "key": "Favorite map",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2742
+      "line": 2746
     },
     {
       "key": "Favorite maps",
@@ -21950,21 +21971,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2553
+      "line": 2557
     },
     {
       "key": "Favorites",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2284
+      "line": 2288
     },
     {
       "key": "Favorites",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2742
+      "line": 2746
     },
     {
       "key": "favorites",
@@ -22062,7 +22083,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4886
+      "line": 4890
     },
     {
       "key": "File already exists, do you want to overwrite it?",
@@ -22321,7 +22342,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3613
+      "line": 3617
     },
     {
       "key": "Finish name",
@@ -22398,7 +22419,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3275
+      "line": 3279
     },
     {
       "key": "Fire",
@@ -22860,14 +22881,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1415
+      "line": 1419
     },
     {
       "key": "forbidden",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1791
+      "line": 1795
     },
     {
       "key": "Force",
@@ -22909,7 +22930,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2403
+      "line": 2407
     },
     {
       "key": "Format player names after a finish",
@@ -23721,7 +23742,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2526
+      "line": 2530
     },
     {
       "key": "Functions",
@@ -23763,7 +23784,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2731
+      "line": 2735
     },
     {
       "key": "Game",
@@ -23805,7 +23826,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1752
+      "line": 1756
     },
     {
       "key": "Game Layer",
@@ -23813,20 +23834,6 @@
       "source": "src/game/editor/enums.h",
       "context": "Editor",
       "line": 39
-    },
-    {
-      "key": "Game mode",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
-      "line": 3379
-    },
-    {
-      "key": "Game mode",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
-      "line": 3381
     },
     {
       "key": "Game mode",
@@ -23847,14 +23854,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3540
+      "line": 3387
     },
     {
       "key": "Game mode",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3542
+      "line": 3389
+    },
+    {
+      "key": "Game mode",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 3544
+    },
+    {
+      "key": "Game mode",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 3546
     },
     {
       "key": "Game over",
@@ -24015,7 +24036,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1755
+      "line": 1759
     },
     {
       "key": "Game type (ddnet, mod)",
@@ -24176,14 +24197,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5510
+      "line": 5518
     },
     {
       "key": "Getting server list from master server",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5125
+      "line": 5129
     },
     {
       "key": "Getting server list from master server",
@@ -24197,28 +24218,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2735
+      "line": 2739
     },
     {
       "key": "Ghost active",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3489
+      "line": 3493
     },
     {
       "key": "Ghost active (%d)",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3485
+      "line": 3489
     },
     {
       "key": "Ghost ready",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3492
+      "line": 3496
     },
     {
       "key": "Ghost tools",
@@ -24267,7 +24288,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3194
+      "line": 3198
     },
     {
       "key": "Github",
@@ -24771,21 +24792,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3680
+      "line": 3684
     },
     {
       "key": "Gores · Axiom",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3682
+      "line": 3686
     },
     {
       "key": "Gores · Axiom",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3700
+      "line": 3704
     },
     {
       "key": "GPU name, chosen by backend (if supported)",
@@ -26024,7 +26045,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2286
+      "line": 2290
     },
     {
       "key": "Higher values make the wave move faster. Zero stops the movement.",
@@ -26836,7 +26857,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1188
+      "line": 1192
     },
     {
       "key": "HUD",
@@ -27172,7 +27193,7 @@
       "category": "register_help",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 737
+      "line": 739
     },
     {
       "key": "Image",
@@ -28054,14 +28075,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1061
+      "line": 1063
     },
     {
       "key": "Initializing components",
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1013
+      "line": 1015
     },
     {
       "key": "Initializing layers",
@@ -28082,7 +28103,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1621
+      "line": 1624
     },
     {
       "key": "Input",
@@ -28292,7 +28313,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2528
+      "line": 2532
     },
     {
       "key": "Installed",
@@ -28467,21 +28488,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2517
+      "line": 2521
     },
     {
       "key": "Internet",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2553
+      "line": 2557
     },
     {
       "key": "Internet",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2742
+      "line": 2746
     },
     {
       "key": "Internet (From online source)",
@@ -28803,7 +28824,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4488
+      "line": 4492
     },
     {
       "key": "Item",
@@ -28950,13 +28971,6 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 480
-    },
-    {
-      "key": "Join game",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus_ingame.cpp",
-      "context": "",
       "line": 481
     },
     {
@@ -28964,7 +28978,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 483
+      "line": 482
+    },
+    {
+      "key": "Join game",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus_ingame.cpp",
+      "context": "",
+      "line": 484
     },
     {
       "key": "Join QQ group",
@@ -28978,7 +28999,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 479
+      "line": 480
     },
     {
       "key": "Join room",
@@ -29034,7 +29055,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5043
+      "line": 5047
     },
     {
       "key": "Join, version, rules, and help messages stay in chat instead of popups",
@@ -29069,7 +29090,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4496
+      "line": 4500
     },
     {
       "key": "Joystick Action",
@@ -29475,7 +29496,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2203
+      "line": 2207
     },
     {
       "key": "Kick player with specified id for any reason",
@@ -29538,7 +29559,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 482
+      "line": 483
     },
     {
       "key": "Kill",
@@ -29587,7 +29608,7 @@
       "category": "register_help",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 741
+      "line": 743
     },
     {
       "key": "Kill yourself when kill-protected during a long game (use f1, kill for regular kill)",
@@ -29720,14 +29741,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2553
+      "line": 2557
     },
     {
       "key": "LAN",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2742
+      "line": 2746
     },
     {
       "key": "Landing",
@@ -30098,14 +30119,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3690
+      "line": 3694
     },
     {
       "key": "Last successful sync: %s",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3694
+      "line": 3698
     },
     {
       "key": "Last verified approved update source",
@@ -30378,7 +30399,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 305
+      "line": 306
     },
     {
       "key": "Leave room",
@@ -31141,7 +31162,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3611
+      "line": 3615
     },
     {
       "key": "Load current map",
@@ -31267,28 +31288,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3173
+      "line": 3177
     },
     {
       "key": "Loading",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3364
+      "line": 3368
     },
     {
       "key": "Loading",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3370
+      "line": 3374
     },
     {
       "key": "Loading",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3672
+      "line": 3676
     },
     {
       "key": "Loading",
@@ -31344,7 +31365,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 8180
+      "line": 8204
     },
     {
       "key": "Loading DDNet Client",
@@ -31365,7 +31386,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1012
+      "line": 1014
     },
     {
       "key": "Loading Demo",
@@ -31379,14 +31400,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5516
+      "line": 5524
     },
     {
       "key": "Loading demo file from storage",
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 948
+      "line": 950
     },
     {
       "key": "Loading demo files",
@@ -31407,7 +31428,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2888
+      "line": 2892
     },
     {
       "key": "Loading map",
@@ -31421,14 +31442,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5513
+      "line": 5521
     },
     {
       "key": "Loading map file from storage",
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 945
+      "line": 947
     },
     {
       "key": "Loading maps…",
@@ -31442,7 +31463,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 8180
+      "line": 8204
     },
     {
       "key": "Loading race demo files",
@@ -31463,7 +31484,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 8426
+      "line": 8433
     },
     {
       "key": "Loading sound files",
@@ -31505,7 +31526,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2387
+      "line": 2391
     },
     {
       "key": "Local",
@@ -31568,7 +31589,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3295
+      "line": 3299
     },
     {
       "key": "Local only",
@@ -31645,7 +31666,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3708
+      "line": 3712
     },
     {
       "key": "Local test mode",
@@ -31862,7 +31883,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2285
+      "line": 2289
     },
     {
       "key": "Luminosity",
@@ -31960,7 +31981,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2558
+      "line": 2562
     },
     {
       "key": "Make external",
@@ -32254,7 +32275,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1758
+      "line": 1762
     },
     {
       "key": "map already contains image %s but contents of appended image is different. Renaming to %s",
@@ -32527,7 +32548,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2513
+      "line": 2517
     },
     {
       "key": "Map upload",
@@ -32625,20 +32646,6 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3379
-    },
-    {
-      "key": "Maps finished",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
-      "line": 3381
-    },
-    {
-      "key": "Maps finished",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
       "line": 3383
     },
     {
@@ -32653,14 +32660,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3544
+      "line": 3387
     },
     {
       "key": "Maps finished",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3546
+      "line": 3389
+    },
+    {
+      "key": "Maps finished",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 3548
+    },
+    {
+      "key": "Maps finished",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 3550
     },
     {
       "key": "Margin when notification is docked",
@@ -32674,7 +32695,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 476
+      "line": 477
     },
     {
       "key": "Mark the beginning of a cut (right click to reset)",
@@ -32688,7 +32709,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6240
+      "line": 6246
     },
     {
       "key": "Mark the end of a cut (right click to reset)",
@@ -32702,7 +32723,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6241
+      "line": 6247
     },
     {
       "key": "Markers",
@@ -32779,7 +32800,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 282
+      "line": 283
     },
     {
       "key": "Max CSVs",
@@ -32793,7 +32814,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 279
+      "line": 280
     },
     {
       "key": "Max demos",
@@ -32856,14 +32877,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 280
+      "line": 281
     },
     {
       "key": "Max Screenshots",
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 281
+      "line": 282
     },
     {
       "key": "Max Screenshots",
@@ -32947,14 +32968,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team size",
-      "line": 1813
+      "line": 1817
     },
     {
       "key": "maximum",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team size",
-      "line": 1817
+      "line": 1821
     },
     {
       "key": "Maximum auto-saves retained per map name (0=unlimited)",
@@ -33325,7 +33346,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3639
+      "line": 3643
     },
     {
       "key": "Menu option - normal",
@@ -33570,7 +33591,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6215
+      "line": 6221
     },
     {
       "key": "minimum",
@@ -33598,14 +33619,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team size",
-      "line": 1813
+      "line": 1817
     },
     {
       "key": "minimum",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team size",
-      "line": 1815
+      "line": 1819
     },
     {
       "key": "Minimum characters for local target language detection",
@@ -33822,7 +33843,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3376
+      "line": 3380
     },
     {
       "key": "Model",
@@ -33934,7 +33955,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1875
+      "line": 1879
     },
     {
       "key": "Motion and focus feedback",
@@ -34060,7 +34081,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2207
+      "line": 2211
     },
     {
       "key": "Move right",
@@ -34676,14 +34697,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4731
+      "line": 4735
     },
     {
       "key": "Name",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5369
+      "line": 5377
     },
     {
       "key": "Name",
@@ -34704,7 +34725,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3051
+      "line": 3055
     },
     {
       "key": "Name",
@@ -35383,7 +35404,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4834
+      "line": 4838
     },
     {
       "key": "New name",
@@ -35397,7 +35418,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4832
+      "line": 4836
     },
     {
       "key": "New name:",
@@ -35537,7 +35558,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5076
+      "line": 5080
     },
     {
       "key": "Ninja attack",
@@ -35621,28 +35642,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4638
+      "line": 4642
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4887
+      "line": 4891
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5282
+      "line": 5290
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5338
+      "line": 5346
     },
     {
       "key": "No",
@@ -35670,56 +35691,56 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3506
+      "line": 3511
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3613
+      "line": 3618
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3619
+      "line": 3624
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 661
+      "line": 662
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 701
+      "line": 704
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1378
+      "line": 1382
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1672
+      "line": 1676
     },
     {
       "key": "No",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3580
+      "line": 3584
     },
     {
       "key": "No",
@@ -35838,7 +35859,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5433
+      "line": 5441
     },
     {
       "key": "No assets",
@@ -36006,14 +36027,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2651
+      "line": 2655
     },
     {
       "key": "No demo is being recorded",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 752
+      "line": 756
     },
     {
       "key": "No demo selected",
@@ -36034,14 +36055,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3662
+      "line": 3667
     },
     {
       "key": "No demo with this filename exists",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 5362
+      "line": 5368
     },
     {
       "key": "No director players available",
@@ -36209,7 +36230,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3518
+      "line": 3522
     },
     {
       "key": "no matching settings found, type /settings to view them",
@@ -36342,7 +36363,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3518
+      "line": 3522
     },
     {
       "key": "No rank 1 replay was found for this map",
@@ -36559,7 +36580,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2632
+      "line": 2636
     },
     {
       "key": "Noise reduction mode",
@@ -36923,7 +36944,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3479
+      "line": 3483
     },
     {
       "key": "Not downloaded",
@@ -37049,14 +37070,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3666
+      "line": 3670
     },
     {
       "key": "Not requested",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3694
+      "line": 3698
     },
     {
       "key": "Note",
@@ -37077,14 +37098,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1853
+      "line": 1857
     },
     {
       "key": "Note",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1856
+      "line": 1860
     },
     {
       "key": "Note:",
@@ -37567,7 +37588,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3227
+      "line": 3231
     },
     {
       "key": "Official",
@@ -37630,42 +37651,35 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4443
+      "line": 4447
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4491
+      "line": 4495
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4748
+      "line": 4752
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4775
+      "line": 4779
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4800
-    },
-    {
-      "key": "Ok",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
-      "line": 4805
+      "line": 4804
     },
     {
       "key": "Ok",
@@ -37679,21 +37693,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4821
+      "line": 4813
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4863
+      "line": 4825
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4873
+      "line": 4867
     },
     {
       "key": "Ok",
@@ -37714,35 +37728,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5009
+      "line": 4885
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5183
+      "line": 5013
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5307
+      "line": 5187
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5346
-    },
-    {
-      "key": "Ok",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
-      "line": 5350
+      "line": 5315
     },
     {
       "key": "Ok",
@@ -37756,21 +37763,35 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5583
+      "line": 5358
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5614
+      "line": 5362
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 7921
+      "line": 5591
+    },
+    {
+      "key": "Ok",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 5622
+    },
+    {
+      "key": "Ok",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 7945
     },
     {
       "key": "Ok",
@@ -37798,28 +37819,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3529
+      "line": 3534
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3662
+      "line": 3667
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3677
+      "line": 3682
     },
     {
       "key": "Ok",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3743
+      "line": 3748
     },
     {
       "key": "Ok",
@@ -37854,7 +37875,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3627
+      "line": 3631
     },
     {
       "key": "Ok",
@@ -37931,7 +37952,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1977
+      "line": 1980
     },
     {
       "key": "Old chat style: no tee icons, no background",
@@ -38022,7 +38043,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3612
+      "line": 3616
     },
     {
       "key": "Online Players",
@@ -38512,14 +38533,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3423
+      "line": 3428
     },
     {
       "key": "Open the folder containing screenshots",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3423
+      "line": 3428
     },
     {
       "key": "Open the saves file",
@@ -38547,7 +38568,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3438
+      "line": 3443
     },
     {
       "key": "Open the selected folder.",
@@ -38561,7 +38582,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3438
+      "line": 3443
     },
     {
       "key": "Open the settings file",
@@ -38876,14 +38897,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3466
+      "line": 3470
     },
     {
       "key": "Other modes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3506
+      "line": 3510
     },
     {
       "key": "Other players' hook line width",
@@ -39296,7 +39317,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3608
+      "line": 3612
     },
     {
       "key": "Overwrite clan even if empty",
@@ -39674,14 +39695,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4691
+      "line": 4695
     },
     {
       "key": "Password",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1672
+      "line": 1676
     },
     {
       "key": "Password for Axiom alt account auto-login",
@@ -39702,7 +39723,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4469
+      "line": 4473
     },
     {
       "key": "Password required to use reserved slots.",
@@ -39716,7 +39737,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3642
+      "line": 3646
     },
     {
       "key": "Paste sp_dc from Spotify web cookies",
@@ -39779,7 +39800,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 483
+      "line": 484
     },
     {
       "key": "Pause",
@@ -39877,7 +39898,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3332
+      "line": 3336
     },
     {
       "key": "Permanent access; up to 4 online IP addresses",
@@ -40038,7 +40059,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2679
+      "line": 2683
     },
     {
       "key": "Pick the source that matches your music app and keep it playing; the lyrics follow automatically.",
@@ -40178,7 +40199,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1665
+      "line": 1669
     },
     {
       "key": "Ping",
@@ -40192,7 +40213,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6220
+      "line": 6226
     },
     {
       "key": "Pipette",
@@ -40402,7 +40423,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6232
+      "line": 6238
     },
     {
       "key": "Play background music",
@@ -40430,7 +40451,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3574
+      "line": 3578
     },
     {
       "key": "Play slide-in rotation animation when switching weapon",
@@ -40451,14 +40472,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3438
+      "line": 3443
     },
     {
       "key": "Play time",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3273
+      "line": 3277
     },
     {
       "key": "Play/Pause",
@@ -40493,7 +40514,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6242
+      "line": 6248
     },
     {
       "key": "Playback volume",
@@ -40990,7 +41011,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2492
+      "line": 2496
     },
     {
       "key": "Player not found",
@@ -41186,7 +41207,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2732
+      "line": 2736
     },
     {
       "key": "Players",
@@ -41207,14 +41228,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1829
+      "line": 1833
     },
     {
       "key": "Players",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3377
+      "line": 3381
     },
     {
       "key": "Players",
@@ -41396,7 +41417,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2621
+      "line": 2625
     },
     {
       "key": "Please enable voice first",
@@ -41417,7 +41438,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4489
+      "line": 4493
     },
     {
       "key": "Please save your changes before duplicating a button.",
@@ -41452,14 +41473,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5146
+      "line": 5150
     },
     {
       "key": "Please wait…",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 684
+      "line": 687
     },
     {
       "key": "Points",
@@ -41487,7 +41508,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3332
+      "line": 3336
     },
     {
       "key": "Points",
@@ -42124,14 +42145,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 934
+      "line": 936
     },
     {
       "key": "Preparing demo playback",
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1620
+      "line": 1623
     },
     {
       "key": "Presentation animations",
@@ -42495,7 +42516,7 @@
       "category": "register_help",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 744
+      "line": 746
     },
     {
       "key": "Preview unavailable",
@@ -43475,21 +43496,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2437
+      "line": 2438
     },
     {
       "key": "Quit",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2518
+      "line": 2522
     },
     {
       "key": "Quit",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4479
+      "line": 4483
     },
     {
       "key": "Quit",
@@ -43517,21 +43538,21 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6212
+      "line": 6218
     },
     {
       "key": "Quit the client",
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6213
+      "line": 6219
     },
     {
       "key": "Quitting. Please wait…",
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 3259
+      "line": 3264
     },
     {
       "key": "R",
@@ -43594,7 +43615,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2525
+      "line": 2529
     },
     {
       "key": "Race",
@@ -43944,7 +43965,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2615
+      "line": 2619
     },
     {
       "key": "Random skin on map join",
@@ -43986,7 +44007,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2736
+      "line": 2740
     },
     {
       "key": "Rank 1 demo",
@@ -44028,7 +44049,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3457
+      "line": 3462
     },
     {
       "key": "Rank demo already available in the demo browser: %s",
@@ -44336,14 +44357,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3657
+      "line": 3661
     },
     {
       "key": "Ready",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3668
+      "line": 3672
     },
     {
       "key": "Really? Not even a little?",
@@ -44399,7 +44420,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2374
+      "line": 2378
     },
     {
       "key": "Reason (optional)",
@@ -44413,7 +44434,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2364
+      "line": 2368
     },
     {
       "key": "Reason:",
@@ -44434,7 +44455,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6222
+      "line": 6228
     },
     {
       "key": "Receive Rate",
@@ -44525,7 +44546,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4446
+      "line": 4450
     },
     {
       "key": "Record chat replays.",
@@ -44539,7 +44560,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 472
+      "line": 473
     },
     {
       "key": "Record to a file",
@@ -44882,14 +44903,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5642
+      "line": 5650
     },
     {
       "key": "Refresh",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3538
+      "line": 3542
     },
     {
       "key": "Refresh",
@@ -45239,7 +45260,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 950
+      "line": 954
     },
     {
       "key": "Remote console",
@@ -45302,7 +45323,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2436
+      "line": 2440
     },
     {
       "key": "Remove",
@@ -45470,7 +45491,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6239
+      "line": 6245
     },
     {
       "key": "Remove a skin from the favorites",
@@ -45967,28 +45988,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4455
+      "line": 4459
     },
     {
       "key": "Rename demo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3589
+      "line": 3594
     },
     {
       "key": "Rename folder",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4455
+      "line": 4459
     },
     {
       "key": "Rename folder",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3589
+      "line": 3594
     },
     {
       "key": "Rename queue",
@@ -46009,14 +46030,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4455
+      "line": 4459
     },
     {
       "key": "Rename screenshot",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3589
+      "line": 3594
     },
     {
       "key": "Rename: %s",
@@ -46058,7 +46079,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4464
+      "line": 4468
     },
     {
       "key": "Render crosshair in free spectate mode",
@@ -46086,14 +46107,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4460
+      "line": 4464
     },
     {
       "key": "Render demo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3650
+      "line": 3655
     },
     {
       "key": "Render entity text data",
@@ -46366,7 +46387,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4887
+      "line": 4891
     },
     {
       "key": "Replacement chars",
@@ -46401,42 +46422,42 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3494
+      "line": 3498
     },
     {
       "key": "Replay feature is disabled!",
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 5275
+      "line": 5281
     },
     {
       "key": "Replay list: failed to load, press Refresh to retry",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3516
+      "line": 3520
     },
     {
       "key": "Replay list: loading ...",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3514
+      "line": 3518
     },
     {
       "key": "Replay list: not loaded yet",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3512
+      "line": 3516
     },
     {
       "key": "Replays directory",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3544
+      "line": 3548
     },
     {
       "key": "Reply",
@@ -46506,7 +46527,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 477
+      "line": 478
     },
     {
       "key": "Report request canceled",
@@ -46576,7 +46597,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 766
+      "line": 770
     },
     {
       "key": "Request a position swap",
@@ -46604,7 +46625,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5519
+      "line": 5527
     },
     {
       "key": "Require KCP-capable client to upgrade session (keep off during grayscale for fallback)",
@@ -46618,14 +46639,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1417
+      "line": 1421
     },
     {
       "key": "required",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1800
+      "line": 1804
     },
     {
       "key": "Rescan fonts and query resolved Unicode face and glyph when qm_graphics_trace is enabled",
@@ -46905,7 +46926,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6210
+      "line": 6216
     },
     {
       "key": "Reset filter",
@@ -47192,7 +47213,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4474
+      "line": 4478
     },
     {
       "key": "Restart",
@@ -47220,7 +47241,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6214
+      "line": 6220
     },
     {
       "key": "Restarting server",
@@ -47234,7 +47255,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 3261
+      "line": 3266
     },
     {
       "key": "Restore a recently used Tee skin",
@@ -47332,14 +47353,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3487
+      "line": 3491
     },
     {
       "key": "Retrying…",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5178
+      "line": 5182
     },
     {
       "key": "Reverse chat gradient colors",
@@ -47507,7 +47528,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2096
+      "line": 2100
     },
     {
       "key": "Right-click to disable auto-translate",
@@ -47528,7 +47549,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2096
+      "line": 2100
     },
     {
       "key": "Ring",
@@ -47696,7 +47717,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1781
+      "line": 1785
     },
     {
       "key": "Round %d/%d",
@@ -48074,14 +48095,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 923
+      "line": 927
     },
     {
       "key": "Save",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3295
+      "line": 3299
     },
     {
       "key": "Save",
@@ -48130,7 +48151,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6245
+      "line": 6251
     },
     {
       "key": "Save all changes before switching selected button?",
@@ -48144,7 +48165,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 923
+      "line": 927
     },
     {
       "key": "Save as",
@@ -48270,7 +48291,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9182
+      "line": 9189
     },
     {
       "key": "Save file with the specified name.",
@@ -48312,7 +48333,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 475
+      "line": 476
     },
     {
       "key": "Save loaded; local record removed.",
@@ -48431,7 +48452,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4522
+      "line": 4526
     },
     {
       "key": "Save sound",
@@ -48739,7 +48760,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 761
+      "line": 765
     },
     {
       "key": "Scanning current server...",
@@ -48760,28 +48781,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3379
+      "line": 3383
     },
     {
       "key": "Score earned",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3381
+      "line": 3385
     },
     {
       "key": "Score earned",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3547
+      "line": 3551
     },
     {
       "key": "Score limit",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1767
+      "line": 1771
     },
     {
       "key": "Score limit",
@@ -49103,7 +49124,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 300
+      "line": 301
     },
     {
       "key": "Screenshot directory",
@@ -49117,7 +49138,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3529
+      "line": 3534
     },
     {
       "key": "Screenshot error",
@@ -49173,7 +49194,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2486
+      "line": 2487
     },
     {
       "key": "Screenshots directory",
@@ -49376,7 +49397,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3341
+      "line": 3345
     },
     {
       "key": "Search maps or mappers",
@@ -50062,7 +50083,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6229
+      "line": 6235
     },
     {
       "key": "Send translation method",
@@ -50097,14 +50118,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5522
+      "line": 5530
     },
     {
       "key": "Sending initial client info",
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1644
+      "line": 1647
     },
     {
       "key": "Sending locally, suggest the other party unmute or confirm they can receive",
@@ -50188,14 +50209,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3379
+      "line": 3383
     },
     {
       "key": "Server",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3383
+      "line": 3387
     },
     {
       "key": "Server address to filter",
@@ -50335,7 +50356,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2733
+      "line": 2737
     },
     {
       "key": "Server info",
@@ -50349,7 +50370,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1643
+      "line": 1647
     },
     {
       "key": "Server kick/spec votes are no longer actively moderated.",
@@ -50573,7 +50594,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6243
+      "line": 6249
     },
     {
       "key": "Set ddrace team for a player",
@@ -50727,14 +50748,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2444
+      "line": 2445
     },
     {
       "key": "Settings",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2505
+      "line": 2509
     },
     {
       "key": "Settings",
@@ -51560,7 +51581,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4918
+      "line": 4922
     },
     {
       "key": "Show chat",
@@ -51889,7 +51910,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5063
+      "line": 5067
     },
     {
       "key": "Show DDRace HUD",
@@ -52813,7 +52834,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4928
+      "line": 4932
     },
     {
       "key": "Show ingame HUD",
@@ -53527,7 +53548,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6219
+      "line": 6225
     },
     {
       "key": "Show outlines only on entity layer",
@@ -54955,14 +54976,14 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6218
+      "line": 6224
     },
     {
       "key": "Simple",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2516
+      "line": 2520
     },
     {
       "key": "Simple noise reduction",
@@ -55648,7 +55669,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5051
+      "line": 5055
     },
     {
       "key": "Slice",
@@ -56124,42 +56145,42 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1416
+      "line": 1420
     },
     {
       "key": "solo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1418
+      "line": 1422
     },
     {
       "key": "solo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1795
+      "line": 1799
     },
     {
       "key": "solo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "Team status",
-      "line": 1803
+      "line": 1807
     },
     {
       "key": "Solo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2524
+      "line": 2528
     },
     {
       "key": "Solo",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3451
+      "line": 3455
     },
     {
       "key": "Solo split",
@@ -56229,7 +56250,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1005
+      "line": 1007
     },
     {
       "key": "Some map images could not be loaded. Check the local console for details.",
@@ -56390,7 +56411,7 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 4325
+      "line": 4331
     },
     {
       "key": "Sound named '%s' was already added.",
@@ -56607,7 +56628,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 478
+      "line": 479
     },
     {
       "key": "Spectate",
@@ -56901,7 +56922,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4958
+      "line": 4962
     },
     {
       "key": "Speed",
@@ -57321,14 +57342,14 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6233
+      "line": 6239
     },
     {
       "key": "Start recording a video",
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6225
+      "line": 6231
     },
     {
       "key": "Start skin queue from a random position when entering a map",
@@ -57384,7 +57405,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 2934
+      "line": 2938
     },
     {
       "key": "Stats",
@@ -57398,7 +57419,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3619
+      "line": 3623
     },
     {
       "key": "Status",
@@ -57419,7 +57440,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3380
+      "line": 3384
     },
     {
       "key": "Status Bar",
@@ -57790,7 +57811,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 485
+      "line": 486
     },
     {
       "key": "Stop preview",
@@ -57811,7 +57832,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 472
+      "line": 473
     },
     {
       "key": "Stop recording",
@@ -57825,14 +57846,14 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6234
+      "line": 6240
     },
     {
       "key": "Stop recording a video",
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6226
+      "line": 6232
     },
     {
       "key": "Stop rendering text overlays in editor or with entities: higher = less detail = faster",
@@ -58119,7 +58140,7 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 4060
+      "line": 4066
     },
     {
       "key": "Sudden Death",
@@ -58364,7 +58385,7 @@
       "category": "register_help",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 740
+      "line": 742
     },
     {
       "key": "Switch tile overlay alpha (0-100)",
@@ -58707,7 +58728,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3487
+      "line": 3491
     },
     {
       "key": "Sync the current editor map snapshot by room code, with up to 4 people collaborating.",
@@ -58742,14 +58763,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3653
+      "line": 3657
     },
     {
       "key": "Syncing",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3664
+      "line": 3668
     },
     {
       "key": "Syncing map snapshot...",
@@ -58763,7 +58784,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3487
+      "line": 3491
     },
     {
       "key": "System",
@@ -58882,7 +58903,7 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6221
+      "line": 6227
     },
     {
       "key": "tangent in",
@@ -58959,7 +58980,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3518
+      "line": 3522
     },
     {
       "key": "TClient",
@@ -59015,7 +59036,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3451
+      "line": 3455
     },
     {
       "key": "Team %d",
@@ -59351,7 +59372,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9130
+      "line": 9137
     },
     {
       "key": "Team save in progress. You'll be able to load with '/load %s' if save is successful or with '/load %s' if it fails",
@@ -59372,7 +59393,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9136
+      "line": 9143
     },
     {
       "key": "Team successfully saved by %s. The database connection failed, using generated save code instead to avoid collisions. Use '/load %s' on %s to continue",
@@ -59393,7 +59414,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9173
+      "line": 9180
     },
     {
       "key": "Team successfully saved by %s. The database connection failed, using generated save code instead to avoid collisions. Use '/load %s' to continue",
@@ -59414,7 +59435,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 9166
+      "line": 9173
     },
     {
       "key": "Team tee glow",
@@ -59505,7 +59526,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1824
+      "line": 1828
     },
     {
       "key": "Teams are available on this server",
@@ -60478,7 +60499,7 @@
       "category": "localize_or_localizable",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 4325
+      "line": 4331
     },
     {
       "key": "The auth level you need to tele others",
@@ -60695,7 +60716,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 7921
+      "line": 7945
     },
     {
       "key": "The server rejected the map upload.",
@@ -60765,7 +60786,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5636
+      "line": 5644
     },
     {
       "key": "Themes directory",
@@ -60793,14 +60814,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5131
+      "line": 5135
     },
     {
       "key": "There are unsaved changes in the touch controls editor. Saving first is recommended.",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 659
+      "line": 660
     },
     {
       "key": "There is no checkpoint teleporter with that index on the map.",
@@ -60905,14 +60926,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4627
+      "line": 4631
     },
     {
       "key": "There's an unsaved map in the editor, you might want to save it.",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4622
+      "line": 4626
     },
     {
       "key": "These borders represent what a player maximum can see.",
@@ -61066,21 +61087,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4800
+      "line": 4804
     },
     {
       "key": "This name cannot be used for files and folders",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4873
+      "line": 4877
     },
     {
       "key": "This name cannot be used for files and folders",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5346
+      "line": 5354
     },
     {
       "key": "This name cannot be used for files and folders",
@@ -61395,14 +61416,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3052
+      "line": 3056
     },
     {
       "key": "Time",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3378
+      "line": 3382
     },
     {
       "key": "Time",
@@ -61535,7 +61556,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1774
+      "line": 1778
     },
     {
       "key": "Time limit: %d min",
@@ -62606,28 +62627,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3611
+      "line": 3615
     },
     {
       "key": "Total hours",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3494
-    },
-    {
-      "key": "Total play time",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
-      "line": 3379
-    },
-    {
-      "key": "Total play time",
-      "category": "localize_or_localizable",
-      "source": "src/game/client/components/menus.cpp",
-      "context": "",
-      "line": 3381
+      "line": 3498
     },
     {
       "key": "Total play time",
@@ -62648,21 +62655,35 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3549
+      "line": 3387
     },
     {
       "key": "Total play time",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3551
+      "line": 3389
     },
     {
       "key": "Total play time",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3637
+      "line": 3553
+    },
+    {
+      "key": "Total play time",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 3555
+    },
+    {
+      "key": "Total play time",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 3641
     },
     {
       "key": "Total: %d save(s)",
@@ -62676,7 +62697,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2523
+      "line": 2527
     },
     {
       "key": "Trail alpha",
@@ -63117,7 +63138,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5064
+      "line": 5068
     },
     {
       "key": "Triangle",
@@ -63166,14 +63187,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4470
+      "line": 4474
     },
     {
       "key": "Try again",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4678
+      "line": 4682
     },
     {
       "key": "Try reselecting input device, confirm default mic or headset mic is online",
@@ -63264,7 +63285,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5424
+      "line": 5432
     },
     {
       "key": "Tune",
@@ -63299,7 +63320,7 @@
       "category": "register_help",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 748
+      "line": 750
     },
     {
       "key": "Tune in zone a variable to value",
@@ -63327,7 +63348,7 @@
       "category": "register_help",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 747
+      "line": 749
     },
     {
       "key": "Tune variable to value or show current value",
@@ -63446,7 +63467,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2649
+      "line": 2653
     },
     {
       "key": "Type your number. Press enter to confirm.",
@@ -63474,14 +63495,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5430
+      "line": 5438
     },
     {
       "key": "UDP seems to be filtered.",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5427
+      "line": 5435
     },
     {
       "key": "UDP socket not open",
@@ -63656,7 +63677,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3737
+      "line": 3742
     },
     {
       "key": "Unable to delete skin",
@@ -63670,21 +63691,21 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3733
+      "line": 3738
     },
     {
       "key": "Unable to delete the folder '%s'. Make sure it's empty first.",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3733
+      "line": 3738
     },
     {
       "key": "Unable to delete the screenshot '%s'",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3733
+      "line": 3738
     },
     {
       "key": "Unable to load savegame: data corrupted",
@@ -63733,42 +63754,42 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4821
+      "line": 4825
     },
     {
       "key": "Unable to rename the folder",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4821
+      "line": 4825
     },
     {
       "key": "Unable to rename the screenshot",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4821
+      "line": 4825
     },
     {
       "key": "Unable to save the skin",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5354
+      "line": 5362
     },
     {
       "key": "Unable to save the skin with a reserved name",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5350
+      "line": 5358
     },
     {
       "key": "Unable to save the watermarked screenshot",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3529
+      "line": 3534
     },
     {
       "key": "Unable to save the watermarked screenshot",
@@ -63789,35 +63810,35 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3173
+      "line": 3177
     },
     {
       "key": "Unavailable",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3368
+      "line": 3372
     },
     {
       "key": "Unavailable",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3639
+      "line": 3643
     },
     {
       "key": "Unavailable",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3644
+      "line": 3648
     },
     {
       "key": "Unavailable",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3649
+      "line": 3653
     },
     {
       "key": "Unavailable for this player",
@@ -63950,35 +63971,35 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2602
+      "line": 2606
     },
     {
       "key": "Unfinished map data is refreshing, please try again later",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2628
+      "line": 2632
     },
     {
       "key": "Unfinished map data not fetched",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2598
+      "line": 2602
     },
     {
       "key": "Unfinished map data refreshing",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2594
+      "line": 2598
     },
     {
       "key": "Unfinished maps",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2481
+      "line": 2485
     },
     {
       "key": "Unfinished maps are shown first",
@@ -64496,7 +64517,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 923
+      "line": 927
     },
     {
       "key": "Unsaved changes",
@@ -64895,7 +64916,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 3491
+      "line": 3495
     },
     {
       "key": "Use custom skins instead of the ninja tee",
@@ -65035,7 +65056,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4487
+      "line": 4491
     },
     {
       "key": "Use large emote",
@@ -65273,7 +65294,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4921
+      "line": 4925
     },
     {
       "key": "Use style colors",
@@ -65364,14 +65385,14 @@
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6237
+      "line": 6243
     },
     {
       "key": "Use this before `add_favorite` to group favorites. End with `end_favorite_group`",
       "category": "register_help",
       "source": "src/engine/client/client.cpp",
       "context": "",
-      "line": 6236
+      "line": 6242
     },
     {
       "key": "Use warlist colors instead of regular colors",
@@ -65553,7 +65574,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1669
+      "line": 1673
     },
     {
       "key": "version",
@@ -65679,7 +65700,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
       "context": "",
-      "line": 299
+      "line": 300
     },
     {
       "key": "Video directory",
@@ -65693,14 +65714,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4968
+      "line": 4972
     },
     {
       "key": "Video name:",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4966
+      "line": 4970
     },
     {
       "key": "Video rendering is unavailable during online replay.",
@@ -65714,14 +65735,35 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5018
+      "line": 5022
+    },
+    {
+      "key": "Videos directory",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/QmUi/cards/QmCardCatalogGeneral.cpp",
+      "context": "",
+      "line": 316
     },
     {
       "key": "Videos directory",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5003
+      "line": 2452
+    },
+    {
+      "key": "Videos directory",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 2503
+    },
+    {
+      "key": "Videos directory",
+      "category": "localize_or_localizable",
+      "source": "src/game/client/components/menus.cpp",
+      "context": "",
+      "line": 5007
     },
     {
       "key": "View",
@@ -65791,7 +65833,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3599
+      "line": 3603
     },
     {
       "key": "View switch found (at offset) with given number",
@@ -66267,28 +66309,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2467
+      "line": 2471
     },
     {
       "key": "Vote command:",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2446
+      "line": 2450
     },
     {
       "key": "Vote description",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2461
+      "line": 2465
     },
     {
       "key": "Vote description:",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2443
+      "line": 2447
     },
     {
       "key": "Vote duration (in seconds)",
@@ -66379,7 +66421,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 2647
+      "line": 2651
     },
     {
       "key": "Vote yes",
@@ -66498,14 +66540,14 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5252
+      "line": 5258
     },
     {
       "key": "Waiting for local server to stop…",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5234
+      "line": 5238
     },
     {
       "key": "Waiting for snapshot",
@@ -66694,7 +66736,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1977
+      "line": 1980
     },
     {
       "key": "Water hammer highlight",
@@ -67128,7 +67170,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4484
+      "line": 4488
     },
     {
       "key": "What level DDRace binding is set to (automatic, you don't need to use it).",
@@ -67450,7 +67492,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/gameclient.cpp",
       "context": "",
-      "line": 1014
+      "line": 1016
     },
     {
       "key": "Width",
@@ -67912,28 +67954,28 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4642
+      "line": 4646
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4887
+      "line": 4891
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5289
+      "line": 5297
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5342
+      "line": 5350
     },
     {
       "key": "Yes",
@@ -67961,56 +68003,56 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3506
+      "line": 3511
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3613
+      "line": 3618
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_demo.cpp",
       "context": "",
-      "line": 3619
+      "line": 3624
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 661
+      "line": 662
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 701
+      "line": 704
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1378
+      "line": 1382
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 1672
+      "line": 1676
     },
     {
       "key": "Yes",
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus_ingame.cpp",
       "context": "",
-      "line": 3580
+      "line": 3584
     },
     {
       "key": "Yes",
@@ -69081,7 +69123,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4979
+      "line": 4983
     },
     {
       "key": "You will no longer see all tees on this server",
@@ -69165,7 +69207,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 5189
+      "line": 5193
     },
     {
       "key": "You're the last one!",
@@ -69263,7 +69305,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/menus.cpp",
       "context": "",
-      "line": 4503
+      "line": 4507
     },
     {
       "key": "Your profile",

@@ -1456,7 +1456,11 @@ void CClient::DummyDisconnect(const char *pReason)
 
 bool CClient::DummyAllowed() const
 {
+#if defined(CONF_PLATFORM_ANDROID)
+	return false;
+#else
 	return m_ServerCapabilities.m_AllowDummy;
+#endif
 }
 
 const CServerInfo &CClient::ServerInfo() const
