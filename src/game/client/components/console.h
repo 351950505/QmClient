@@ -272,7 +272,6 @@ private:
 	static void ConchainConsoleOutputLevel(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 public:
-
 	CGameConsole();
 	~CGameConsole() override;
 	int Sizeof() const override { return sizeof(*this); }

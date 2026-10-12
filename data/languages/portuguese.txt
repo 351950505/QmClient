@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == Todos
 
+All categories
+== Todas as categorias
+
 All combined
 == Todos combinados
 
@@ -833,8 +836,11 @@ API key
 APP ID
 == ID da aplicação
 
-Appearance and command highlighting of local and remote consoles
-== Aspeto das consolas local e remota e destaque dos comandos
+Appearance
+== Aparência
+
+Appearance and command highlighting of the local console
+== Aspeto da consola local e destaque dos comandos
 
 Appearance of help bubbles
 == Aspeto dos balões de ajuda
@@ -979,6 +985,9 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == Já existe um recurso com este nome.
+
+Assets
+== Recursos
 
 Assets directory
 == Diretório de recursos
@@ -2426,6 +2435,9 @@ Config Filters
 Config version. Helps new client fix old config errors.
 == Versão da configuração. Ajuda o novo cliente a corrigir erros de configuração antigos.
 
+Configs
+== Configurações
+
 Configuration
 == Configuração
 
@@ -2657,8 +2669,8 @@ Console color
 Console color scheme
 == Consola: esquema de cores
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== Consola: esquema de cores: 0=Terminal moderno, 1=PowerShell clássico, 2=personalizado, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== Consola: esquema de cores: 0=Terminal moderno, 1=PowerShell clássico, 2=personalizado
 
 Console command color
 == Consola: cor dos comandos
@@ -2731,6 +2743,9 @@ Controller GUID of the active controller
 
 Controller jitter tolerance
 == Tolerância de vibração do comando
+
+Controls
+== Controlos
 
 Converse
 == Conversar
@@ -3076,9 +3091,6 @@ Cyrillic
 
 d = Prediction latency
 == d = Latência de previsão
-
-Damped
-== Amortecido
 
 Dark translucent
 == Escuro translúcido
@@ -5033,6 +5045,9 @@ Format player names after a finish
 Forms
 == Formulários
 
+Found %d global cards
+== Encontrados %d cartões globais
+
 Four IP addresses are already online
 == Já estão ligados 4 endereços IP
 
@@ -5282,6 +5297,9 @@ Gap between tee and nametag
 Gaussian
 == Gaussiano
 
+General
+== Geral
+
 Generated skin outline color
 == Cor do contorno gerado
 
@@ -5365,6 +5383,9 @@ Gives you infinite jump
 
 Glitch
 == Falha
+
+Global card
+== Cartão global
 
 Global card ordering (format: stableId|tab|col|order; semicolon-separated)
 == Ordenação global de cartões (formato stableId|tab|col|order; separado por ponto e vírgula)
@@ -5473,6 +5494,9 @@ Gradient type
 
 Gradient vertical position
 == Posição vertical do gradiente
+
+Graphics
+== Gráficos
 
 Graphics backend does not support dummy mini view
 == O backend gráfico não suporta a minivista do dummy
@@ -6251,9 +6275,6 @@ Interface accent color opacity percentage
 Interface animations
 == Animações de interface
 
-Interface corner style
-== Estilo dos cantos da interface
-
 Interface page
 == Página de interface
 
@@ -6265,12 +6286,6 @@ Interface surface
 
 Interface surface color
 == Cor da superfície da interface
-
-Interface text size
-== Tamanho do texto da interface
-
-Interface text size percentage
-== Tamanho do texto da interface em percentagem
 
 Interface transparency
 == Transparência geral da interface
@@ -7018,6 +7033,9 @@ Local Time
 
 Local-only
 == Apenas local
+
+Locate
+== Localizar
 
 Lock delay
 == Atraso do bloqueio
@@ -7916,12 +7934,6 @@ Nameplates
 Native scale (1.0)
 == Escala nativa (1.0)
 
-Navigation size
-== Tamanho da navegação
-
-Navigation size percentage
-== Tamanho da navegação em percentagem
-
 Need to have started the map to swap with a player.
 == Precisa de ter começado o mapa para trocar de lugar com um jogador.
 
@@ -8143,6 +8155,9 @@ No maps match these filters
 
 No matching assets.
 == Nenhuns recursos correspondentes.
+
+No matching features found. Try other keywords
+== Nenhuma funcionalidade correspondente encontrada. Tente outras palavras-chave
 
 No matching Rank 1 replay
 == Nenhuma demo de rank 1 correspondente
@@ -8864,6 +8879,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == Lista de nomes do menu radial (| separa entradas; principal,dummy muda ambos os nomes)
 
+Pin friend
+== Fixar amigo
+
 Ping
 == Ping
 
@@ -9247,9 +9265,6 @@ Position jump tip
 
 Position:
 == Posição:
-
-PowerShell 7
-== Cores do PowerShell 7
 
 Practice mode can't be enabled in team 0 mode.
 == O modo de prática não pode ser ativado no modo de equipa 0.
@@ -10625,9 +10640,6 @@ Round %d/%d
 Round-trip time
 == Tempo de ida e volta
 
-Rounded
-== Arredondado
-
 Rounded caps
 == Pontas arredondadas
 
@@ -10951,9 +10963,6 @@ Scroll mode: Off
 
 Scroll mode: On
 == Modo de deslocamento: ativado
-
-Scrolling
-== Deslocamento
 
 Search
 == Pesquisar
@@ -11309,6 +11318,9 @@ Set voice input device
 Set voice output device
 == Definir dispositivo de saída de voz
 
+Set whether a friend is pinned
+== Definir se um amigo está fixado
+
 Set your checkpoints based on another player
 == Definir os teus checkpoints com base noutro jogador
 
@@ -11344,9 +11356,6 @@ Settings card titles use rainbow colors
 
 Settings file
 == Ficheiro de definições
-
-Settings navigation migration version
-== Versão de migração da navegação das definições
 
 Settings page opacity
 == Opacidade da página de definições
@@ -12878,9 +12887,6 @@ Spree
 SQL Server name for record table
 == Nome do servidor SQL para a tabela de registos
 
-Square
-== Cantos retos
-
 Squishy Tee deformation duration
 == Duração da deformação do Tee elástico
 
@@ -14342,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == Escala da UI
 
-UI scrolling: 0=original, 1=damped
-== Deslocamento da interface: 0=original, 1=amortecido
-
 UI server address
 == Endereço do servidor UI
 
@@ -14524,6 +14527,9 @@ Unmute:
 
 Unmuted
 == Som ativado
+
+Unpin friend
+== Desafixar amigo
 
 Unpredictable ghost opacity (0-100)
 == Opacidade do fantasma imprevisível (0-100)
@@ -14716,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Usar o pipeline de anéis procedurais quando a renderização melhorada estiver ativa
-
-Use rounded corners for interface surfaces
-== Usar cantos arredondados nas superfícies da interface
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Usar pipelines SDF para Dynamic Island e retângulos arredondados quando a renderização melhorada estiver ativa

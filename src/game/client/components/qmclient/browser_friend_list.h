@@ -21,6 +21,7 @@ public:
 		char m_aCategory[IFriends::MAX_FRIEND_CATEGORY_LENGTH];
 		CServerInfo m_ServerInfo;
 		bool m_HasServerInfo;
+		bool m_IsPinned;
 		int m_FriendState;
 		bool m_IsPlayer;
 		bool m_IsAfk;
@@ -34,7 +35,7 @@ public:
 
 	public:
 		CItem(const CFriendInfo *pFriendInfo) :
-			m_HasServerInfo(false), m_FriendState(IFriends::FRIEND_PLAYER), m_IsPlayer(false), m_IsAfk(false), m_CustomSkinColors(false), m_CustomSkinColorBody(0), m_CustomSkinColorFeet(0)
+			m_HasServerInfo(false), m_IsPinned(pFriendInfo->m_Pinned), m_FriendState(IFriends::FRIEND_PLAYER), m_IsPlayer(false), m_IsAfk(false), m_CustomSkinColors(false), m_CustomSkinColorBody(0), m_CustomSkinColorFeet(0)
 		{
 			str_copy(m_aName, pFriendInfo->m_aName);
 			str_copy(m_aClan, pFriendInfo->m_aClan);
@@ -49,8 +50,8 @@ public:
 			}
 		}
 
-		CItem(const CServerInfo::CClient &Client, const CServerInfo &ServerInfo, const char *pCategory) :
-			m_ServerInfo(ServerInfo), m_HasServerInfo(true), m_FriendState(Client.m_FriendState), m_IsPlayer(Client.m_Player), m_IsAfk(Client.m_Afk), m_CustomSkinColors(Client.m_CustomSkinColors), m_CustomSkinColorBody(Client.m_CustomSkinColorBody), m_CustomSkinColorFeet(Client.m_CustomSkinColorFeet)
+		CItem(const CServerInfo::CClient &Client, const CServerInfo &ServerInfo, const char *pCategory, bool Pinned) :
+			m_ServerInfo(ServerInfo), m_HasServerInfo(true), m_IsPinned(Pinned), m_FriendState(Client.m_FriendState), m_IsPlayer(Client.m_Player), m_IsAfk(Client.m_Afk), m_CustomSkinColors(Client.m_CustomSkinColors), m_CustomSkinColorBody(Client.m_CustomSkinColorBody), m_CustomSkinColorFeet(Client.m_CustomSkinColorFeet)
 		{
 			str_copy(m_aName, Client.m_aName);
 			str_copy(m_aClan, Client.m_aClan);
@@ -67,6 +68,7 @@ public:
 		const char *Name() const { return m_aName; }
 		const char *Clan() const { return m_aClan; }
 		const char *Category() const { return m_aCategory; }
+		bool IsPinned() const { return m_IsPinned; }
 		const CServerInfo *ServerInfo() const { return m_HasServerInfo ? &m_ServerInfo : nullptr; }
 		int FriendState() const { return m_FriendState; }
 		bool IsPlayer() const { return m_IsPlayer; }
@@ -128,7 +130,7 @@ public:
 				int CategoryIndex = Friends.FindCategory(pCategory);
 				if(CategoryIndex < 0 || CategoryIndex >= NumCategories)
 					CategoryIndex = 0;
-				m_vvFriends[CategoryIndex].emplace_back(Client, *pServer, pCategory);
+				m_vvFriends[CategoryIndex].emplace_back(Client, *pServer, pCategory, !ClanOnly && Friends.IsFriendPinned(Client.m_aName, Client.m_aClan));
 				if(!ClanOnly)
 				{
 					auto &vOffline = m_vvFriends[OfflineCategoryIndex];
@@ -140,7 +142,11 @@ public:
 			}
 		}
 		for(auto &vFriends : m_vvFriends)
-			std::sort(vFriends.begin(), vFriends.end(), [](const CItem &Left, const CItem &Right) { return (Left.ServerInfo() != nullptr) != (Right.ServerInfo() != nullptr) ? Left.ServerInfo() != nullptr : Left < Right; });
+			std::sort(vFriends.begin(), vFriends.end(), [](const CItem &Left, const CItem &Right) {
+				if(Left.IsPinned() != Right.IsPinned())
+					return Left.IsPinned();
+				return (Left.ServerInfo() != nullptr) != (Right.ServerInfo() != nullptr) ? Left.ServerInfo() != nullptr : Left < Right;
+			});
 		m_pFriends = &Friends;
 		m_pBrowser = &Browser;
 		m_FriendsRevision = FriendsRevision;

@@ -157,9 +157,15 @@ class GateLibraryContractTest(unittest.TestCase):
 		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/UiForms.cpp"]))
 		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/QmScroll.cpp"]))
 		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/SettingsPageLayout.h"]))
+		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/SettingsNavigation.cpp"]))
+		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/ModernSettingsPage.cpp"]))
+		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/SettingsSearchPage.cpp"]))
+		self.assertTrue(settings_ui.should_run(["qmclient_scripts/gate/check_settings_ui_migration.py"]))
 		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/cards/QmCardCatalogSkin.cpp"]))
 		self.assertTrue(settings_ui.should_run(["src/game/client/components/menus.cpp"]))
 		self.assertTrue(settings_ui.should_run(["src/game/client/components/tclient/menus_tclient.cpp"]))
+		self.assertTrue(settings_ui.should_run(["src/game/client/components/qmclient/menus_qmclient_search.cpp"]))
+		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/SettingsMenuWidgets.cpp"]))
 		self.assertFalse(settings_ui.should_run(["src/game/client/gameclient.cpp"]))
 
 	def test_settings_ui_irrelevant_scope_is_not_applicable(self):

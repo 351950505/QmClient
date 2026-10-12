@@ -17,7 +17,6 @@
 
 namespace ui_token::color
 {
-	inline constexpr std::array<unsigned, 8> PICKER_PRESETS = {0xFFFFFF, 0x171717, 0xF25F5C, 0xFFB347, 0xF7D154, 0x5DBB82, 0x4A90E2, 0xA879E8};
 	// surface
 	// 半透明前景解析无法采样场景时使用的背板参考色，不改变实际表面绘制。
 	inline constexpr ColorRGBA SURFACE_BACKDROP{0.10f, 0.10f, 0.10f, 1.0f};

@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == すべて
 
+All categories
+== すべて
+
 All combined
 == すべて結合
 
@@ -833,8 +836,11 @@ API key
 APP ID
 == アプリ ID
 
-Appearance and command highlighting of local and remote consoles
-== ローカルおよびリモートコンソールの外観とコマンドの強調表示
+Appearance
+== 外観
+
+Appearance and command highlighting of the local console
+== ローカルコンソールの外観とコマンドの強調表示
 
 Appearance of help bubbles
 == ヘルプ吹き出しの外観
@@ -979,6 +985,9 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == 同名のアセットが既に存在します。
+
+Assets
+== アセット
 
 Assets directory
 == アセットディレクトリ
@@ -2426,6 +2435,9 @@ Config Filters
 Config version. Helps new client fix old config errors.
 == 設定バージョン。新しいクライアントが古い設定のエラーを修正するのに役立ちます
 
+Configs
+== 設定
+
 Configuration
 == 設定
 
@@ -2657,8 +2669,8 @@ Console color
 Console color scheme
 == コンソール: 配色
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== コンソール: 配色: 0=モダンターミナル, 1=クラシック PowerShell, 2=カスタム, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== コンソール: 配色: 0=モダンターミナル, 1=クラシック PowerShell, 2=カスタム
 
 Console command color
 == コンソール: コマンドの色
@@ -2731,6 +2743,9 @@ Controller GUID of the active controller
 
 Controller jitter tolerance
 == コントローラーのジッター許容値
+
+Controls
+== コントロール
 
 Converse
 == 会話を続ける
@@ -3076,9 +3091,6 @@ Cyrillic
 
 d = Prediction latency
 == d = 予測レイテンシ
-
-Damped
-== 減衰
 
 Dark translucent
 == 暗色半透明
@@ -5033,6 +5045,9 @@ Format player names after a finish
 Forms
 == フォーム
 
+Found %d global cards
+== %d 枚のグローバルカードが見つかりました
+
 Four IP addresses are already online
 == すでに4つのIPが接続中です
 
@@ -5282,6 +5297,9 @@ Gap between tee and nametag
 Gaussian
 == ガウス
 
+General
+== 一般
+
 Generated skin outline color
 == 生成アウトラインの色
 
@@ -5365,6 +5383,9 @@ Gives you infinite jump
 
 Glitch
 == グリッチ
+
+Global card
+== グローバルカード
 
 Global card ordering (format: stableId|tab|col|order; semicolon-separated)
 == グローバルカードソート（形式 stableId|tab|col|order; セミコロン区切り）
@@ -5473,6 +5494,9 @@ Gradient type
 
 Gradient vertical position
 == グラデーションの垂直位置
+
+Graphics
+== グラフィック
 
 Graphics backend does not support dummy mini view
 == この描画環境は分身の小窓に対応していません
@@ -6251,9 +6275,6 @@ Interface accent color opacity percentage
 Interface animations
 == インターフェースアニメーション
 
-Interface corner style
-== インターフェースの角の形状
-
 Interface page
 == インターフェースページ
 
@@ -6265,12 +6286,6 @@ Interface surface
 
 Interface surface color
 == インターフェース表面の色
-
-Interface text size
-== インターフェースの文字サイズ
-
-Interface text size percentage
-== インターフェースの文字サイズの割合
 
 Interface transparency
 == 汎用インターフェース透明度
@@ -7018,6 +7033,9 @@ Local Time
 
 Local-only
 == ローカルのみ
+
+Locate
+== 場所を表示
 
 Lock delay
 == ロック遅延
@@ -7916,12 +7934,6 @@ Nameplates
 Native scale (1.0)
 == ネイティブスケール (1.0)
 
-Navigation size
-== ナビゲーションのサイズ
-
-Navigation size percentage
-== ナビゲーションのサイズの割合
-
 Need to have started the map to swap with a player.
 == プレイヤーと入れ替えるにはマップを開始する必要があります。
 
@@ -8143,6 +8155,9 @@ No maps match these filters
 
 No matching assets.
 == 一致するアセットがありません。
+
+No matching features found. Try other keywords
+== 一致する機能が見つかりませんでした。他のキーワードをお試しください
 
 No matching Rank 1 replay
 == 一致する Rank 1 リプレイがありません
@@ -8864,6 +8879,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == パイメニュー名前変更リスト（| で項目を区切る。メイン名,ダミー名で両方を変更）
 
+Pin friend
+== フレンドを固定
+
 Ping
 == Ping
 
@@ -9247,9 +9265,6 @@ Position jump tip
 
 Position:
 == 位置：
-
-PowerShell 7
-== PowerShell 7 の配色
 
 Practice mode can't be enabled in team 0 mode.
 == チーム 0 モードでは練習モードを有効にできません
@@ -10625,9 +10640,6 @@ Round %d/%d
 Round-trip time
 == 往復時間
 
-Rounded
-== 角丸
-
 Rounded caps
 == 丸キャップ
 
@@ -10951,9 +10963,6 @@ Scroll mode: Off
 
 Scroll mode: On
 == スクロールモード: オン
-
-Scrolling
-== スクロール
 
 Search
 == 検索
@@ -11309,6 +11318,9 @@ Set voice input device
 Set voice output device
 == 音声出力デバイスを設定
 
+Set whether a friend is pinned
+== フレンドを固定するかどうかを設定
+
 Set your checkpoints based on another player
 == 他のプレイヤーに基づいてチェックポイントを設定
 
@@ -11344,9 +11356,6 @@ Settings card titles use rainbow colors
 
 Settings file
 == 設定ファイル
-
-Settings navigation migration version
-== 設定ナビゲーションの移行バージョン
 
 Settings page opacity
 == 設定ページの不透明度
@@ -12878,9 +12887,6 @@ Spree
 SQL Server name for record table
 == レコードテーブルの SQL Server 名
 
-Square
-== 角型
-
 Squishy Tee deformation duration
 == Q 弾 Tee 変形持続時間
 
@@ -14342,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI スケール
 
-UI scrolling: 0=original, 1=damped
-== UI のスクロール：0=標準、1=減衰
-
 UI server address
 == UI サーバーアドレス
 
@@ -14524,6 +14527,9 @@ Unmute:
 
 Unmuted
 == ミュート解除済み
+
+Unpin friend
+== フレンドの固定を解除
 
 Unpredictable ghost opacity (0-100)
 == 予測不可能なゴーストの不透明度（0-100）
@@ -14716,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == 拡張レンダリング有効時に手続き型リングパイプラインを使用
-
-Use rounded corners for interface surfaces
-== インターフェースの表示領域に角丸を使用
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == 拡張レンダリング有効時に Dynamic Island と角丸矩形で SDF パイプラインを使用

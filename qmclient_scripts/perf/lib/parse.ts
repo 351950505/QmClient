@@ -22,6 +22,9 @@ export interface ParseDiagnostics {
   totalEntries?: number;
   retainedEntries?: number;
   sampledEntries?: number;
+  sampledFrameEntries?: number;
+  sampledDetailEntries?: number;
+  droppedEventEntries?: number;
   configurationIncomplete?: boolean;
 }
 

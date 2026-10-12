@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == Все
 
+All categories
+== Все категории
+
 All combined
 == Все вместе
 
@@ -833,8 +836,11 @@ API key
 APP ID
 == ID приложения
 
-Appearance and command highlighting of local and remote consoles
-== Оформление локальной и удалённой консолей и подсветка команд
+Appearance
+== Внешний вид
+
+Appearance and command highlighting of the local console
+== Оформление локальной консоли и подсветка команд
 
 Appearance of help bubbles
 == Внешний вид всплывающих подсказок
@@ -979,6 +985,9 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == Ресурс с таким именем уже существует.
+
+Assets
+== Ресурсы
 
 Assets directory
 == Папка ресурсов
@@ -2426,6 +2435,9 @@ Config Filters
 Config version. Helps new client fix old config errors.
 == Версия конфигурации. Помогает новому клиенту исправить старые ошибки конфигурации.
 
+Configs
+== Конфиги
+
 Configuration
 == Конфигурация
 
@@ -2657,8 +2669,8 @@ Console color
 Console color scheme
 == Консоль: цветовая схема
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== Консоль: цветовая схема: 0=Современный терминал, 1=Классический PowerShell, 2=своя, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== Консоль: цветовая схема: 0=Современный терминал, 1=Классический PowerShell, 2=своя
 
 Console command color
 == Консоль: цвет команд
@@ -2731,6 +2743,9 @@ Controller GUID of the active controller
 
 Controller jitter tolerance
 == Допуск дрожания контроллера
+
+Controls
+== Управление
 
 Converse
 == Продолжить личное сообщение
@@ -3076,9 +3091,6 @@ Cyrillic
 
 d = Prediction latency
 == d = Задержка предсказания
-
-Damped
-== С затуханием
 
 Dark translucent
 == Тёмный полупрозрачный
@@ -5033,6 +5045,9 @@ Format player names after a finish
 Forms
 == Формы
 
+Found %d global cards
+== Найдено %d глобальных карточек
+
 Four IP addresses are already online
 == Уже подключены 4 IP-адреса
 
@@ -5282,6 +5297,9 @@ Gap between tee and nametag
 Gaussian
 == Гаусс
 
+General
+== Общие
+
 Generated skin outline color
 == Цвет сгенерированной обводки
 
@@ -5365,6 +5383,9 @@ Gives you infinite jump
 
 Glitch
 == Глитч
+
+Global card
+== Глобальная карточка
 
 Global card ordering (format: stableId|tab|col|order; semicolon-separated)
 == Глобальная сортировка карточек (формат stableId|tab|col|order; разделитель точка с запятой)
@@ -5473,6 +5494,9 @@ Gradient type
 
 Gradient vertical position
 == Вертикальное положение градиента
+
+Graphics
+== Графика
 
 Graphics backend does not support dummy mini view
 == Графический движок не поддерживает мини-окно двойника
@@ -6251,9 +6275,6 @@ Interface accent color opacity percentage
 Interface animations
 == Анимации интерфейса
 
-Interface corner style
-== Стиль углов интерфейса
-
 Interface page
 == Страница интерфейса
 
@@ -6265,12 +6286,6 @@ Interface surface
 
 Interface surface color
 == Цвет поверхности интерфейса
-
-Interface text size
-== Размер текста интерфейса
-
-Interface text size percentage
-== Размер текста интерфейса в процентах
 
 Interface transparency
 == Общая прозрачность интерфейса
@@ -7018,6 +7033,9 @@ Local Time
 
 Local-only
 == Только локально
+
+Locate
+== Найти
 
 Lock delay
 == Задержка блокировки
@@ -7916,12 +7934,6 @@ Nameplates
 Native scale (1.0)
 == Нативный масштаб (1.0)
 
-Navigation size
-== Размер навигации
-
-Navigation size percentage
-== Размер навигации в процентах
-
 Need to have started the map to swap with a player.
 == Необходимо начать карту, чтобы обменяться с игроком.
 
@@ -8143,6 +8155,9 @@ No maps match these filters
 
 No matching assets.
 == Нет подходящих ресурсов.
+
+No matching features found. Try other keywords
+== Совпадающих функций не найдено. Попробуйте другие ключевые слова.
 
 No matching Rank 1 replay
 == Нет подходящего реплея ранга 1
@@ -8864,6 +8879,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == Список имён кругового меню (| разделяет пункты; основной,дамми меняет оба имени)
 
+Pin friend
+== Закрепить друга
+
 Ping
 == Ping
 
@@ -9247,9 +9265,6 @@ Position jump tip
 
 Position:
 == Позиция:
-
-PowerShell 7
-== Цвета PowerShell 7
 
 Practice mode can't be enabled in team 0 mode.
 == Режим тренировки нельзя включить в режиме команды 0.
@@ -10625,9 +10640,6 @@ Round %d/%d
 Round-trip time
 == Время кругового обхода
 
-Rounded
-== Скруглённые
-
 Rounded caps
 == Скруглённые концы
 
@@ -10951,9 +10963,6 @@ Scroll mode: Off
 
 Scroll mode: On
 == Режим прокрутки: вкл.
-
-Scrolling
-== Прокрутка
 
 Search
 == Поиск
@@ -11309,6 +11318,9 @@ Set voice input device
 Set voice output device
 == Установить устройство вывода голоса
 
+Set whether a friend is pinned
+== Установить, закреплён ли друг
+
 Set your checkpoints based on another player
 == Установить ваши чекпоинты на основе другого игрока
 
@@ -11344,9 +11356,6 @@ Settings card titles use rainbow colors
 
 Settings file
 == Файл настроек
-
-Settings navigation migration version
-== Версия миграции навигации настроек
 
 Settings page opacity
 == Непрозрачность страницы настроек
@@ -12878,9 +12887,6 @@ Spree
 SQL Server name for record table
 == Имя SQL-сервера для таблицы записей
 
-Square
-== Прямые
-
 Squishy Tee deformation duration
 == Длительность деформации упругого Tee
 
@@ -14342,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == Масштаб UI
 
-UI scrolling: 0=original, 1=damped
-== Прокрутка интерфейса: 0=исходная, 1=с затуханием
-
 UI server address
 == Адрес сервера UI
 
@@ -14524,6 +14527,9 @@ Unmute:
 
 Unmuted
 == Звук включён
+
+Unpin friend
+== Открепить друга
 
 Unpredictable ghost opacity (0-100)
 == Непрозрачность непредсказуемого призрака (0-100)
@@ -14716,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Использовать процедурный конвейер колец при включённом расширенном рендеринге
-
-Use rounded corners for interface surfaces
-== Использовать скруглённые углы элементов интерфейса
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Использовать конвейеры SDF для Dynamic Island и скруглённых прямоугольников при включённом расширенном рендеринге

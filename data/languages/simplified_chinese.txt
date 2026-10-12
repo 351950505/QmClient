@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == 全体
 
+All categories
+== 全部
+
 All combined
 == 全部文件
 
@@ -833,8 +836,11 @@ API key
 APP ID
 == 应用 ID
 
-Appearance and command highlighting of local and remote consoles
-== 本地和远程控制台的外观与命令高亮
+Appearance
+== 游戏界面
+
+Appearance and command highlighting of the local console
+== 本地控制台的外观和命令高亮
 
 Appearance of help bubbles
 == 提示气泡外观
@@ -979,6 +985,9 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == 同名材质已存在。
+
+Assets
+== 资源
 
 Assets directory
 == 资源目录
@@ -2426,6 +2435,9 @@ Config Filters
 Config version. Helps new client fix old config errors.
 == 配置版本。帮助新客户端修复旧配置错误。
 
+Configs
+== 客户端配置
+
 Configuration
 == 配置
 
@@ -2657,8 +2669,8 @@ Console color
 Console color scheme
 == 控制台：配色
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== 控制台：配色：0=现代终端，1=经典 PowerShell, 2=自定义，3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== 控制台：配色：0=现代终端，1=经典 PowerShell, 2=自定义
 
 Console command color
 == 控制台：命令颜色
@@ -2731,6 +2743,9 @@ Controller GUID of the active controller
 
 Controller jitter tolerance
 == 摇杆死区
+
+Controls
+== 控制
 
 Converse
 == 继续私聊
@@ -3076,9 +3091,6 @@ Cyrillic
 
 d = Prediction latency
 == d = 预测延迟
-
-Damped
-== 阻尼
 
 Dark translucent
 == 深色半透明
@@ -5033,6 +5045,9 @@ Format player names after a finish
 Forms
 == 表单
 
+Found %d global cards
+== 匹配到 %d 张全局卡片
+
 Four IP addresses are already online
 == 已有 4 个 IP 在线，请等待其他会话离线
 
@@ -5282,6 +5297,9 @@ Gap between tee and nametag
 Gaussian
 == 高斯
 
+General
+== 常规
+
 Generated skin outline color
 == 生成描边颜色
 
@@ -5365,6 +5383,9 @@ Gives you infinite jump
 
 Glitch
 == 故障
+
+Global card
+== 全局卡片
 
 Global card ordering (format: stableId|tab|col|order; semicolon-separated)
 == 全局卡片排序（格式 stableId|tab|col|order; 分号分隔）
@@ -5473,6 +5494,9 @@ Gradient type
 
 Gradient vertical position
 == 渐变垂直位置
+
+Graphics
+== 图像
 
 Graphics backend does not support dummy mini view
 == 当前图形后端不支持分身小窗
@@ -6251,9 +6275,6 @@ Interface accent color opacity percentage
 Interface animations
 == 界面动画
 
-Interface corner style
-== 界面边角样式
-
 Interface page
 == 界面页面
 
@@ -6265,12 +6286,6 @@ Interface surface
 
 Interface surface color
 == 界面表面颜色
-
-Interface text size
-== 界面文字大小
-
-Interface text size percentage
-== 界面文字大小百分比
 
 Interface transparency
 == 通用界面透明度
@@ -7018,6 +7033,9 @@ Local Time
 
 Local-only
 == 仅本地资源
+
+Locate
+== 定位
 
 Lock delay
 == 锁队延迟
@@ -7916,12 +7934,6 @@ Nameplates
 Native scale (1.0)
 == 原生缩放 (1.0)
 
-Navigation size
-== 导航大小
-
-Navigation size percentage
-== 导航大小百分比
-
 Need to have started the map to swap with a player.
 == 你需要先开始地图，才能和其他玩家交换位置
 
@@ -8143,6 +8155,9 @@ No maps match these filters
 
 No matching assets.
 == 没有匹配的材质。
+
+No matching features found. Try other keywords
+== 未找到匹配的功能模块。请尝试其他关键词
 
 No matching Rank 1 replay
 == 没有匹配的 Rank 1 回放
@@ -8864,6 +8879,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == 饼菜单改名名单（| 分隔选项；C,D 同时改名，C 为本体，D 为分身）
 
+Pin friend
+== 置顶好友
+
 Ping
 == 延迟
 
@@ -9247,9 +9265,6 @@ Position jump tip
 
 Position:
 == 坐标
-
-PowerShell 7
-== PowerShell 7 配色
 
 Practice mode can't be enabled in team 0 mode.
 == 0 队模式下不能开启练习模式
@@ -10625,9 +10640,6 @@ Round %d/%d
 Round-trip time
 == 往返时间
 
-Rounded
-== 圆角
-
 Rounded caps
 == 圆角端点
 
@@ -10951,9 +10963,6 @@ Scroll mode: Off
 
 Scroll mode: On
 == 滚动模式：开
-
-Scrolling
-== 滚动
 
 Search
 == 搜索
@@ -11309,6 +11318,9 @@ Set voice input device
 Set voice output device
 == 设置语音输出设备
 
+Set whether a friend is pinned
+== 设置好友是否置顶
+
 Set your checkpoints based on another player
 == 根据其他玩家设置你的检查点
 
@@ -11344,9 +11356,6 @@ Settings card titles use rainbow colors
 
 Settings file
 == 设置文件
-
-Settings navigation migration version
-== 设置导航迁移版本
 
 Settings page opacity
 == 设置页不透明度
@@ -12878,9 +12887,6 @@ Spree
 SQL Server name for record table
 == 插入记录表的 SQL Server 名称
 
-Square
-== 方角
-
 Squishy Tee deformation duration
 == Q 弹 Tee 形变持续时间
 
@@ -14342,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI 大小
 
-UI scrolling: 0=original, 1=damped
-== 界面滚动：0=原版，1=阻尼
-
 UI server address
 == 界面服务器地址
 
@@ -14524,6 +14527,9 @@ Unmute:
 
 Unmuted
 == 未静音
+
+Unpin friend
+== 取消置顶好友
 
 Unpredictable ghost opacity (0-100)
 == 不可预测幽灵透明度（0-100）
@@ -14716,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == 启用增强渲染时使用程序化圆环管线
-
-Use rounded corners for interface surfaces
-== 在界面区域使用圆角
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == 启用增强渲染时，为灵动岛和圆角矩形使用 SDF 管线

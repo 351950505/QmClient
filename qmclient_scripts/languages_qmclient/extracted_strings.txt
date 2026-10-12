@@ -219,6 +219,7 @@ Alive notification text
 Alive notification vertical position (percentage of screen height)
 Alive: %.1fs/%.1fs
 All
+All categories
 All combined
 All maps
 All players
@@ -276,7 +277,8 @@ AntiPing: predict other players
 AntiPing: predict weapons
 API key
 APP ID
-Appearance and command highlighting of local and remote consoles
+Appearance
+Appearance and command highlighting of the local console
 Appearance of help bubbles
 Append saved word list chunk
 Append to log file instead of overwriting
@@ -325,6 +327,7 @@ ASI
 Aspect ratio preset
 Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 Asset with this name already exists.
+Assets
 Assets directory
 Assets editor
 Assign commands and labels to wheel slots
@@ -807,6 +810,7 @@ Config directory
 Config Files
 Config Filters
 Config version. Helps new client fix old config errors.
+Configs
 Configuration
 Configuration package already exists.
 Configuration package exported.
@@ -884,7 +888,7 @@ Console background color
 Console background opacity
 Console color
 Console color scheme
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
 Console command color
 Console font size
 Console link color
@@ -909,6 +913,7 @@ Controller axis for cursor Y
 Controller axis tolerance for jitter
 Controller GUID of the active controller
 Controller jitter tolerance
+Controls
 Converse
 Converse with the last person you whispered to (private message)
 Coordinate size on nameplate
@@ -1024,7 +1029,6 @@ Cycle custom Tee hue speed (deg/s)
 Cycle through emotes
 Cyrillic
 d = Prediction latency
-Damped
 Dark translucent
 Darken Tee color when frozen (0-100)
 Data
@@ -1676,6 +1680,7 @@ Force i to pause for i seconds
 Force vote
 Format player names after a finish
 Forms
+Found %d global cards
 Four IP addresses are already online
 FPM
 FPS
@@ -1759,6 +1764,7 @@ Gap aim rescue
 Gap between statusbar items
 Gap between tee and nametag
 Gaussian
+General
 Generated skin outline color
 Generated skin outline opacity
 Generated skin outline width
@@ -1787,6 +1793,7 @@ Gives you as many jumps as you specify
 Gives you endless hook
 Gives you infinite jump
 Glitch
+Global card
 Global card ordering (format: stableId|tab|col|order; semicolon-separated)
 Global card ordering old config migration completed flag
 Global toggle key
@@ -1823,6 +1830,7 @@ Gradient range
 Gradient settings
 Gradient type
 Gradient vertical position
+Graphics
 Graphics backend does not support dummy mini view
 Graphics card
 Graphics display
@@ -2082,13 +2090,10 @@ Interface
 Interface accent color
 Interface accent color opacity percentage
 Interface animations
-Interface corner style
 Interface page
 Interface settings page
 Interface surface
 Interface surface color
-Interface text size
-Interface text size percentage
 Interface transparency
 Intermediate
 Internet
@@ -2338,6 +2343,7 @@ Local test mode
 Local test mode, no server needed
 Local Time
 Local-only
+Locate
 Lock delay
 Lock team
 Lock the team so other players cannot join directly
@@ -2637,8 +2643,6 @@ Nameplate X alignment hint strict mode
 Nameplate X alignment hint with local player
 Nameplates
 Native scale (1.0)
-Navigation size
-Navigation size percentage
 Need to have started the map to swap with a player.
 Negative stability buffer
 Negative stability buffer (for Gores)
@@ -2713,6 +2717,7 @@ No map selected
 No maps found on this server!
 No maps match these filters
 No matching assets.
+No matching features found. Try other keywords
 No matching Rank 1 replay
 no matching settings found, type /settings to view them
 No noise reduction
@@ -2953,6 +2958,7 @@ Pie menu highlight tint
 Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
+Pin friend
 Ping
 Ping the current server
 Pistol
@@ -3081,7 +3087,6 @@ Position
 Position jump hint
 Position jump tip
 Position:
-PowerShell 7
 Practice mode can't be enabled in team 0 mode.
 Practice mode can't be enabled while team save or load is in progress
 Practice mode enabled for your team, happy practicing!
@@ -3540,7 +3545,6 @@ Rotate hammer with cursor like other weapons
 Round
 Round %d/%d
 Round-trip time
-Rounded
 Rounded caps
 Route Echo messages to notifications
 RTT
@@ -3649,7 +3653,6 @@ Screenshots directory
 Scroll mode
 Scroll mode: Off
 Scroll mode: On
-Scrolling
 Search
 Search and navigate settings
 Search country flag…
@@ -3768,6 +3771,7 @@ Set timeout protection code s
 Set up Kugou lyrics
 Set voice input device
 Set voice output device
+Set whether a friend is pinned
 Set your checkpoints based on another player
 Sets one of the two rescue modes (auto or manual). Prints current mode if no arguments provided
 Sets your tee's eye emote
@@ -3780,7 +3784,6 @@ Settings card default layout migration version
 Settings card states: stableId for collapsed, !stableId for expanded, separated by semicolons
 Settings card titles use rainbow colors
 Settings file
-Settings navigation migration version
 Settings page opacity
 Settings page right panel opacity
 Settings, binds, profiles, chat binds and the war list are included. Select additional cfg files below.
@@ -4291,7 +4294,6 @@ Sponsors:
 Spotify sp_dc cookie (from browser DevTools, long-lived)
 Spree
 SQL Server name for record table
-Square
 Squishy Tee deformation duration
 Squishy Tee deformation intensity
 Star
@@ -4779,7 +4781,6 @@ UI motion level
 UI mouse sens.
 UI rounded corner segments (even numbers recommended)
 UI scale
-UI scrolling: 0=original, 1=damped
 UI server address
 UI size percentage
 Unable to delete %d selected items. The first failing item was '%s'.
@@ -4840,6 +4841,7 @@ Unmute player with IP address
 Unmute player with list index
 Unmute:
 Unmuted
+Unpin friend
 Unpredictable ghost opacity (0-100)
 Unpredictable shadow tee transparency (0 invisible, 100 fully visible)
 Unpredicted ghost opacity
@@ -4904,7 +4906,6 @@ Use original style
 Use original style for Dynamic Island
 Use pre-input to predict other players for more accurate input prediction
 Use procedural ring pipeline when enhanced rendering is active
-Use rounded corners for interface surfaces
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 Use server defaults
 Use skin color for frozen Tee's feet

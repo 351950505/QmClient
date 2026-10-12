@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == 전체
 
+All categories
+== 전체
+
 All combined
 == 모두 결합
 
@@ -833,8 +836,11 @@ API key
 APP ID
 == 앱 ID
 
-Appearance and command highlighting of local and remote consoles
-== 로컬 및 원격 콘솔의 모양과 명령어 강조 표시
+Appearance
+== 외형
+
+Appearance and command highlighting of the local console
+== 로컬 콘솔의 모양과 명령어 강조 표시
 
 Appearance of help bubbles
 == 도움말 말풍선 모양
@@ -979,6 +985,9 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == 같은 이름의 에셋이 이미 존재합니다.
+
+Assets
+== 에셋
 
 Assets directory
 == 에셋 디렉터리
@@ -2426,6 +2435,9 @@ Config Filters
 Config version. Helps new client fix old config errors.
 == 설정 버전. 새 클라이언트가 이전 설정 오류를 수정하는 데 도움
 
+Configs
+== 설정 파일
+
 Configuration
 == 설정
 
@@ -2657,8 +2669,8 @@ Console color
 Console color scheme
 == 콘솔: 색 구성
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== 콘솔: 색 구성: 0=현대식 터미널, 1=클래식 PowerShell, 2=사용자 지정, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== 콘솔: 색 구성: 0=현대식 터미널, 1=클래식 PowerShell, 2=사용자 지정
 
 Console command color
 == 콘솔: 명령어 색상
@@ -2731,6 +2743,9 @@ Controller GUID of the active controller
 
 Controller jitter tolerance
 == 컨트롤러 지터 허용 범위
+
+Controls
+== 조작
 
 Converse
 == 이어서 귓속말
@@ -3076,9 +3091,6 @@ Cyrillic
 
 d = Prediction latency
 == d = 예측 지연 시간
-
-Damped
-== 감쇠
 
 Dark translucent
 == 어두운 반투명
@@ -5033,6 +5045,9 @@ Format player names after a finish
 Forms
 == 양식
 
+Found %d global cards
+== %d개의 전역 카드를 찾았습니다
+
 Four IP addresses are already online
 == 이미 4개 IP가 접속 중입니다
 
@@ -5282,6 +5297,9 @@ Gap between tee and nametag
 Gaussian
 == 가우시안
 
+General
+== 일반
+
 Generated skin outline color
 == 생성된 외곽선 색상
 
@@ -5365,6 +5383,9 @@ Gives you infinite jump
 
 Glitch
 == 글리치
+
+Global card
+== 전역 카드
 
 Global card ordering (format: stableId|tab|col|order; semicolon-separated)
 == 전역 카드 정렬（형식 stableId|tab|col|order; 세미콜론 구분）
@@ -5473,6 +5494,9 @@ Gradient type
 
 Gradient vertical position
 == 그라데이션 세로 위치
+
+Graphics
+== 그래픽
 
 Graphics backend does not support dummy mini view
 == 현재 그래픽 백엔드는 분신 미니 화면을 지원하지 않습니다
@@ -6251,9 +6275,6 @@ Interface accent color opacity percentage
 Interface animations
 == 인터페이스 애니메이션
 
-Interface corner style
-== 인터페이스 모서리 스타일
-
 Interface page
 == 인터페이스 페이지
 
@@ -6265,12 +6286,6 @@ Interface surface
 
 Interface surface color
 == 인터페이스 표면 색상
-
-Interface text size
-== 인터페이스 글자 크기
-
-Interface text size percentage
-== 인터페이스 글자 크기 비율
 
 Interface transparency
 == 일반 UI 투명도
@@ -7018,6 +7033,9 @@ Local Time
 
 Local-only
 == 로컬 전용
+
+Locate
+== 위치 찾기
 
 Lock delay
 == 잠금 지연
@@ -7916,12 +7934,6 @@ Nameplates
 Native scale (1.0)
 == 네이티브 스케일 (1.0)
 
-Navigation size
-== 탐색 메뉴 크기
-
-Navigation size percentage
-== 탐색 메뉴 크기 비율
-
 Need to have started the map to swap with a player.
 == 플레이어와 교환하려면 맵을 시작해야 합니다.
 
@@ -8143,6 +8155,9 @@ No maps match these filters
 
 No matching assets.
 == 일치하는 에셋이 없습니다.
+
+No matching features found. Try other keywords
+== 일치하는 기능을 찾을 수 없습니다. 다른 키워드를 시도해 보세요.
 
 No matching Rank 1 replay
 == 일치하는 Rank 1 리플레이가 없습니다
@@ -8864,6 +8879,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == 파이 메뉴 이름 변경 목록 (|로 항목 구분; 본체이름,더미이름으로 둘 다 변경)
 
+Pin friend
+== 친구 고정
+
 Ping
 == Ping
 
@@ -9247,9 +9265,6 @@ Position jump tip
 
 Position:
 == 위치:
-
-PowerShell 7
-== PowerShell 7 색상
 
 Practice mode can't be enabled in team 0 mode.
 == 팀 0 모드에서는 연습 모드를 활성화할 수 없습니다
@@ -10625,9 +10640,6 @@ Round %d/%d
 Round-trip time
 == 왕복 시간
 
-Rounded
-== 둥근 모서리
-
 Rounded caps
 == 둥근 끝
 
@@ -10951,9 +10963,6 @@ Scroll mode: Off
 
 Scroll mode: On
 == 스크롤 모드: 켜기
-
-Scrolling
-== 스크롤
 
 Search
 == 검색
@@ -11309,6 +11318,9 @@ Set voice input device
 Set voice output device
 == 음성 출력 장치 설정
 
+Set whether a friend is pinned
+== 친구 고정 여부 설정
+
 Set your checkpoints based on another player
 == 다른 플레이어를 기준으로 체크포인트 설정
 
@@ -11344,9 +11356,6 @@ Settings card titles use rainbow colors
 
 Settings file
 == 설정 파일
-
-Settings navigation migration version
-== 설정 탐색 메뉴 마이그레이션 버전
 
 Settings page opacity
 == 설정 페이지 불투명도
@@ -12878,9 +12887,6 @@ Spree
 SQL Server name for record table
 == 기록 테이블의 SQL Server 이름
 
-Square
-== 직각 모서리
-
 Squishy Tee deformation duration
 == Q 탄 Tee 변형 지속 시간
 
@@ -14342,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI 크기
 
-UI scrolling: 0=original, 1=damped
-== UI 스크롤: 0=기본, 1=감쇠
-
 UI server address
 == UI 서버 주소
 
@@ -14524,6 +14527,9 @@ Unmute:
 
 Unmuted
 == 음소거 해제됨
+
+Unpin friend
+== 친구 고정 해제
 
 Unpredictable ghost opacity (0-100)
 == 예측 불가능한 유령 불투명도 (0-100)
@@ -14716,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == 향상된 렌더링이 활성화되면 절차적 링 파이프라인 사용
-
-Use rounded corners for interface surfaces
-== 인터페이스 영역에 둥근 모서리 사용
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == 향상된 렌더링이 활성화되면 Dynamic Island 및 둥근 사각형에 SDF 파이프라인 사용

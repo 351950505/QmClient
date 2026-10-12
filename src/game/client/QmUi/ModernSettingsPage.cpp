@@ -164,7 +164,6 @@ void CMenus::RenderModernSettingsCards(CUIRect View, const char *pViewId, const 
 	uint64_t ContentRevision = qm_card_catalog::QmCardRenderHook::PrepareStandardCards(Ctx, vIds);
 	ContentRevision = ContentRevision * 1099511628211ULL ^ qm_card_catalog::QmCardRenderHook::PrepareTClientCards(Ctx, vIds);
 	ContentRevision = ContentRevision * 1099511628211ULL ^ qm_card_catalog::MeasureModuleCardsRevision(s_FunctionLayout);
-	ContentRevision = ContentRevision * 1099511628211ULL ^ TranslationTestLayoutRevision();
 	ContentRevision = ContentRevision * 1099511628211ULL ^ qm_card_catalog::MeasureContentRevision(g_Localization.Languages().size(), GameClient()->m_MenuBackground.GetThemes().size());
 	if(std::any_of(vIds.begin(), vIds.end(), [](const char *pId) { return str_startswith(pId, "deck:controls-") != nullptr; }))
 		ContentRevision = ContentRevision * 1099511628211ULL ^ qm_card_catalog::QmCardRenderHook::PrepareControlsCards(this, View.w, ReadOnly, pScroll);

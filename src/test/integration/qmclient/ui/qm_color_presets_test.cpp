@@ -1,11 +1,10 @@
-#include <game/client/QmUi/UiTheme.h>
 #include <game/client/ui.h>
 
 #include <gtest/gtest.h>
 
 TEST(QmColorPresets, ApplyingPresetUpdatesBoundColorAndPreservesAlpha)
 {
-	for(const unsigned Rgb : ui_token::color::PICKER_PRESETS)
+	for(const unsigned Rgb : {0xFFFFFFu, 0x171717u, 0xF25F5Cu, 0xFFB347u, 0xF7D154u, 0x5DBB82u, 0x4A90E2u, 0xA879E8u})
 	{
 		SCOPED_TRACE(Rgb);
 		unsigned BoundColor = 0;
