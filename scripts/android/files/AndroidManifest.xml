@@ -57,6 +57,15 @@
 		android:roundIcon="@mipmap/ic_launcher_round"
 		android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
 		android:hardwareAccelerated="true">
+		<provider
+			android:name="androidx.core.content.FileProvider"
+			android:authorities="${applicationId}.qm.media"
+			android:exported="false"
+			android:grantUriPermissions="true">
+			<meta-data
+				android:name="android.support.FILE_PROVIDER_PATHS"
+				android:resource="@xml/qm_media_paths" />
+		</provider>
 		<activity
 			android:name="org.ddnet.client.ClientActivity"
 			android:alwaysRetainTaskState="true"

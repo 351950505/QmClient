@@ -53,7 +53,6 @@ class CSpectator : public CComponent
 	vec2 m_TeleSearchPosition = vec2(0.0f, 0.0f);
 
 	bool CanChangeSpectatorId();
-	void SpectateNext(bool Reverse);
 	// QmClient：按编号查找传送点，以及承载它的输入行 UI。
 	void FindTele();
 	void RenderTeleSearch(vec2 Center, const CUIRect &RowRect, const CUIRect &StatusRect, float Alpha, bool MousePressed);
@@ -80,6 +79,8 @@ public:
 	void OnReset() override;
 
 	void Spectate(int SpectatorId);
+	// 触控旁观与控制台共用玩家顺序，调用方决定是否允许离开录制者视角。
+	void SpectateNext(bool Reverse);
 	void SpectateClosest();
 	// QmClient：正在输入传送点编号时，demo 快捷键等其它按键语义必须让位。
 	bool IsEditingTeleNumber() const { return m_Active && m_TeleNumberInput.IsActive(); }
