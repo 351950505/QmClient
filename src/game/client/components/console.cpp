@@ -1911,8 +1911,8 @@ void CGameConsole::OnRender()
 	constexpr float FilterPadding = 6.0f;
 	const float FilterIndicatorWidth = FontSize + 4.0f;
 	float aFilterWidths[CInstance::LOG_FILTER_BUTTON_COUNT];
-	float TotalFilterWidth = FilterSpacing * (CInstance::LOG_FILTER_BUTTON_COUNT - 1);
-	for(int i = 0; i < CInstance::LOG_FILTER_BUTTON_COUNT; ++i)
+	float TotalFilterWidth = LocalConsole ? FilterSpacing * (CInstance::LOG_FILTER_BUTTON_COUNT - 1) : 0.0f;
+	for(int i = 0; LocalConsole && i < CInstance::LOG_FILTER_BUTTON_COUNT; ++i)
 	{
 		aFilterWidths[i] = TextRender()->TextWidth(FontSize, apFilterLabels[i]) + FilterPadding * 2.0f + (LocalConsole && i != 0 ? FilterIndicatorWidth : 0.0f);
 		TotalFilterWidth += aFilterWidths[i];
@@ -2015,9 +2015,10 @@ void CGameConsole::OnRender()
 	if(SettingsOpen && g_Config.m_QmGaussianBlur)
 		Ui()->PrepareGaussianBlur();
 
-	// 本地控制台使用终端式纯色面板，工具栏与状态栏独立分区。
+	// 本地背板只模糊底层画面一次，工具栏与状态栏不重复模糊。
 	if(LocalConsole)
 	{
+		Ui()->RenderGaussianBlur({0.0f, 0.0f, Screen.w, ConsoleHeight}, ConsoleHeightScale, IGraphics::CORNER_NONE, 0.0f);
 		QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, ConsoleHeight}, Palette.m_aColors[QmConsoleAppearance::BACKGROUND]);
 		QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, RowHeight}, Palette.m_Panel);
 		QmConsoleUi::DrawPanel(Ui(), {0.0f, ConsoleHeight - FooterHeight, Screen.w, FooterHeight}, Palette.m_Panel);
@@ -2658,8 +2659,8 @@ void CGameConsole::OnRender()
 		};
 		const float LinesWidth = LocalConsole ? 0.0f : TextRender()->TextWidth(FontSize, aLinesBuf);
 		float FilterX = LocalConsole ? 10.0f : LinesWidth + 20.0f;
-		const float FilterScale = LocalConsole ? Toolbar.m_FilterScale : minimum(1.0f, maximum(0.0f, (Screen.w - ToolbarRightMargin - FilterX - 10.0f) / TotalFilterWidth));
-		if(!pConsole->m_ChatExportMode)
+		const float FilterScale = Toolbar.m_FilterScale;
+		if(LocalConsole && !pConsole->m_ChatExportMode)
 		{
 			for(int i = 0; i < CInstance::LOG_FILTER_BUTTON_COUNT; ++i)
 			{
