@@ -8876,6 +8876,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == Список имён кругового меню (| разделяет пункты; основной,дамми меняет оба имени)
 
+Pin friend
+== Закрепить друга
+
 Ping
 == Ping
 
@@ -14518,6 +14521,9 @@ Unmute:
 
 Unmuted
 == Звук включён
+
+Unpin friend
+== Открепить друга
 
 Unpredictable ghost opacity (0-100)
 == Непрозрачность непредсказуемого призрака (0-100)

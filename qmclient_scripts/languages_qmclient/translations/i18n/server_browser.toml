@@ -2276,3 +2276,35 @@ brazilian_portuguese = "Falha ao atualizar a lista de servidores; exibindo a lis
 portuguese = "Falha ao atualizar a lista de servidores; a mostrar a lista anterior"
 turkish = "Sunucu listesi yenilenemedi; önceki liste gösteriliyor"
 polish = "Nie udało się odświeżyć listy serwerów; wyświetlono poprzednią listę"
+
+[[message]]
+key = "Pin friend"
+[message.translations]
+simplified_chinese = "置顶好友"
+traditional_chinese = "置頂好友"
+japanese = "フレンドを固定"
+korean = "친구 고정"
+russian = "Закрепить друга"
+german = "Freund anheften"
+spanish = "Fijar amigo"
+french = "Épingler cet ami"
+brazilian_portuguese = "Fixar amigo"
+portuguese = "Fixar amigo"
+turkish = "Arkadaşı sabitle"
+polish = "Przypnij znajomego"
+
+[[message]]
+key = "Unpin friend"
+[message.translations]
+simplified_chinese = "取消置顶好友"
+traditional_chinese = "取消置頂好友"
+japanese = "フレンドの固定を解除"
+korean = "친구 고정 해제"
+russian = "Открепить друга"
+german = "Freund lösen"
+spanish = "Desfijar amigo"
+french = "Désépingler cet ami"
+brazilian_portuguese = "Desafixar amigo"
+portuguese = "Desafixar amigo"
+turkish = "Arkadaşın sabitlemesini kaldır"
+polish = "Odepnij znajomego"

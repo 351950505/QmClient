@@ -8876,6 +8876,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == 饼菜单改名名单（| 分隔选项；C,D 同时改名，C 为本体，D 为分身）
 
+Pin friend
+== 置顶好友
+
 Ping
 == 延迟
 
@@ -14518,6 +14521,9 @@ Unmute:
 
 Unmuted
 == 未静音
+
+Unpin friend
+== 取消置顶好友
 
 Unpredictable ghost opacity (0-100)
 == 不可预测幽灵透明度（0-100）

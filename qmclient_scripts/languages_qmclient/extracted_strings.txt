@@ -2957,6 +2957,7 @@ Pie menu highlight tint
 Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
+Pin friend
 Ping
 Ping the current server
 Pistol
@@ -4838,6 +4839,7 @@ Unmute player with IP address
 Unmute player with list index
 Unmute:
 Unmuted
+Unpin friend
 Unpredictable ghost opacity (0-100)
 Unpredictable shadow tee transparency (0 invisible, 100 fully visible)
 Unpredicted ghost opacity
