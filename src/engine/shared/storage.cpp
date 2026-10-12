@@ -58,6 +58,12 @@ namespace
 		char m_aExecutablePath[IO_MAX_PATH_LENGTH] = "";
 
 	public:
+		explicit CStorage(const char *pExecutablePath = nullptr)
+		{
+			if(pExecutablePath != nullptr)
+				str_copy(m_aExecutablePath, pExecutablePath);
+		}
+
 		bool Init(EInitializationType InitializationType, int NumArgs, const char **ppArguments)
 		{
 			dbg_assert(NumArgs > 0, "Expected at least one argument");
@@ -494,6 +500,17 @@ namespace
 			str_format(aPath, sizeof(aPath), "%s/%s", m_aDatadir, pFilename);
 			str_copy(pBuffer, aPath, BufferSize);
 			return true;
+		}
+
+		bool GetExecutablePath(const char *pFilename, char *pBuffer, unsigned BufferSize) const override
+		{
+			if(BufferSize == 0)
+				return false;
+			pBuffer[0] = '\0';
+			if(pFilename == nullptr || !pFilename[0] || pFilename[0] == '/' || pFilename[0] == '\\' || str_find(pFilename, ":") != nullptr || !fs_is_relative_path(pFilename) ||
+				str_find(pFilename, "../") != nullptr || str_find(pFilename, "..\\") != nullptr || str_comp(pFilename, "..") == 0 || str_endswith(pFilename, "/..") || str_endswith(pFilename, "\\.."))
+				return false;
+			return StoragePathFromExecutable(m_aExecutablePath, pFilename, pBuffer, BufferSize);
 		}
 
 		int NumPaths() const override
@@ -1082,7 +1099,8 @@ std::unique_ptr<IStorage> CreateLocalStorage()
 std::unique_ptr<IStorage> CreateTempStorage(const char *pDirectory, int NumArgs, const char **ppArguments)
 {
 	dbg_assert(NumArgs > 0, "Expected at least one argument");
-	std::unique_ptr<CStorage> pStorage = std::make_unique<CStorage>();
+	// 隔离存储采用调用者显式提供的程序位置，资源和脚本共享同一锚点。
+	std::unique_ptr<CStorage> pStorage = std::make_unique<CStorage>(ppArguments[0]);
 	pStorage->FindDataDirectory(ppArguments[0]);
 	if(!pStorage->FindCurrentDirectory() ||
 		!pStorage->AddPath(pDirectory) ||

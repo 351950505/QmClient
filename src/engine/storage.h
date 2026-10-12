@@ -54,6 +54,8 @@ public:
 	virtual int NumPaths() const = 0;
 	// 只读随包资源路径，不经过用户目录的覆盖搜索；失败时清空输出。
 	virtual bool GetDataPath(const char *pFilename, char *pBuffer, unsigned BufferSize) const = 0;
+	// 相对于当前程序所在目录的只读路径，不使用工作目录或编译期二进制目录。
+	virtual bool GetExecutablePath(const char *pFilename, char *pBuffer, unsigned BufferSize) const = 0;
 
 	virtual void ListDirectory(int Type, const char *pPath, FS_LISTDIR_CALLBACK pfnCallback, void *pUser) = 0;
 	virtual void ListDirectoryInfo(int Type, const char *pPath, FS_LISTDIR_CALLBACK_FILEINFO pfnCallback, void *pUser) = 0;
