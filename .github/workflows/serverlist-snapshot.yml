@@ -2,11 +2,13 @@ name: Serverlist snapshot
 
 on:
   push:
-    branches: [master]
+    branches: [master, codex/serverlist-snapshot-contract-fix]
     paths:
       - .github/workflows/serverlist-snapshot.yml
       - qmclient_scripts/serverlist_mirror/collect_snapshot.py
       - qmclient_scripts/serverlist_mirror/test_collect_snapshot.py
+      - qmclient_scripts/serverlist_mirror/serverlist_contract.py
+      - qmclient_scripts/serverlist_mirror/test_serverlist_contract.py
   schedule:
     - cron: '2-57/5 * * * *'
   workflow_dispatch:
@@ -25,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify collector
-        run: python3 -m unittest discover -s qmclient_scripts/serverlist_mirror -p test_collect_snapshot.py
+        run: python3 -m unittest discover -s qmclient_scripts/serverlist_mirror -p 'test_*.py'
       - name: Collect official snapshot
         run: python3 qmclient_scripts/serverlist_mirror/collect_snapshot.py --output tmp/serverlist-snapshot
       - name: Publish isolated snapshot branch
