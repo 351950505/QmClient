@@ -2873,6 +2873,7 @@ public:
 	bool AdvanceSettingsMenuTextPlanCollection(int Budget, const char *pOperationOverride);
 	bool PrebuildSettingsTextPlanItem(const SMenuTextPlanItem &Item, int &RemainingBudget);
 	int CountMissingSettingsMenuTextPlanItems() const;
+	bool SettingsMenuTextPrebuildReady(const char *pOperationOverride) const;
 	void PrebuildSettingsMenuTextPool(int Budget, const char *pScopeOverride = nullptr, const char *pOperationOverride = nullptr);
 	int PrebuildSettingsTextPoolForLoading(int Budget, const char *pOperationOverride = nullptr);
 	void PrebuildIngameEscTextPoolBeforeOpen(int Budget);

@@ -7314,8 +7314,24 @@ int CMenus::CountMissingSettingsMenuTextPlanItems() const
 	return maximum(0, (int)m_vSettingsMenuTextPrebuildPlan.size() - (int)m_SettingsMenuTextPlanCursor);
 }
 
+bool CMenus::SettingsMenuTextPrebuildReady(const char *pOperationOverride) const
+{
+	const char *pOperation = pOperationOverride != nullptr ? pOperationOverride : SettingsPerfActiveOperation();
+	return Ui()->Screen() != nullptr &&
+		s_LastPlanCollectionScreenBucket == round_to_int(Ui()->Screen()->w) &&
+		!m_SettingsMenuTextPlanCollectionDirty && !m_SettingsMenuTextPlanMetadataDirty &&
+		m_SettingsMenuTextPlanCollectionGeneration == m_MenuTextPoolGeneration &&
+		m_SettingsMenuTextPlanGeneration == m_MenuTextPoolGeneration &&
+		m_SettingsMenuTextPlanCollectionOperation == (pOperation != nullptr ? pOperation : "") &&
+		m_SettingsMenuTextPlanCollectionComplete &&
+		m_SettingsMenuTextPlanCursor >= m_vSettingsMenuTextPrebuildPlan.size();
+}
+
 void CMenus::PrebuildSettingsMenuTextPool(int Budget, const char *pScopeOverride, const char *pOperationOverride)
 {
+	// 完成后停止空调度和明细格式化；语言、缩放、页面和代际失效仍会重新预建。
+	if(SettingsMenuTextPrebuildReady(pOperationOverride))
+		return;
 	PrebuildSettingsTextPoolForLoading(Budget, pOperationOverride);
 	const int Built = m_SettingsMenuTextLastPrebuildStats.m_Built;
 	const int Reused = m_SettingsMenuTextLastPrebuildStats.m_Reused;
@@ -7398,7 +7414,7 @@ int CMenus::PrebuildSettingsTextPoolForLoading(int Budget, const char *pOperatio
 {
 	m_SettingsMenuTextLastPrebuildStats = {};
 	m_SettingsMenuTextLastPrebuildStats.m_Budget = maximum(Budget, 0);
-	if(Budget <= 0 || Ui()->Screen() == nullptr)
+	if(Budget <= 0 || Ui()->Screen() == nullptr || SettingsMenuTextPrebuildReady(pOperationOverride))
 		return maximum(Budget, 0);
 
 	SSettingsAdaptiveBudgetInput Input;

@@ -24,6 +24,7 @@
 #include <mutex>
 
 class IJob;
+class CQmStatisticsSaveJob;
 
 struct SQmClientLocalModeStats
 {
@@ -158,6 +159,8 @@ class CQmClient : public CComponent
 	int64_t m_QmDdnetPointsTotal = -1;
 	int64_t m_QmDdnetPlaytimeHours = -1;
 	int64_t m_QmDdnetPlaytimeHoursPastYear = -1;
+	std::string SerializeQmClientStatistics() const;
+	mutable std::shared_ptr<CQmStatisticsSaveJob> m_pQmStatisticsSaveJob;
 	mutable bool m_QmStatisticsFileExists = false;
 	mutable bool m_QmStatisticsFileInvalid = false;
 	mutable int64_t m_QmStatisticsNextSaveRetryTick = 0;

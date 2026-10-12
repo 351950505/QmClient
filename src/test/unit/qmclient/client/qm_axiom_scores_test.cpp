@@ -8,6 +8,7 @@
 
 #include <game/client/components/qmclient/axiom_scores.h>
 #include <game/client/components/qmclient/axiom_scores_data.h>
+#include <game/client/components/qmclient/axiom_scores_parse_job.h>
 #include <game/client/components/qmclient/ddnet_player_stats_state.h>
 #include <game/client/components/qmclient/statistics_file.h>
 
@@ -21,6 +22,11 @@
 #include <vector>
 
 IHttp *CComponentInterfaces::Http() const
+{
+	return nullptr;
+}
+
+IEngine *CComponentInterfaces::Engine() const
 {
 	return nullptr;
 }
@@ -115,8 +121,15 @@ namespace
 
 	protected:
 		int64_t CurrentTick() const override { return m_Now; }
+		void SubmitDdStatsParseJob(const std::shared_ptr<CQmAxiomDdStatsParseJob> &pJob) override
+		{
+			m_vParseJobs.push_back(pJob);
+		}
+
 
 	public:
+		std::vector<std::shared_ptr<CQmAxiomDdStatsParseJob>> m_vParseJobs;
+
 		explicit CTestAxiomScores(IQmAxiomHttp *pHttp, bool EnableDdStats = false) :
 			CQmAxiomScores(pHttp)
 		{
@@ -1101,4 +1114,96 @@ TEST(QmAxiomScoresLayout, ConstrainsPopupAtCommonUiScales)
 	EXPECT_FLOAT_EQ(Scale200.m_Height, 290.0f);
 	EXPECT_LE(Scale200.m_Width, 533.0f - 10.0f);
 	EXPECT_LE(Scale200.m_Height, 300.0f - 10.0f);
+}
+
+TEST(QmAxiomScoresAsync, PendingParseKeepsFetchingWithoutResubmittingAndPublishesOnce)
+{
+	CFakeAxiomHttp Http;
+	CTestAxiomScores Scores(&Http, true);
+	Scores.EnsureQueried("async_player");
+	ASSERT_EQ(Http.m_vRequests.size(), 2u);
+	Http.Request(1).m_pRequest->Complete(R"({"profile":{"name":"async_player"},"most_played_gametypes":[{"key":"Gores","seconds_played":123}]})");
+	Scores.OnUpdate();
+	ASSERT_EQ(Scores.m_vParseJobs.size(), 1u);
+	EXPECT_EQ(Scores.GetDdStatsGameTypes("async_player"), nullptr);
+	for(int Frame = 0; Frame < 3; ++Frame)
+	{
+		Scores.OnUpdate();
+		Scores.EnsureQueried("async_player");
+	}
+	EXPECT_EQ(Http.m_vRequests.size(), 2u);
+	EXPECT_EQ(Scores.m_vParseJobs.size(), 1u);
+	Scores.m_vParseJobs[0]->Parse();
+	Scores.OnUpdate();
+	const auto *pGameTypes = Scores.GetDdStatsGameTypes("async_player");
+	ASSERT_NE(pGameTypes, nullptr);
+	ASSERT_EQ(pGameTypes->size(), 1u);
+	EXPECT_EQ((*pGameTypes)[0].m_PlayTimeSeconds, 123);
+	EXPECT_TRUE(Scores.PersistentCacheDirty());
+	Scores.ClearPersistentCacheDirty();
+	Scores.OnUpdate();
+	EXPECT_FALSE(Scores.PersistentCacheDirty());
+}
+
+TEST(QmAxiomScoresAsync, RefreshDiscardsOldParseAndPublishesNewGeneration)
+{
+	CFakeAxiomHttp Http;
+	CTestAxiomScores Scores(&Http, true);
+	Scores.EnsureQueried("async_player");
+	ASSERT_EQ(Http.m_vRequests.size(), 2u);
+	Http.Request(1).m_pRequest->Complete(R"({"profile":{"name":"async_player"},"most_played_gametypes":[{"key":"Gores","seconds_played":10}]})");
+	Scores.OnUpdate();
+	ASSERT_EQ(Scores.m_vParseJobs.size(), 1u);
+	Scores.Refresh("async_player");
+	ASSERT_EQ(Http.m_vRequests.size(), 4u);
+	Scores.m_vParseJobs[0]->Parse();
+	Scores.OnUpdate();
+	EXPECT_EQ(Scores.GetDdStatsGameTypes("async_player"), nullptr);
+	Http.Request(3).m_pRequest->Complete(R"({"profile":{"name":"async_player"},"most_played_gametypes":[{"key":"Gores","seconds_played":20}]})");
+	Scores.OnUpdate();
+	ASSERT_EQ(Scores.m_vParseJobs.size(), 2u);
+	Scores.m_vParseJobs[1]->Parse();
+	Scores.OnUpdate();
+	const auto *pGameTypes = Scores.GetDdStatsGameTypes("async_player");
+	ASSERT_NE(pGameTypes, nullptr);
+	EXPECT_EQ((*pGameTypes)[0].m_PlayTimeSeconds, 20);
+}
+
+TEST(QmAxiomScoresAsync, InvalidResponsePreservesVisibleDataAndAllowsRefresh)
+{
+	CFakeAxiomHttp Http;
+	CTestAxiomScores Scores(&Http, true);
+	Scores.EnsureQueried("async_player");
+	Http.Request(1).m_pRequest->Complete(R"({"profile":{"name":"async_player"},"most_played_gametypes":[{"key":"Gores","seconds_played":10}]})");
+	Scores.OnUpdate();
+	ASSERT_EQ(Scores.m_vParseJobs.size(), 1u);
+	Scores.m_vParseJobs[0]->Parse();
+	Scores.OnUpdate();
+	Scores.Refresh("async_player");
+	Http.Request(3).m_pRequest->Complete("invalid json");
+	Scores.OnUpdate();
+	ASSERT_EQ(Scores.m_vParseJobs.size(), 2u);
+	Scores.m_vParseJobs[1]->Parse();
+	Scores.OnUpdate();
+	const auto *pGameTypes = Scores.GetDdStatsGameTypes("async_player");
+	ASSERT_NE(pGameTypes, nullptr);
+	EXPECT_EQ((*pGameTypes)[0].m_PlayTimeSeconds, 10);
+	Scores.Refresh("async_player");
+	EXPECT_EQ(Http.m_vRequests.size(), 6u);
+}
+
+TEST(QmAxiomScoresAsync, ShutdownDiscardsQueuedParseWithoutBorrowingComponent)
+{
+	CFakeAxiomHttp Http;
+	CTestAxiomScores Scores(&Http, true);
+	Scores.EnsureQueried("async_player");
+	Http.Request(1).m_pRequest->Complete(R"({"profile":{"name":"async_player"},"most_played_gametypes":[{"key":"Gores","seconds_played":10}]})");
+	Scores.OnUpdate();
+	ASSERT_EQ(Scores.m_vParseJobs.size(), 1u);
+	Scores.OnShutdown();
+	Http.m_vRequests.clear();
+	Scores.m_vParseJobs[0]->Parse();
+	EXPECT_TRUE(Scores.m_vParseJobs[0]->Ready());
+	Scores.OnUpdate();
+	EXPECT_EQ(Scores.GetDdStatsGameTypes("async_player"), nullptr);
 }

@@ -1,5 +1,6 @@
 // 请抬头享受阳光｜日子很好 我很我---------致咩子
 #include "qmclient.h"
+#include "statistics_save_job.h"
 
 #include "bounded_file_reader.h"
 #include "qm_title_style.h"
@@ -947,6 +948,117 @@ int64_t CQmClient::QmStatisticsLastSuccessfulSyncTimestamp() const
 	return std::max(DdnetTimestamp, std::max(m_QmClientPlaytimeLastSuccessfulSyncTimestamp, AxiomTimestamp));
 }
 
+std::string CQmClient::SerializeQmClientStatistics() const
+{
+	CJsonStringWriter Writer;
+	Writer.BeginObject();
+	Writer.WriteAttribute("local");
+	Writer.BeginObject();
+	Writer.WriteAttribute("modes");
+	Writer.BeginArray();
+	for(const SQmClientLocalModeStats &Stats : m_vQmClientLocalModeStats)
+	{
+		Writer.BeginObject();
+		Writer.WriteAttribute("mode");
+		Writer.WriteStrValue(Stats.m_GameMode.c_str());
+		if(!Stats.m_CommunityId.empty())
+		{
+			Writer.WriteAttribute("community_id");
+			Writer.WriteStrValue(Stats.m_CommunityId.c_str());
+		}
+		if(Stats.m_IsAxiom)
+		{
+			Writer.WriteAttribute("axiom");
+			Writer.WriteBoolValue(true);
+		}
+		Writer.WriteAttribute("maps");
+		Writer.WriteIntValue(Stats.m_Maps);
+		Writer.WriteAttribute("score");
+		char aScore[64];
+		str_format(aScore, sizeof(aScore), "%" PRId64, Stats.m_Score);
+		Writer.WriteStrValue(aScore);
+		Writer.WriteAttribute("playtime_seconds");
+		char aPlaytime[64];
+		str_format(aPlaytime, sizeof(aPlaytime), "%" PRId64, std::max<int64_t>(0, Stats.m_PlaytimeSeconds));
+		Writer.WriteStrValue(aPlaytime);
+		Writer.EndObject();
+	}
+	Writer.EndArray();
+	Writer.EndObject();
+	Writer.WriteAttribute("remote");
+	Writer.BeginObject();
+	if(!m_QmDdnetPrimaryPlayerName.empty())
+	{
+		Writer.WriteAttribute("primary_player_name");
+		Writer.WriteStrValue(m_QmDdnetPrimaryPlayerName.c_str());
+	}
+	Writer.WriteAttribute("qmclient");
+	Writer.BeginObject();
+	if(m_QmClientServerPlaytimeSeconds >= 0)
+	{
+		Writer.WriteAttribute("open_seconds");
+		char aOpenSeconds[64];
+		str_format(aOpenSeconds, sizeof(aOpenSeconds), "%" PRId64, m_QmClientServerPlaytimeSeconds);
+		Writer.WriteStrValue(aOpenSeconds);
+	}
+	Writer.EndObject();
+	Writer.WriteAttribute("ddnet");
+	Writer.BeginObject();
+	Writer.WriteAttribute("players");
+	Writer.BeginArray();
+	for(const SQmClientDdnetPlayerStats &Stats : m_vQmClientDdnetPlayerStats)
+	{
+		if(Stats.m_PlayerName.empty() || Stats.m_Points < 0 || Stats.m_PointsTotal < 0 || Stats.m_TotalFinishes < 0)
+			continue;
+		Writer.BeginObject();
+		Writer.WriteAttribute("name");
+		Writer.WriteStrValue(Stats.m_PlayerName.c_str());
+		Writer.WriteAttribute("favorite_partner");
+		Writer.WriteStrValue(Stats.m_FavoritePartner.c_str());
+		Writer.WriteAttribute("points");
+		char aPoints[64];
+		str_format(aPoints, sizeof(aPoints), "%" PRId64, Stats.m_Points);
+		Writer.WriteStrValue(aPoints);
+		Writer.WriteAttribute("points_total");
+		char aPointsTotal[64];
+		str_format(aPointsTotal, sizeof(aPointsTotal), "%" PRId64, Stats.m_PointsTotal);
+		Writer.WriteStrValue(aPointsTotal);
+		Writer.WriteAttribute("finishes");
+		Writer.WriteIntValue(Stats.m_TotalFinishes);
+		if(Stats.m_PlaytimeHours >= 0)
+		{
+			Writer.WriteAttribute("playtime_hours");
+			char aPlaytimeHours[64];
+			str_format(aPlaytimeHours, sizeof(aPlaytimeHours), "%" PRId64, Stats.m_PlaytimeHours);
+			Writer.WriteStrValue(aPlaytimeHours);
+		}
+		if(Stats.m_PlaytimeHoursPastYear >= 0)
+		{
+			Writer.WriteAttribute("playtime_hours_past_year");
+			char aPlaytimeHoursPastYear[64];
+			str_format(aPlaytimeHoursPastYear, sizeof(aPlaytimeHoursPastYear), "%" PRId64, Stats.m_PlaytimeHoursPastYear);
+			Writer.WriteStrValue(aPlaytimeHoursPastYear);
+		}
+		Writer.EndObject();
+	}
+	Writer.EndArray();
+	Writer.EndObject();
+	if(GameClient() != nullptr)
+		GameClient()->m_QmAxiomScores.WritePersistentCache(Writer);
+	else
+	{
+		Writer.WriteAttribute("axiom");
+		Writer.BeginObject();
+		Writer.WriteAttribute("players");
+		Writer.BeginArray();
+		Writer.EndArray();
+		Writer.EndObject();
+	}
+	Writer.EndObject();
+	Writer.EndObject();
+	return Writer.GetOutputString();
+}
+
 bool CQmClient::SaveQmClientStatistics() const
 {
 	if(m_QmStatisticsFileInvalid)
@@ -954,130 +1066,15 @@ bool CQmClient::SaveQmClientStatistics() const
 		log_warn("qmclient", "refusing to overwrite invalid statistics file: %s", QMCLIENT_LOCAL_MODE_STATS_FILE);
 		return false;
 	}
-	Storage()->CreateFolder("qmclient", IStorage::TYPE_SAVE);
-	char aTempFilename[IO_MAX_PATH_LENGTH];
-	IStorage::FormatTmpPath(aTempFilename, sizeof(aTempFilename), QMCLIENT_LOCAL_MODE_STATS_FILE);
-	IOHANDLE File = Storage()->OpenFile(aTempFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
-	if(!File)
-		return false;
+	// 等待或接管旧快照，防止它在本次手动保存之后覆盖新内容。
+	if(m_pQmStatisticsSaveJob)
 	{
-		CJsonFileWriter Writer(File);
-		Writer.BeginObject();
-		Writer.WriteAttribute("local");
-		Writer.BeginObject();
-		Writer.WriteAttribute("modes");
-		Writer.BeginArray();
-		for(const SQmClientLocalModeStats &Stats : m_vQmClientLocalModeStats)
-		{
-			Writer.BeginObject();
-			Writer.WriteAttribute("mode");
-			Writer.WriteStrValue(Stats.m_GameMode.c_str());
-			if(!Stats.m_CommunityId.empty())
-			{
-				Writer.WriteAttribute("community_id");
-				Writer.WriteStrValue(Stats.m_CommunityId.c_str());
-			}
-			if(Stats.m_IsAxiom)
-			{
-				Writer.WriteAttribute("axiom");
-				Writer.WriteBoolValue(true);
-			}
-			Writer.WriteAttribute("maps");
-			Writer.WriteIntValue(Stats.m_Maps);
-			Writer.WriteAttribute("score");
-			char aScore[64];
-			str_format(aScore, sizeof(aScore), "%" PRId64, Stats.m_Score);
-			Writer.WriteStrValue(aScore);
-			Writer.WriteAttribute("playtime_seconds");
-			char aPlaytime[64];
-			str_format(aPlaytime, sizeof(aPlaytime), "%" PRId64, std::max<int64_t>(0, Stats.m_PlaytimeSeconds));
-			Writer.WriteStrValue(aPlaytime);
-			Writer.EndObject();
-		}
-		Writer.EndArray();
-		Writer.EndObject();
-		Writer.WriteAttribute("remote");
-		Writer.BeginObject();
-		if(!m_QmDdnetPrimaryPlayerName.empty())
-		{
-			Writer.WriteAttribute("primary_player_name");
-			Writer.WriteStrValue(m_QmDdnetPrimaryPlayerName.c_str());
-		}
-		Writer.WriteAttribute("qmclient");
-		Writer.BeginObject();
-		if(m_QmClientServerPlaytimeSeconds >= 0)
-		{
-			Writer.WriteAttribute("open_seconds");
-			char aOpenSeconds[64];
-			str_format(aOpenSeconds, sizeof(aOpenSeconds), "%" PRId64, m_QmClientServerPlaytimeSeconds);
-			Writer.WriteStrValue(aOpenSeconds);
-		}
-		Writer.EndObject();
-		Writer.WriteAttribute("ddnet");
-		Writer.BeginObject();
-		Writer.WriteAttribute("players");
-		Writer.BeginArray();
-		for(const SQmClientDdnetPlayerStats &Stats : m_vQmClientDdnetPlayerStats)
-		{
-			if(Stats.m_PlayerName.empty() || Stats.m_Points < 0 || Stats.m_PointsTotal < 0 || Stats.m_TotalFinishes < 0)
-				continue;
-			Writer.BeginObject();
-			Writer.WriteAttribute("name");
-			Writer.WriteStrValue(Stats.m_PlayerName.c_str());
-			Writer.WriteAttribute("favorite_partner");
-			Writer.WriteStrValue(Stats.m_FavoritePartner.c_str());
-			Writer.WriteAttribute("points");
-			char aPoints[64];
-			str_format(aPoints, sizeof(aPoints), "%" PRId64, Stats.m_Points);
-			Writer.WriteStrValue(aPoints);
-			Writer.WriteAttribute("points_total");
-			char aPointsTotal[64];
-			str_format(aPointsTotal, sizeof(aPointsTotal), "%" PRId64, Stats.m_PointsTotal);
-			Writer.WriteStrValue(aPointsTotal);
-			Writer.WriteAttribute("finishes");
-			Writer.WriteIntValue(Stats.m_TotalFinishes);
-			if(Stats.m_PlaytimeHours >= 0)
-			{
-				Writer.WriteAttribute("playtime_hours");
-				char aPlaytimeHours[64];
-				str_format(aPlaytimeHours, sizeof(aPlaytimeHours), "%" PRId64, Stats.m_PlaytimeHours);
-				Writer.WriteStrValue(aPlaytimeHours);
-			}
-			if(Stats.m_PlaytimeHoursPastYear >= 0)
-			{
-				Writer.WriteAttribute("playtime_hours_past_year");
-				char aPlaytimeHoursPastYear[64];
-				str_format(aPlaytimeHoursPastYear, sizeof(aPlaytimeHoursPastYear), "%" PRId64, Stats.m_PlaytimeHoursPastYear);
-				Writer.WriteStrValue(aPlaytimeHoursPastYear);
-			}
-			Writer.EndObject();
-		}
-		Writer.EndArray();
-		Writer.EndObject();
-		if(GameClient() != nullptr)
-			GameClient()->m_QmAxiomScores.WritePersistentCache(Writer);
-		else
-		{
-			Writer.WriteAttribute("axiom");
-			Writer.BeginObject();
-			Writer.WriteAttribute("players");
-			Writer.BeginArray();
-			Writer.EndArray();
-			Writer.EndObject();
-		}
-		Writer.EndObject();
-		Writer.EndObject();
-		if(!Writer.Finish())
-		{
-			Storage()->RemoveFile(aTempFilename, IStorage::TYPE_SAVE);
-			return false;
-		}
+		m_pQmStatisticsSaveJob->Finish();
+		m_pQmStatisticsSaveJob.reset();
 	}
-	char aBackupFilename[2 * IO_MAX_PATH_LENGTH];
-	const bool Saved = IStorage::ReplaceFileSafely(Storage(), aTempFilename, QMCLIENT_LOCAL_MODE_STATS_FILE, aBackupFilename, sizeof(aBackupFilename));
-	if(!Saved)
-		Storage()->RemoveFile(aTempFilename, IStorage::TYPE_SAVE);
-	else
+	CQmStatisticsSaveJob Save(Storage(), QMCLIENT_LOCAL_MODE_STATS_FILE, SerializeQmClientStatistics());
+	const bool Saved = Save.Finish();
+	if(Saved)
 	{
 		m_QmStatisticsFileExists = true;
 		m_QmStatisticsNextSaveRetryTick = 0;
@@ -1360,24 +1357,32 @@ void CQmClient::OnUpdate()
 		FinishQmNewsPublish();
 	if(m_pQmSponsorsPublishTask && m_pQmSponsorsPublishTask->Done())
 		FinishQmSponsorsPublish();
-	// 远程请求在 Axiom 组件中异步完成；下一帧统一落盘，避免每帧写文件。
-	// 本地统计脏标记按 30 秒节流落盘：游玩时长逐秒累计，不能逐秒写文件，
-	// 但也不能只在关机时保存——崩溃会把整段会话的本地统计全部丢失。
+	// 主线程创建一致快照，后台完成写入、刷盘和替换；不在游玩帧等待磁盘。
 	const int64_t StatisticsNow = time_get();
-	if(GameClient() != nullptr && !m_QmStatisticsFileInvalid &&
+	if(m_pQmStatisticsSaveJob && m_pQmStatisticsSaveJob->Done())
+	{
+		if(m_pQmStatisticsSaveJob->Finish())
+			m_QmStatisticsFileExists = true;
+		else
+		{
+			// 失败后重新拍最新快照；任务期间新增的脏数据也必须保留。
+			m_QmStatisticsLocalStatsDirty = true;
+			m_QmStatisticsLocalSaveDueTick = StatisticsNow;
+			m_QmStatisticsNextSaveRetryTick = StatisticsNow + 5 * time_freq();
+		}
+		m_pQmStatisticsSaveJob.reset();
+	}
+	if(!m_pQmStatisticsSaveJob && GameClient() != nullptr && !m_QmStatisticsFileInvalid &&
 		(GameClient()->m_QmAxiomScores.PersistentCacheDirty() ||
 			(m_QmStatisticsLocalStatsDirty && StatisticsNow >= m_QmStatisticsLocalSaveDueTick)) &&
 		(m_QmStatisticsNextSaveRetryTick == 0 || StatisticsNow >= m_QmStatisticsNextSaveRetryTick))
 	{
-		if(SaveQmClientStatistics())
-		{
-			GameClient()->m_QmAxiomScores.ClearPersistentCacheDirty();
-			m_QmStatisticsLocalStatsDirty = false;
-			m_QmStatisticsLocalSaveDueTick = StatisticsNow + 30 * time_freq();
-			m_QmStatisticsNextSaveRetryTick = 0;
-		}
-		else
-			m_QmStatisticsNextSaveRetryTick = StatisticsNow + 5 * time_freq();
+		m_pQmStatisticsSaveJob = std::make_shared<CQmStatisticsSaveJob>(Storage(), QMCLIENT_LOCAL_MODE_STATS_FILE, SerializeQmClientStatistics());
+		Engine()->AddJob(m_pQmStatisticsSaveJob);
+		GameClient()->m_QmAxiomScores.ClearPersistentCacheDirty();
+		m_QmStatisticsLocalStatsDirty = false;
+		m_QmStatisticsLocalSaveDueTick = StatisticsNow + 30 * time_freq();
+		m_QmStatisticsNextSaveRetryTick = 0;
 	}
 
 	// Axiom 分数在后台按缓存 TTL 查询，统计页面只负责展示，不应成为唯一触发点。
@@ -2699,8 +2704,8 @@ void CQmClient::FinishQmDdnetPlayerStats()
 			m_QmDdnetStatsSucceededOnce = true;
 			StoreQmDdnetPlayerStats(ParsePlayerName.c_str(), Result.m_FavoritePartner, Result.m_TotalFinishes, Result.m_Points, Result.m_PointsTotal, Result.m_PlaytimeHours, Result.m_PlaytimeHoursPastYear);
 			SelectQmDdnetPlayerStats(g_Config.m_PlayerName);
-			if(SaveQmClientStatistics() && GameClient() != nullptr)
-				GameClient()->m_QmAxiomScores.ClearPersistentCacheDirty();
+			m_QmStatisticsLocalStatsDirty = true;
+			m_QmStatisticsLocalSaveDueTick = 0;
 		}
 		else
 			log_warn("qmclient", "DDNet statistics response could not be parsed for '%s'", ParsePlayerName.c_str());
@@ -2792,8 +2797,8 @@ void CQmClient::RefreshQmClientStatistics()
 	RefreshQmDdnetPlayerStats();
 	if(GameClient() != nullptr && m_aQmDdnetPlayerName[0] != '\0')
 		GameClient()->m_QmAxiomScores.Refresh(m_aQmDdnetPlayerName);
-	if(SaveQmClientStatistics() && GameClient() != nullptr)
-		GameClient()->m_QmAxiomScores.ClearPersistentCacheDirty();
+	m_QmStatisticsLocalStatsDirty = true;
+	m_QmStatisticsLocalSaveDueTick = 0;
 }
 
 void CQmClient::InitQmClientLifecycle()
