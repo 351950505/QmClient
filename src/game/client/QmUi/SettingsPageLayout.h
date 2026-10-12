@@ -8,6 +8,8 @@
 #include <base/color.h>
 #include <base/math.h>
 
+#include <engine/shared/config.h>
+
 #include <generated/protocol.h>
 
 #include <game/client/ui_rect.h>
@@ -105,6 +107,7 @@ inline float ResolveSettingsControlHeight(const float BodySize, const float UiSc
 struct SSettingsContentMetrics
 {
 	float m_UiScale = 1.0f;
+	float m_TextScale = 1.0f;
 	float m_LineHeight = ResolveSettingsControlHeight(ui_token::font::BODY);
 	float m_BodySize = ui_token::font::BODY;
 	float m_SmallSize = ui_token::font::SMALL;
@@ -169,7 +172,7 @@ inline uint64_t ResolveSettingsCardDisplayViewKey(const int Page, const int Play
 	return Key;
 }
 
-inline uint64_t ResolveSettingsCardDefinitionsRevision(uint64_t DisplayCycle, uint64_t TextGeneration, float ContentWidth, uint64_t LayoutRevision = 0)
+inline uint64_t ResolveSettingsCardDefinitionsRevision(uint64_t DisplayCycle, uint64_t TextGeneration, float ContentWidth, uint64_t LayoutRevision = 0, int TextScalePercent = g_Config.m_QmUiTextScale)
 {
 	const uint64_t QuantizedWidth = (uint64_t)std::max(0, (int)(ContentWidth * 100.0f + 0.5f));
 	uint64_t Revision = 1469598103934665603ULL;
@@ -181,6 +184,7 @@ inline uint64_t ResolveSettingsCardDefinitionsRevision(uint64_t DisplayCycle, ui
 	Mix(TextGeneration);
 	Mix(QuantizedWidth);
 	Mix(LayoutRevision);
+	Mix(std::clamp(TextScalePercent, 75, 150));
 	return Revision;
 }
 
@@ -251,21 +255,22 @@ inline float ResolveSettingsSmallFontSize(const float UiScale)
 	return std::clamp(ui_token::font::SMALL * std::max(0.0f, UiScale), 9.0f, ui_token::font::SMALL);
 }
 
-inline SSettingsContentMetrics ResolveSettingsContentMetrics(const float ContentWidth)
+inline SSettingsContentMetrics ResolveSettingsContentMetrics(const float ContentWidth, int TextScalePercent = g_Config.m_QmUiTextScale)
 {
 	SSettingsContentMetrics Metrics;
 	Metrics.m_UiScale = ResolveSettingsUiScale(ContentWidth);
-	Metrics.m_BodySize = std::clamp(ui_token::font::BODY * Metrics.m_UiScale, 10.0f, ui_token::font::BODY);
+	Metrics.m_TextScale = ui_token::font::TextScale(TextScalePercent);
+	Metrics.m_BodySize = std::clamp(ui_token::font::BODY * Metrics.m_UiScale, 10.0f, ui_token::font::BODY) * Metrics.m_TextScale;
 	// 所有单行控件共用高度；窄视口保留胶囊文字的可读下限和上下内边距。
-	Metrics.m_LineHeight = ResolveSettingsControlHeight(Metrics.m_BodySize, Metrics.m_UiScale);
-	Metrics.m_SmallSize = ResolveSettingsSmallFontSize(Metrics.m_UiScale);
-	Metrics.m_HeadlineSize = std::clamp(ui_token::font::HEADLINE * Metrics.m_UiScale, 12.0f, ui_token::font::HEADLINE);
-	Metrics.m_LineSpacing = std::clamp(ui_token::settings::ROW_GAP * Metrics.m_UiScale, 3.0f, ui_token::settings::ROW_GAP);
+	Metrics.m_LineHeight = ResolveSettingsControlHeight(Metrics.m_BodySize / Metrics.m_TextScale, Metrics.m_UiScale) * Metrics.m_TextScale;
+	Metrics.m_SmallSize = ResolveSettingsSmallFontSize(Metrics.m_UiScale) * Metrics.m_TextScale;
+	Metrics.m_HeadlineSize = std::clamp(ui_token::font::HEADLINE * Metrics.m_UiScale, 12.0f, ui_token::font::HEADLINE) * Metrics.m_TextScale;
+	Metrics.m_LineSpacing = std::clamp(ui_token::settings::ROW_GAP * Metrics.m_UiScale, 3.0f, ui_token::settings::ROW_GAP) * Metrics.m_TextScale;
 	Metrics.m_RowStep = Metrics.m_LineHeight + Metrics.m_LineSpacing;
 	Metrics.m_InputHeight = Metrics.m_LineHeight;
 	Metrics.m_ButtonHeight = Metrics.m_LineHeight;
 	Metrics.m_SectionGap = 2.0f * Metrics.m_LineSpacing;
-	Metrics.m_BadgeHeight = std::max(12.0f, Metrics.m_LineHeight - Metrics.m_LineSpacing);
+	Metrics.m_BadgeHeight = std::max(12.0f * Metrics.m_TextScale, Metrics.m_LineHeight - Metrics.m_LineSpacing);
 	Metrics.m_ListRowHeight = Metrics.m_RowStep;
 	Metrics.m_CardGap = ui_token::settings::CARD_GAP * Metrics.m_UiScale;
 	const float MinimumControlWidth = 160.0f * Metrics.m_UiScale;
@@ -957,7 +962,7 @@ inline SSettingsColorRowLayout ResolveSettingsColorRowLayout(const CUIRect &View
 
 inline float ResolveSettingsRadioFontSize(const SSettingsContentMetrics &Metrics)
 {
-	return ResolveSettingsControlFontSize(Metrics.m_BodySize);
+	return ResolveSettingsControlFontSize(Metrics.m_BodySize / Metrics.m_TextScale) * Metrics.m_TextScale;
 }
 
 inline float ResolveSettingsRadioButtonHeight(const SSettingsContentMetrics &Metrics)
@@ -1333,8 +1338,8 @@ inline SSettingsShellLayoutFrame ResolveSettingsShellLayout(const CUIRect &Avail
 	const float PanelWidth = std::min(AvailablePanelWidth, MaxPanelWidth);
 	const float ShellWidth = PanelWidth + ShellGap + Frame.m_TabBarWidth;
 	ShellAvailable.VMargin(std::max(0.0f, (ShellAvailable.w - ShellWidth) * 0.5f), &Frame.m_ShellRect);
-	Frame.m_ShellRect.VSplitRight(Frame.m_TabBarWidth, &Frame.m_ContentPanelRect, &Frame.m_TabBarRect);
-	Frame.m_ContentPanelRect.VSplitRight(ShellGap, &Frame.m_ContentPanelRect, nullptr);
+	Frame.m_ShellRect.VSplitLeft(Frame.m_TabBarWidth, &Frame.m_TabBarRect, &Frame.m_ContentPanelRect);
+	Frame.m_ContentPanelRect.VSplitLeft(ShellGap, nullptr, &Frame.m_ContentPanelRect);
 	Frame.m_ContentRect = Frame.m_ContentPanelRect;
 	Frame.m_ContentRect.Margin(PanelMargin, &Frame.m_ContentRect);
 	if(BottomReservedHeight >= RestartBarHeight)

@@ -173,11 +173,11 @@ void CMenus::RenderSettingsQmClientFunctionDeck(CUIRect MainView, bool PrewarmOn
 		}
 	};
 	auto MeasureContentRevision = [this](EQmModuleId Id) -> uint64_t {
-		return qm_card_catalog::MeasureModuleCardRevision(Id, ResolveFunctionCardLayoutState(GameClient()->TClientComponent().GetFavoriteMaps().size()));
+		return qm_card_catalog::MeasureModuleCardRevision(Id, qm_card_catalog::ResolveFunctionCardLayoutState(GameClient()->TClientComponent().GetFavoriteMaps().size()));
 	};
 	// 卡片改由全局卡片目录构造（N3）：页面只声明「这一页有哪些卡片」，测量与渲染都在目录里。
 	// 内容量状态（词条过滤/关键词回复/收藏地图）经 m_pFunctionLayout 注入，目录测量依赖它。
-	const qm_card_catalog::SQmFunctionCardLayoutState FunctionCardLayout = ResolveFunctionCardLayoutState(GameClient()->TClientComponent().GetFavoriteMaps().size());
+	const qm_card_catalog::SQmFunctionCardLayoutState FunctionCardLayout = qm_card_catalog::ResolveFunctionCardLayoutState(GameClient()->TClientComponent().GetFavoriteMaps().size());
 	auto BuildDefinitions = [&](std::vector<SSettingsCardDefinition> &vCards) {
 		qm_card_catalog::SQmCardBuildContext CardBuild;
 		CardBuild.m_pMenus = this;

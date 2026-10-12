@@ -378,7 +378,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Inpu
 			ContentHeightAnimationActive = ContentHeightAnimationActive || Runtime.m_ContentHeightWasActive;
 			const float ContentHeight = std::max(0.0f, Runtime.m_AnimatedContentHeight);
 			SSettingsCardFrame Frame = ResolveSettingsCardHeaderActions(
-				BuildSettingsCardFrame(Slot, pDefinition->m_Spec, ContentHeight, Ctx.m_UiScale),
+				BuildSettingsCardFrame(Slot, pDefinition->m_Spec, ContentHeight, Ctx.m_UiScale, ui_token::font::TextScale(g_Config.m_QmUiTextScale)),
 				pDefinition->m_LeadingHeaderActionWidth, pDefinition->m_Spec.m_pInfo != nullptr && pDefinition->m_Spec.m_pInfo[0] != '\0');
 			const SSettingsCardColumnFrame Placement = DrawLayout.m_TwoColumns ? m_PackingPlan.Append(Column, Frame.m_Rect.h, LeadingFullWidth) : SingleColumnPlan.Append(Frame.m_Rect.h);
 			Frame = ResolveSettingsCardDrawFrame(Frame, 0.0f, Placement.m_Y - Frame.m_Rect.y);
@@ -800,7 +800,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Inpu
 				{
 					RenderSettingsCardHeaderIcon(InputCtx, Button, Card.m_Column == 0 ? EQmIcon::BORDER_ALL : EQmIcon::ARROWS_LEFT_RIGHT, Card.m_Column == 0 ? FontIcons::FONT_ICON_BORDER_ALL : FontIcons::FONT_ICON_ARROWS_LEFT_RIGHT, State.m_DrawAlpha, &Runtime.m_WidthButtonId);
 					if(Ctx.m_pTooltips != nullptr)
-						Ctx.m_pTooltips->DoSmallToolTip(&Runtime.m_WidthButtonId, &Button, Card.m_Column == 0 ? Localize("Default width") : Localize("Full width"), 10.0f * Ctx.m_UiScale);
+						Ctx.m_pTooltips->DoSmallToolTip(&Runtime.m_WidthButtonId, &Button, Card.m_Column == 0 ? Localize("Default width") : Localize("Full width"), 10.0f * Ctx.m_UiScale * ui_token::font::TextScale(g_Config.m_QmUiTextScale));
 				}
 			};
 			float ObservedHeight = -1.0f;
@@ -819,6 +819,7 @@ SSettingsCardDeckResult CSettingsCardDeck::RenderInternal(const IUiContext &Inpu
 					Content.h = Origin.h - pLayout->Height();
 				};
 			}
+			State.m_Focused = Input.m_pFocusedStableId != nullptr && str_comp(Input.m_pFocusedStableId, pStableId) == 0;
 			SettingsCard(InputCtx, Frame, Card.m_pDefinition->m_Spec, State, VisualOptions,
 				SettingsCardDeckRendersContent(Collapsed) ? Card.m_pDefinition->m_Render : FSettingsCardRender{}, HeaderAction,
 				SettingsCardDeckRendersContent(Collapsed) ? ContentRender : FSettingsCardRenderMeasured{}, &PointerInsideDrawFrame, &ObservedHeight);

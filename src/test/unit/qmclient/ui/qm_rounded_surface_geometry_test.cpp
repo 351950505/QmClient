@@ -5,6 +5,26 @@
 
 #include <gtest/gtest.h>
 
+TEST(QmRoundedSurface, SquareStyleClearsCornerRadiiAndRoundedStyleRestoresThem)
+{
+	const CUIRect Rect{10.0f, 20.0f, 100.0f, 60.0f};
+	SRoundedSurfaceParams Params;
+	Params.m_Radius = ResolveUiSurfaceRadius(12.0f, false);
+	Params.m_BorderWidth = 2.0f;
+	const auto Square = ResolveRoundedSurfacePlan(Rect, Params, true);
+	EXPECT_FLOAT_EQ(Square.m_Radius, 0.0f);
+	EXPECT_EQ(Square.m_CornerRadii, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+	EXPECT_FLOAT_EQ(Square.m_BorderWidth, 2.0f);
+	Params.m_Radius = ResolveUiSurfaceRadius(12.0f, true);
+	const auto Rounded = ResolveRoundedSurfacePlan(Rect, Params, true);
+	EXPECT_FLOAT_EQ(Rounded.m_Radius, 12.0f);
+	EXPECT_EQ(Rounded.m_CornerRadii, vec4(12.0f, 12.0f, 12.0f, 12.0f));
+	EXPECT_FLOAT_EQ(Rounded.m_Rect.x, Square.m_Rect.x);
+	EXPECT_FLOAT_EQ(Rounded.m_Rect.y, Square.m_Rect.y);
+	EXPECT_FLOAT_EQ(Rounded.m_Rect.w, Square.m_Rect.w);
+	EXPECT_FLOAT_EQ(Rounded.m_Rect.h, Square.m_Rect.h);
+}
+
 TEST(QmRoundedSurface, BorderMeshStaysInsideTinyAndNarrowSurfaces)
 {
 	for(const vec2 Size : {vec2(1, 1), vec2(2, 40), vec2(160, 24)})

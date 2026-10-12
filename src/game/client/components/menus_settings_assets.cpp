@@ -4179,11 +4179,6 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 	const SSettingsContentMetrics ContentMetrics = ResolveSettingsContentMetrics(MainView.w);
 	s_CurCustomTab = std::clamp(s_CurCustomTab, (int)ASSETS_TAB_ENTITIES, NUMBER_OF_ASSETS_TABS - 1);
 
-	if(m_AssetsEditorState.m_Open)
-	{
-		RenderAssetsEditorScreen(MainView);
-		return;
-	}
 	CUIRect TabBar, CustomList, QuickSearch, ReloadButton, WorkshopHudView;
 	const SSettingsSubTabLayoutFrame AssetsSubTabs = ResolveSettingsSubTabLayout(MainView, ContentMetrics.m_UiScale);
 	TabBar = AssetsSubTabs.m_TabBarRect;

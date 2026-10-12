@@ -27,6 +27,7 @@
 #include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
 #include <game/client/QmUi/SettingsIconOptions.h>
+#include <game/client/QmUi/SettingsNavigation.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/UiForms.h>
@@ -171,6 +172,8 @@ namespace
 		case CMenus::SETTINGS_PROFILES: return "profiles";
 		case CMenus::SETTINGS_CONFIGS: return "configs";
 		case CMenus::SETTINGS_CONTRIBUTORS: return "contributors";
+		case CMenus::SETTINGS_FRIENDS: return "friends";
+		case CMenus::SETTINGS_HUD: return "hud";
 		default: return "unknown";
 		}
 	}
@@ -508,7 +511,7 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 		m_Dummy = true;
 		m_TeeEntranceStartTime = time_get();
 	}
-	RenderSettingsCatalogPage(MainView, "player");
+	RenderModernSettingsCards(MainView, "modern-tee-identity");
 }
 
 void CMenus::RenderSettingsTee(CUIRect MainView)
@@ -590,12 +593,7 @@ void CMenus::RenderSettingsGraphics(CUIRect MainView)
 
 void CMenus::RenderSettingsSound(CUIRect MainView)
 {
-	if(m_AudioPackEditorState.m_Open)
-	{
-		RenderAudioPackEditorScreen(MainView);
-		return;
-	}
-	RenderSettingsCatalogPage(MainView, "sound");
+	RenderModernSettingsCards(MainView, "modern-sound");
 }
 
 void CMenus::PrepareLanguagePageCache(float MainViewWidth, bool ForceComplete)
@@ -828,7 +826,10 @@ void CMenus::RenderSettings(CUIRect MainView)
 	const bool CollectingMenuTextPlan = m_MenuTextPlanCollecting;
 	const bool SettingsPerfEnabled = PerfDebugEnabled() && !CollectingMenuTextPlan;
 	const int64_t SettingsRenderStartTime = PerfDebugStartTime();
-	// This handles cases where old config files have an invalid page index
+	const auto CurrentNavigationTab = [this]() {
+		return SettingsNavigationSubtab(g_Config.m_UiSettingsPage, {m_ModernFriendsTab, m_ModernTeeTab, m_ModernVisualTab, m_ModernControlsTab, m_ModernFeaturesTab, m_CreditsSettingsTab});
+	};
+	// 旧页码只迁移一次，之后相同数字按现代分类的语义解释。
 	if(!CollectingMenuTextPlan)
 	{
 		m_SettingsScrollActive = Input()->KeyPress(KEY_MOUSE_WHEEL_UP) ||
@@ -837,20 +838,24 @@ void CMenus::RenderSettings(CUIRect MainView)
 					 Input()->KeyPress(KEY_MOUSE_WHEEL_RIGHT);
 	}
 	if(g_Config.m_UiSettingsPage < 0 || g_Config.m_UiSettingsPage >= SETTINGS_LENGTH)
-		g_Config.m_UiSettingsPage = SETTINGS_GENERAL;
-	if(g_Config.m_UiSettingsPage == SETTINGS_CONFIGS)
+		g_Config.m_UiSettingsPage = SETTINGS_LANGUAGE;
+	if(!CollectingMenuTextPlan && !Ui()->RenderOnly() && g_Config.m_QmSettingsNavigationVersion == 0)
 	{
-		g_Config.m_UiSettingsPage = SETTINGS_QMCLIENT;
-		m_QmClientSettingsTab = QMCLIENT_SETTINGS_TAB_CONFIG;
+		const auto Route = qm_settings_navigation::ResolveLegacyPage(g_Config.m_UiSettingsPage, m_AppearanceSettingsTab, m_TClientSettingsTab, m_QmClientSettingsTab);
+		ApplyModernSettingsRoute(Route.IsValid() ? Route : qm_settings_navigation::ResolveLegacyPage(SETTINGS_LANGUAGE));
 	}
-	else
+	else if(!SettingsPageVisibleInRightTabBar(g_Config.m_UiSettingsPage))
 	{
-		g_Config.m_UiSettingsPage = SettingsCanonicalPage(g_Config.m_UiSettingsPage);
+		// 仍接收脚本或历史快捷入口写入的旧页码，不重新解释已复用的页码。
+		const auto Route = qm_settings_navigation::ResolveLegacyPage(g_Config.m_UiSettingsPage, m_AppearanceSettingsTab, m_TClientSettingsTab, m_QmClientSettingsTab);
+		g_Config.m_UiSettingsPage = Route.IsValid() ? Route.m_Page : SETTINGS_LANGUAGE;
+		if(Route.m_Page == SETTINGS_TEE)
+			m_ModernTeeTab = Route.m_SubTab;
+		if(Route.m_Page == SETTINGS_APPEARANCE)
+			m_ModernVisualTab = Route.m_SubTab;
+		if(Route.m_Page == SETTINGS_QMCLIENT)
+			m_ModernFeaturesTab = Route.m_SubTab;
 	}
-	if(!CollectingMenuTextPlan && g_Config.m_UiSettingsPage != SETTINGS_ASSETS && (m_AssetsEditorState.m_Open || m_AssetsEditorState.m_Initialized))
-		AssetsEditorCloseNow();
-	if(!CollectingMenuTextPlan && g_Config.m_UiSettingsPage != SETTINGS_SOUND && (m_AudioPackEditorState.m_Open || m_AudioPackEditorState.m_Initialized))
-		AudioPackEditorClose();
 
 	static bool s_SettingsTransitionInitialized = false;
 	static int s_PrevSettingsPage = SETTINGS_GENERAL;
@@ -882,14 +887,10 @@ void CMenus::RenderSettings(CUIRect MainView)
 	{
 		char aSettingsPerfTab[16];
 		const char *pSettingsPerfTab = "none";
-		if(g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT)
+		const int NavigationTab = CurrentNavigationTab();
+		if(NavigationTab >= 0)
 		{
-			str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_QmClientSettingsTab);
-			pSettingsPerfTab = aSettingsPerfTab;
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_TCLIENT)
-		{
-			str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_TClientSettingsTab);
+			str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", NavigationTab);
 			pSettingsPerfTab = aSettingsPerfTab;
 		}
 		char aShellExtra[192];
@@ -898,36 +899,25 @@ void CMenus::RenderSettings(CUIRect MainView)
 		LogPerfStage(Client(), "settings_shell_layout", PerfDebugElapsedMs(ShellLayoutStartTime), false, aShellExtra);
 	}
 
-	const float SettingsTabBarButtonWidth = std::max(0.0f, TabBar.w - 20.0f);
-	PrepareSettingsTabLabelCache(MainView.w, SettingsTabBarButtonWidth);
+	const float RequestedNavigationScale = std::clamp(g_Config.m_QmUiNavScale / 100.0f, 0.75f, 1.5f);
+	const float NavigationRowsHeight = static_cast<float>(qm_settings_navigation::PageOrder().size()) * (ui_token::settings::TAB_HEIGHT + ui_token::settings::TAB_GAP);
+	const float NavigationScale = std::min(RequestedNavigationScale, std::max(0.01f, TabBar.h / NavigationRowsHeight));
+	const float SettingsTabBarButtonWidth = std::max(0.0f, TabBar.w);
+	PrepareSettingsTabLabelCache(MainView.w, SettingsTabBarButtonWidth, NavigationScale);
 
 	{
 		CPerfTimer StageTimer;
-		static constexpr int s_aSettingsTabOrder[] = {
-			SETTINGS_GENERAL,
-			SETTINGS_TEE,
-			SETTINGS_APPEARANCE,
-			SETTINGS_CONTROLS,
-			SETTINGS_GRAPHICS,
-			SETTINGS_SOUND,
-			SETTINGS_ASSETS,
-			SETTINGS_DDNET,
-			SETTINGS_TCLIENT,
-			SETTINGS_QMCLIENT,
-			SETTINGS_SEARCH,
-			SETTINGS_CONTRIBUTORS,
-		};
-		// 竖排页签（设置页左栏）保持原来的分块选中/悬停底色，不做胶囊滑块。
-		const ColorRGBA SettingsNavigationSelected = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)).WithAlpha(0.42f);
-		const ColorRGBA SettingsNavigationHover = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)).WithAlpha(0.20f);
-		for(int i : s_aSettingsTabOrder)
+		const float AccentOpacity = g_Config.m_QmUiAccentOpacity / 100.0f;
+		const ColorRGBA SettingsNavigationSelected = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(AccentOpacity);
+		const ColorRGBA SettingsNavigationHover = SettingsNavigationSelected.WithAlpha(AccentOpacity * 0.5f);
+		for(int i : qm_settings_navigation::PageOrder())
 		{
 			if(!SettingsPageVisibleInRightTabBar(i))
 				continue;
 			const bool Active = g_Config.m_UiSettingsPage == i;
-			TabBar.HSplitTop(ui_token::settings::TAB_GAP, nullptr, &TabBar);
-			TabBar.HSplitTop(ui_token::settings::TAB_HEIGHT, &Button, &TabBar);
-			if(DoButton_MenuTab(&m_aSettingsTabButtons[i], m_apSettingsTabs[i], Active, &Button, IGraphics::CORNER_ALL, &m_aAnimatorsSettingsTab[i], nullptr, &SettingsNavigationSelected, &SettingsNavigationHover, 10.0f, nullptr, &m_aSettingsTabLabelElements[i]))
+			TabBar.HSplitTop(ui_token::settings::TAB_GAP * NavigationScale, nullptr, &TabBar);
+			TabBar.HSplitTop(ui_token::settings::TAB_HEIGHT * NavigationScale, &Button, &TabBar);
+			if(DoButton_MenuTab(&m_aSettingsTabButtons[i], m_apSettingsTabs[i], Active, &Button, IGraphics::CORNER_ALL, &m_aAnimatorsSettingsTab[i], nullptr, &SettingsNavigationSelected, &SettingsNavigationHover, 10.0f, nullptr, &m_aSettingsTabLabelElements[i], ui_token::settings::TAB_FONT_SIZE * NavigationScale))
 				g_Config.m_UiSettingsPage = i;
 		}
 
@@ -935,14 +925,10 @@ void CMenus::RenderSettings(CUIRect MainView)
 		{
 			char aSettingsPerfTab[16];
 			const char *pSettingsPerfTab = "none";
-			if(g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT)
+			const int NavigationTab = CurrentNavigationTab();
+			if(NavigationTab >= 0)
 			{
-				str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_QmClientSettingsTab);
-				pSettingsPerfTab = aSettingsPerfTab;
-			}
-			else if(g_Config.m_UiSettingsPage == SETTINGS_TCLIENT)
-			{
-				str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_TClientSettingsTab);
+				str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", NavigationTab);
 				pSettingsPerfTab = aSettingsPerfTab;
 			}
 			char aTabBarExtra[128];
@@ -951,7 +937,7 @@ void CMenus::RenderSettings(CUIRect MainView)
 		}
 	}
 	const uint64_t SettingsDisplayViewKey = ResolveSettingsCardDisplayViewKey(g_Config.m_UiSettingsPage, m_Dummy ? 1 : 0, m_AppearanceSettingsTab, m_TClientSettingsTab, m_QmClientSettingsTab, m_CreditsSettingsTab);
-	if(!CollectingMenuTextPlan && !Ui()->MeasurementOnly() && g_Config.m_UiSettingsPage != SETTINGS_TEE && m_SettingsCardDeckDisplayState.EnterView(SettingsDisplayViewKey))
+	if(!CollectingMenuTextPlan && !Ui()->MeasurementOnly() && qm_settings_navigation::Views(g_Config.m_UiSettingsPage).empty() && m_SettingsCardDeckDisplayState.EnterView(SettingsDisplayViewKey))
 	{
 		m_SettingsCardDeck.BeginDisplayCycle(++m_SettingsCardDeckDisplayCycle, true);
 	}
@@ -984,14 +970,10 @@ void CMenus::RenderSettings(CUIRect MainView)
 			}
 			char aWindowTab[16];
 			const char *pWindowTab = "none";
-			if(g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT)
+			const int NavigationTab = CurrentNavigationTab();
+			if(NavigationTab >= 0)
 			{
-				str_format(aWindowTab, sizeof(aWindowTab), "%d", m_QmClientSettingsTab);
-				pWindowTab = aWindowTab;
-			}
-			else if(g_Config.m_UiSettingsPage == SETTINGS_TCLIENT)
-			{
-				str_format(aWindowTab, sizeof(aWindowTab), "%d", m_TClientSettingsTab);
+				str_format(aWindowTab, sizeof(aWindowTab), "%d", NavigationTab);
 				pWindowTab = aWindowTab;
 			}
 			if(m_SettingsPerfLastPage != -1)
@@ -1014,76 +996,33 @@ void CMenus::RenderSettings(CUIRect MainView)
 		const int PreviousTextContextTab = m_SettingsTextContextTab;
 		const int PreviousTextContextSubtab = m_SettingsTextContextSubtab;
 		m_SettingsTextContextPage = g_Config.m_UiSettingsPage;
-		m_SettingsTextContextTab = g_Config.m_UiSettingsPage == SETTINGS_TCLIENT ? m_TClientSettingsTab : (g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT ? m_QmClientSettingsTab : -1);
+		m_SettingsTextContextTab = CurrentNavigationTab();
 		m_SettingsTextContextSubtab = m_SettingsTextContextTab;
 		int NumSections = 0;
 		int NumSectionsVisible = 0;
-		if(g_Config.m_UiSettingsPage == SETTINGS_GENERAL)
+		if(!qm_settings_navigation::Views(g_Config.m_UiSettingsPage).empty())
 		{
 			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_GENERAL);
-			RenderSettingsGeneral(ContentView);
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_TEE)
-		{
-			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_TEE);
-			if(Client()->IsSixup())
-				RenderSettingsTee7(ContentView);
-			else
-				RenderSettingsTee(ContentView);
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_APPEARANCE)
-		{
-			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_APPEARANCE);
-			RenderSettingsAppearance(ContentView);
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_CONTROLS)
-		{
-			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_CONTROLS);
-			m_MenusSettingsControls.Render(ContentView);
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_GRAPHICS)
-		{
-			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_GRAPHICS);
-			RenderSettingsGraphics(ContentView);
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_SOUND)
-		{
-			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_SOUND);
-			RenderSettingsSound(ContentView);
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_DDNET)
-		{
-			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_DDNET);
-			RenderSettingsDDNet(ContentView);
+			{
+				int Position = CMenuBackground::POS_SETTINGS_GENERAL;
+				switch(g_Config.m_UiSettingsPage)
+				{
+				case SETTINGS_TEE: Position = CMenuBackground::POS_SETTINGS_TEE; break;
+				case SETTINGS_APPEARANCE: Position = CMenuBackground::POS_SETTINGS_GRAPHICS; break;
+				case SETTINGS_CONTROLS: Position = CMenuBackground::POS_SETTINGS_CONTROLS; break;
+				case SETTINGS_SOUND: Position = CMenuBackground::POS_SETTINGS_SOUND; break;
+				case SETTINGS_HUD: Position = CMenuBackground::POS_SETTINGS_APPEARANCE; break;
+				case SETTINGS_QMCLIENT: Position = 15; break;
+				}
+				GameClient()->m_MenuBackground.ChangePosition(Position);
+			}
+			RenderModernSettingsPage(ContentView, CollectingMenuTextPlan);
 		}
 		else if(g_Config.m_UiSettingsPage == SETTINGS_ASSETS)
 		{
 			if(!CollectingMenuTextPlan)
 				GameClient()->m_MenuBackground.ChangePosition(CMenuBackground::POS_SETTINGS_ASSETS);
 			RenderSettingsCustom(ContentView);
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_TCLIENT)
-		{
-			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(13);
-			RenderSettingsTClient(ContentView, CollectingMenuTextPlan);
-			if(!CollectingMenuTextPlan)
-				m_SettingsRuntimeMetadata.m_LastTClientTab = m_TClientSettingsTab;
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT)
-		{
-			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(15);
-			RenderSettingsQmClient(ContentView, CollectingMenuTextPlan);
-			if(!CollectingMenuTextPlan)
-				m_SettingsRuntimeMetadata.m_LastQmTab = m_QmClientSettingsTab;
 		}
 		else if(g_Config.m_UiSettingsPage == SETTINGS_SEARCH)
 		{
@@ -1097,26 +1036,16 @@ void CMenus::RenderSettings(CUIRect MainView)
 				GameClient()->m_MenuBackground.ChangePosition(15);
 			RenderSettingsContributors(ContentView, CollectingMenuTextPlan);
 		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_PROFILES)
-		{
-			if(!CollectingMenuTextPlan)
-				GameClient()->m_MenuBackground.ChangePosition(14);
-			RenderSettingsTClientProfiles(ContentView);
-		}
 		else
 		{
 			dbg_assert_failed("ui_settings_page invalid");
 		}
 		char aContentTab[16];
 		const char *pTab = "none";
-		if(g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT)
+		const int NavigationTab = CurrentNavigationTab();
+		if(NavigationTab >= 0)
 		{
-			str_format(aContentTab, sizeof(aContentTab), "%d", m_QmClientSettingsTab);
-			pTab = aContentTab;
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_TCLIENT)
-		{
-			str_format(aContentTab, sizeof(aContentTab), "%d", m_TClientSettingsTab);
+			str_format(aContentTab, sizeof(aContentTab), "%d", NavigationTab);
 			pTab = aContentTab;
 		}
 		if(SettingsPerfEnabled)
@@ -1130,26 +1059,17 @@ void CMenus::RenderSettings(CUIRect MainView)
 		m_SettingsTextContextSubtab = PreviousTextContextSubtab;
 	}
 
-	if(!CollectingMenuTextPlan && m_SettingsPerfLastPage == g_Config.m_UiSettingsPage)
+	if(!CollectingMenuTextPlan && m_SettingsPerfLastPage == g_Config.m_UiSettingsPage &&
+		m_SettingsPerfLastTab != -1 && m_SettingsPerfLastTab != CurrentNavigationTab())
 	{
-		if(g_Config.m_UiSettingsPage == SETTINGS_TCLIENT && m_SettingsPerfLastTClientTab != -1 && m_SettingsPerfLastTClientTab != m_TClientSettingsTab)
-		{
-			char aTab[16];
-			str_format(aTab, sizeof(aTab), "%d", m_TClientSettingsTab);
-			StartSettingsPerfFixedWindow("settings_subtab_switch", SettingsPerfContextName(), CurrentQmUiPerfPage(), aTab, 30);
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT && m_SettingsPerfLastQmClientTab != -1 && m_SettingsPerfLastQmClientTab != m_QmClientSettingsTab)
-		{
-			char aTab[16];
-			str_format(aTab, sizeof(aTab), "%d", m_QmClientSettingsTab);
-			StartSettingsPerfFixedWindow("settings_subtab_switch", SettingsPerfContextName(), CurrentQmUiPerfPage(), aTab, 30);
-		}
+		char aTab[16];
+		str_format(aTab, sizeof(aTab), "%d", CurrentNavigationTab());
+		StartSettingsPerfFixedWindow("settings_subtab_switch", SettingsPerfContextName(), CurrentQmUiPerfPage(), aTab, 30);
 	}
 	if(!CollectingMenuTextPlan)
 	{
 		m_SettingsPerfLastPage = g_Config.m_UiSettingsPage;
-		m_SettingsPerfLastTClientTab = m_TClientSettingsTab;
-		m_SettingsPerfLastQmClientTab = m_QmClientSettingsTab;
+		m_SettingsPerfLastTab = CurrentNavigationTab();
 
 		m_SettingsRuntimeMetadata.m_LastPage = g_Config.m_UiSettingsPage;
 		m_SettingsRuntimeMetadata.m_Valid = true;
@@ -1161,14 +1081,10 @@ void CMenus::RenderSettings(CUIRect MainView)
 		{
 			char aSettingsPerfTab[16];
 			const char *pSettingsPerfTab = "none";
-			if(g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT)
+			const int NavigationTab = CurrentNavigationTab();
+			if(NavigationTab >= 0)
 			{
-				str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_QmClientSettingsTab);
-				pSettingsPerfTab = aSettingsPerfTab;
-			}
-			else if(g_Config.m_UiSettingsPage == SETTINGS_TCLIENT)
-			{
-				str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_TClientSettingsTab);
+				str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", NavigationTab);
 				pSettingsPerfTab = aSettingsPerfTab;
 			}
 			char aOverlayExtra[160];
@@ -1211,14 +1127,10 @@ void CMenus::RenderSettings(CUIRect MainView)
 		{
 			char aSettingsPerfTab[16];
 			const char *pSettingsPerfTab = "none";
-			if(g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT)
+			const int NavigationTab = CurrentNavigationTab();
+			if(NavigationTab >= 0)
 			{
-				str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_QmClientSettingsTab);
-				pSettingsPerfTab = aSettingsPerfTab;
-			}
-			else if(g_Config.m_UiSettingsPage == SETTINGS_TCLIENT)
-			{
-				str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_TClientSettingsTab);
+				str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", NavigationTab);
 				pSettingsPerfTab = aSettingsPerfTab;
 			}
 			char aRestartExtra[160];
@@ -1231,14 +1143,10 @@ void CMenus::RenderSettings(CUIRect MainView)
 	{
 		char aSettingsPerfTab[16];
 		const char *pSettingsPerfTab = "none";
-		if(g_Config.m_UiSettingsPage == SETTINGS_QMCLIENT)
+		const int NavigationTab = CurrentNavigationTab();
+		if(NavigationTab >= 0)
 		{
-			str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_QmClientSettingsTab);
-			pSettingsPerfTab = aSettingsPerfTab;
-		}
-		else if(g_Config.m_UiSettingsPage == SETTINGS_TCLIENT)
-		{
-			str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", m_TClientSettingsTab);
+			str_format(aSettingsPerfTab, sizeof(aSettingsPerfTab), "%d", NavigationTab);
 			pSettingsPerfTab = aSettingsPerfTab;
 		}
 		char aRenderTotalExtra[160];

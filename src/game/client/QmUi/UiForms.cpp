@@ -52,7 +52,7 @@ namespace ui_widget
 
 		SInputFieldResult BuildInputFieldResult(const IUiContext &Ctx, CLineInput *pInput, bool Changed, bool WasActive, bool WasEmpty, bool Clearable)
 		{
-			const bool SubmitPressed = Ctx.m_pUi != nullptr && (Ctx.m_pUi->Input()->KeyPress(KEY_RETURN) || Ctx.m_pUi->Input()->KeyPress(KEY_KP_ENTER));
+			const bool SubmitPressed = Ctx.m_pUi != nullptr && Ctx.m_pUi->HotkeyPressed(CUi::HOTKEY_ENTER);
 			return ui_widget::BuildInputFieldResult(WasActive, pInput->IsActive(), Changed, SubmitPressed, WasEmpty, pInput->IsEmpty(), Clearable);
 		}
 
@@ -111,7 +111,7 @@ namespace ui_widget
 				Active = false;
 			if(!Active && Ctx.m_pUi->HotItem() == pInput && Ctx.m_pUi->MouseButton(0))
 				Active = true;
-			if(!Multiline && (Ctx.m_pUi->Input()->KeyPress(KEY_RETURN) || Ctx.m_pUi->Input()->KeyPress(KEY_KP_ENTER)))
+			if(!Multiline && Ctx.m_pUi->HotkeyPressed(CUi::HOTKEY_ENTER))
 				Active = false;
 			return Active;
 		}

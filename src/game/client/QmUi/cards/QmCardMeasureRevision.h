@@ -10,7 +10,7 @@
 namespace qm_card_catalog
 {
 	// 分类页、搜索页和卡片定义共用一份高度依赖，避免页面缓存挡住目录中的重测版本。
-	inline uint64_t MeasureModuleCardRevision(const qm_module::EQmModuleId Id, const SQmFunctionCardLayoutState &Layout = {})
+	inline uint64_t MeasureModuleCardContentRevision(const qm_module::EQmModuleId Id, const SQmFunctionCardLayoutState &Layout)
 	{
 		using qm_module::EQmModuleId;
 		const bool DummyMiniViewExpanded = g_Config.m_QmDummyMiniView != 0;
@@ -105,6 +105,12 @@ namespace qm_card_catalog
 		case EQmModuleId::SkinTransition: return g_Config.m_QmSkinChangeTransition ? 1u : 0u;
 		default: return 0u;
 		}
+	}
+
+	inline uint64_t MeasureModuleCardRevision(const qm_module::EQmModuleId Id, const SQmFunctionCardLayoutState &Layout = {})
+	{
+		// 文字缩放同时改变行高，模块高度缓存必须与页面定义同步失效。
+		return MeasureModuleCardContentRevision(Id, Layout) * 1099511628211ULL ^ static_cast<uint64_t>(std::clamp(g_Config.m_QmUiTextScale, 75, 150));
 	}
 
 	inline uint64_t MeasureModuleCardsRevision(const SQmFunctionCardLayoutState &Layout = {})

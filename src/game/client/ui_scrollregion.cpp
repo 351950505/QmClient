@@ -42,7 +42,7 @@ SQmScrollMetrics CScrollRegion::ScrollMetrics() const
 
 SQmScrollConfig CScrollRegion::ScrollConfig() const
 {
-	SQmScrollConfig Config = QmNativeWheelScrollConfig(1.0f, g_Config.m_UiSmoothScrollTime / 1000.0f);
+	SQmScrollConfig Config = QmScrollConfigForMode(QmNativeWheelScrollConfig(1.0f, g_Config.m_UiSmoothScrollTime / 1000.0f), g_Config.m_QmUiScrollMode);
 	Config.m_WheelScale = m_Params.m_ScrollUnit;
 	return Config;
 }

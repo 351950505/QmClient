@@ -74,6 +74,12 @@ inline ColorHSVA ResolveUiColorPickerSelection(float Hue, float X, float Y, floa
 	return ColorHSVA(std::clamp(Hue, 0.0f, 1.0f), std::clamp(X, 0.0f, 1.0f), 1.0f - std::clamp(Y, 0.0f, 1.0f), std::clamp(Alpha, 0.0f, 1.0f));
 }
 
+// 预设只替换 RGB，透明度仍由当前字段自己的编辑能力和数值决定。
+inline ColorRGBA ResolveUiColorPickerPreset(unsigned Rgb, float Alpha)
+{
+	return ColorRGBA::UnpackAlphaLast<ColorRGBA>(Rgb, false).WithAlpha(std::clamp(Alpha, 0.0f, 1.0f));
+}
+
 struct SUiTheme
 {
 	ColorRGBA m_Surface;
@@ -141,13 +147,12 @@ inline SUiSliderStyle ResolveUiSliderStyle(const SUiTheme &Theme, ColorRGBA Back
 	return Style;
 }
 
-inline SUiTheme ResolveUiTheme(const ColorHSLA BaseColor, float Opacity, const ColorHSLA FocusColor = ColorHSLA(0.60f, 0.78f, 0.52f, 1.0f), const ColorHSLA AccentColor = ColorHSLA(0x8FDDAD), const ColorHSLA SelectedColor = ColorHSLA(0x8FDDAD))
+inline SUiTheme ResolveUiTheme(const ColorHSLA BaseColor, float Opacity, const ColorHSLA FocusColor = ColorHSLA(0.60f, 0.78f, 0.52f, 1.0f), const ColorHSLA AccentColor = ColorHSLA(0x8FDDAD), const ColorHSLA = ColorHSLA(0x8FDDAD))
 {
 	Opacity = std::clamp(Opacity, 0.0f, 1.0f);
 	const ColorRGBA SurfaceBase = color_cast<ColorRGBA>(BaseColor);
 	const ColorRGBA AccentBase = color_cast<ColorRGBA>(AccentColor);
 	const float AccentAlpha = std::clamp(AccentBase.a, 0.0f, 1.0f);
-	const ColorRGBA SelectedBase = color_cast<ColorRGBA>(SelectedColor);
 	SUiTheme Theme;
 	Theme.m_Surface = SurfaceBase.WithAlpha(std::clamp(std::max(SurfaceBase.a, 0.70f) * Opacity, 0.0f, 1.0f));
 	Theme.m_SurfaceHovered = ColorRGBA(
@@ -155,18 +160,20 @@ inline SUiTheme ResolveUiTheme(const ColorHSLA BaseColor, float Opacity, const C
 		std::clamp(Theme.m_Surface.g * 1.06f, 0.0f, 1.0f),
 		std::clamp(Theme.m_Surface.b * 1.06f, 0.0f, 1.0f), Theme.m_Surface.a);
 	Theme.m_SurfaceFocused = Theme.m_SurfaceHovered;
-	Theme.m_Border = ColorRGBA(1.0f, 1.0f, 1.0f, 0.10f * Opacity);
-	Theme.m_BorderHovered = AccentBase.WithAlpha(0.45f * Opacity * AccentAlpha);
-	Theme.m_BorderFocused = AccentBase.WithAlpha(0.75f * Opacity * AccentAlpha);
+	// 表面、强调和边框各自派生透明度，背景透明度不重复作用到前景反馈。
+	Theme.m_Border = ColorRGBA(1.0f, 1.0f, 1.0f, 0.10f);
+	Theme.m_BorderHovered = AccentBase.WithAlpha(0.45f * AccentAlpha);
+	Theme.m_BorderFocused = AccentBase.WithAlpha(0.75f * AccentAlpha);
 	Theme.m_InputSurface = ColorRGBA(
 		std::clamp(Theme.m_Surface.r * 0.88f, 0.0f, 1.0f),
 		std::clamp(Theme.m_Surface.g * 0.88f, 0.0f, 1.0f),
 		std::clamp(Theme.m_Surface.b * 0.88f, 0.0f, 1.0f), Theme.m_Surface.a);
 	Theme.m_InputSurfaceFocused = Theme.m_InputSurface;
 	// 焦点环是键盘与输入焦点的唯一稳定反馈，不随低表面透明度弱化到不可辨认。
-	Theme.m_FocusRing = color_cast<ColorRGBA>(FocusColor).WithAlpha(std::clamp(std::max(0.60f, 0.90f * Opacity), 0.0f, 1.0f));
+	Theme.m_FocusRing = color_cast<ColorRGBA>(FocusColor).WithMultipliedAlpha(0.90f);
 	Theme.m_Accent = AccentBase.WithAlpha(AccentAlpha);
-	Theme.m_Selected = SelectedBase.WithAlpha(0.22f);
+	// 保留旧接口第五个颜色参数以兼容调用方，选中态统一取强调色的轻透明层。
+	Theme.m_Selected = Theme.m_Accent.WithMultipliedAlpha(0.22f);
 	Theme.m_TextTitle = ResolveConfiguredTextColor(Theme.m_Surface);
 	Theme.m_TextBody = Theme.m_TextTitle;
 	Theme.m_TextSmall = Theme.m_TextTitle;
@@ -177,8 +184,7 @@ inline SUiTheme ResolveUiTheme(const ColorHSLA BaseColor, float Opacity, const C
 // 强调色/焦点/选中跟随用户配置：弹窗内的主按钮、滚动条与设置页共享同一套强调色，不回落到硬编码默认值。
 inline SUiTheme ResolveSecondaryPanelTheme(unsigned BackgroundColor, int Opacity, unsigned BorderColor)
 {
-	SUiTheme Theme = ResolveUiTheme(ColorHSLA(BackgroundColor), 1.0f, ColorHSLA(g_Config.m_QmUiFocusColor),
-		ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f), ColorHSLA(g_Config.m_QmUiSelectedColor));
+	SUiTheme Theme = ResolveUiTheme(ColorHSLA(BackgroundColor), 1.0f, ColorHSLA(g_Config.m_QmUiFocusColor), ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f));
 	Theme.m_Surface = Theme.m_Surface.WithAlpha(std::clamp(Opacity / 100.0f, 0.0f, 1.0f));
 	Theme.m_Border = color_cast<ColorRGBA>(ColorHSLA(BorderColor, true));
 	Theme.m_TextTitle = ResolveConfiguredTextColor(Theme.m_Surface);
@@ -236,7 +242,7 @@ inline SUiTheme ResolveInputFallbackTheme(const unsigned FocusColor)
 {
 	// 某些设置页的旧调用点只提供最小 IUiContext。回退主题仍必须与
 	// SettingsUiContext 使用相同的用户颜色和透明度，避免同一输入组件出现两套外壳。
-	return ResolveUiTheme(ColorHSLA(g_Config.m_QmUiColor), g_Config.m_QmUiOpacity / 100.0f, ColorHSLA(FocusColor), ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f), ColorHSLA(g_Config.m_QmUiSelectedColor));
+	return ResolveUiTheme(ColorHSLA(g_Config.m_QmUiColor), g_Config.m_QmUiOpacity / 100.0f, ColorHSLA(FocusColor), ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f));
 }
 
 #endif

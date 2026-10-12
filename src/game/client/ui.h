@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 class CScrollRegion;
@@ -34,6 +35,8 @@ class IKernel;
 class CUiScopedQuadBatch;
 class CUiScopedGaussianBlur;
 class CUiScopedGaussianBlurSuppression;
+class CSettingsSearchHighlight;
+class CUiScopedSettingsSearchHighlight;
 
 inline float QmUiVirtualScreenHeight(int ScalePercent)
 {
@@ -311,6 +314,7 @@ public:
 		float m_BackgroundAlphaScale;
 
 		std::string m_Text;
+		std::string m_SettingsSearchLabel;
 		int m_ReadCursorGlyphCount;
 		std::array<EQmIcon, 8> m_aQmIcons;
 		int m_NumQmIcons;
@@ -721,8 +725,12 @@ private:
 	CUiV2AnimationRuntime *m_pQmAnimationRuntime = nullptr;
 	CTooltips *m_pQmTooltips = nullptr;
 	bool m_CardLabelHintsEnabled = false;
+	CSettingsSearchHighlight *m_pSettingsSearchHighlight = nullptr;
+	void ObserveSettingsSearchLabel(const CUIRect *pRect, std::string_view Text, bool IconFont) const;
+	void DrawSettingsSearchHighlight(const CUIRect &Rect) const;
+	friend class CUiScopedSettingsSearchHighlight;
 	SUiTheme m_QmControlTheme{};
-	std::array<unsigned, 8> m_aQmControlThemeConfig{};
+	std::array<unsigned, 7> m_aQmControlThemeConfig{};
 	bool m_HasQmControlTheme = false;
 	mutable int m_QuadBatchDepth = 0;
 	mutable int m_QuadBatchContainerIndex = -1;
@@ -786,6 +794,9 @@ private:
 		const void *m_pLastClickedId = nullptr;
 		float m_LastClickTime = -1.0f;
 		vec2 m_LastClickPos = vec2(-1.0f, -1.0f);
+		const void *m_pProcessedClickId = nullptr;
+		uint64_t m_ProcessedClickFrame = UINT64_MAX;
+		bool m_ProcessedClickWasDouble = false;
 	};
 	CDoubleClickState m_DoubleClickState;
 	const void *m_pLastEditingItem = nullptr;
@@ -1028,8 +1039,10 @@ public:
 	void SetDropDownFontSize(float FontSize) { m_DropDownFontSize = FontSize; }
 	void SetQmAnimationRuntime(CUiV2AnimationRuntime *pRuntime) { m_pQmAnimationRuntime = pRuntime; }
 	CUiV2AnimationRuntime *QmAnimationRuntime() const { return m_pQmAnimationRuntime; }
+	float QmSurfaceRounding(float Rounding) const;
 	void SetQmTooltips(CTooltips *pTooltips) { m_pQmTooltips = pTooltips; }
 	bool CardLabelHintsEnabled() const { return m_CardLabelHintsEnabled; }
+	CSettingsSearchHighlight *SettingsSearchHighlight() const { return m_pSettingsSearchHighlight; }
 	void SetCardLabelHintsEnabled(bool Enabled) { m_CardLabelHintsEnabled = Enabled; }
 	const char *PrepareCardLabel(const CUIRect *pRect, const char *pText, bool Render = true) const;
 	void DoConfigTooltip(const void *pId, const CUIRect *pRect, const void *pValue, const void *pSecondValue = nullptr);
@@ -1163,6 +1176,7 @@ public:
 	void SetMouseSlow(bool MouseSlow) { m_MouseSlow = MouseSlow; }
 
 	bool ConsumeHotkey(EHotkey Hotkey);
+	bool HotkeyPressed(EHotkey Hotkey) const { return (m_HotkeysPressed & Hotkey) != 0; }
 	void ClearHotkeys() { m_HotkeysPressed = 0; }
 	bool OnInput(const IInput::CEvent &Event);
 
@@ -1173,7 +1187,7 @@ public:
 
 	const CUIRect *Screen();
 	void MapScreen();
-	float PixelSize();
+	float PixelSize() const;
 
 	void ClipEnable(const CUIRect *pRect);
 	void ClipDisable();
@@ -1502,6 +1516,7 @@ public:
 		// 调色板色块双击改名判定：记录上次左键点击的色块与时间。
 		float m_aSwatchClickTime[qm_picker_palette::MAX_SWATCHES] = {0.0f};
 		int m_LastSwatchClickIndex = -1;
+		void ApplyPreset(unsigned Rgb);
 		EEditState m_State = EEditState::NONE;
 	};
 	void ShowPopupColorPicker(float X, float Y, SColorPickerPopupContext *pContext);

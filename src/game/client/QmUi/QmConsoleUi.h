@@ -199,7 +199,7 @@ namespace QmConsoleUi
 			Fill = ColorRGBA(mix(From.r, To.r, Blend), mix(From.g, To.g, Blend), mix(From.b, To.b, Blend), mix(From.a, To.a, Blend));
 		}
 		else
-			Fill = Selected ? color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)).WithAlpha(Enabled ? 1.0f : 0.65f) : ResolveConfiguredControlSurface(Enabled);
+			Fill = Selected ? pUi->QmControlTheme().m_Accent.WithMultipliedAlpha(Enabled ? 1.0f : 0.65f) : ResolveConfiguredControlSurface(Enabled);
 		const CUiScopedGaussianBlurSuppression GaussianBlurSuppression(pUi);
 		DrawRoundedSurface(pUi, Rect, Fill, ColorRGBA(), ui_token::radius::BASE);
 		const ColorRGBA Feedback = ResolveUiIconButtonFeedback(CompositeUiSurface(Fill), Enabled, Hovered, Pressed);

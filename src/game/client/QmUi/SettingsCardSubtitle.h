@@ -16,7 +16,7 @@ inline void RenderSettingsCardSubtitle(const IUiContext &Ctx, const SSettingsCar
 	Props.m_MaxWidth = Frame.m_SubtitleRect.w;
 	Props.m_EllipsisAtEnd = true;
 	const float Scale = Ctx.m_UiScale > 0.0f ? Ctx.m_UiScale : 1.0f;
-	Ctx.m_pUi->DoLabel(&Frame.m_SubtitleRect, Spec.m_pSubtitle, ResolveSettingsSmallFontSize(Scale), TEXTALIGN_ML, Props);
+	Ctx.m_pUi->DoLabel(&Frame.m_SubtitleRect, Spec.m_pSubtitle, ResolveSettingsSmallFontSize(Scale) * ui_token::font::TextScale(g_Config.m_QmUiTextScale), TEXTALIGN_ML, Props);
 }
 
 #endif

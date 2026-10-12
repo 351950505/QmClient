@@ -52,7 +52,7 @@ struct SCardMotionSpec
 	bool m_KeepReflowCompleteFeedback = true;
 };
 
-SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &Spec, float ContentHeight, float UiScale);
+SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &Spec, float ContentHeight, float UiScale, float TextScale = 1.0f);
 SCardMotionSpec ResolveCardMotionSpec(int MotionLevel, bool ListEntryAnimations, bool CardHeightAnimations, bool CardReflowAnimations, bool PresentationAnimations);
 
 #endif

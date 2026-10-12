@@ -93,8 +93,29 @@ struct SSettingsRuntimeCacheKey
 	uint64_t m_ConfigHash = 0;
 };
 
+struct SSettingsNavigationTabs
+{
+	int m_FriendsTab = 0;
+	int m_TeeTab = 0;
+	int m_VisualTab = 0;
+	int m_ControlsTab = 0;
+	int m_FeaturesTab = 0;
+	int m_CreditsTab = 0;
+};
+
+struct SSettingsWarmupView
+{
+	int m_Page;
+	int m_Tab;
+};
+
 int SettingsCanonicalPage(int Page);
 bool SettingsPageVisibleInRightTabBar(int Page);
+// 当前子页的缓存身份；旧隐藏入口保留对应子页语义，不回退到分类的首个子页。
+int SettingsNavigationSubtab(int Page, const SSettingsNavigationTabs &Tabs);
+SSettingsWarmupView ResolveSettingsWarmupView(int Page, int NavigationVersion, const SSettingsNavigationTabs &Tabs, int AppearanceTab = 0, int TClientTab = 0, int QmTab = 0);
+// 仅派生现有现代页面/子页，当前可见视图优先；不新增后台调度策略。
+std::vector<SSettingsWarmupView> BuildSettingsWarmupViews(int PreferredPage, int PreferredTab);
 bool SettingsRuntimeCacheKeyMatches(const SSettingsRuntimeCacheKey &A, const SSettingsRuntimeCacheKey &B);
 ESettingsCacheDirtyReason SettingsRuntimeKeyMismatchDirtyReason(const SSettingsSectionCacheRuntimeKey &Current, const SSettingsSectionCacheRuntimeKey &Next);
 bool SettingsWarmupConsumeBudget(SSettingsWarmupFrameBudget &Budget, ESettingsWarmupCost Cost);

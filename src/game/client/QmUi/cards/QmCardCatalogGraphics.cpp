@@ -709,111 +709,119 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
                     Action(Row);
                 Flow.Space(GraphicsMetrics.m_LineSpacing);
             };
-			const bool TextCustomColorVisible = g_Config.m_QmUiTextColorMode == 3;
-			SSettingsContentMetrics ColorMetrics = GraphicsMetrics;
-			ColorMetrics.m_LineSpacing = 0.0f;
+	    RowAction("ui-text-scale", GraphicsMetrics.m_LineHeight, [&](CUIRect Row) {
+		    static int s_TextScaleInputId;
+		    if(DoGraphicsNumericField("ui-text-scale", &s_TextScaleInputId, &g_Config.m_QmUiTextScale, Row, Localize("Interface text size"), 75, 150, &CUi::ms_LinearScrollbarScale, "%", CUi::SCROLLBAR_OPTION_DELAYUPDATE))
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::UI_SCALE_CHANGED);
+	    });
+	    RowAction("ui-navigation-scale", GraphicsMetrics.m_LineHeight, [&](CUIRect Row) {
+		    static int s_NavigationScaleInputId;
+		    if(DoGraphicsNumericField("ui-navigation-scale", &s_NavigationScaleInputId, &g_Config.m_QmUiNavScale, Row, Localize("Navigation size"), 75, 150, &CUi::ms_LinearScrollbarScale, "%", CUi::SCROLLBAR_OPTION_DELAYUPDATE))
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::UI_SCALE_CHANGED);
+	    });
+	    RowAction("ui-scroll-mode", GraphicsMetrics.m_LineHeight, [&](CUIRect Row) {
+		    static CUi::SDropDownState s_ScrollMode;
+		    static CScrollRegion s_ScrollModeRegion;
+		    s_ScrollMode.m_SelectionPopupContext.m_pScrollRegion = &s_ScrollModeRegion;
+		    CUIRect Label, Control;
+		    SplitSettingsControlRow(Row, GraphicsMetrics, &Label, &Control);
+		    Ui()->DoLabel(&Label, Localize("Scrolling"), BodySize, TEXTALIGN_ML);
+		    const char *apModes[] = {Localize("Original"), Localize("Damped")};
+		    g_Config.m_QmUiScrollMode = DoSettingsDropDown(&Control, g_Config.m_QmUiScrollMode, apModes, std::size(apModes), s_ScrollMode, {}, &g_Config.m_QmUiScrollMode, nullptr, &Row);
+	    });
+	    RowAction("ui-corner-style", GraphicsMetrics.m_ButtonHeight, [&](CUIRect Row) {
+		    static CButtonContainer s_aButtons[2];
+		    CUIRect Label, Control;
+		    SplitSettingsControlRow(Row, GraphicsMetrics, &Label, &Control);
+		    Ui()->DoConfigTooltip(&g_Config.m_QmUiRoundedCorners, &Row, &g_Config.m_QmUiRoundedCorners);
+		    Ui()->DoLabel(&Label, Localize("Interface corner style"), BodySize, TEXTALIGN_ML);
+		    const char *apStyles[] = {Localize("Square"), Localize("Rounded")};
+		    const int Style = DoSegmentedChoice(s_aButtons, apStyles, std::size(apStyles), g_Config.m_QmUiRoundedCorners, Control);
+		    if(Style != g_Config.m_QmUiRoundedCorners)
+		    {
+			    g_Config.m_QmUiRoundedCorners = Style;
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+		    }
+	    });
+	    const bool TextCustomColorVisible = g_Config.m_QmUiTextColorMode == 3;
+	    SSettingsContentMetrics ColorMetrics = GraphicsMetrics;
+	    ColorMetrics.m_LineSpacing = 0.0f;
 
-			RowAction("graphics-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect UiColorRow) {
-static CButtonContainer s_UiColorResetId;
+	    RowAction("graphics-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect UiColorRow) {
+		    static CButtonContainer s_UiColorResetId;
 
-			if(DoLine_AlphaColorPicker(&s_UiColorResetId, ColorMetrics, &UiColorRow, Localize("Interface surface"), &g_Config.m_QmUiColor, &g_Config.m_QmUiOpacity, DefaultConfig::QmUiColor, DefaultConfig::QmUiOpacity))
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+		    if(DoLine_AlphaColorPicker(&s_UiColorResetId, ColorMetrics, &UiColorRow, Localize("Interface surface"), &g_Config.m_QmUiColor, &g_Config.m_QmUiOpacity, DefaultConfig::QmUiColor, DefaultConfig::QmUiOpacity))
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+	    });
 
+	    RowAction("graphics-accent", GraphicsMetrics.m_ButtonHeight, [&](CUIRect UiAccentColorRow) {
+		    static CButtonContainer s_UiAccentColorResetId;
 
-			});
+		    if(DoLine_AlphaColorPicker(&s_UiAccentColorResetId, ColorMetrics, &UiAccentColorRow, Localize("Interface accent color"), &g_Config.m_QmUiAccentColor, &g_Config.m_QmUiAccentOpacity, DefaultConfig::QmUiAccentColor, DefaultConfig::QmUiAccentOpacity))
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+	    });
 
-			RowAction("graphics-accent", GraphicsMetrics.m_ButtonHeight, [&](CUIRect UiAccentColorRow) {
-static CButtonContainer s_UiAccentColorResetId;
+	    RowAction("graphics-card-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect UiCardColorRow) {
+		    static CButtonContainer s_UiCardColorResetId;
 
-			if(DoLine_AlphaColorPicker(&s_UiAccentColorResetId, ColorMetrics, &UiAccentColorRow, Localize("Interface accent color"), &g_Config.m_QmUiAccentColor, &g_Config.m_QmUiAccentOpacity, DefaultConfig::QmUiAccentColor, DefaultConfig::QmUiAccentOpacity))
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+		    if(DoLine_AlphaColorPicker(&s_UiCardColorResetId, ColorMetrics, &UiCardColorRow, Localize("Settings card background"), &g_Config.m_QmUiCardColor, &g_Config.m_QmUiCardOpacity, DefaultConfig::QmUiCardColor, DefaultConfig::QmUiCardOpacity))
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+	    });
 
+	    RowAction("graphics-button-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect DropdownColorRow) {
+		    static CButtonContainer s_DropdownColorResetId;
 
-			});
+		    if(DoLine_AlphaColorPicker(&s_DropdownColorResetId, ColorMetrics, &DropdownColorRow, Localize("Button background color"), &g_Config.m_QmUiDropdownColor, &g_Config.m_QmUiDropdownOpacity, DefaultConfig::QmUiDropdownColor, DefaultConfig::QmUiDropdownOpacity))
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+	    });
 
-			RowAction("graphics-selected", GraphicsMetrics.m_ButtonHeight, [&](CUIRect UiSelectedColorRow) {
-static CButtonContainer s_UiSelectedColorResetId;
-			const unsigned OldUiSelectedColor = g_Config.m_QmUiSelectedColor;
+	    RowAction("graphics-input-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect InputColorRow) {
+		    static CButtonContainer s_InputColorResetId;
 
-			DoLine_ColorPicker(&s_UiSelectedColorResetId, ColorMetrics, &UiSelectedColorRow, Localize("Selected item color"), &g_Config.m_QmUiSelectedColor, color_cast<ColorRGBA>(ColorHSLA(DefaultConfig::QmUiSelectedColor)), false, nullptr, false);
-			if(OldUiSelectedColor != g_Config.m_QmUiSelectedColor)
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+		    if(DoLine_AlphaColorPicker(&s_InputColorResetId, ColorMetrics, &InputColorRow, Localize("Input background color"), &g_Config.m_QmUiInputColor, &g_Config.m_QmUiInputOpacity, DefaultConfig::QmUiInputColor, DefaultConfig::QmUiInputOpacity))
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+	    });
 
+	    RowAction("graphics-dropdown-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect DropdownListColorRow) {
+		    static CButtonContainer s_DropdownListColorResetId;
 
-			});
+		    if(DoLine_AlphaColorPicker(&s_DropdownListColorResetId, ColorMetrics, &DropdownListColorRow, Localize("Expanded dropdown background color"), &g_Config.m_QmUiDropdownListColor, &g_Config.m_QmUiDropdownListOpacity, DefaultConfig::QmUiDropdownListColor, DefaultConfig::QmUiDropdownListOpacity))
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+	    });
 
-			RowAction("graphics-card-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect UiCardColorRow) {
-static CButtonContainer s_UiCardColorResetId;
+	    RowAction("graphics-popup-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect PopupColorRow) {
+		    static CButtonContainer s_PopupColorResetId;
 
-			if(DoLine_AlphaColorPicker(&s_UiCardColorResetId, ColorMetrics, &UiCardColorRow, Localize("Settings card background"), &g_Config.m_QmUiCardColor, &g_Config.m_QmUiCardOpacity, DefaultConfig::QmUiCardColor, DefaultConfig::QmUiCardOpacity))
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+		    if(DoLine_AlphaColorPicker(&s_PopupColorResetId, ColorMetrics, &PopupColorRow, Localize("Secondary menu background color"), &g_Config.m_QmUiPopupColor, &g_Config.m_QmUiPopupOpacity, DefaultConfig::QmUiPopupColor, DefaultConfig::QmUiPopupOpacity))
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+	    });
 
-
-			});
-
-			RowAction("graphics-button-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect DropdownColorRow) {
-static CButtonContainer s_DropdownColorResetId;
-
-			if(DoLine_AlphaColorPicker(&s_DropdownColorResetId, ColorMetrics, &DropdownColorRow, Localize("Button background color"), &g_Config.m_QmUiDropdownColor, &g_Config.m_QmUiDropdownOpacity, DefaultConfig::QmUiDropdownColor, DefaultConfig::QmUiDropdownOpacity))
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
-
-
-			});
-
-			RowAction("graphics-input-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect InputColorRow) {
-static CButtonContainer s_InputColorResetId;
-
-			if(DoLine_AlphaColorPicker(&s_InputColorResetId, ColorMetrics, &InputColorRow, Localize("Input background color"), &g_Config.m_QmUiInputColor, &g_Config.m_QmUiInputOpacity, DefaultConfig::QmUiInputColor, DefaultConfig::QmUiInputOpacity))
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
-
-
-			});
-
-			RowAction("graphics-dropdown-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect DropdownListColorRow) {
-static CButtonContainer s_DropdownListColorResetId;
-
-			if(DoLine_AlphaColorPicker(&s_DropdownListColorResetId, ColorMetrics, &DropdownListColorRow, Localize("Expanded dropdown background color"), &g_Config.m_QmUiDropdownListColor, &g_Config.m_QmUiDropdownListOpacity, DefaultConfig::QmUiDropdownListColor, DefaultConfig::QmUiDropdownListOpacity))
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
-
-
-			});
-
-			RowAction("graphics-popup-surface", GraphicsMetrics.m_ButtonHeight, [&](CUIRect PopupColorRow) {
-static CButtonContainer s_PopupColorResetId;
-
-			if(DoLine_AlphaColorPicker(&s_PopupColorResetId, ColorMetrics, &PopupColorRow, Localize("Secondary menu background color"), &g_Config.m_QmUiPopupColor, &g_Config.m_QmUiPopupOpacity, DefaultConfig::QmUiPopupColor, DefaultConfig::QmUiPopupOpacity))
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
-
-			});
-
-			RowAction("graphics-text-mode", GraphicsMetrics.m_ButtonHeight, [&](CUIRect TextModeRow) {
-
-			CUIRect TextModeLabel, TextModeControl;
-			SplitSettingsControlRow(TextModeRow, GraphicsMetrics, &TextModeLabel, &TextModeControl, ESettingsControlWidth::LONG_CHOICE);
-			DoSettingsMenuLabel(SETTINGS_GRAPHICS, -1, -1, "text-color-mode", &TextModeLabel, Localize("Text color mode"), GraphicsMetrics.m_BodySize, TEXTALIGN_ML);
-			static CUi::SDropDownState s_TextColorModeState;
-			static CScrollRegion s_TextColorModeScroll;
-			s_TextColorModeState.m_SelectionPopupContext.m_pScrollRegion = &s_TextColorModeScroll;
-			const char *apTextModes[] = {Localize("Auto"), Localize("White"), Localize("Black"), Localize("Custom")};
-			CUi::SDropDownProperties TextModeProps;
-			TextModeProps.m_pPopupViewport = &GraphicsPage.m_ScrollViewport;
-			const int TextMode = DoSettingsDropDown(&TextModeControl, g_Config.m_QmUiTextColorMode, apTextModes, std::size(apTextModes), s_TextColorModeState, TextModeProps, &g_Config.m_QmUiTextColorMode, nullptr, &TextModeRow);
-			if(TextMode != g_Config.m_QmUiTextColorMode)
-			{
-				g_Config.m_QmUiTextColorMode = TextMode;
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
-			}
-
-			});
-CUIRect TextCustomColorRow;
-			if(TextCustomColorVisible && Flow.Control("graphics-custom-text-color", GraphicsMetrics.m_ButtonHeight, TextCustomColorRow))
-			{
-				static CButtonContainer s_TextCustomColorResetId;
-				const unsigned PreviousTextColor = g_Config.m_QmUiTextCustomColor;
-				DoLine_ColorPicker(&s_TextCustomColorResetId, ColorMetrics, &TextCustomColorRow, Localize("Custom text color"), &g_Config.m_QmUiTextCustomColor, color_cast<ColorRGBA>(ColorHSLA(DefaultConfig::QmUiTextCustomColor)), false, nullptr, false);
-				if(PreviousTextColor != g_Config.m_QmUiTextCustomColor)
-					InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
-			}
+	    RowAction("graphics-text-mode", GraphicsMetrics.m_ButtonHeight, [&](CUIRect TextModeRow) {
+		    CUIRect TextModeLabel, TextModeControl;
+		    SplitSettingsControlRow(TextModeRow, GraphicsMetrics, &TextModeLabel, &TextModeControl, ESettingsControlWidth::LONG_CHOICE);
+		    DoSettingsMenuLabel(SETTINGS_GRAPHICS, -1, -1, "text-color-mode", &TextModeLabel, Localize("Text color mode"), GraphicsMetrics.m_BodySize, TEXTALIGN_ML);
+		    static CUi::SDropDownState s_TextColorModeState;
+		    static CScrollRegion s_TextColorModeScroll;
+		    s_TextColorModeState.m_SelectionPopupContext.m_pScrollRegion = &s_TextColorModeScroll;
+		    const char *apTextModes[] = {Localize("Auto"), Localize("White"), Localize("Black"), Localize("Custom")};
+		    CUi::SDropDownProperties TextModeProps;
+		    TextModeProps.m_pPopupViewport = &GraphicsPage.m_ScrollViewport;
+		    const int TextMode = DoSettingsDropDown(&TextModeControl, g_Config.m_QmUiTextColorMode, apTextModes, std::size(apTextModes), s_TextColorModeState, TextModeProps, &g_Config.m_QmUiTextColorMode, nullptr, &TextModeRow);
+		    if(TextMode != g_Config.m_QmUiTextColorMode)
+		    {
+			    g_Config.m_QmUiTextColorMode = TextMode;
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+		    }
+	    });
+	    CUIRect TextCustomColorRow;
+	    if(TextCustomColorVisible && Flow.Control("graphics-custom-text-color", GraphicsMetrics.m_ButtonHeight, TextCustomColorRow))
+	    {
+		    static CButtonContainer s_TextCustomColorResetId;
+		    const unsigned PreviousTextColor = g_Config.m_QmUiTextCustomColor;
+		    DoLine_ColorPicker(&s_TextCustomColorResetId, ColorMetrics, &TextCustomColorRow, Localize("Custom text color"), &g_Config.m_QmUiTextCustomColor, color_cast<ColorRGBA>(ColorHSLA(DefaultConfig::QmUiTextCustomColor)), false, nullptr, false);
+		    if(PreviousTextColor != g_Config.m_QmUiTextCustomColor)
+			    InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+	    }
 			if(TextCustomColorVisible)
 				Flow.Space(GraphicsMetrics.m_LineSpacing);
 

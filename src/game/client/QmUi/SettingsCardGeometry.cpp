@@ -6,22 +6,23 @@
 
 #include <algorithm>
 
-SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &Spec, const float ContentHeight, const float UiScale)
+SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &Spec, const float ContentHeight, const float UiScale, const float TextScale)
 {
 	const float Scale = std::isfinite(UiScale) && UiScale > 0.0f ? UiScale : 1.0f;
+	const float HeaderScale = Scale * std::clamp(TextScale, 0.75f, 1.5f);
 	const float Padding = ui_token::settings::CARD_PADDING * Scale;
-	const float TitleHeight = ui_token::settings::CARD_HEADER_TITLE_HEIGHT * Scale;
+	const float TitleHeight = ui_token::settings::CARD_HEADER_TITLE_HEIGHT * HeaderScale;
 	// 为悬浮副标题固定预留空间，鼠标进入或离开时不移动正文和后续卡片。
-	const float SubtitleHeight = Spec.m_pSubtitle != nullptr && Spec.m_pSubtitle[0] != '\0' ? ui_token::settings::CARD_HEADER_SUBTITLE_HEIGHT * Scale : 0.0f;
+	const float SubtitleHeight = Spec.m_pSubtitle != nullptr && Spec.m_pSubtitle[0] != '\0' ? ui_token::settings::CARD_HEADER_SUBTITLE_HEIGHT * HeaderScale : 0.0f;
 	const float SummaryGap = 0.0f;
-	const float HeaderGap = ui_token::settings::CARD_HEADER_GAP * Scale;
+	const float HeaderGap = ui_token::settings::CARD_HEADER_GAP * HeaderScale;
 	const float HeaderHeight = TitleHeight + SummaryGap + SubtitleHeight;
 	const float SafeContentHeight = std::max(0.0f, ContentHeight);
 
 	SSettingsCardFrame Frame{};
 	Frame.m_Rect = {Slot.x, Slot.y, std::max(0.0f, Slot.w), Padding + HeaderHeight + HeaderGap + SafeContentHeight + Padding};
 	Frame.m_HeaderRect = {Frame.m_Rect.x + Padding, Frame.m_Rect.y + Padding, std::max(0.0f, Frame.m_Rect.w - Padding * 2.0f), HeaderHeight};
-	const float HandleSize = std::min({ui_token::settings::CARD_HANDLE_SIZE * Scale, TitleHeight, Frame.m_HeaderRect.w});
+	const float HandleSize = std::min({ui_token::settings::CARD_HANDLE_SIZE * HeaderScale, TitleHeight, Frame.m_HeaderRect.w});
 	Frame.m_HandleRect = {Frame.m_HeaderRect.x + Frame.m_HeaderRect.w - HandleSize, Frame.m_HeaderRect.y, HandleSize, HandleSize};
 	const float TextWidth = std::max(0.0f, Frame.m_HeaderRect.w - HandleSize - Padding);
 	Frame.m_TitleRect = {Frame.m_HeaderRect.x, Frame.m_HeaderRect.y, TextWidth, TitleHeight};

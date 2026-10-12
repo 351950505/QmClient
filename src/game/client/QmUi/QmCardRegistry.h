@@ -2,6 +2,7 @@
 #define GAME_CLIENT_QMUI_QMCARDREGISTRY_H
 
 #include <game/client/QmUi/QmCardOrderModel.h>
+#include <game/client/QmUi/SettingsSearchIndex.h>
 
 #include <cstddef>
 #include <string>
@@ -79,12 +80,25 @@ namespace qm_card_registry
 		const char *m_pStableId = nullptr;
 	};
 
+	struct SSettingSearchMatch
+	{
+		std::string m_SettingId;
+		std::string m_Label;
+		std::string m_DisplayLabel;
+		std::string m_ConfigName;
+		float m_Score = 0.0f;
+		qm_settings_search::EMatchKind m_Kind = qm_settings_search::EMatchKind::TERMS;
+	};
+
 	struct SCardSearchResult
 	{
 		const char *m_pStableId = nullptr;
 		std::string m_Title;
 		std::string m_Description;
 		SCardNavigationTarget m_Target;
+		std::vector<SSettingSearchMatch> m_vMatchedSettings;
+		float m_Score = 0.0f;
+		qm_settings_search::EMatchKind m_Kind = qm_settings_search::EMatchKind::TERMS;
 	};
 
 	// 焦点只消费本帧按下沿，不持有鼠标按下状态，外部释放或输入隔离不会卡住后续点击。
