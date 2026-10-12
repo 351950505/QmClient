@@ -931,8 +931,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 					if(!Flow.Control("search-locate", LineHeight, Row))
 						return;
 					const char *pLabel = Localize("Locate");
-					const float TextWidth = TextRender()->TextWidth(SmallSize, pLabel);
-					const CUIRect LocateButton = ResolveSettingsActionGroupLayout(Row, 1, Metrics, TextWidth + 2.0f * ui_token::spacing::MD).m_aButtons[0];
+					const CUIRect LocateButton = ResolveSettingsActionGroupLayout(Row, 1, Metrics, 0.0f).m_aButtons[0];
 					if(LocateButton.w <= 0.0f)
 						return;
 					if(!ReadOnly && Ui()->DoButtonLogic(pOpenButton, 0, &LocateButton, BUTTONFLAG_LEFT))
@@ -1453,7 +1452,7 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 		Inner.HSplitBottom(Gap, &Inner, nullptr);
 		static ui_widget::SSettingsActionGroupState s_DevActionWidths;
 		const char *apDevActions[] = {Localize("Reload"), Localize("Publish"), Localize("Open folder")};
-		const auto DevActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_DevActionWidths, DevRow, apDevActions, 3, ResolveSettingsContentMetrics(DevRow.w));
+		const auto DevActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_DevActionWidths, DevRow, apDevActions, 3, ResolveSettingsContentMetrics(DevRow.w), ESettingsActionGroupWidth::CONTENT);
 		ReloadDraftRect = DevActions.m_aButtons[0];
 		PublishRect = DevActions.m_aButtons[1];
 		OpenFolderRect = DevActions.m_aButtons[2];

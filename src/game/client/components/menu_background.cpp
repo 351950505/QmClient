@@ -48,13 +48,7 @@ namespace
 class CMenuBackground::CThemeListLoadJob : public IJob
 {
 public:
-	struct SThemeEntry
-	{
-		std::string m_Name;
-		bool m_HasDay = true;
-		bool m_HasNight = true;
-		std::string m_IconPath;
-	};
+	using SThemeEntry = SThemeFileEntry;
 
 private:
 	IStorage *m_pStorage;
@@ -66,20 +60,8 @@ protected:
 	static int ScanCallback(const char *pName, int IsDir, int DirType, void *pUser)
 	{
 		(void)DirType;
-		if(IsDir || !IsThemeFileCandidate(pName))
-			return 0;
-
 		auto *pEntries = static_cast<std::vector<SThemeEntry> *>(pUser);
-		for(const auto &Entry : *pEntries)
-		{
-			if(str_comp(Entry.m_Name.c_str(), pName) == 0)
-				return 0;
-		}
-
-		SThemeEntry Entry;
-		Entry.m_Name = pName;
-		Entry.m_IconPath = ThemeIconPathFromName(pName);
-		pEntries->push_back(std::move(Entry));
+		AppendThemeFileEntry(*pEntries, pName, IsDir != 0);
 		return 0;
 	}
 
@@ -407,6 +389,7 @@ void CMenuBackground::ProcessThemeListJob()
 
 		CTheme Theme(Entry.m_Name.c_str(), Entry.m_HasDay, Entry.m_HasNight);
 		Theme.m_IconPath = Entry.m_IconPath;
+		Theme.m_aMapNames = Entry.m_aMapNames;
 		m_vThemes.push_back(std::move(Theme));
 	}
 
@@ -550,6 +533,17 @@ void CMenuBackground::LoadMenuBackground(bool HasDayHint, bool HasNightHint)
 
 		const int HourOfTheDay = time_houroftheday();
 		const bool IsDaytime = HourOfTheDay >= 6 && HourOfTheDay < 18;
+		// 扫描结果保留真实文件名，Linux 上不能重新拼写大小写不同的后缀。
+		for(const auto &Theme : m_vThemes)
+		{
+			if(Theme.m_Name == pMenuMap)
+			{
+				const std::string &MapFile = ResolveThemeMapFileName(Theme.m_aMapNames, IsDaytime);
+				if(!MapFile.empty())
+					pMenuMap = MapFile.c_str();
+				break;
+			}
+		}
 		const bool HasImageExtension = IsBackgroundImageExtension(pMenuMap);
 		const bool HasVideoExtension = IsBackgroundVideoExtension(pMenuMap);
 		const bool HasMapExtension = str_endswith_nocase(pMenuMap, ".map") != nullptr;

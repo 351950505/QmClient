@@ -86,6 +86,9 @@ inline SUiSecondaryButtonStyle ResolveUiButtonStyle(EUiButtonRole Role, ColorRGB
 	if(Role == EUiButtonRole::PRIMARY && State.m_Enabled && State.m_Hovered)
 		Surface = Theme.m_Accent;
 	auto Style = ResolveUiSecondaryButtonStyle(Surface, Backdrop, State.m_Enabled, State.m_Hovered, State.m_Pressed);
+	// 选中态常驻悬浮边框，悬浮选中项则收起边框，提示再次点击可取消。
+	if(State.m_Selected && State.m_Enabled && Role != EUiButtonRole::LIST_ENTRY)
+		Style.m_Border = ResolveUiSecondaryButtonStyle(Surface, Backdrop, true, !State.m_Hovered, false).m_Border;
 	if(Role == EUiButtonRole::LIST_ENTRY && (!State.m_Enabled || !State.m_Hovered))
 		Style.m_Border = ColorRGBA();
 	return Style;

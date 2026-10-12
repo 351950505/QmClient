@@ -395,7 +395,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 			RowAction("title-redeem", [&](CUIRect Row) {
 				static ui_widget::SSettingsActionGroupState s_RedeemWidths;
 				const char *apLabels[] = {Localize("Redeem")};
-				const auto Actions = ui_widget::PrepareSettingsActionGroup(*pMenus->Ui(), s_RedeemWidths, Row, apLabels, 1, Metrics);
+				const auto Actions = ui_widget::PrepareSettingsActionGroup(*pMenus->Ui(), s_RedeemWidths, Row, apLabels, 1, Metrics, ESettingsActionGroupWidth::CONTENT);
 				const auto InputActions = ResolveSettingsInputActionsLayout(Row, 1, Metrics, Actions.m_aButtons[0].w);
 				Row = InputActions.m_Input;
 				Button = InputActions.m_Actions.m_aButtons[0];

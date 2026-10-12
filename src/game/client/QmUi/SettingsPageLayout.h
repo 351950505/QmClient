@@ -366,8 +366,14 @@ struct SSettingsActionGroupLayout
 	int m_Count = 0;
 };
 
-// 操作不互斥，窄屏保留独立按钮；只压缩宽度，由文字入口缩字或省略，不新增行高。
-inline SSettingsActionGroupLayout ResolveSettingsActionGroupLayout(const CUIRect &Row, int Count, const SSettingsContentMetrics &Metrics, float MeasuredWidth)
+enum class ESettingsActionGroupWidth
+{
+	FILL,
+	CONTENT
+};
+
+// 纯按钮行默认等分填满；混合行显式按内容取宽。窄屏保留独立按钮，不新增行高。
+inline SSettingsActionGroupLayout ResolveSettingsActionGroupLayout(const CUIRect &Row, int Count, const SSettingsContentMetrics &Metrics, float MeasuredWidth, ESettingsActionGroupWidth WidthPolicy = ESettingsActionGroupWidth::FILL)
 {
 	SSettingsActionGroupLayout Layout;
 	if(Count <= 0 || Count > (int)Layout.m_aButtons.size())
@@ -375,7 +381,8 @@ inline SSettingsActionGroupLayout ResolveSettingsActionGroupLayout(const CUIRect
 	Layout.m_Count = Count;
 	const float Available = std::max(0.0f, Row.w);
 	const float Gap = Count > 1 ? std::min(std::max(0.0f, Metrics.m_LineSpacing), Available / (2.0f * Count - 1.0f)) : 0.0f;
-	const float Width = ResolveSettingsControlWidth(std::max(0.0f, Available - Gap * (Count - 1)) / Count, Metrics, ESettingsControlWidth::ACTION, MeasuredWidth);
+	const float SlotWidth = std::max(0.0f, Available - Gap * (Count - 1)) / Count;
+	const float Width = WidthPolicy == ESettingsActionGroupWidth::FILL ? SlotWidth : ResolveSettingsControlWidth(SlotWidth, Metrics, ESettingsControlWidth::ACTION, MeasuredWidth);
 	for(int Index = 0; Index < Count; ++Index)
 		Layout.m_aButtons[Index] = {Row.x + Index * (Width + Gap), Row.y, Width, std::max(0.0f, Row.h)};
 	return Layout;
@@ -400,7 +407,7 @@ inline SSettingsInputActionsLayout ResolveSettingsInputActionsLayout(const CUIRe
 	const float ActionWidth = std::min(PreferredWidth * Count + Gap * (Count - 1), std::max(0.0f, Layout.m_Input.w - Gap) * 0.5f);
 	Layout.m_Input.w = std::max(0.0f, Layout.m_Input.w - ActionWidth - Gap);
 	const CUIRect Actions{Controls.x + Layout.m_Input.w + Gap, Controls.y, ActionWidth, Controls.h};
-	Layout.m_Actions = ResolveSettingsActionGroupLayout(Actions, Count, Metrics, PreferredWidth);
+	Layout.m_Actions = ResolveSettingsActionGroupLayout(Actions, Count, Metrics, PreferredWidth, ESettingsActionGroupWidth::CONTENT);
 	return Layout;
 }
 

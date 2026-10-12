@@ -692,7 +692,7 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 		Flow.Space(LineSpacing);
 		static ui_widget::SSettingsActionGroupState s_RefreshWidths;
 		const char *apReload[] = {Localize("Reload")};
-		const auto RefreshActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_RefreshWidths, {0, 0, Content.w, LineHeight}, apReload, 1, Metrics);
+		const auto RefreshActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_RefreshWidths, {0, 0, Content.w, LineHeight}, apReload, 1, Metrics, ESettingsActionGroupWidth::CONTENT);
 		const float RefreshWidth = RefreshActions.m_aButtons[0].w;
 		if(Flow.MeasuredControl("sponsor-list-header", Localize("Sponsors:"), LineHeight, TipSize, RefreshWidth + LineSpacing, 0.0f, 0.0f, Row,
 			   [&](const SSettingsContentRowDeclaration &Declaration, float Width) { return Measure(Declaration.m_Text.c_str(), Width, Declaration.m_FontSize); }))

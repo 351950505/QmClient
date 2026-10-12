@@ -24,7 +24,7 @@ namespace ui_widget
 	};
 
 	// 保留各按钮原来的业务和文字缓存入口，只统一真实译文测量及槽位。
-	SSettingsActionGroupLayout PrepareSettingsActionGroup(CUi &Ui, SSettingsActionGroupState &State, const CUIRect &Row, const char *const *ppLabels, int Count, const SSettingsContentMetrics &Metrics);
+	SSettingsActionGroupLayout PrepareSettingsActionGroup(CUi &Ui, SSettingsActionGroupState &State, const CUIRect &Row, const char *const *ppLabels, int Count, const SSettingsContentMetrics &Metrics, ESettingsActionGroupWidth WidthPolicy = ESettingsActionGroupWidth::FILL);
 
 	struct SButtonSurfaceOptions
 	{

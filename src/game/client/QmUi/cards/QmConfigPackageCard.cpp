@@ -161,7 +161,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildConfigFilesCard(const SQmCardBuildC
 			static constexpr const char *s_apFileIds[] = {"tclient-files-qmclient-settings", "tclient-files-profiles", "tclient-files-warlist", "tclient-files-chatbinds"};
 			const char *apLabels[] = {pLeft, pRight};
 			static ui_widget::SSettingsActionGroupState s_aFileWidths[2];
-			const auto Actions = ui_widget::PrepareSettingsActionGroup(*pMenus->Ui(), s_aFileWidths[LeftId / 2], Rect, apLabels, 2, Metrics);
+			const auto Actions = ui_widget::PrepareSettingsActionGroup(*pMenus->Ui(), s_aFileWidths[LeftId / 2], Rect, apLabels, 2, Metrics, ESettingsActionGroupWidth::FILL);
 			Left = Actions.m_aButtons[0];
 			Right = Actions.m_aButtons[1];
 			const auto Open = [pMenus](ConfigDomain Domain) {

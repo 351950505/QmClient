@@ -416,6 +416,25 @@ static void BM_SecondaryButtonStyle(benchmark::State &State)
 }
 BENCHMARK(BM_SecondaryButtonStyle)->Arg(0)->Arg(1)->Arg(2)->Arg(3);
 
+static void BM_SelectedButtonBorderStyle(benchmark::State &State)
+{
+	// 测量公共选中按钮离开／悬浮／按压／禁用时的实际样式解析，准备不计时。
+	const ColorRGBA Surface(0.2f, 0.4f, 0.6f, 0.25f), Backdrop(0.1f, 0.1f, 0.1f, 1);
+	const SUiTheme Theme = ResolveUiTheme(ColorHSLA(0.0f, 0.0f, 0.3f, 1.0f), 1.0f);
+	const SUiButtonState ButtonState{State.range(0) != 3, State.range(0) == 1 || State.range(0) == 2, State.range(0) == 2, true};
+	for(auto _ : State)
+	{
+		benchmark::DoNotOptimize(Surface);
+		benchmark::DoNotOptimize(Backdrop);
+		benchmark::DoNotOptimize(Theme);
+		benchmark::DoNotOptimize(ButtonState);
+		const auto Style = ResolveUiButtonStyle(EUiButtonRole::SECONDARY, Surface, Backdrop, Theme, ButtonState);
+		benchmark::DoNotOptimize(Style);
+	}
+	State.SetItemsProcessed(State.iterations());
+}
+BENCHMARK(BM_SelectedButtonBorderStyle)->Arg(0)->Arg(1)->Arg(2)->Arg(3);
+
 // 每轮解析一个真实标签：正文快速拒绝、单图标与组合图标，计时包含识别与布局。
 static void BM_IconLabelResolve(benchmark::State &State)
 {

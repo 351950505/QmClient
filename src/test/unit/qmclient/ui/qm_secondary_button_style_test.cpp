@@ -106,6 +106,29 @@ TEST(QmButtonStyle, DisabledSelectionIgnoresPointerFeedback)
 	EXPECT_EQ(DisabledPress.m_Border, Disabled.m_Border);
 }
 
+TEST(QmButtonStyle, SelectedBorderInvertsHoverAndRestoresWhenPointerLeaves)
+{
+	SUiTheme Theme{};
+	Theme.m_Selected = ColorRGBA(0.2f, 0.7f, 0.5f, 0.22f);
+	for(const ColorRGBA Backdrop : {ColorRGBA(0, 0, 0, 1), ColorRGBA(1, 1, 1, 1)})
+	{
+		for(const auto Role : {EUiButtonRole::SECONDARY, EUiButtonRole::ICON})
+		{
+			const ColorRGBA Surface(0.1f, 0.2f, 0.3f, 0.4f);
+			const auto Selected = ResolveUiButtonStyle(Role, Surface, Backdrop, Theme, {true, false, false, true});
+			const auto Hovered = ResolveUiButtonStyle(Role, Surface, Backdrop, Theme, {true, true, false, true});
+			const auto Pressed = ResolveUiButtonStyle(Role, Surface, Backdrop, Theme, {true, true, true, true});
+			const auto Left = ResolveUiButtonStyle(Role, Surface, Backdrop, Theme, {true, false, true, true});
+			EXPECT_GT(Selected.m_Border.a, Hovered.m_Border.a);
+			EXPECT_EQ(Hovered.m_Border, ui_token::color::BORDER_SUBTLE);
+			EXPECT_EQ(Pressed.m_Border, Hovered.m_Border);
+			EXPECT_EQ(Left.m_Border, Selected.m_Border);
+			const auto Cleared = ResolveUiButtonStyle(Role, Surface, Backdrop, Theme, {true, false, false, false});
+			EXPECT_EQ(Cleared.m_Border, Hovered.m_Border);
+		}
+	}
+}
+
 TEST(QmButtonStyle, PrimaryButtonUsesThemeAccentAndRecoversAfterHover)
 {
 	SUiTheme Theme{};

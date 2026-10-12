@@ -39,6 +39,7 @@
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SettingsCard.h>
 #include <game/client/QmUi/SettingsLabelMetadata.h>
+#include <game/client/QmUi/ThemeSelectionLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContainers.h>
 #include <game/client/QmUi/UiContext.h>
@@ -60,6 +61,7 @@
 #include <game/client/components/qmclient/modes.h>
 #include <game/client/components/qmclient/perf_logging.h>
 #include <game/client/components/sounds.h>
+#include <game/client/components/theme_scan.h>
 #include <game/client/gameclient.h>
 #include <game/client/qm_icon.h>
 #include <game/client/ui_listbox.h>
@@ -3314,7 +3316,7 @@ void CMenus::RenderStatistics(CUIRect MainView)
 		const char *pRefreshStatsLabel = StatisticsFetching ? Localize("Syncing remote stats") : (StatisticsFailed ? Localize("Retry remote stats") : Localize("Sync remote stats"));
 		const char *apActionLabels[] = {pRefreshStatsLabel, Localize("Use current name"), Localize("Total hours")};
 		static ui_widget::SSettingsActionGroupState s_StatisticsActionWidths;
-		const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_StatisticsActionWidths, TitleActions, apActionLabels, 3, ResolveSettingsContentMetrics(TitleActions.w));
+		const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_StatisticsActionWidths, TitleActions, apActionLabels, 3, ResolveSettingsContentMetrics(TitleActions.w), ESettingsActionGroupWidth::CONTENT);
 		const float GroupWidth = Actions.m_aButtons[2].x + Actions.m_aButtons[2].w - Actions.m_aButtons[0].x;
 		const float RightAlign = maximum(0.0f, TitleActions.w - GroupWidth);
 		RefreshButton = Actions.m_aButtons[0];
@@ -5793,7 +5795,7 @@ void CMenus::RenderThemeSelection(CUIRect MainView, const SSettingsContentMetric
 	int SelectedTheme = -1;
 	for(int i = 0; i < (int)vThemes.size(); i++)
 	{
-		if(str_comp(vThemes[i].m_Name.c_str(), g_Config.m_ClMenuMap) == 0)
+		if(str_comp(vThemes[i].m_Name.c_str(), g_Config.m_ClMenuMap) == 0 || (IsThemeFileCandidate(g_Config.m_ClMenuMap) && vThemes[i].m_Name == ThemeBaseName(g_Config.m_ClMenuMap)))
 		{
 			SelectedTheme = i;
 			break;
@@ -5812,11 +5814,13 @@ void CMenus::RenderThemeSelection(CUIRect MainView, const SSettingsContentMetric
 			continue;
 		Ui()->DoConfigTooltip(&Theme.m_Name, &Item.m_Rect, g_Config.m_ClMenuMap);
 
-		CUIRect Icon, Label;
-		Item.m_Rect.VSplitLeft(Item.m_Rect.h * 2.0f, &Icon, &Label);
+		const std::string Name = ThemeDisplayName(Theme.m_Name.c_str());
+		const auto RowLayout = ResolveThemeSelectionRowLayout(Item.m_Rect, TextRender()->TextWidth(Metrics.m_BodySize, Name.c_str()), Metrics.m_LineSpacing);
+		CUIRect Icon = RowLayout.m_Icon;
+		const CUIRect Label = RowLayout.m_Label;
 
 		// draw icon if it exists
-		if(Theme.m_IconTexture.IsValid())
+		if(Theme.m_IconTexture.IsValid() && Icon.w > 12.0f && Icon.h > 6.0f)
 		{
 			Icon.VMargin(6.0f, &Icon);
 			Icon.HMargin(3.0f, &Icon);
@@ -5828,22 +5832,12 @@ void CMenus::RenderThemeSelection(CUIRect MainView, const SSettingsContentMetric
 			Graphics()->QuadsEnd();
 		}
 
-		char aName[IO_MAX_PATH_LENGTH];
-		if(Theme.m_Name.empty())
-			str_copy(aName, "(none)");
-		else if(str_comp(Theme.m_Name.c_str(), "auto") == 0)
-			str_copy(aName, "(seasons)");
-		else if(str_comp(Theme.m_Name.c_str(), "rand") == 0)
-			str_copy(aName, "(random)");
-		else
-			str_copy(aName, Theme.m_Name.c_str());
-
-		Ui()->DoLabel(&Label, aName, Metrics.m_BodySize, TEXTALIGN_ML);
+		DrawThemeSelectionLabel(Ui(), Label, Name.c_str(), Metrics.m_BodySize);
 	}
 
 	SelectedTheme = s_ListBox.DoEnd();
 
-	if(OldSelected != SelectedTheme)
+	if(!Ui()->RenderOnly() && OldSelected != SelectedTheme && SelectedTheme >= 0 && SelectedTheme < (int)vThemes.size())
 	{
 		const CTheme &Theme = vThemes[SelectedTheme];
 		str_copy(g_Config.m_ClMenuMap, Theme.m_Name.c_str());

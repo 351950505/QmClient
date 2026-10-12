@@ -3,6 +3,12 @@
 
 #include <gtest/gtest.h>
 
+// 独立目标只使用提示组件的标签缓存，不启动完整提示生命周期。
+CTooltips::CTooltips()
+{
+	CTooltips::OnReset();
+}
+
 // 胶囊表面使用真实公共绘制；完整菜单按钮不属于独立目标，误入即失败。
 int CMenus::DoButton_MenuTab(CButtonContainer *, const char *, int, const CUIRect *, int, SUIAnimator *, const ColorRGBA *, const ColorRGBA *, const ColorRGBA *, float, const CCommunityIcon *, CUIElement *, float, bool)
 {
@@ -33,10 +39,10 @@ void CTooltips::DoSmallToolTip(const void *, const CUIRect *, const char *, floa
 {
 }
 
-// 本目标不启用菜单卡片说明作用域；括号标签解析由生产策略单元测试覆盖。
+// 只隔离气泡注册与绘制；标签解析仍使用生产缓存与策略，供原始名称作用域验证。
 const char *CTooltips::PrepareCardLabel(const CUIRect *, const char *pText, bool)
 {
-	return pText;
+	return pText != nullptr ? m_CardLabelTexts.Get(pText).m_Label.c_str() : pText;
 }
 
 // 为 Itanium ABI 的 key function 提供定义，sanitizer 的 vptr 检查需要完整 RTTI。

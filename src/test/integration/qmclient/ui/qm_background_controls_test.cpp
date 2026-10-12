@@ -1063,6 +1063,29 @@ TEST_F(QmBackgroundControlsIntegration, SelectedSecondaryButtonUsesPublicRadiusA
 	EXPECT_EQ(m_Recording.m_vSurfaces.back().m_FillColor, Selected.m_FillColor);
 }
 
+TEST_F(QmBackgroundControlsIntegration, TransparentSelectedButtonKeepsBorderUntilPointerEnters)
+{
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	ui_widget::SButtonSurfaceOptions Options;
+	Options.m_TransparentInactive = true;
+	Options.m_Selected = true;
+	const auto Draw = [&]() {
+		m_Recording.m_vSurfaces.clear();
+		ui_widget::DrawButtonSurface(Ctx, &m_Button, m_Rect, Options);
+		EXPECT_FALSE(m_Recording.m_vSurfaces.empty());
+		return m_Recording.m_vSurfaces.empty() ? 0.0f : m_Recording.m_vSurfaces.back().m_BorderColor.a;
+	};
+	const float SelectedBorder = Draw();
+	EXPECT_GT(SelectedBorder, 0.0f);
+	const vec2 Pixels = m_Rect.Center() * vec2(m_Recording.WindowWidth(), m_Recording.WindowHeight()) / m_Ui.Screen()->Size();
+	m_Ui.OnCursorMove(Pixels.x, Pixels.y);
+	m_Client.AdvanceFrame();
+	m_Ui.Update();
+	EXPECT_LT(Draw(), SelectedBorder);
+	Options.m_Selected = false;
+	EXPECT_FLOAT_EQ(Draw(), SelectedBorder);
+}
+
 TEST_F(QmBackgroundControlsIntegration, DisabledSecondaryButtonCancelsCaptureAndRecoversOnNewClick)
 {
 	const auto Ctx = ui_widget::ControlContext(&m_Ui);

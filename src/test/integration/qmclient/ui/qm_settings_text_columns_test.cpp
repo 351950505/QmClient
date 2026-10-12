@@ -197,7 +197,7 @@ TEST_F(QmSettingsTextColumns, InputWithTranslatedActionPreservesSpaceAndDoesNotA
 	{
 		SCOPED_TRACE(Width);
 		const CUIRect Row{40, 80, Width, Metrics.m_LineHeight};
-		const auto Buttons = ui_widget::PrepareSettingsActionGroup(m_Ui, Widths, Row, apLabels, 1, Metrics);
+		const auto Buttons = ui_widget::PrepareSettingsActionGroup(m_Ui, Widths, Row, apLabels, 1, Metrics, ESettingsActionGroupWidth::CONTENT);
 		const auto Layout = ResolveSettingsInputActionsLayout(Row, 1, Metrics, Buttons.m_aButtons[0].w);
 		EXPECT_GE(Layout.m_Input.w, Width * 0.4f);
 		EXPECT_LE(Layout.m_Actions.m_aButtons[0].x + Layout.m_Actions.m_aButtons[0].w, Row.x + Row.w + 0.0001f);

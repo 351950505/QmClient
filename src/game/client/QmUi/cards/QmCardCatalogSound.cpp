@@ -394,7 +394,7 @@ uint64_t CMenus::BuildSoundSettingsCards(const qm_card_catalog::SQmCardBuildCont
 				HeaderRow = HeaderActions.m_Input;
 				static ui_widget::SSettingsActionGroupState s_AudioPackActions;
 				const char *apActionLabels[] = {Localize("Edit audio pack"), Localize("Audio pack directory")};
-				const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_AudioPackActions, HeaderRow, apActionLabels, 2, SoundMetrics);
+				const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_AudioPackActions, HeaderRow, apActionLabels, 2, SoundMetrics, ESettingsActionGroupWidth::FILL);
 				CUIRect EditButton = Actions.m_aButtons[0];
 				CUIRect DirectoryButton = Actions.m_aButtons[1];
 				if(Ui()->DoButton_QmIcon(&s_AudioPackRefreshButton, EQmIcon::ARROW_ROTATE_RIGHT, FONT_ICON_ARROW_ROTATE_RIGHT, 0, &RefreshButton, BUTTONFLAG_LEFT) && CanCommit)

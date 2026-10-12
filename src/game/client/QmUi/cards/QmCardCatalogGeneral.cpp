@@ -206,7 +206,7 @@ namespace qm_card_catalog
 					}
 					static ui_widget::SSettingsActionGroupState s_aDirectoryWidths[2];
 					const char *apLabels[] = {RowIndex == 0 ? Localize("Settings file") : Localize("Config directory"), RowIndex == 0 ? Localize("Saves file") : Localize("Themes directory")};
-					const auto Actions = ui_widget::PrepareSettingsActionGroup(*pMenus->Ui(), s_aDirectoryWidths[RowIndex], Row, apLabels, 2, GeneralMetrics);
+					const auto Actions = ui_widget::PrepareSettingsActionGroup(*pMenus->Ui(), s_aDirectoryWidths[RowIndex], Row, apLabels, 2, GeneralMetrics, ESettingsActionGroupWidth::FILL);
 					LeftButton = Actions.m_aButtons[0];
 					RightButton = Actions.m_aButtons[1];
 					if(RowIndex == 0)

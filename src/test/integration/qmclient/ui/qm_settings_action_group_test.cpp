@@ -42,21 +42,84 @@ namespace
 	};
 }
 
-TEST_F(QmSettingsActionGroup, LongestRealTranslationSetsBothWidthsAndTextChangesInvalidateCache)
+TEST_F(QmSettingsActionGroup, ContentWidthUsesLongestRealTranslationAndTextChangesInvalidateCache)
 {
 	const auto Metrics = ResolveSettingsContentMetrics(1000);
 	const CUIRect Row{40, 40, 900, Metrics.m_LineHeight};
 	const char *apLabels[] = {"Edit", "Directory"};
-	const auto Short = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const auto Short = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 	apLabels[1] = "Open the directory containing the audio packs";
-	const auto Long = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const auto Long = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 	EXPECT_GT(Long.m_aButtons[0].w, Short.m_aButtons[0].w);
 	EXPECT_FLOAT_EQ(Long.m_aButtons[0].w, Long.m_aButtons[1].w);
 	EXPECT_GE(Long.m_aButtons[0].w, m_Ui.TextRender()->TextWidth(Metrics.m_BodySize, apLabels[1]));
 	apLabels[1] = "Directory";
-	const auto Restored = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const auto Restored = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 	EXPECT_FLOAT_EQ(Restored.m_aButtons[0].w, Short.m_aButtons[0].w);
 	EXPECT_FLOAT_EQ(Restored.m_aButtons[0].h, Row.h);
+}
+
+TEST_F(QmSettingsActionGroup, PureButtonRowsFillTheWholeWidthWithEqualSlots)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(1000);
+	const char *apLabels[] = {"Settings file", "Saves file", "Open folder"};
+	for(const int Count : {1, 2, 3})
+	{
+		for(const float Width : {0.0f, 1.0f, 24.0f, 200.0f, 900.0f})
+		{
+			SCOPED_TRACE(Count);
+			SCOPED_TRACE(Width);
+			const CUIRect Row{40, 40, Width, Metrics.m_LineHeight};
+			const auto Layout = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, Count, Metrics);
+			ASSERT_EQ(Layout.m_Count, Count);
+			EXPECT_FLOAT_EQ(Layout.m_aButtons[0].x, Row.x);
+			EXPECT_NEAR(Layout.m_aButtons[Count - 1].x + Layout.m_aButtons[Count - 1].w, Row.x + Width, 0.0001f);
+			for(int Index = 0; Index < Count; ++Index)
+			{
+				EXPECT_FLOAT_EQ(Layout.m_aButtons[Index].w, Layout.m_aButtons[0].w);
+				EXPECT_GE(Layout.m_aButtons[Index].w, 0);
+				EXPECT_FLOAT_EQ(Layout.m_aButtons[Index].h, Row.h);
+			}
+		}
+	}
+}
+
+TEST_F(QmSettingsActionGroup, WidthPolicyChangesPreserveContentCacheAndFillIgnoresLabelLength)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(1000);
+	const CUIRect Row{40, 40, 1800, Metrics.m_LineHeight};
+	const char *apLabels[] = {"Edit", "Directory"};
+	const auto Content = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
+	const auto Fill = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	EXPECT_GT(Fill.m_aButtons[0].w, Content.m_aButtons[0].w);
+	apLabels[1] = "Open the directory containing all installed audio packs";
+	const auto LongerFill = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	EXPECT_FLOAT_EQ(LongerFill.m_aButtons[0].w, Fill.m_aButtons[0].w);
+	const auto LongerContent = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
+	EXPECT_GT(LongerContent.m_aButtons[0].w, Content.m_aButtons[0].w);
+	EXPECT_LT(LongerContent.m_aButtons[1].x + LongerContent.m_aButtons[1].w, Row.x + Row.w);
+}
+
+TEST_F(QmSettingsActionGroup, FilledRowRightEdgeBelongsToLastActionAndGapCannotSubmit)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(1000);
+	const CUIRect Row{40, 40, 900, Metrics.m_LineHeight};
+	const char *apLabels[] = {"Settings file", "Saves file"};
+	const auto Layout = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const vec2 RightEdge{Row.x + Row.w - 1.0f, Row.y + Row.h * 0.5f};
+	Frame(RightEdge, false);
+	EXPECT_EQ(Draw(Layout, apLabels), -1);
+	Frame(RightEdge, true);
+	EXPECT_EQ(Draw(Layout, apLabels), -1);
+	Frame(RightEdge, false);
+	EXPECT_EQ(Draw(Layout, apLabels), 1);
+	const vec2 Gap{(Layout.m_aButtons[0].x + Layout.m_aButtons[0].w + Layout.m_aButtons[1].x) * 0.5f, RightEdge.y};
+	Frame(Gap, false);
+	EXPECT_EQ(Draw(Layout, apLabels), -1);
+	Frame(Gap, true);
+	EXPECT_EQ(Draw(Layout, apLabels), -1);
+	Frame(Gap, false);
+	EXPECT_EQ(Draw(Layout, apLabels), -1);
 }
 
 TEST_F(QmSettingsActionGroup, NarrowRowKeepsSeparateHitTargetsAndDisabledActionCannotSubmit)
@@ -64,7 +127,7 @@ TEST_F(QmSettingsActionGroup, NarrowRowKeepsSeparateHitTargetsAndDisabledActionC
 	const auto Metrics = ResolveSettingsContentMetrics(1000);
 	const CUIRect Row{40, 40, 90, Metrics.m_LineHeight};
 	const char *apLabels[] = {"Edit audio pack", "Open audio pack directory"};
-	const auto Layout = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const auto Layout = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 	ASSERT_EQ(Layout.m_Count, 2);
 	EXPECT_FLOAT_EQ(Layout.m_aButtons[0].w, Layout.m_aButtons[1].w);
 	EXPECT_LE(Layout.m_aButtons[1].x + Layout.m_aButtons[1].w, Row.x + Row.w);
@@ -110,9 +173,9 @@ TEST_F(QmSettingsActionGroup, FontSizeChangesRecomputeActionWidthsWithoutChangin
 	auto Metrics = ResolveSettingsContentMetrics(1000);
 	const CUIRect Row{40, 40, 1200, Metrics.m_LineHeight};
 	const char *apLabels[] = {"Preview selected file", "Preview import file"};
-	const auto Normal = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const auto Normal = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 	Metrics.m_BodySize *= 1.5f;
-	const auto LargerText = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const auto LargerText = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 	EXPECT_GT(LargerText.m_aButtons[0].w, Normal.m_aButtons[0].w);
 	EXPECT_FLOAT_EQ(LargerText.m_aButtons[0].h, Normal.m_aButtons[0].h);
 	EXPECT_FLOAT_EQ(LargerText.m_aButtons[0].w, LargerText.m_aButtons[1].w);
@@ -123,14 +186,14 @@ TEST_F(QmSettingsActionGroup, RemovingLongestActionDropsItsWidthAndRepeatedCount
 	const auto Metrics = ResolveSettingsContentMetrics(1000);
 	const CUIRect Row{40, 40, 1800, Metrics.m_LineHeight};
 	const char *apLabels[] = {"Edit", "Directory", "Open the directory containing all installed audio packs"};
-	const auto Baseline = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const auto Baseline = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 	for(int Repeat = 0; Repeat < 16; ++Repeat)
 	{
 		SCOPED_TRACE(Repeat);
-		const auto Three = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 3, Metrics);
+		const auto Three = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 3, Metrics, ESettingsActionGroupWidth::CONTENT);
 		ASSERT_EQ(Three.m_Count, 3);
 		EXPECT_GT(Three.m_aButtons[0].w, Baseline.m_aButtons[0].w);
-		const auto Two = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+		const auto Two = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 		ASSERT_EQ(Two.m_Count, 2);
 		EXPECT_FLOAT_EQ(Two.m_aButtons[0].w, Baseline.m_aButtons[0].w);
 		EXPECT_FLOAT_EQ(Two.m_aButtons[0].w, Two.m_aButtons[1].w);
@@ -142,11 +205,11 @@ TEST_F(QmSettingsActionGroup, EmptyAndInvalidActionsHaveNoSlotsAndDoNotPreventRe
 	const auto Metrics = ResolveSettingsContentMetrics(1000);
 	const CUIRect Row{40, 40, 900, Metrics.m_LineHeight};
 	const char *apLabels[] = {"Edit", "Directory"};
-	const auto Baseline = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const auto Baseline = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 	EXPECT_EQ(ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, nullptr, 2, Metrics).m_Count, 0);
 	for(int Count : {-1, 0, SSettingsChoiceLayout::MAX_SEGMENTS + 1})
 		EXPECT_EQ(ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, Count, Metrics).m_Count, 0);
-	const auto Restored = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics);
+	const auto Restored = ui_widget::PrepareSettingsActionGroup(m_Ui, m_State, Row, apLabels, 2, Metrics, ESettingsActionGroupWidth::CONTENT);
 	EXPECT_EQ(Restored.m_Count, 2);
 	EXPECT_FLOAT_EQ(Restored.m_aButtons[0].w, Baseline.m_aButtons[0].w);
 }

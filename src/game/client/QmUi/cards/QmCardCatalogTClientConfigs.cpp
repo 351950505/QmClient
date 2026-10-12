@@ -189,7 +189,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 		const char *apActionLabels[] = {Localize("Apply Changes"), Localize("Clear Changes")};
 		CUIRect Actions = Row;
 		Actions.w = std::max(0.0f, Row.w - ResolveSettingsCardLabelWidth(Row.w, ConfigMetrics) - ConfigMetrics.m_LineSpacing);
-		const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_ConfigActions, Actions, apActionLabels, 2, ConfigMetrics);
+		const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_ConfigActions, Actions, apActionLabels, 2, ConfigMetrics, ESettingsActionGroupWidth::CONTENT);
 		ApplyBtn = ActionLayout.m_aButtons[0];
 		ClearBtn = ActionLayout.m_aButtons[1];
 		const float CounterX = std::min(Row.x + std::max(0.0f, Row.w), ClearBtn.x + ClearBtn.w + ConfigMetrics.m_LineSpacing);

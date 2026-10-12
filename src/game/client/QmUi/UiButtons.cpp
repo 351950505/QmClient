@@ -13,13 +13,15 @@
 
 namespace ui_widget
 {
-	SSettingsActionGroupLayout PrepareSettingsActionGroup(CUi &Ui, SSettingsActionGroupState &State, const CUIRect &Row, const char *const *ppLabels, int Count, const SSettingsContentMetrics &Metrics)
+	SSettingsActionGroupLayout PrepareSettingsActionGroup(CUi &Ui, SSettingsActionGroupState &State, const CUIRect &Row, const char *const *ppLabels, int Count, const SSettingsContentMetrics &Metrics, ESettingsActionGroupWidth WidthPolicy)
 	{
 		if(ppLabels == nullptr || Count <= 0 || Count > SSettingsChoiceLayout::MAX_SEGMENTS)
 			return {};
+		if(WidthPolicy == ESettingsActionGroupWidth::FILL)
+			return ResolveSettingsActionGroupLayout(Row, Count, Metrics, 0.0f, WidthPolicy);
 		const uint64_t FontRevision = Ui.TextRender()->GlyphAtlasRevision() * 31 + (uint64_t)Ui.TextRender()->GetFontPreset();
 		const float Width = State.m_Widths.Resolve(ppLabels, Count, Metrics.m_BodySize, FontRevision, [&Ui](const char *pText, float Size) { return Ui.TextRender()->TextWidth(Size, pText); });
-		return ResolveSettingsActionGroupLayout(Row, Count, Metrics, Width + 2.0f * ui_token::spacing::MD);
+		return ResolveSettingsActionGroupLayout(Row, Count, Metrics, Width + 2.0f * ui_token::spacing::MD, WidthPolicy);
 	}
 
 	IUiContext ControlContext(CUi *pUi)
@@ -46,7 +48,7 @@ namespace ui_widget
 		State.m_Pressed = State.m_Hovered && pUi->CheckActiveItem(pId) && (pUi->MouseButton(0) || pUi->MouseButton(1) || pUi->MouseButton(2));
 		const ColorRGBA Base = Options.m_Color.value_or(Options.m_TransparentInactive ? ColorRGBA() : ResolveConfiguredControlSurface());
 		auto Style = ResolveUiButtonStyle(Options.m_Role, Base, Backdrop, Theme, State);
-		if(Options.m_TransparentInactive && !State.m_Hovered)
+		if(Options.m_TransparentInactive && !State.m_Hovered && !State.m_Selected)
 			Style.m_Border = ColorRGBA();
 		if(pUi->DrawingSuppressed())
 			return Style.m_Fill;
