@@ -272,3 +272,24 @@ TEST(QmChatTextLayout, OutgoingEchoKeepsTranslationPrimaryAndLocalOriginalSecond
 	EXPECT_STREQ(Blocks.m_pSecondary, "local original");
 	EXPECT_TRUE(Blocks.m_PrimaryIsNetworkText);
 }
+
+TEST(QmChatTextLayout, WordFilterKeepsUnmatchedLocalOriginalVisible)
+{
+	EXPECT_EQ(QmChatTranslationDisplayText("hello world", false, true), "hello world");
+}
+
+TEST(QmChatTextLayout, HiddenMessageSuppressesLocalOriginal)
+{
+	EXPECT_TRUE(QmChatTranslationDisplayText("hello world", true, false).empty());
+	EXPECT_TRUE(QmChatTranslationDisplayText("hello world", true, true).empty());
+}
+
+TEST(QmChatTextLayout, WordFilterMasksLocalOriginalWithoutChangingStoredText)
+{
+	QmStreamerWordFilter::SetAdditionalWords({"qmprivateword"});
+	const std::string Original = "hello qmprivateword world";
+	EXPECT_EQ(QmChatTranslationDisplayText(Original, false, true), "hello *** world");
+	EXPECT_EQ(QmChatTranslationDisplayText(Original, false, false), Original);
+	EXPECT_EQ(Original, "hello qmprivateword world");
+	QmStreamerWordFilter::SetAdditionalWords({});
+}

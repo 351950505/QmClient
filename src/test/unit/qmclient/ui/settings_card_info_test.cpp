@@ -236,9 +236,9 @@ TEST(SettingsCardInfoLayout, HoverOverviewKeepsCardGeometryAndContentHeight)
 		const CUIRect Slot{10, 20, 400, 0};
 		const auto Plain = BuildSettingsCardFrame(Slot, {"example", "Title", nullptr}, 120, Scale);
 		const auto Help = BuildSettingsCardFrame(Slot, {"example", "Title", "A long overview", "Detailed information"}, 120, Scale);
-		EXPECT_FLOAT_EQ(Help.m_Rect.h, Plain.m_Rect.h);
-		EXPECT_FLOAT_EQ(Help.m_ContentRect.y, Plain.m_ContentRect.y);
+		EXPECT_FLOAT_EQ(Help.m_Rect.h, Plain.m_Rect.h + Help.m_SubtitleRect.h);
+		EXPECT_FLOAT_EQ(Help.m_ContentRect.y, Plain.m_ContentRect.y + Help.m_SubtitleRect.h);
 		EXPECT_FLOAT_EQ(Help.m_ContentRect.h, 120);
-		EXPECT_FLOAT_EQ(Help.m_SubtitleRect.h, 0);
+		EXPECT_GT(Help.m_SubtitleRect.h, 0);
 	}
 }

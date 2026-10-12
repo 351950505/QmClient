@@ -189,15 +189,15 @@ TEST(SettingsCardDeck, ConfiguredBorderColorDoesNotTintSurface)
 	EXPECT_FLOAT_EQ(Resolved.a, Surface.a);
 }
 
-TEST(SettingsCard, HoverSubtitleDoesNotReserveSpaceBeforeContent)
+TEST(SettingsCard, HoverSubtitleReservesFixedSpaceBeforeContent)
 {
 	const CUIRect Slot{10.0f, 20.0f, 320.0f, 0.0f};
 	const SSettingsCardFrame Plain = BuildSettingsCardFrame(Slot, {"plain", "Title", nullptr}, 100.0f, 1.0f);
 	const SSettingsCardFrame Summary = BuildSettingsCardFrame(Slot, {"summary", "Title", "What this card changes"}, 100.0f, 1.0f);
-	EXPECT_FLOAT_EQ(Summary.m_SubtitleRect.h, 0.0f);
+	EXPECT_GT(Summary.m_SubtitleRect.h, 0.0f);
 	EXPECT_FLOAT_EQ(Summary.m_SubtitleRect.y, Summary.m_TitleRect.y + Summary.m_TitleRect.h);
 	EXPECT_GE(Summary.m_ContentRect.y, Summary.m_SubtitleRect.y + Summary.m_SubtitleRect.h);
-	EXPECT_FLOAT_EQ(Summary.m_Rect.h, Plain.m_Rect.h);
+	EXPECT_FLOAT_EQ(Summary.m_Rect.h, Plain.m_Rect.h + Summary.m_SubtitleRect.h);
 	EXPECT_FLOAT_EQ(Summary.m_ContentRect.h, Plain.m_ContentRect.h);
 	EXPECT_FLOAT_EQ(Summary.m_HandleRect.h, Plain.m_HandleRect.h);
 	EXPECT_FLOAT_EQ(Summary.m_HandleRect.w, Summary.m_HandleRect.h);

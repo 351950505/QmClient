@@ -6,6 +6,7 @@
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/components/menus.h>
+#include <game/client/components/qmclient/word_filter_list.h>
 #include <game/client/gameclient.h>
 #include <game/localization.h>
 
@@ -90,7 +91,8 @@ void CMenus::RenderQmFunctionBlockWordsContent(CUIRect &Content, float UiScale, 
 		Flow.Space(LineSpacing);
 	}
 
-	static CLineInputBuffered<1024> s_BlockWordsInput;
+	RenderQmWordFilterFileContent(Content, false, LineHeight, LineSpacing, BodySize);
+	static CLineInputBuffered<QmWordFilterList::INLINE_CAPACITY> s_BlockWordsInput;
 	static bool s_BlockWordsInited = false;
 	if(Flow.Input() && !PrewarmOnly && !Ui()->RenderOnly() && !s_BlockWordsInited)
 	{
@@ -292,9 +294,8 @@ namespace qm_card_catalog
 			Out.m_HasPendingPreLayoutInput = KeywordReplyHasPendingInput;
 			return true;
 		case EQmModuleId::PieMenu:
-			Add(Id, "qm:pie_menu", "Pie Menu", "Quick action menu for players", [pMenus, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, ReadOnly, Page = Ctx.m_Page](CUIRect &Content) {
-				const bool FullWidth = !Page.m_TwoColumns || Content.w > (Page.m_ContentViewport.w + Page.m_aColumns[0].w) * 0.5f - 2.0f * CardPadding;
-				qm_card_catalog::QmCardRenderHook::RenderQmFunctionPieMenuContent(pMenus, Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, ReadOnly, FullWidth ? 4 : 2);
+			Add(Id, "qm:pie_menu", "Pie Menu", "Quick action menu for players", [pMenus, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, ReadOnly](CUIRect &Content) {
+				qm_card_catalog::QmCardRenderHook::RenderQmFunctionPieMenuContent(pMenus, Content, UiScale, LineHeight, BodySize, LineSpacing, LabelWidth, ButtonHeight, CardPadding, CardCornerRadius, ReadOnly);
 			});
 			return true;
 		case EQmModuleId::MapUpload:

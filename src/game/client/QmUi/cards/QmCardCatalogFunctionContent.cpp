@@ -205,13 +205,17 @@ void CMenus::RenderQmFunctionGoresContent(CUIRect &Content, float LineHeight, fl
 	RenderCheckbox(&g_Config.m_QmGoresAutoEnable, "qmclient-gores-auto-enable", "Auto enable in Gores mode", &g_Config.m_QmGoresAutoEnable);
 	if(g_Config.m_QmGores || g_Config.m_QmGoresAutoEnable)
 	{
-		RenderCheckbox(&g_Config.m_QmGoresAutoWeaponSwitch, "qmclient-gores-auto-weapon-switch", "Auto weapon switch", &g_Config.m_QmGoresAutoWeaponSwitch);
-		RenderCheckbox(&g_Config.m_QmGoresFastInput, "qmclient-gores-fast-input", "Auto-toggle fast input", &g_Config.m_QmGoresFastInput);
-		RenderCheckbox(&g_Config.m_QmGoresFastInputOthers, "qmclient-gores-fast-input-others", "Auto-toggle fast input others", &g_Config.m_QmGoresFastInputOthers);
-		RenderCheckbox(&g_Config.m_QmGoresDisableIfWeapons, "qmclient-gores-disable-if-weapons", "Disable after picking up other weapons", &g_Config.m_QmGoresDisableIfWeapons);
-		RenderCheckbox(&g_Config.m_QmGoresDisableDummyHammer, "qmclient-gores-disable-dummy-hammer", "Temporarily disable dummy hammering", &g_Config.m_QmGoresDisableDummyHammer);
-		RenderCheckbox(&g_Config.m_QmGoresHideGuides, "qmclient-gores-hide-guides", "Hide guide lines", &g_Config.m_QmGoresHideGuides);
-		RenderCheckbox(&g_Config.m_QmGoresSuppressSwitchAnim, "qmclient-gores-suppress-switch-anim", "Skip switch animation when hammering", &g_Config.m_QmGoresSuppressSwitchAnim);
+		DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+			{
+				{&g_Config.m_QmGoresAutoWeaponSwitch, "qmclient-gores-auto-weapon-switch", Localize("Auto weapon switch")},
+				{&g_Config.m_QmGoresFastInput, "qmclient-gores-fast-input", Localize("Auto-toggle fast input")},
+				{&g_Config.m_QmGoresFastInputOthers, "qmclient-gores-fast-input-others", Localize("Auto-toggle fast input others")},
+				{&g_Config.m_QmGoresDisableIfWeapons, "qmclient-gores-disable-if-weapons", Localize("Disable after picking up other weapons")},
+				{&g_Config.m_QmGoresDisableDummyHammer, "qmclient-gores-disable-dummy-hammer", Localize("Temporarily disable dummy hammering")},
+				{&g_Config.m_QmGoresHideGuides, "qmclient-gores-hide-guides", Localize("Hide guide lines")},
+				{&g_Config.m_QmGoresSuppressSwitchAnim, "qmclient-gores-suppress-switch-anim", Localize("Skip switch animation when hammering")},
+			},
+			CurrentSettingsContentMetrics(), !PrewarmOnly);
 	}
 
 	if(!Flow.Control("qmclient-gores-mode-key", LineHeight, Row))
@@ -493,21 +497,6 @@ void CMenus::RenderQmFunctionEmoticonsContent(CUIRect &Content, float LineHeight
 void CMenus::RenderQmFunctionMiniFeaturesContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
 {
 	CSettingsContentLayoutFlow Flow(Content);
-	CUIRect Row;
-	auto RenderCheckbox = [this, &Flow, &Content, &Row, LineHeight, LineSpacing, PrewarmOnly](const void *pId, const char *pText, int *pValue) {
-		if(Flow.Control(pText, LineHeight, Row))
-		{
-			RenderQmFunctionCheckbox(pId, pText, Localize(pText), pValue, &Row, PrewarmOnly);
-		}
-		Flow.Space(LineSpacing);
-	};
-	auto RenderCheckboxTipped = [this, &Flow, &Content, &Row, LineHeight, LineSpacing, PrewarmOnly](const void *pId, const char *pText, const char *pTooltip, int *pValue) {
-		if(Flow.Control(pText, LineHeight, Row))
-		{
-			RenderQmFunctionCheckbox(pId, pText, Localize(pText), pValue, &Row, PrewarmOnly, pTooltip);
-		}
-		Flow.Space(LineSpacing);
-	};
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
 		{{&g_Config.m_QmChatCommandCompletion, "Show command completion in chat", Localize("Show command completion in chat")},
 			{&g_Config.m_QmChatEmojiCompletion, "Chat emoji completion", Localize("Chat emoji completion")}},
@@ -527,11 +516,13 @@ void CMenus::RenderQmFunctionMiniFeaturesContent(CUIRect &Content, float LineHei
 		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	// 计分板相关的 5 项（更好的计分板/积分检查/死亡后显示/滚轮滚动/过滤器）只在 qm:better_scoreboard 卡里渲染一次，
 	// 这里不再重复，避免同一条配置在两张卡里各出现一遍。
-	RenderCheckbox(&g_Config.m_QmHideJoinServerInfo, "Hide server information on join", &g_Config.m_QmHideJoinServerInfo);
-	RenderCheckboxTipped(&g_Config.m_QmShowTuneZoneColors, "Show tune zone colors", Localize("Color map tune zones by their tune zone number"), &g_Config.m_QmShowTuneZoneColors);
-	// 回退语义在加载期读取：开关变化由 CGameClient::OnRender 的兜底轮询统一触发热重载，
-	// 这里只负责渲染复选框，不在渲染遍里做加载副作用。
-	RenderCheckboxTipped(&g_Config.m_QmBlankAssetFallback, "Blank asset auto fallback", Localize("Automatically fall back to the default asset when a custom asset sprite is fully transparent; turn off to keep blank sprites invisible (e.g. to hide effects)"), &g_Config.m_QmBlankAssetFallback);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmHideJoinServerInfo, "Hide server information on join", Localize("Hide server information on join")},
+			{&g_Config.m_QmShowTuneZoneColors, "Show tune zone colors", Localize("Show tune zone colors"), nullptr, 0, Localize("Color map tune zones by their tune zone number")},
+			{&g_Config.m_QmBlankAssetFallback, "Blank asset auto fallback", Localize("Blank asset auto fallback"), nullptr, 0, Localize("Automatically fall back to the default asset when a custom asset sprite is fully transparent; turn off to keep blank sprites invisible (e.g. to hide effects)")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
 		{
 			{&g_Config.m_QmMessageMerge, "Message merging", Localize("Message merging")},
@@ -553,14 +544,15 @@ void CMenus::RenderQmFunctionMiniFeaturesContent(CUIRect &Content, float LineHei
 		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	// 关闭赞助提醒时不弹确认框，而是用同样式的灵动岛问一句，
 	// 避免把「关掉一个提醒」变成需要连点两次的操作。
-	if(Flow.Control("RenderQmFunctionMiniFeaturesContent-3", LineHeight, Row))
+	const int SponsorNudgeBefore = g_Config.m_QmSponsorNudge;
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{{&g_Config.m_QmSponsorNudge, "Sponsor reminder", Localize("Sponsor reminder")}},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
+	if(Flow.Input() && !PrewarmOnly && !Ui()->RenderOnly())
 	{
-		const int SponsorNudgeBefore = g_Config.m_QmSponsorNudge;
-		RenderQmFunctionCheckbox(&g_Config.m_QmSponsorNudge, "Sponsor reminder", Localize("Sponsor reminder"), &g_Config.m_QmSponsorNudge, &Row, PrewarmOnly);
-		if(!PrewarmOnly && SponsorNudgeBefore != 0 && g_Config.m_QmSponsorNudge == 0)
+		if(SponsorNudgeBefore != 0 && g_Config.m_QmSponsorNudge == 0)
 			GameClient()->ShowSponsorNudgeFarewell();
-		else if(!PrewarmOnly && SponsorNudgeBefore == 0 && g_Config.m_QmSponsorNudge != 0)
+		else if(SponsorNudgeBefore == 0 && g_Config.m_QmSponsorNudge != 0)
 			GameClient()->HideSponsorNudgeFarewell();
 	}
-	Flow.Space(LineSpacing);
 }

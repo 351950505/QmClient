@@ -9,8 +9,8 @@
 
 #include <game/client/QmUi/QmPieMenuRender.h>
 #include <game/client/QmUi/QmPieMenuSettingsControls.h>
-#include <game/client/QmUi/SettingsChoiceGrid.h>
 #include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/pie_menu_logic.h>
@@ -23,7 +23,7 @@
 #include <array>
 #include <cmath>
 
-void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly, int MaxGridColumns)
+void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly)
 {
 	CSettingsContentLayoutFlow Flow(Content);
 	const bool CanCommit = Flow.Input() && !PrewarmOnly && !Ui()->RenderOnly();
@@ -152,46 +152,47 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 		m_ColorPickerPopupContext.m_Alpha = Entry.m_Alpha;
 		Ui()->ShowPopupColorPicker(Ui()->MouseX(), Ui()->MouseY(), &m_ColorPickerPopupContext);
 	};
-	std::array<const char *, qm_pie_menu::OPTION_COUNT> apNames{};
+	SSettingsContentMetrics ToggleMetrics = CurrentSettingsContentMetrics();
+	ToggleMetrics.m_UiScale = UiScale;
+	ToggleMetrics.m_LineHeight = LineHeight;
+	ToggleMetrics.m_BodySize = BodySize;
+	ToggleMetrics.m_LineSpacing = LineSpacing;
+	const float PaddingX = std::max(LineSpacing, BodySize * 0.5f);
+	const float PaddingY = LineSpacing * 0.5f;
+	const auto OptionButtonRect = [LineHeight, LineSpacing](CUIRect Cell) {
+		// 色块位于按钮右侧，两个命中区域始终分离。
+		return QmPieOptionButtonRect(Cell, LineHeight, LineSpacing);
+	};
+	std::array<SSettingsToggleSize, qm_pie_menu::OPTION_COUNT> aItemSizes{};
 	for(size_t Index = 0; Index < aColorEntries.size(); ++Index)
-		apNames[Index] = aColorEntries[Index].m_pName;
-	static CSettingsChoiceWidthCache s_ColorWidths;
-	const float TextWidth = s_ColorWidths.Resolve(apNames.data(), apNames.size(), BodySize, TextRender()->GlyphAtlasRevision(),
-		[this](const char *pText, float Size) { return TextRender()->TextWidth(Size, pText); });
-	const float MinimumCellWidth = std::max(72.0f * UiScale, TextWidth + LineSpacing * 2.0f);
-	SSettingsChoiceGrid Grid = ResolveSettingsToggleGrid(Content.w, MinimumCellWidth, 0.0f, LineSpacing * 2.0f, static_cast<int>(aColorEntries.size()), MaxGridColumns);
-	std::vector<SSettingsContentRowDeclaration> vLabels;
-	vLabels.reserve(aColorEntries.size());
-	for(const auto &Entry : aColorEntries)
-		vLabels.push_back({Entry.m_pTextId, Entry.m_pName, LineHeight, BodySize, 0.0f, 0.0f, true});
-	static CSettingsContentLayoutCache s_ColorLabelLayouts;
-	const auto pLabels = s_ColorLabelLayouts.Resolve(vLabels, Grid.m_CellWidth, TextRender()->GlyphAtlasRevision(),
-		[this](const char *pText, float Width, float Size) { return TextRender()->TextBoundingBox(Size, pText, -1, Width).m_H; });
-	float LabelHeight = LineHeight;
-	for(const auto &Label : pLabels->Rows())
-		LabelHeight = std::max(LabelHeight, Label.m_Rect.h);
-	Grid.m_RowHeight = LabelHeight + LineSpacing * 0.5f + LineHeight;
+	{
+		aItemSizes[Index] = ResolveSettingsToggleButtonSize(TextRender()->TextWidth(BodySize, aColorEntries[Index].m_pName), BodySize, LineHeight, PaddingX, PaddingY);
+		aItemSizes[Index].m_Width += LineHeight + LineSpacing;
+	}
+	auto Grid = ResolveSettingsToggleGrid(Content.w, aItemSizes, LineSpacing);
+	for(size_t Index = 0; Index < aColorEntries.size(); ++Index)
+	{
+		const CUIRect Button = OptionButtonRect({0, 0, Grid.m_aColumnWidths[Index % Grid.m_Columns], LineHeight});
+		const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY);
+		const float LabelHeight = TextRender()->TextBoundingBox(BodySize, aColorEntries[Index].m_pName, -1, std::max(1.0f, Label.w)).m_H;
+		aItemSizes[Index].m_Height = ResolveSettingsToggleButtonSize(0, LabelHeight, LineHeight, PaddingX, PaddingY).m_Height;
+	}
+	Grid.SetItemHeights(aItemSizes);
 	CUIRect GridArea;
 	if(Flow.Control("pie-color-grid", Grid.Height(), GridArea))
 	{
 		for(size_t Index = 0; Index < aColorEntries.size(); ++Index)
 		{
 			const auto &Entry = aColorEntries[Index];
-			CUIRect Cell = Grid.Cell(GridArea, static_cast<int>(Index));
-			CUIRect Label;
-			Cell.HSplitTop(LabelHeight, &Label, &Cell);
-			Cell.HSplitTop(LineSpacing * 0.5f, nullptr, &Cell);
-			SLabelProperties Props;
-			Props.m_MaxWidth = Label.w;
-			DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Entry.m_pTextId, &Label, Entry.m_pName, BodySize, TEXTALIGN_MC, Props);
-			const auto Controls = QmDrawPieOptionControls(TextInputCtx, Entry.m_pEnabled, Entry.m_pColorValue, *Entry.m_pEnabled != 0,
-				color_cast<ColorRGBA>(ColorHSLA(*Entry.m_pColorValue, Entry.m_Alpha)), Cell, LineHeight, LineSpacing, CornerRadius * 0.5f, CanCommit);
-			if(Controls.m_EnabledChanged)
-				*Entry.m_pEnabled = Controls.m_Enabled;
-			if(Controls.m_ColorClicked)
+			const CUIRect Cell = Grid.Cell(GridArea, static_cast<int>(Index));
+			DoSettingsToggleButton(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, OptionButtonRect(Cell),
+				{Entry.m_pEnabled, Entry.m_pTextId, Entry.m_pName}, ToggleMetrics, CanCommit, Flow.Input() ? ESettingsToggleGroupPass::INPUT : ESettingsToggleGroupPass::RENDER);
+			const CUIRect Swatch = QmPieOptionSwatchRect(Cell, LineHeight);
+			if(QmDrawPieOptionColorControl(TextInputCtx, Entry.m_pColorValue,
+				   color_cast<ColorRGBA>(ColorHSLA(*Entry.m_pColorValue, Entry.m_Alpha)), Swatch, CornerRadius * 0.5f, CanCommit))
 				OpenColorPopup(Entry);
 			if(!PrewarmOnly)
-				GameClient()->m_Tooltips.DoToolTip(Entry.m_pColorValue, &Controls.m_Swatch, Localize("Set color"));
+				GameClient()->m_Tooltips.DoToolTip(Entry.m_pColorValue, &Swatch, Localize("Set color"));
 		}
 	}
 	Flow.Space(LineSpacing);

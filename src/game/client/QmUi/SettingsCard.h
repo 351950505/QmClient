@@ -77,14 +77,6 @@ inline bool SettingsCardInteractionBorderVisible(const SSettingsCardVisualState 
 	return State.m_Dragged || State.m_DropFeedback;
 }
 
-// 副标题使用整卡锚点；普通 focus/click 不能改变卡片的外观或正文布局。
-template<typename TTooltip>
-inline void ExecuteSettingsCardSubtitleTooltip(const SSettingsCardSpec &Spec, const CUIRect &Card, bool PointerInside, bool DrawChrome, TTooltip &&Tooltip)
-{
-	if(PointerInside && DrawChrome && Spec.m_pSubtitle != nullptr && Spec.m_pSubtitle[0] != '\0')
-		Tooltip(Card, Spec.m_pSubtitle);
-}
-
 inline bool SettingsCardShouldDrawChrome(const bool MeasurementOnly)
 {
 	return !MeasurementOnly;

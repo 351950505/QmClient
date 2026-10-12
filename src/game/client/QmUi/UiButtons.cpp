@@ -64,14 +64,15 @@ namespace ui_widget
 		return Fill;
 	}
 
-	int DoIconButton(const IUiContext &Ctx, const void *pId, EQmIcon Icon, const char *pFallbackIcon, int Checked, const CUIRect &Rect, unsigned Flags, int Corners, bool Enabled, std::optional<ColorRGBA> Color, bool ShowSlash, bool TransparentInactive)
+	int DoIconButton(const IUiContext &Ctx, const void *pId, EQmIcon Icon, const char *pFallbackIcon, int Checked, const CUIRect &Rect, unsigned Flags, int Corners, bool Enabled, std::optional<ColorRGBA> Color, bool ShowSlash, bool TransparentInactive, const CUIRect *pHitRect)
 	{
 		if(Ctx.m_pUi == nullptr || pId == nullptr || (Ctx.m_pUi->DrawingSuppressed() && !Ctx.m_pUi->PreLayoutInput()))
 			return 0;
 		CUi *pUi = Ctx.m_pUi;
 		const CUIRect ButtonRect = QmUiSquareIconButtonRect(Rect);
+		const CUIRect &HitRect = pHitRect != nullptr ? *pHitRect : ButtonRect;
 		if(pUi->PreLayoutInput())
-			return Enabled && Checked >= 0 ? pUi->DoButtonLogic(pId, Checked, &ButtonRect, Flags) : 0;
+			return Enabled && Checked >= 0 ? pUi->DoButtonLogic(pId, Checked, &HitRect, Flags) : 0;
 		SButtonSurfaceOptions Options;
 		Options.m_Role = EUiButtonRole::ICON;
 		Options.m_Enabled = Enabled && Checked >= 0;
@@ -79,11 +80,15 @@ namespace ui_widget
 		Options.m_Corners = Corners;
 		Options.m_Color = Color;
 		Options.m_TransparentInactive = TransparentInactive;
+		Options.m_pHitRect = &HitRect;
+		const ColorRGBA SemanticColor = pUi->TextRender()->GetTextColor();
 		const ColorRGBA Fill = DrawButtonSurface(Ctx, pId, ButtonRect, Options);
 		CUiScopedSurfaceText SurfaceText(pUi->TextRender(), Fill);
 		CUIRect Label;
 		ButtonRect.Margin(std::min(2.0f, ButtonRect.h * 0.1f), &Label);
 		ColorRGBA Foreground = ResolveUiSurfaceForeground(SurfaceText.Surface()).WithAlpha(pUi->TextRender()->GetTextColor().a);
+		if(CQmIconSemanticColorScope::Active())
+			Foreground = ResolveUiSurfaceIconColor(SurfaceText.Surface(), SemanticColor);
 		if(!Options.m_Enabled)
 			Foreground.a *= 0.65f;
 		pUi->DrawQmIcon(Label, Icon, pFallbackIcon, Foreground);
@@ -107,12 +112,12 @@ namespace ui_widget
 			DrawSlash(Label.w * 0.10f, pUi->ScaleControlAlpha(ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f)));
 			pGraphics->QuadsEnd();
 		}
-		return Options.m_Enabled && !pUi->RenderOnly() ? pUi->DoButtonLogic(pId, Checked, &ButtonRect, Flags) : 0;
+		return Options.m_Enabled && !pUi->RenderOnly() ? pUi->DoButtonLogic(pId, Checked, &HitRect, Flags) : 0;
 	}
 
 	namespace
 	{
-		bool DoStyledButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled, EUiButtonRole Role, const int Corners = IGraphics::CORNER_ALL, const bool DrawBorder = true, const EUiButtonGeometry Geometry = EUiButtonGeometry::CONTROL, const CUIRect *pSurfaceRect = nullptr)
+		bool DoStyledButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled, EUiButtonRole Role, const int Corners = IGraphics::CORNER_ALL, const bool DrawBorder = true, const EUiButtonGeometry Geometry = EUiButtonGeometry::CONTROL, const CUIRect *pSurfaceRect = nullptr, bool Selected = false)
 		{
 			if(Ctx.m_pUi == nullptr || pBtn == nullptr)
 				return false;
@@ -123,6 +128,7 @@ namespace ui_widget
 				Options.m_BorderWidth = 0.0f;
 			Options.m_Corners = Corners;
 			Options.m_Enabled = !Disabled;
+			Options.m_Selected = Selected;
 			Options.m_pHitRect = &Rect;
 			const ColorRGBA Fill = DrawButtonSurface(Ctx, pBtn, pSurfaceRect != nullptr ? *pSurfaceRect : Rect, Options);
 			CUiScopedSurfaceText SurfaceText(Ctx.m_pUi->TextRender(), Fill);
@@ -132,7 +138,8 @@ namespace ui_widget
 			Props.m_MaxWidth = std::max(0.0f, Rect.w - ui_token::spacing::SM);
 			Props.m_MinimumFontSize = ui_token::font::SMALL;
 			Props.m_EllipsisAtEnd = true;
-			Ctx.m_pUi->DoLabel(&Rect, pText, ui_token::font::BODY, TEXTALIGN_MC, Props);
+			if(Props.m_MaxWidth > 0.0f && Rect.h > 0.0f)
+				Ctx.m_pUi->DoLabel(&Rect, pText, ui_token::font::BODY, TEXTALIGN_MC, Props);
 			if(Disabled && !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->CheckActiveItem(pBtn))
 				Ctx.m_pUi->SetActiveItem(nullptr);
 			const bool Clicked = !Disabled && !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->DoButtonLogic(pBtn, 0, &Rect, BUTTONFLAG_LEFT) != 0;
@@ -147,9 +154,9 @@ namespace ui_widget
 		return DoStyledButton(Ctx, pBtn, pText, Rect, Disabled, EUiButtonRole::PRIMARY, IGraphics::CORNER_ALL, true, Geometry);
 	}
 
-	bool SecondaryButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled, EUiButtonGeometry Geometry)
+	bool SecondaryButton(const IUiContext &Ctx, CButtonContainer *pBtn, const char *pText, const CUIRect &Rect, bool Disabled, EUiButtonGeometry Geometry, bool Selected)
 	{
-		return DoStyledButton(Ctx, pBtn, pText, Rect, Disabled, EUiButtonRole::SECONDARY, IGraphics::CORNER_ALL, true, Geometry);
+		return DoStyledButton(Ctx, pBtn, pText, Rect, Disabled, EUiButtonRole::SECONDARY, IGraphics::CORNER_ALL, true, Geometry, nullptr, Selected);
 	}
 
 	int SplitActionButton(const IUiContext &Ctx, CButtonContainer *pLeft, const char *pLeftText, CButtonContainer *pRight, const char *pRightText, const CUIRect &Rect, bool LeftDisabled, bool RightDisabled, EUiButtonGeometry Geometry, const char *pLeftTooltip, const char *pRightTooltip)

@@ -4,6 +4,7 @@
 
 #include "QmAnimResolve.h"
 #include "SettingsCardInfo.h"
+#include "SettingsCardSubtitle.h"
 #include "SettingsIconFeedback.h"
 #include "SettingsPageLayout.h"
 #include "UiButtons.h"
@@ -109,7 +110,7 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	SUiTheme Fallback;
 	const SUiTheme &Theme = SettingsCardTheme(Ctx, Fallback);
 	const bool DrawCardChrome = SettingsCardShouldDrawChrome(Ctx.m_pUi != nullptr && Ctx.m_pUi->MeasurementOnly());
-	// 普通 hover 只触发悬浮说明；重排与拖放反馈只改变边框，卡片背景透明度保持稳定，避免滚动或切页时闪烁。
+	// 普通 hover 只显示卡片内副标题；重排与拖放反馈只改变边框，卡片背景透明度保持稳定，避免滚动或切页时闪烁。
 	// 完成反馈只属于显式拖放。普通高度/布局变化不得改变卡片 chrome，
 	// 否则半透明卡片在展开、折叠或首次布局时会表现为一次亮闪。
 	// 普通卡片只是内容容器，指针进入不改变背景。拖放才需要轮廓反馈，
@@ -128,13 +129,6 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	const float BorderWidth = ResolveSettingsCardBorderWidth(UiScale, PixelSize);
 	if(DrawCardChrome)
 		DrawRoundedSurface(Ctx, ChromeRect, Surface, Border, CardRadius, DrawNormalBorder || DrawAttentionBorder ? BorderWidth : 0.0f);
-	if(Ctx.m_pUi != nullptr && Ctx.m_pTooltips != nullptr && Spec.m_pStableId != nullptr)
-	{
-		ExecuteSettingsCardSubtitleTooltip(Spec, DrawFrame.m_Rect, DrawState.m_PointerInside, DrawCardChrome, [&](const CUIRect &Anchor, const char *pText) {
-			const uint64_t Key = BuildUiAnimNodeKey(Ctx.m_ScopeHash ^ str_quickhash("card-subtitle-tip"), str_quickhash(Spec.m_pStableId));
-			Ctx.m_pTooltips->DoSmallToolTip(reinterpret_cast<const void *>(static_cast<uintptr_t>(Key)), &Anchor, pText, ResolveSettingsSmallFontSize(UiScale), ResolveSettingsCardInfoWidth(Ctx.m_pUi->Screen()->w, UiScale));
-		});
-	}
 
 	if(Ctx.m_pUi != nullptr && Ctx.m_pTextRender != nullptr)
 	{
@@ -162,6 +156,10 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 		TitleProps.m_MaxWidth = DrawFrame.m_TitleRect.w;
 		TitleProps.m_EllipsisAtEnd = true;
 		RenderSettingsCardLabel(Ctx, Spec, false, DrawFrame.m_TitleRect, Spec.m_pTitle != nullptr ? Spec.m_pTitle : "", ui_token::font::TITLE * UiScale, TitleProps);
+		ColorRGBA SubtitleColor = ResolveConfiguredTextColor(Surface);
+		SubtitleColor.a *= DrawState.m_DrawAlpha;
+		Ctx.m_pTextRender->TextColor(SubtitleColor);
+		RenderSettingsCardSubtitle(Ctx, DrawFrame, Spec, DrawState.m_PointerInside);
 		// 标题只影响本卡片，不能把调用方的文本状态写死为默认白色。
 		Ctx.m_pTextRender->SetRenderFlags(PreviousRenderFlags);
 		Ctx.m_pTextRender->SetFontPreset(PreviousFontPreset);
@@ -303,7 +301,9 @@ bool CMenus::DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect
 	Props.m_MinimumFontSize = Metrics.m_BodySize;
 	if(pOverrideTooltip != nullptr)
 		Props.SetColor(ui_token::color::TEXT_DISABLED);
-	DoSettingsMenuLabel(Page, Tab, Subtab, Entry.m_pTextId, &Label, Entry.m_pLabel, Metrics.m_BodySize, TEXTALIGN_MC, Props);
+	ExecuteSettingsCardLabel(Label, [&]() {
+		DoSettingsMenuLabel(Page, Tab, Subtab, Entry.m_pTextId, &Label, Entry.m_pLabel, Metrics.m_BodySize, TEXTALIGN_MC, Props);
+	});
 	if(!m_MenuTextPlanCollecting && !Ui()->RenderOnly() && Context.m_pTooltips != nullptr)
 	{
 		if(pOverrideTooltip != nullptr)

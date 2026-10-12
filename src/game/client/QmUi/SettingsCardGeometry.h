@@ -14,7 +14,7 @@ struct SSettingsCardSpec
 {
 	const char *m_pStableId = nullptr;
 	const char *m_pTitle = nullptr;
-	// 整卡悬浮说明，同时保留搜索描述来源，不占正文高度。
+	// 整卡悬浮时在固定预留的副标题行显示，同时保留搜索描述来源。
 	const char *m_pSubtitle = nullptr;
 	// 可选详细说明，同样通过控件锚定的悬浮提示显示。
 	const char *m_pInfo = nullptr;

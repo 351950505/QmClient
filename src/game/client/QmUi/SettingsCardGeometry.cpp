@@ -6,13 +6,13 @@
 
 #include <algorithm>
 
-SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &, const float ContentHeight, const float UiScale)
+SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &Spec, const float ContentHeight, const float UiScale)
 {
 	const float Scale = std::isfinite(UiScale) && UiScale > 0.0f ? UiScale : 1.0f;
 	const float Padding = ui_token::settings::CARD_PADDING * Scale;
 	const float TitleHeight = ui_token::settings::CARD_HEADER_TITLE_HEIGHT * Scale;
-	// 副标题只在整卡悬浮时显示；不为摘要预留正文空间。
-	const float SubtitleHeight = 0.0f;
+	// 为悬浮副标题固定预留空间，鼠标进入或离开时不移动正文和后续卡片。
+	const float SubtitleHeight = Spec.m_pSubtitle != nullptr && Spec.m_pSubtitle[0] != '\0' ? ui_token::settings::CARD_HEADER_SUBTITLE_HEIGHT * Scale : 0.0f;
 	const float SummaryGap = 0.0f;
 	const float HeaderGap = ui_token::settings::CARD_HEADER_GAP * Scale;
 	const float HeaderHeight = TitleHeight + SummaryGap + SubtitleHeight;
@@ -25,7 +25,7 @@ SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCa
 	Frame.m_HandleRect = {Frame.m_HeaderRect.x + Frame.m_HeaderRect.w - HandleSize, Frame.m_HeaderRect.y, HandleSize, HandleSize};
 	const float TextWidth = std::max(0.0f, Frame.m_HeaderRect.w - HandleSize - Padding);
 	Frame.m_TitleRect = {Frame.m_HeaderRect.x, Frame.m_HeaderRect.y, TextWidth, TitleHeight};
-	// 保留旧字段供调用方过渡，零高度不参与布局或绘制。
+	// 副标题独占标题下方的一行，绘制时沿用限宽和省略兜底。
 	Frame.m_SubtitleRect = {Frame.m_HeaderRect.x, Frame.m_HeaderRect.y + TitleHeight + SummaryGap, Frame.m_HeaderRect.w, SubtitleHeight};
 	Frame.m_ContentRect = {Frame.m_Rect.x + Padding, Frame.m_HeaderRect.y + HeaderHeight + HeaderGap, Frame.m_HeaderRect.w, SafeContentHeight};
 	return Frame;

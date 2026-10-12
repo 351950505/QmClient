@@ -867,15 +867,6 @@ inline float ResolveQmVisualCollisionHitboxHeight(const SSettingsContentMetrics 
 	return (Enabled ? 17.0f : 1.0f) * Metrics.m_RowStep;
 }
 
-inline float ResolveQmVisualFocusModeHeight(const SSettingsContentMetrics &Metrics)
-{
-	// 保留本地双列内容块的纯几何高度，输入与绘制共用这一布局事实。
-	const float Section = Metrics.m_SmallSize + Metrics.m_LineSpacing;
-	const float LeftColumn = 3.0f * Section + 14.0f * Metrics.m_RowStep;
-	const float RightColumn = 2.0f * Section + 7.0f * Metrics.m_RowStep;
-	return 2.0f * Metrics.m_RowStep + std::max(LeftColumn, RightColumn) + Metrics.m_LineSpacing;
-}
-
 inline float ResolveSettingsHslaRowsHeight(const SSettingsContentMetrics &Metrics, const bool Alpha)
 {
 	return ResolveSettingsRowsHeight(Alpha ? 4 : 3, Metrics.m_LineHeight, Metrics.m_LineSpacing);

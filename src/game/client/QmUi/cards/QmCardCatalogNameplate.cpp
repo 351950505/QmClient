@@ -85,8 +85,12 @@ namespace qm_card_catalog
 				if(g_Config.m_ClNamePlatesClan)
 					NumericField(Content, "appearance-clan-plates-size", Localize("Clan plates size"), &g_Config.m_ClNamePlatesClanSize, -50, 100);
 				NumericField(Content, "appearance-coords-size", Localize("Coords size"), &g_Config.m_ClNamePlatesCoordsSize, -50, 100);
-				CheckBox(Content, "appearance-name-plates-team-colors", Localize("Use team colors for name plates"), &g_Config.m_ClNamePlatesTeamcolors);
-				CheckBox(Content, "appearance-show-friend-icon-name-plates", Localize("Show friend icon in name plates"), &g_Config.m_ClNamePlatesFriendMark);
+				pMenus->DoSettingsToggleGroup(Page, Tab, Tab, Content,
+					{
+						{&g_Config.m_ClNamePlatesTeamcolors, "appearance-name-plates-team-colors", Localize("Use team colors for name plates")},
+						{&g_Config.m_ClNamePlatesFriendMark, "appearance-show-friend-icon-name-plates", Localize("Show friend icon in name plates")},
+					},
+					Metrics, Flow.Input());
 				CheckBox(Content, "appearance-show-client-ids-name-plates", Localize("Show client IDs in name plates"), &g_Config.m_ClNamePlatesIds);
 				if(g_Config.m_ClNamePlatesIds)
 				{
@@ -104,22 +108,17 @@ namespace qm_card_catalog
 				if(!g_Config.m_QmNameplateAdvanced)
 					return;
 
-				const auto EffectToggle = [&](int Effect, const char *pTextId, const char *pLabel) {
-					CUIRect Row;
-					if(!NextRow(Content, pTextId, Row))
-						return;
-					const bool Enabled = (g_Config.m_QmNameplateTextEffects & Effect) != 0;
-					if(pMenus->DoSettingsButton_CheckBox(Page, Tab, Tab, pTextId, pTextId, pLabel, Enabled, &Row, SingleLineProps))
+				const bool GlowWasEnabled = (g_Config.m_QmNameplateTextEffects & QM_TEXT_EFFECT_GLOW) != 0;
+				pMenus->DoSettingsToggleGroup(Page, Tab, Tab, Content,
 					{
-						g_Config.m_QmNameplateTextEffects ^= Effect;
-						if(!Enabled && Effect == QM_TEXT_EFFECT_GLOW && g_Config.m_QmNameplateTextGlowRange == 0)
-							g_Config.m_QmNameplateTextGlowRange = 4;
-					}
-				};
-				EffectToggle(QM_TEXT_EFFECT_BORDER, "appearance-nameplate-text-border", Localize("Border"));
-				EffectToggle(QM_TEXT_EFFECT_GRADIENT, "appearance-nameplate-text-gradient", Localize("Gradient"));
-				EffectToggle(QM_TEXT_EFFECT_RAINBOW, "appearance-nameplate-text-rainbow", Localize("Rainbow"));
-				EffectToggle(QM_TEXT_EFFECT_GLOW, "appearance-nameplate-text-glow", Localize("Glow"));
+						{&g_Config.m_QmNameplateTextEffects, "appearance-nameplate-text-border", Localize("Border"), "appearance-nameplate-text-border", QM_TEXT_EFFECT_BORDER},
+						{&g_Config.m_QmNameplateTextEffects, "appearance-nameplate-text-gradient", Localize("Gradient"), "appearance-nameplate-text-gradient", QM_TEXT_EFFECT_GRADIENT},
+						{&g_Config.m_QmNameplateTextEffects, "appearance-nameplate-text-rainbow", Localize("Rainbow"), "appearance-nameplate-text-rainbow", QM_TEXT_EFFECT_RAINBOW},
+						{&g_Config.m_QmNameplateTextEffects, "appearance-nameplate-text-glow", Localize("Glow"), "appearance-nameplate-text-glow", QM_TEXT_EFFECT_GLOW},
+					},
+					Metrics, Flow.Input());
+				if(Flow.Input() && !GlowWasEnabled && (g_Config.m_QmNameplateTextEffects & QM_TEXT_EFFECT_GLOW) != 0 && g_Config.m_QmNameplateTextGlowRange == 0)
+					g_Config.m_QmNameplateTextGlowRange = 4;
 
 				const auto ControlRow = [&](const char *pTextId, const char *pLabel, const auto &RenderControl) {
 					CUIRect Row;

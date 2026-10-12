@@ -2676,10 +2676,15 @@ bool CChat::OnPrepareLines(float y)
 		const char *pTranslatedText = nullptr;
 		std::string StreamerTranslatedText;
 		const char *pTranslatedLanguage = nullptr;
-		if(!Line.m_LocalOriginal.empty() && pText == Line.m_aText)
+		if(!Line.m_LocalOriginal.empty() && !HideTranslatedText)
 		{
 			// 网络正文是译文，本地原文复用小字号第二文本块，主播隐藏时不展示。
 			pTranslatedText = Line.m_LocalOriginal.c_str();
+			if(g_Config.m_QmStreamerFilterWords)
+			{
+				StreamerTranslatedText = QmChatTranslationDisplayText(Line.m_LocalOriginal, HideTranslatedText, true);
+				pTranslatedText = StreamerTranslatedText.c_str();
+			}
 		}
 		else if(Line.m_pTranslateResponse != nullptr && Line.m_pTranslateResponse->m_Text[0])
 		{
@@ -2697,8 +2702,7 @@ bool CChat::OnPrepareLines(float y)
 				pTranslatedText = Line.m_pTranslateResponse->m_Text;
 				if(g_Config.m_QmStreamerFilterWords)
 				{
-					StreamerTranslatedText = pTranslatedText;
-					QmStreamerWordFilter::Filter(StreamerTranslatedText, true);
+					StreamerTranslatedText = QmChatTranslationDisplayText(pTranslatedText, false, true);
 					pTranslatedText = StreamerTranslatedText.c_str();
 				}
 				if(Line.m_pTranslateResponse->m_Language[0] != '\0')

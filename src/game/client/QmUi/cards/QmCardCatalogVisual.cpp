@@ -2,7 +2,6 @@
 
 #include <engine/shared/config.h>
 
-#include <game/client/QmUi/SettingsCardContentBridge.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/components/menus.h>
 #include <game/client/gameclient.h>
@@ -39,8 +38,7 @@ namespace qm_card_catalog
 				pSubtitle,
 				Render,
 				Out);
-			if(ModuleId != EQmModuleId::FocusMode)
-				UseDeclaredModuleContent(Ctx, Out);
+			UseDeclaredModuleContent(Ctx, Out);
 		};
 
 		switch(Id)
@@ -66,8 +64,6 @@ namespace qm_card_catalog
 		case EQmModuleId::FocusMode:
 		{
 			Add(Id, "qm:focus_mode", "Zen Mode", "Hide UI for focused gameplay", [pMenus, LineHeight, BodySize, LineSpacing, LabelWidth](CUIRect &Content) { qm_card_catalog::QmCardRenderHook::RenderQmVisualFocusModeContent(pMenus, Content, LineHeight, BodySize, LineSpacing, LineSpacing, LabelWidth); });
-			// 双列内容保留内部坐标，由专用纯几何 Block 发布实际高度。
-			qm_settings_content::UseDeclaredBlockContent(Out, Ctx.m_UiContext.m_pUi, QmCardRenderHook::TextRenderer(pMenus), [Metrics](float) { return ResolveQmVisualFocusModeHeight(Metrics); });
 			return true;
 		}
 		case EQmModuleId::EntityOverlay:

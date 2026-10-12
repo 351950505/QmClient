@@ -4,9 +4,11 @@
 #include <game/client/QmUi/SettingsCard.h>
 #include <game/client/QmUi/SettingsCardContentBridge.h>
 #include <game/client/QmUi/SettingsCardDeckLogic.h>
+#include <game/client/QmUi/SettingsCardSubtitle.h>
 #include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiButtons.h>
+#include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/cards/QmCardCatalogFunctionMetrics.h>
 
 #include <test/support/qm_real_ui_fixture.h>
@@ -294,26 +296,75 @@ TEST_F(QmCardSummaryLayout, SubtitleOnlyAppearsOnCardHoverAndNeverChangesBodyGeo
 {
 	const SSettingsCardSpec Spec{"translate", "Translation", "Description shown only on hover"};
 	const auto FrameGeometry = BuildSettingsCardFrame({40, 40, 320, 0}, Spec, 100, 1);
-	const auto WithoutDescription = BuildSettingsCardFrame({40, 40, 320, 0}, {"translate", "Translation", nullptr}, 100, 1);
-	EXPECT_FLOAT_EQ(FrameGeometry.m_Rect.h, WithoutDescription.m_Rect.h);
-	EXPECT_FLOAT_EQ(FrameGeometry.m_ContentRect.y, WithoutDescription.m_ContentRect.y);
-	EXPECT_FLOAT_EQ(FrameGeometry.m_SubtitleRect.h, 0);
-	int Calls = 0;
-	const auto Tip = [&](const CUIRect &Anchor, const char *pText) {
-		++Calls;
-		EXPECT_FLOAT_EQ(Anchor.h, FrameGeometry.m_Rect.h);
-		EXPECT_STREQ(pText, Spec.m_pSubtitle);
+	ASSERT_GT(FrameGeometry.m_SubtitleRect.h, 0);
+	IUiContext Context;
+	Context.m_pUi = &m_Ui;
+	Context.m_pTextRender = m_Ui.TextRender();
+	auto &Graphics = *static_cast<qm_ui_test::CRealUiTestGraphics *>(m_Ui.Graphics());
+	const auto Draw = [&] {
+		const auto Before = Graphics.m_Quads;
+		const CUIRect PreviousContent = FrameGeometry.m_ContentRect;
+		RenderSettingsCardSubtitle(Context, FrameGeometry, Spec, m_Ui.MouseHovered(&FrameGeometry.m_Rect));
+		EXPECT_FLOAT_EQ(FrameGeometry.m_ContentRect.y, PreviousContent.y);
+		EXPECT_FLOAT_EQ(FrameGeometry.m_ContentRect.h, PreviousContent.h);
+		return Graphics.m_Quads - Before;
 	};
 	Frame({10, 10});
-	ExecuteSettingsCardSubtitleTooltip(Spec, FrameGeometry.m_Rect, m_Ui.MouseHovered(&FrameGeometry.m_Rect), true, Tip);
-	EXPECT_EQ(Calls, 0);
-	// 正文区域的悬浮也能触发，不限标题文字。
+	const auto OutsideQuads = Draw();
+	// 调用卡片实际使用的文字绘制入口；正文悬浮时提交副标题字形，不依赖 tooltip 服务。
 	Frame({80, FrameGeometry.m_ContentRect.y + 20});
-	ExecuteSettingsCardSubtitleTooltip(Spec, FrameGeometry.m_Rect, m_Ui.MouseHovered(&FrameGeometry.m_Rect), true, Tip);
-	EXPECT_EQ(Calls, 1);
-	ExecuteSettingsCardSubtitleTooltip(Spec, FrameGeometry.m_Rect, true, false, Tip);
-	ExecuteSettingsCardSubtitleTooltip({"empty", "Title", ""}, FrameGeometry.m_Rect, true, true, Tip);
-	EXPECT_EQ(Calls, 1);
+	EXPECT_GT(Draw(), OutsideQuads);
+	{
+		CUiScopedMeasurement Measurement(&m_Ui);
+		EXPECT_LE(Draw(), OutsideQuads);
+	}
+	Frame({10, 10});
+	EXPECT_EQ(Draw(), OutsideQuads);
+}
+
+TEST_F(QmCardSummaryLayout, SubtitleHoverRemainsBoundedAtNarrowWidthsAndUiScales)
+{
+	IUiContext Context;
+	Context.m_pUi = &m_Ui;
+	Context.m_pTextRender = m_Ui.TextRender();
+	auto &Graphics = *static_cast<qm_ui_test::CRealUiTestGraphics *>(m_Ui.Graphics());
+	for(const float Scale : {0.78f, 1.0f, 1.5f})
+	{
+		SCOPED_TRACE(Scale);
+		Context.m_UiScale = Scale;
+		const SSettingsCardSpec Spec{"narrow", "Title", "Long subtitle that must remain inside the narrow card"};
+		const auto Geometry = BuildSettingsCardFrame({40, 40, 120, 0}, Spec, 40, Scale);
+		ASSERT_GT(Geometry.m_SubtitleRect.w, 0);
+		EXPECT_LE(Geometry.m_SubtitleRect.x + Geometry.m_SubtitleRect.w, Geometry.m_Rect.x + Geometry.m_Rect.w);
+		const auto Draw = [&] {
+			const auto Before = Graphics.m_Quads;
+			RenderSettingsCardSubtitle(Context, Geometry, Spec, m_Ui.MouseHovered(&Geometry.m_Rect));
+			return Graphics.m_Quads - Before;
+		};
+		Frame({10, 10});
+		const auto Outside = Draw();
+		Frame({80, Geometry.m_ContentRect.y + 10});
+		EXPECT_GT(Draw(), Outside);
+	}
+}
+
+TEST_F(QmCardSummaryLayout, EmptySubtitleDoesNotAddHoverText)
+{
+	IUiContext Context;
+	Context.m_pUi = &m_Ui;
+	Context.m_pTextRender = m_Ui.TextRender();
+	auto &Graphics = *static_cast<qm_ui_test::CRealUiTestGraphics *>(m_Ui.Graphics());
+	const SSettingsCardSpec Spec{"empty", "Title", ""};
+	const auto Geometry = BuildSettingsCardFrame({40, 40, 240, 0}, Spec, 40, 1);
+	const auto Draw = [&] {
+		const auto Before = Graphics.m_Quads;
+		RenderSettingsCardSubtitle(Context, Geometry, Spec, m_Ui.MouseHovered(&Geometry.m_Rect));
+		return Graphics.m_Quads - Before;
+	};
+	Frame({10, 10});
+	const auto Outside = Draw();
+	Frame({80, Geometry.m_ContentRect.y + 10});
+	EXPECT_EQ(Draw(), Outside);
 }
 
 TEST_F(QmCardSummaryLayout, BodyDescriptionWrapsUsingRealTextAndMovesTheFollowingCard)
