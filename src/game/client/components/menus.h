@@ -176,6 +176,8 @@ public:
 	// 多选一胶囊选择器：槽位在 Segments 内均分，先画容器与滑块，再画文字。
 	// 返回点击后的新下标，无点击返回 Current；缺省配色使用 SettingsCapsuleTabBarStyle()。
 	int DoSegmentedChoice(CButtonContainer *pButtons, const char *const *ppLabels, int Count, int Current, const CUIRect &Segments, float Rounding = 5.0f, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle = nullptr, float FontSize = -1.0f, const void *pConfigValue = nullptr, const void *pSecondConfigValue = nullptr);
+	// 页面导航按下时先更新选择；复用多选一布局和窄窗口下拉退路。
+	int DoNavigationTabs(CButtonContainer *pButtons, const char *const *ppLabels, int Count, int Current, const CUIRect &Segments, float Rounding = 5.0f, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle = nullptr, float FontSize = -1.0f);
 	ColorRGBA MenuPanelColor(float AlphaScale = 1.0f) const;
 	ColorRGBA MenuPanelElevatedColor(float AlphaScale = 1.0f) const;
 	ColorRGBA BrowserPanelColor(float AlphaScale = 1.0f) const;
@@ -2102,7 +2104,9 @@ protected:
 	void PopupConfirmDemoReplaceVideo();
 #endif
 	void PopupConfirmRestoreConfigPackage();
-	void RenderMenubar(CUIRect Box, IClient::EClientState ClientState);
+	// 切往编辑器或外部媒体目录时返回 true，本帧跳过菜单正文。
+	bool RenderMenubar(CUIRect Box, IClient::EClientState ClientState);
+	int DoSegmentedChoiceInternal(CButtonContainer *pButtons, const char *const *ppLabels, int Count, int Current, const CUIRect &Segments, float Rounding, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle, float FontSize, const void *pConfigValue, const void *pSecondConfigValue, bool Navigation);
 	void RenderNews(CUIRect MainView);
 	void RenderStatistics(CUIRect MainView);
 	// 启动赞助提醒浮层（实现见 components/qmclient/menus_qmclient.cpp）。

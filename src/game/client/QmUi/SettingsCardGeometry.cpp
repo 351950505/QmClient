@@ -36,6 +36,8 @@ SCardMotionSpec ResolveCardMotionSpec(const int MotionLevel, const bool ListEntr
 {
 	const int Level = std::clamp(MotionLevel, 0, 2);
 	SCardMotionSpec Spec{};
+	// 关闭动效时也沿用共享轨道，确保正在入场的卡片能立即归位。
+	Spec.m_ContinuousEntry = true;
 	if(Level == 0)
 		return Spec;
 

@@ -73,15 +73,16 @@ void CMenus::RenderSettingsTClient(CUIRect MainView, bool PrewarmOnly)
 	if(NumTClientTabs > 0)
 	{
 		const IUiContext TClientTabBarCtx = TabBarUiContext();
-		ui_widget::CapsuleTabBarChrome(TClientTabBarCtx, MakeUiScopeHash("settings_tclient_tabs_capsule"), ui_widget::CapsuleTabBarRowRect(aTClientTabSlots, NumTClientTabs), ActiveTClientTab >= 0 ? &aTClientTabSlots[ActiveTClientTab] : nullptr, SettingsCapsuleTabBarStyle());
+		const int SelectedTab = ui_widget::CapsuleTabBar(TClientTabBarCtx, MakeUiScopeHash("settings_tclient_tabs_capsule"), aTClientTabSlots, NumTClientTabs, ActiveTClientTab, SettingsCapsuleTabBarStyle());
+		if(!ReadOnly && SelectedTab >= 0)
+		{
+			ActiveTab = aTClientTabPages[SelectedTab];
+			m_TClientSettingsTab = ActiveTab;
+		}
 		for(int TabIndex = 0; TabIndex < NumTClientTabs; ++TabIndex)
 		{
 			const int Tab = aTClientTabPages[TabIndex];
-			if(DoButton_MenuTab(&s_aPageTabs[Tab], s_apTClientTabNames[Tab], ActiveTab == Tab, &aTClientTabSlots[TabIndex], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true) && !ReadOnly)
-			{
-				m_TClientSettingsTab = Tab;
-				ActiveTab = Tab;
-			}
+			DoButton_MenuTab(&s_aPageTabs[Tab], s_apTClientTabNames[Tab], ActiveTab == Tab, &aTClientTabSlots[TabIndex], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true);
 		}
 	}
 

@@ -5025,6 +5025,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/settings/settings_card_order_drop_test.cpp
     src/test/unit/qmclient/settings/settings_card_interaction_test.cpp
     src/test/unit/qmclient/settings/settings_card_animation_test.cpp
+    src/test/integration/qmclient/settings/settings_card_entry_animation_test.cpp
     src/test/unit/qmclient/settings/settings_card_view_key_test.cpp
     src/test/unit/qmclient/settings/settings_country_flag_plan_test.cpp
     src/test/unit/qmclient/settings/settings_resource_budget_test.cpp
@@ -5425,6 +5426,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/test/integration/qmclient/ui/qm_console_settings_scroll_test.cpp
       src/test/integration/qmclient/ui/qm_scrollbar_color_submission_test.cpp
       src/test/integration/qmclient/ui/qm_background_controls_test.cpp
+      src/test/integration/qmclient/ui/qm_navigation_selection_test.cpp
       src/test/integration/qmclient/ui/qm_editor_text_input_test.cpp
       src/test/integration/qmclient/ui/qm_tooltip_text_layout_test.cpp
       src/test/integration/qmclient/ui/qm_card_summary_layout_test.cpp

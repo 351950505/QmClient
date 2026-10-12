@@ -52,7 +52,7 @@ void CMenus::RenderResourceEditorWorkspace(CUIRect MainView)
 	const char *apLabels[] = {Localize("Assets editor"), Localize("Edit audio pack")};
 	const int Selected = static_cast<int>(m_ResourceEditorWorkspace.Selected());
 	const bool BlockSwitch = m_AssetsEditorState.m_ShowExitConfirm || m_AssetsEditorState.m_FullscreenOpen || Ui()->IsPopupOpen();
-	const int NewSelected = BlockSwitch ? Selected : DoSegmentedChoice(s_aWorkspaceButtons, apLabels, 2, Selected, Layout.m_TabBarRect, 4.0f);
+	const int NewSelected = BlockSwitch ? Selected : DoNavigationTabs(s_aWorkspaceButtons, apLabels, 2, Selected, Layout.m_TabBarRect, 4.0f);
 	if(!ReadOnly && !BlockSwitch && NewSelected != Selected)
 	{
 		AudioPackEditorStopPreview();

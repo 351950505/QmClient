@@ -394,6 +394,16 @@ ui_widget::SCapsuleTabBarStyle CMenus::MenuCapsuleTabBarStyle() const
 
 int CMenus::DoSegmentedChoice(CButtonContainer *pButtons, const char *const *ppLabels, const int Count, const int Current, const CUIRect &Segments, const float Rounding, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle, float FontSize, const void *pConfigValue, const void *pSecondConfigValue)
 {
+	return DoSegmentedChoiceInternal(pButtons, ppLabels, Count, Current, Segments, Rounding, pCapsuleStyle, FontSize, pConfigValue, pSecondConfigValue, false);
+}
+
+int CMenus::DoNavigationTabs(CButtonContainer *pButtons, const char *const *ppLabels, const int Count, const int Current, const CUIRect &Segments, const float Rounding, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle, const float FontSize)
+{
+	return DoSegmentedChoiceInternal(pButtons, ppLabels, Count, Current, Segments, Rounding, pCapsuleStyle, FontSize, nullptr, nullptr, true);
+}
+
+int CMenus::DoSegmentedChoiceInternal(CButtonContainer *pButtons, const char *const *ppLabels, const int Count, const int Current, const CUIRect &Segments, const float Rounding, const ui_widget::SCapsuleTabBarStyle *pCapsuleStyle, float FontSize, const void *pConfigValue, const void *pSecondConfigValue, const bool Navigation)
+{
 	int NewValue = Current;
 	if(pButtons == nullptr)
 		return NewValue;
@@ -413,11 +423,15 @@ int CMenus::DoSegmentedChoice(CButtonContainer *pButtons, const char *const *ppL
 	const ui_widget::SCapsuleTabBarStyle FallbackStyle = SettingsCapsuleTabBarStyle();
 	const ui_widget::SCapsuleTabBarStyle &Style = pCapsuleStyle != nullptr ? *pCapsuleStyle : FallbackStyle;
 	const uint64_t SegmentGroup = BuildUiAnimNodeKey(MakeUiScopeHash("segmented_choice_capsule"), reinterpret_cast<uint64_t>(pButtons));
-	ui_widget::CapsuleTabBarChrome(TabBarUiContext(), SegmentGroup, Layout.m_aSlots.data(), Layout.m_SegmentCount, Current >= 0 && Current < Count ? Current : -1, Style);
+	if(Navigation)
+		NewValue = ui_widget::CapsuleTabBar(TabBarUiContext(), SegmentGroup, Layout.m_aSlots.data(), Layout.m_SegmentCount, Current, Style);
+	else
+		ui_widget::CapsuleTabBarChrome(TabBarUiContext(), SegmentGroup, Layout.m_aSlots.data(), Layout.m_SegmentCount, Current >= 0 && Current < Count ? Current : -1, Style);
 	for(int i = 0; i < Layout.m_SegmentCount; ++i)
 	{
 		Ui()->DoConfigTooltip(&pButtons[i], &Layout.m_aSlots[i], pConfigValue, pSecondConfigValue);
-		if(DoButton_MenuTab(&pButtons[i], ppLabels[i], Current == i, &Layout.m_aSlots[i], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, Rounding, nullptr, nullptr, FontSize, true))
+		const bool Clicked = DoButton_MenuTab(&pButtons[i], ppLabels[i], (Navigation ? NewValue : Current) == i, &Layout.m_aSlots[i], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, Rounding, nullptr, nullptr, FontSize, true) != 0;
+		if(!Navigation && Clicked)
 			NewValue = i;
 	}
 	return NewValue;
@@ -2392,7 +2406,7 @@ int CMenus::DoMenuTabV2Internal(CButtonContainer *pButtonContainer, const char *
 	return Ui()->DoButtonLogic(pButtonContainer, Active ? 1 : 0, pRect, BUTTONFLAG_LEFT);
 }
 
-void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
+bool CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 {
 	TextRender()->SetRenderFlags(0);
 	TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
@@ -2400,8 +2414,6 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 	dbg_assert(Offline || ClientState == IClient::STATE_ONLINE, "Invalid client state for menu navigation");
 	const int ActivePage = Offline ? m_MenuPage : m_GamePage;
 	int NewPage = -1;
-	const bool ScreenshotsActive = ActivePage == PAGE_DEMOS && DemoBrowserBrowsingScreenshots();
-	const bool ReplaysActive = ActivePage == PAGE_DEMOS && !DemoBrowserBrowsingScreenshots();
 	const bool MobileSpectator = qm_mobile_spectator::Enabled();
 	const float NavScale = std::clamp(g_Config.m_QmUiNavScale / 100.0f, 0.75f, 1.5f);
 
@@ -2470,90 +2482,15 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 	static CButtonContainer s_aOnlineButtons[qm_navigation::SLayout::MAX_LEFT];
 	static CButtonContainer s_aRightButtons[qm_navigation::SLayout::MAX_RIGHT];
 	CButtonContainer *pLeftButtons = Offline ? s_aOfflineButtons : s_aOnlineButtons;
-	int ActiveLeft = -1;
-	for(int Index = 0; Index < LeftCount; ++Index)
-		if(aLeftTabs[Index].m_Page == ActivePage)
-			ActiveLeft = Index;
-	int ActiveRight = -1;
-	if(ScreenshotsActive)
-		ActiveRight = 0;
-	else if(ReplaysActive)
-		ActiveRight = 1;
-	else if(ActivePage == PAGE_RESOURCE_EDITOR)
-		ActiveRight = 3;
-	else if(ActivePage == PAGE_SETTINGS)
-		ActiveRight = 4;
-
-	ColorRGBA aLeftTints[qm_navigation::SLayout::MAX_LEFT] = {};
-	bool GotNewsOrUpdate = g_Config.m_UiUnreadNews != 0;
-#if defined(CONF_AUTOUPDATE)
-	GotNewsOrUpdate |= Updater()->GetCurrentState() == IUpdater::CLEAN && str_comp(Client()->LatestVersion(), "0") != 0;
-#endif
-	if(Offline && GotNewsOrUpdate)
-		aLeftTints[0] = ColorRGBA(0.0f, 1.0f, 0.0f, 0.25f);
-	ColorRGBA aRightTints[qm_navigation::SLayout::MAX_RIGHT] = {};
-	aRightTints[5] = MenuDangerTabDefaultColor();
 	const IUiContext Ctx = TabBarUiContext();
-	ui_widget::CapsuleTabBarChrome(Ctx, MakeUiScopeHash(Offline ? "menubar_capsule_start_tabs" : "menubar_capsule_ingame_tabs"), Layout.m_aLeft.data(), LeftCount, ActiveLeft, MenuCapsuleTabBarStyle(), aLeftTints);
-	ui_widget::CapsuleTabBarChrome(Ctx, MakeUiScopeHash("menubar_capsule_right_nav"), Layout.m_aRight.data(), Layout.m_RightCount, ActiveRight, MenuCapsuleTabBarStyle(), aRightTints);
 	const int PressedLeft = ui_widget::CapsuleTabBarPressedIndex(Ctx, Layout.m_aLeft.data(), LeftCount);
 	const int PressedRight = ui_widget::CapsuleTabBarPressedIndex(Ctx, Layout.m_aRight.data(), Layout.m_RightCount);
-	for(int Index = 0; Index < LeftCount; ++Index)
-	{
-		const SNavigationTab &Tab = aLeftTabs[Index];
-		const CUIRect &Slot = Layout.m_aLeft[Index];
-		if(!Offline && TextRender()->TextWidth(ui_token::settings::TAB_FONT_SIZE * ContentScale, Tab.m_pLabel) <= Slot.w - 4.0f * ContentScale)
-			DoMenuTabV2(&pLeftButtons[Index], Tab.m_pLabel, ActiveLeft == Index, &Slot, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, ContentScale, true);
-		else
-			DoMenuTabV2_QmIcon(&pLeftButtons[Index], Tab.m_Icon, Tab.m_pFallback, ActiveLeft == Index, &Slot, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, Tab.m_pCommunity, nullptr, ContentScale, true);
-		GameClient()->m_Tooltips.DoToolTip(&pLeftButtons[Index], &Slot, Tab.m_pLabel);
-		if(PressedLeft == Index)
-		{
-			if(Tab.m_Page < 0)
-			{
-				SuspendResourceEditorWorkspace();
-				m_ShowStart = true;
-			}
-			else
-			{
-				NewPage = Tab.m_Page;
-				if(Tab.m_Page == PAGE_CALLVOTE)
-					m_ControlPageOpening = true;
-			}
-		}
-	}
-	for(int Index = 0; Index < Layout.m_RightCount; ++Index)
-	{
-		const SNavigationTab &Tab = aRightTabs[Index];
-		const ColorRGBA Danger = MenuDangerTabHoverColor();
-		DoMenuTabV2_QmIcon(&s_aRightButtons[Index], Tab.m_Icon, Tab.m_pFallback, ActiveRight == Index, &Layout.m_aRight[Index], IGraphics::CORNER_ALL, nullptr, nullptr, Index == 5 ? &Danger : nullptr, nullptr, nullptr, ContentScale, true);
-		GameClient()->m_Tooltips.DoToolTip(&s_aRightButtons[Index], &Layout.m_aRight[Index], Tab.m_pLabel);
-	}
+	if(PressedLeft >= 0 && aLeftTabs[PressedLeft].m_Page >= 0)
+		NewPage = aLeftTabs[PressedLeft].m_Page;
 	if(PressedRight == 0 || PressedRight == 1)
-	{
-		SetDemoBrowserSource(PressedRight == 0 ? DEMO_BROWSER_SOURCE_SCREENSHOTS : DEMO_BROWSER_SOURCE_DEMOS);
 		NewPage = PAGE_DEMOS;
-	}
-	else if(PressedRight == 2)
-	{
-		SuspendResourceEditorWorkspace();
-		if(MobileSpectator)
-			GameClient()->m_QmMobileSpectator.ShowMediaFiles(true);
-		else
-			g_Config.m_ClEditor = 1;
-	}
-	else if(PressedRight == 3)
-		OpenResourceEditorWorkspace();
 	else if(PressedRight == 4)
 		NewPage = PAGE_SETTINGS;
-	else if(PressedRight == 5)
-	{
-		AudioPackEditorStopPreview();
-		if(GameClient()->Editor()->HasUnsavedData() || m_AssetsEditorState.m_HasUnsavedChanges || (GameClient()->CurrentRaceTime() / 60 >= g_Config.m_ClConfirmQuitTime && g_Config.m_ClConfirmQuitTime >= 0) || m_MenusIngameTouchControls.UnsavedChanges() || GameClient()->m_TouchControls.HasEditingChanges())
-			m_Popup = POPUP_QUIT;
-		else
-			Client()->Quit();
-	}
 
 	if(!Ui()->RenderOnly() && Offline && !Ui()->IsPopupOpen() && CLineInput::GetActiveInput() == nullptr)
 	{
@@ -2570,6 +2507,83 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 				NewPage = aLeftTabs[Current > 1 ? Current - 1 : LeftCount - 1].m_Page;
 		}
 	}
+
+	// 先用最终目标绘制反馈，标签用完后再提交页面，避免刷新使社区借用指针失效。
+	const int FeedbackPage = NewPage >= 0 ? NewPage : PressedRight == 3 ? PAGE_RESOURCE_EDITOR : ActivePage;
+	const bool BrowsingScreenshots = PressedRight == 0 || (PressedRight != 1 && DemoBrowserBrowsingScreenshots());
+	int ActiveLeft = -1;
+	for(int Index = 0; Index < LeftCount; ++Index)
+		if(aLeftTabs[Index].m_Page == FeedbackPage)
+			ActiveLeft = Index;
+	int ActiveRight = -1;
+	if(FeedbackPage == PAGE_DEMOS)
+		ActiveRight = BrowsingScreenshots ? 0 : 1;
+	else if(FeedbackPage == PAGE_RESOURCE_EDITOR)
+		ActiveRight = 3;
+	else if(FeedbackPage == PAGE_SETTINGS)
+		ActiveRight = 4;
+
+	ColorRGBA aLeftTints[qm_navigation::SLayout::MAX_LEFT] = {};
+	bool GotNewsOrUpdate = g_Config.m_UiUnreadNews != 0;
+#if defined(CONF_AUTOUPDATE)
+	GotNewsOrUpdate |= Updater()->GetCurrentState() == IUpdater::CLEAN && str_comp(Client()->LatestVersion(), "0") != 0;
+#endif
+	if(Offline && GotNewsOrUpdate)
+		aLeftTints[0] = ColorRGBA(0.0f, 1.0f, 0.0f, 0.25f);
+	ColorRGBA aRightTints[qm_navigation::SLayout::MAX_RIGHT] = {};
+	aRightTints[5] = MenuDangerTabDefaultColor();
+	ui_widget::CapsuleTabBarChrome(Ctx, MakeUiScopeHash(Offline ? "menubar_capsule_start_tabs" : "menubar_capsule_ingame_tabs"), Layout.m_aLeft.data(), LeftCount, ActiveLeft, MenuCapsuleTabBarStyle(), aLeftTints);
+	ui_widget::CapsuleTabBarChrome(Ctx, MakeUiScopeHash("menubar_capsule_right_nav"), Layout.m_aRight.data(), Layout.m_RightCount, ActiveRight, MenuCapsuleTabBarStyle(), aRightTints);
+	for(int Index = 0; Index < LeftCount; ++Index)
+	{
+		const SNavigationTab &Tab = aLeftTabs[Index];
+		const CUIRect &Slot = Layout.m_aLeft[Index];
+		if(!Offline && TextRender()->TextWidth(ui_token::settings::TAB_FONT_SIZE * ContentScale, Tab.m_pLabel) <= Slot.w - 4.0f * ContentScale)
+			DoMenuTabV2(&pLeftButtons[Index], Tab.m_pLabel, ActiveLeft == Index, &Slot, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, ContentScale, true);
+		else
+			DoMenuTabV2_QmIcon(&pLeftButtons[Index], Tab.m_Icon, Tab.m_pFallback, ActiveLeft == Index, &Slot, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, Tab.m_pCommunity, nullptr, ContentScale, true);
+		GameClient()->m_Tooltips.DoToolTip(&pLeftButtons[Index], &Slot, Tab.m_pLabel);
+	}
+	for(int Index = 0; Index < Layout.m_RightCount; ++Index)
+	{
+		const SNavigationTab &Tab = aRightTabs[Index];
+		const ColorRGBA Danger = MenuDangerTabHoverColor();
+		DoMenuTabV2_QmIcon(&s_aRightButtons[Index], Tab.m_Icon, Tab.m_pFallback, ActiveRight == Index, &Layout.m_aRight[Index], IGraphics::CORNER_ALL, nullptr, nullptr, Index == 5 ? &Danger : nullptr, nullptr, nullptr, ContentScale, true);
+		GameClient()->m_Tooltips.DoToolTip(&s_aRightButtons[Index], &Layout.m_aRight[Index], Tab.m_pLabel);
+	}
+	if(PressedLeft >= 0)
+	{
+		if(aLeftTabs[PressedLeft].m_Page < 0)
+		{
+			SuspendResourceEditorWorkspace();
+			m_ShowStart = true;
+		}
+		else if(aLeftTabs[PressedLeft].m_Page == PAGE_CALLVOTE)
+			m_ControlPageOpening = true;
+	}
+	if(PressedRight == 0 || PressedRight == 1)
+	{
+		SetDemoBrowserSource(PressedRight == 0 ? DEMO_BROWSER_SOURCE_SCREENSHOTS : DEMO_BROWSER_SOURCE_DEMOS);
+	}
+	else if(PressedRight == 2)
+	{
+		SuspendResourceEditorWorkspace();
+		if(MobileSpectator)
+			GameClient()->m_QmMobileSpectator.ShowMediaFiles(true);
+		else
+			g_Config.m_ClEditor = 1;
+	}
+	else if(PressedRight == 3)
+		OpenResourceEditorWorkspace();
+	else if(PressedRight == 5)
+	{
+		AudioPackEditorStopPreview();
+		if(GameClient()->Editor()->HasUnsavedData() || m_AssetsEditorState.m_HasUnsavedChanges || (GameClient()->CurrentRaceTime() / 60 >= g_Config.m_ClConfirmQuitTime && g_Config.m_ClConfirmQuitTime >= 0) || m_MenusIngameTouchControls.UnsavedChanges() || GameClient()->m_TouchControls.HasEditingChanges())
+			m_Popup = POPUP_QUIT;
+		else
+			Client()->Quit();
+	}
+
 	TextRender()->SetRenderFlags(0);
 	TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
 	if(NewPage != -1)
@@ -2579,6 +2593,7 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 		else
 			SetGamePage(NewPage);
 	}
+	return PressedRight == 2;
 }
 
 void CMenus::StartLoading(int Total)
@@ -4031,6 +4046,33 @@ void CMenus::Render()
 			CPerfTimer ShellTimer;
 			CUIRect TabBar, MainView;
 			Screen.HSplitTop(MenuMenubarHeight(), &TabBar, &MainView);
+			bool NavigationHandedOff;
+			{
+				CPerfTimer StageTimer;
+				NavigationHandedOff = RenderMenubar(TabBar, ClientState);
+				char aMenubarExtra[128];
+				str_format(aMenubarExtra, sizeof(aMenubarExtra), "page=%s state=%s", MenuPageName(m_MenuPage), ClientStateName(ClientState));
+				LogPerfStage(Client(), "menu_menubar", StageTimer.ElapsedMs(), false, aMenubarExtra);
+			}
+			if(Client()->State() != ClientState)
+			{
+				const double TotalDurationMs = RenderTimer.ElapsedMs();
+				LogPerfStage(Client(), "menus_render_total", TotalDurationMs, true, "state=changed_during_offline_navigation");
+				RecordSettingsPerfWindowFrame(TotalDurationMs);
+				return;
+			}
+			if(NavigationHandedOff)
+				break;
+			if(m_Popup != POPUP_NONE && !SecondaryOverlay)
+			{
+				RenderPopupFullscreen(Screen);
+				break;
+			}
+			if(m_ShowStart)
+			{
+				m_MenusStart.RenderStartMenu(Screen);
+				break;
+			}
 			const CUIRect MainViewClip = MainView;
 			const float TransitionStrength = ReadUiSwitchAnimation(UiAnimNodeKey("menu_page_switch"));
 			const bool TransitionActive = TransitionStrength > 0.0f && m_MenuPageTransitionDirection != 0.0f;
@@ -4112,13 +4154,6 @@ void CMenus::Render()
 			{
 				Ui()->ClipDisable();
 			}
-			{
-				CPerfTimer StageTimer;
-				RenderMenubar(TabBar, ClientState);
-				char aMenubarExtra[128];
-				str_format(aMenubarExtra, sizeof(aMenubarExtra), "page=%s state=%s", pPageName, ClientStateName(ClientState));
-				LogPerfStage(Client(), "menu_menubar", StageTimer.ElapsedMs(), TransitionActive, aMenubarExtra);
-			}
 		}
 		break;
 
@@ -4139,6 +4174,28 @@ void CMenus::Render()
 			CPerfTimer ShellTimer;
 			CUIRect TabBar, MainView;
 			Screen.HSplitTop(MenuMenubarHeight(), &TabBar, &MainView);
+			bool NavigationHandedOff;
+			{
+				CPerfTimer StageTimer;
+				NavigationHandedOff = RenderMenubar(TabBar, ClientState);
+				char aMenubarExtra[128];
+				str_format(aMenubarExtra, sizeof(aMenubarExtra), "page=%s state=%s", GamePageName(m_GamePage), ClientStateName(ClientState));
+				LogPerfStage(Client(), "menu_menubar", StageTimer.ElapsedMs(), false, aMenubarExtra);
+			}
+			if(Client()->State() != ClientState)
+			{
+				const double TotalDurationMs = RenderTimer.ElapsedMs();
+				LogPerfStage(Client(), "menus_render_total", TotalDurationMs, true, "state=changed_during_ingame_navigation");
+				RecordSettingsPerfWindowFrame(TotalDurationMs);
+				return;
+			}
+			if(NavigationHandedOff)
+				break;
+			if(m_Popup != POPUP_NONE && !SecondaryOverlay)
+			{
+				RenderPopupFullscreen(Screen);
+				break;
+			}
 			const CUIRect MainViewClip = MainView;
 			const float TransitionStrength = ReadUiSwitchAnimation(UiAnimNodeKey("game_page_switch"));
 			const bool TransitionActive = TransitionStrength > 0.0f && m_GamePageTransitionDirection != 0.0f;
@@ -4270,14 +4327,6 @@ void CMenus::Render()
 			if(ContentTransitionActive)
 			{
 				Ui()->ClipDisable();
-			}
-			{
-				CPerfTimer StageTimer;
-				RenderMenubar(TabBar, ClientState);
-				const double StageDurationMs = StageTimer.ElapsedMs();
-				char aMenubarExtra[128];
-				str_format(aMenubarExtra, sizeof(aMenubarExtra), "page=%s state=%s", pPageName, ClientStateName(ClientState));
-				LogPerfStage(Client(), "menu_menubar", StageDurationMs, TransitionActive, aMenubarExtra);
 			}
 		}
 		break;

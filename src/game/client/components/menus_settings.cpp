@@ -498,19 +498,16 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 	TabBar.VSplitMid(&PlayerTab, &DummyTab);
 	static CButtonContainer s_PlayerTabButton;
 	static CButtonContainer s_DummyTabButton;
-	// 胶囊 Tabbar：容器与滑块先画，页签文字随后，滑块压在文字之下。
 	const CUIRect aPlayerTabSlots[] = {PlayerTab, DummyTab};
-	ui_widget::CapsuleTabBarChrome(TabBarUiContext(), MakeUiScopeHash("settings_player_dummy_tabs_capsule"), aPlayerTabSlots, std::size(aPlayerTabSlots), m_Dummy ? 1 : 0, SettingsCapsuleTabBarStyle());
-	if(DoButton_MenuTab(&s_PlayerTabButton, Localize("Player"), !m_Dummy, &PlayerTab, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true))
+	const IUiContext TabCtx = TabBarUiContext();
+	const int Pressed = ui_widget::CapsuleTabBarPressedIndex(TabCtx, aPlayerTabSlots, std::size(aPlayerTabSlots));
+	m_Dummy = ui_widget::CapsuleTabBar(TabCtx, MakeUiScopeHash("settings_player_dummy_tabs_capsule"), aPlayerTabSlots, std::size(aPlayerTabSlots), m_Dummy ? 1 : 0, SettingsCapsuleTabBarStyle()) == 1;
+	if(Pressed >= 0)
 	{
-		m_Dummy = false;
 		m_TeeEntranceStartTime = time_get();
 	}
-	if(DoButton_MenuTab(&s_DummyTabButton, Localize("Dummy"), m_Dummy, &DummyTab, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true))
-	{
-		m_Dummy = true;
-		m_TeeEntranceStartTime = time_get();
-	}
+	DoButton_MenuTab(&s_PlayerTabButton, Localize("Player"), !m_Dummy, &PlayerTab, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true);
+	DoButton_MenuTab(&s_DummyTabButton, Localize("Dummy"), m_Dummy, &DummyTab, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true);
 	RenderModernSettingsCards(MainView, "modern-tee-identity");
 }
 
@@ -529,11 +526,10 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 	static int s_SubTab = 0;
 	static CButtonContainer s_aTabs[2];
 	const char *apLabels[] = {Localize("Tee"), Localize("Profiles")};
-	ui_widget::CapsuleTabBarChrome(TabBarUiContext(), MakeUiScopeHash("settings_tee_sub_tabs_capsule"), aTabs, std::size(aTabs), s_SubTab, SettingsCapsuleTabBarStyle());
+	s_SubTab = ui_widget::CapsuleTabBar(TabBarUiContext(), MakeUiScopeHash("settings_tee_sub_tabs_capsule"), aTabs, std::size(aTabs), s_SubTab, SettingsCapsuleTabBarStyle());
 	for(int Tab = 0; Tab < 2; ++Tab)
 	{
-		if(DoButton_MenuTab(&s_aTabs[Tab], apLabels[Tab], s_SubTab == Tab, &aTabs[Tab], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true))
-			s_SubTab = Tab;
+		DoButton_MenuTab(&s_aTabs[Tab], apLabels[Tab], s_SubTab == Tab, &aTabs[Tab], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true);
 	}
 	if(!m_MenuTextPlanCollecting && !Ui()->MeasurementOnly())
 	{
@@ -910,15 +906,24 @@ void CMenus::RenderSettings(CUIRect MainView)
 		const float AccentOpacity = g_Config.m_QmUiAccentOpacity / 100.0f;
 		const ColorRGBA SettingsNavigationSelected = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(AccentOpacity);
 		const ColorRGBA SettingsNavigationHover = SettingsNavigationSelected.WithAlpha(AccentOpacity * 0.5f);
+		std::array<CUIRect, SETTINGS_LENGTH> aSlots;
+		std::array<int, SETTINGS_LENGTH> aPages;
+		int Count = 0;
 		for(int i : qm_settings_navigation::PageOrder())
 		{
 			if(!SettingsPageVisibleInRightTabBar(i))
 				continue;
-			const bool Active = g_Config.m_UiSettingsPage == i;
 			TabBar.HSplitTop(ui_token::settings::TAB_GAP * NavigationScale, nullptr, &TabBar);
-			TabBar.HSplitTop(ui_token::settings::TAB_HEIGHT * NavigationScale, &Button, &TabBar);
-			if(DoButton_MenuTab(&m_aSettingsTabButtons[i], m_apSettingsTabs[i], Active, &Button, IGraphics::CORNER_ALL, &m_aAnimatorsSettingsTab[i], nullptr, &SettingsNavigationSelected, &SettingsNavigationHover, 10.0f, nullptr, &m_aSettingsTabLabelElements[i], ui_token::settings::TAB_FONT_SIZE * NavigationScale))
-				g_Config.m_UiSettingsPage = i;
+			TabBar.HSplitTop(ui_token::settings::TAB_HEIGHT * NavigationScale, &aSlots[Count], &TabBar);
+			aPages[Count++] = i;
+		}
+		const int Pressed = ui_widget::CapsuleTabBarPressedIndex(TabBarUiContext(), aSlots.data(), Count, 0.0f);
+		if(Pressed >= 0)
+			g_Config.m_UiSettingsPage = aPages[Pressed];
+		for(int Index = 0; Index < Count; ++Index)
+		{
+			const int Page = aPages[Index];
+			DoButton_MenuTab(&m_aSettingsTabButtons[Page], m_apSettingsTabs[Page], g_Config.m_UiSettingsPage == Page, &aSlots[Index], IGraphics::CORNER_ALL, &m_aAnimatorsSettingsTab[Page], nullptr, &SettingsNavigationSelected, &SettingsNavigationHover, 10.0f, nullptr, &m_aSettingsTabLabelElements[Page], ui_token::settings::TAB_FONT_SIZE * NavigationScale);
 		}
 
 		if(SettingsPerfEnabled)
@@ -1449,21 +1454,17 @@ void CMenus::RenderSettingsAppearance(CUIRect MainView)
 		s_apAppearanceTabNames[APPEARANCE_TAB_LASER] = Localize("Laser");
 	}
 
-	// 胶囊 Tabbar：槽位先算完，再画容器与滑块，最后画页签文字 —— 滑块压在文字之下。
 	CUIRect aAppearanceTabSlots[NUMBER_OF_APPEARANCE_TABS];
 	CUIRect AppearanceTabsRemainder = TabBar;
 	for(int Tab = APPEARANCE_TAB_HUD; Tab < NUMBER_OF_APPEARANCE_TABS; ++Tab)
 		AppearanceTabsRemainder.VSplitLeft(TabWidth, &aAppearanceTabSlots[Tab], &AppearanceTabsRemainder);
 	const int ActiveAppearanceTab = std::clamp(m_AppearanceSettingsTab, (int)APPEARANCE_TAB_HUD, (int)NUMBER_OF_APPEARANCE_TABS - 1);
 	const IUiContext AppearanceTabBarCtx = TabBarUiContext();
-	ui_widget::CapsuleTabBarChrome(AppearanceTabBarCtx, MakeUiScopeHash("settings_appearance_tabs_capsule"), ui_widget::CapsuleTabBarRowRect(aAppearanceTabSlots, NUMBER_OF_APPEARANCE_TABS), &aAppearanceTabSlots[ActiveAppearanceTab], SettingsCapsuleTabBarStyle());
+	m_AppearanceSettingsTab = ui_widget::CapsuleTabBar(AppearanceTabBarCtx, MakeUiScopeHash("settings_appearance_tabs_capsule"), aAppearanceTabSlots, NUMBER_OF_APPEARANCE_TABS, ActiveAppearanceTab, SettingsCapsuleTabBarStyle());
 
 	for(int Tab = APPEARANCE_TAB_HUD; Tab < NUMBER_OF_APPEARANCE_TABS; ++Tab)
 	{
-		if(DoButton_MenuTab(&s_aPageTabs[Tab], s_apAppearanceTabNames[Tab], m_AppearanceSettingsTab == Tab, &aAppearanceTabSlots[Tab], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true))
-		{
-			m_AppearanceSettingsTab = Tab;
-		}
+		DoButton_MenuTab(&s_aPageTabs[Tab], s_apAppearanceTabNames[Tab], m_AppearanceSettingsTab == Tab, &aAppearanceTabSlots[Tab], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true);
 	}
 
 	static const char *const s_apTabs[] = {"appearance-hud", "appearance-chat", "appearance-name-plate", "appearance-hook-collision", "appearance-info-messages", "appearance-laser"};

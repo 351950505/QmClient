@@ -66,11 +66,10 @@ void CMenus::RenderModernSettingsPage(CUIRect View, const bool PrewarmOnly)
 		for(size_t Index = 0; Index < vSlots.size(); ++Index)
 			vSlots[Index] = {TabBar.x + TabBar.w * Index / vSlots.size(), TabBar.y, TabBar.w / vSlots.size(), TabBar.h};
 		const uint64_t Scope = MakeUiScopeHash("modern-settings-sub-tabs") ^ static_cast<uint64_t>(Page);
-		ui_widget::CapsuleTabBarChrome(TabBarUiContext(), Scope, vSlots.data(), vSlots.size(), Selected, SettingsCapsuleTabBarStyle());
+		Selected = ui_widget::CapsuleTabBar(TabBarUiContext(), Scope, vSlots.data(), vSlots.size(), Selected, SettingsCapsuleTabBarStyle());
 		for(size_t Index = 0; Index < vSlots.size(); ++Index)
 		{
-			if(DoButton_MenuTab(&vButtons[Index], Localize(vViews[Index].m_pLabel), Selected == static_cast<int>(Index), &vSlots[Index], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true))
-				Selected = static_cast<int>(Index);
+			DoButton_MenuTab(&vButtons[Index], Localize(vViews[Index].m_pLabel), Selected == static_cast<int>(Index), &vSlots[Index], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true);
 		}
 	}
 	if(!MeasurementOnly && !m_MenuTextPlanCollecting)
