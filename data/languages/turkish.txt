@@ -8786,6 +8786,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == Dairesel menü ad listesi (| girdileri ayırır; ana karakter,dummy iki adı da değiştirir)
 
+Pin friend
+== Arkadaşı sabitle
+
 Ping
 == Ping
 
@@ -11203,6 +11206,9 @@ Set voice input device
 
 Set voice output device
 == Ses çıkış cihazını ayarla
+
+Set whether a friend is pinned
+== Bir arkadaşın sabitlenip sabitlenmediğini ayarla
 
 Set your checkpoints based on another player
 == Kontrol noktalarını başka bir oyuncuya göre ayarla
@@ -14377,6 +14383,9 @@ Unmute:
 
 Unmuted
 == Sessiz değil
+
+Unpin friend
+== Arkadaşın sabitlemesini kaldır
 
 Unpredictable ghost opacity (0-100)
 == Tahmin edilemez hayalet opaklığı (0-100)

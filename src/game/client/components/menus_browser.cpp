@@ -2537,6 +2537,7 @@ void CMenus::RenderServerbrowserFriends(CUIRect View)
 				const void *pRemoveButtonId = reinterpret_cast<const void *>(FriendUiIdBase | 0x3);
 				const void *pCopyButtonId = reinterpret_cast<const void *>(FriendUiIdBase | 0x9);
 				const void *pFollowButtonId = reinterpret_cast<const void *>(FriendUiIdBase | 0xb);
+				const void *pPinButtonId = reinterpret_cast<const void *>(FriendUiIdBase | 0xd);
 				const void *pCommunityTooltipId = reinterpret_cast<const void *>(FriendUiIdBase | 0x5);
 				const void *pSkinTooltipId = reinterpret_cast<const void *>(FriendUiIdBase | 0x7);
 				List.HSplitTop(11.0f + 10.0f + 2 * 2.0f + 1.0f + (Friend.ServerInfo() == nullptr ? 0.0f : 10.0f), &Rect, &List);
@@ -2608,11 +2609,17 @@ void CMenus::RenderServerbrowserFriends(CUIRect View)
 					Ui()->DoLabel(&FollowTag, pFollowLabel, FollowFontSize, TEXTALIGN_MC, FollowLabelProps);
 				}
 
-				CUIRect ButtonsRow, FollowButton, CopyButton, RemoveButton, NameLabel, ClanLabel, InfoLabel;
+				CUIRect ButtonsRow, PinButton{}, FollowButton, CopyButton, RemoveButton, NameLabel, ClanLabel, InfoLabel;
 				Rect.HSplitTop(16.0f, &ButtonsRow, nullptr);
 				ButtonsRow.VSplitRight(13.0f, &ButtonsRow, &RemoveButton);
 				ButtonsRow.VSplitRight(15.0f, &ButtonsRow, &CopyButton);
-				ButtonsRow.VSplitRight(15.0f, nullptr, &FollowButton);
+				ButtonsRow.VSplitRight(15.0f, &ButtonsRow, &FollowButton);
+				if(IsPlayerFriend)
+				{
+					ButtonsRow.VSplitRight(15.0f, nullptr, &PinButton);
+					PinButton.VSplitLeft(2.0f, nullptr, &PinButton);
+					PinButton.HMargin((PinButton.h - PinButton.w) / 2.0f, &PinButton);
+				}
 				FollowButton.VSplitLeft(2.0f, nullptr, &FollowButton);
 				CopyButton.VSplitLeft(2.0f, nullptr, &CopyButton);
 				FollowButton.HMargin((FollowButton.h - FollowButton.w) / 2.0f, &FollowButton);
@@ -2651,9 +2658,9 @@ void CMenus::RenderServerbrowserFriends(CUIRect View)
 				Rect.HSplitTop(11.0f, &NameLabel, &ClanLabel);
 
 				SLabelProperties FriendLabelProps;
-				if(FollowingThisFriend)
+				if(IsPlayerFriend || FollowingThisFriend)
 				{
-					FriendLabelProps.m_MaxWidth = maximum(0.0f, FollowButton.x - NameLabel.x - 2.0f);
+					FriendLabelProps.m_MaxWidth = maximum(0.0f, (IsPlayerFriend ? PinButton.x : FollowButton.x) - NameLabel.x - 2.0f);
 					FriendLabelProps.m_DisallowNewline = true;
 					FriendLabelProps.m_EllipsisAtEnd = true;
 				}
@@ -2691,6 +2698,18 @@ void CMenus::RenderServerbrowserFriends(CUIRect View)
 					else
 						str_format(aBuf, sizeof(aBuf), "%s | %s", Friend.ServerInfo()->m_aMap, Friend.ServerInfo()->m_aGameType);
 					Ui()->DoLabel(&InfoLabel, aBuf, FontSize - 2.0f, TEXTALIGN_ML);
+				}
+
+				// 置顶入口常显，离线好友也可切换；重排在下一次列表刷新时生效。
+				if(IsPlayerFriend)
+				{
+					const IUiContext Context = ui_widget::ControlContext(Ui());
+					if(ui_widget::DoIconButton(Context, pPinButtonId, EQmIcon::CHEVRON_UP, FONT_ICON_CHEVRON_UP, Friend.IsPinned() ? 1 : 0, PinButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, true, std::nullopt, false, true) != 0)
+					{
+						GameClient()->Friends()->SetFriendPinned(Friend.Name(), Friend.Clan(), !Friend.IsPinned());
+						ButtonResult = 0;
+					}
+					GameClient()->m_Tooltips.DoToolTip(pPinButtonId, &PinButton, Friend.IsPinned() ? Localize("Unpin friend") : Localize("Pin friend"));
 				}
 
 				// remove button
@@ -2734,7 +2753,7 @@ void CMenus::RenderServerbrowserFriends(CUIRect View)
 					GameClient()->m_Tooltips.DoToolTip(pRemoveButtonId, &RemoveButton, Friend.FriendState() == IFriends::FRIEND_PLAYER ? Localize("Click to remove this player from your friends list.") : Localize("Click to remove this clan from your friends list."));
 				}
 
-				const bool InsideFriendAction = Ui()->MouseHovered(&CopyButton) || Ui()->MouseHovered(&RemoveButton) || (Friend.ServerInfo() && Ui()->MouseHovered(&FollowButton));
+				const bool InsideFriendAction = (IsPlayerFriend && Ui()->MouseHovered(&PinButton)) || Ui()->MouseHovered(&CopyButton) || Ui()->MouseHovered(&RemoveButton) || (Friend.ServerInfo() && Ui()->MouseHovered(&FollowButton));
 				if(IsPlayerFriend && Ui()->MouseButtonClicked(0) && Inside && !InsideFriendAction && !Ui()->IsPopupOpen() && (Ui()->IsActiveItem(pListItemId) || Ui()->ActiveItem() == nullptr))
 				{
 					s_FriendDragState.Begin(pListItemId, Friend.FriendState(), Friend.Name(), Friend.Clan(), GameClient()->Friends()->GetFriendCategory(Friend.Name(), Friend.Clan()), FriendRow, vec2(Ui()->MouseX(), Ui()->MouseY()));

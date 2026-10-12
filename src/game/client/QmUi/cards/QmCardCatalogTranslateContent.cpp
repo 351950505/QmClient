@@ -742,3 +742,8 @@ void CMenus::RenderQmFunctionTranslateContent(CUIRect &Content, float LineHeight
 		Content.HSplitTop(LineSpacing, nullptr, &Content);
 	}
 }
+
+uint64_t CMenus::TranslationTestLayoutRevision() const
+{
+	return static_cast<uint64_t>(m_TranslateProbe.Pending()) | (static_cast<uint64_t>(m_TranslateProbe.HasResult()) << 1) | (static_cast<uint64_t>(m_TranslateProbeDiagnostics != 0) << 2) | (static_cast<uint64_t>(m_TranslateProbe.Response().m_Notice) << 3) | (static_cast<uint64_t>(str_length(m_TranslateProbe.Response().m_Text)) << 8) | (static_cast<uint64_t>(GameClient()->m_Translate.LastDiagnostic().m_Notice) << 24);
+}

@@ -3201,6 +3201,9 @@ if(CLIENT)
     QmUi/QmTree.h
     QmUi/SecondaryPanel.h
     QmUi/ServerBrowserFilterForm.cpp
+    QmUi/SettingsMenuWidgets.cpp
+    QmUi/SettingsMenuPrewarm.cpp
+    QmUi/SettingsRuntimeCache.cpp
     QmUi/SettingsCard.cpp
     QmUi/SettingsCardInfo.cpp
     QmUi/SettingsCardInfo.h
@@ -3491,6 +3494,9 @@ if(CLIENT)
     components/qmclient/scoreboard_media_controls.h
     components/qmclient/voting_hud.h
     components/qmclient/menus_qmclient.cpp
+    components/qmclient/menus_qmclient_internal.h
+    components/qmclient/menus_qmclient_popups.cpp
+    components/qmclient/menus_qmclient_search.cpp
     components/qmclient/modes.cpp
     components/qmclient/modes.h
     components/qmclient/nameplate_layout.h
@@ -3700,6 +3706,8 @@ if(CLIENT)
     components/tclient/map_history.cpp
     components/tclient/map_history.h
     components/tclient/menus_tclient.cpp
+    components/tclient/menus_tclient_internal.h
+    components/tclient/menus_tclient_preview.cpp
     components/tclient/mod.cpp
     components/tclient/mod.h
     components/tclient/moving_tiles.cpp
@@ -4592,6 +4600,9 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_friend_online_tracker_test.cpp
     src/test/unit/qmclient/client/qm_friends_category_drag_test.cpp
     src/test/unit/engine/friends_revision_test.cpp
+    src/test/unit/engine/friends_pin_test.cpp
+    src/test/integration/engine/friends_pin_persistence_test.cpp
+    src/test/integration/qmclient/client/qm_browser_friend_pin_test.cpp
     src/test/unit/qmclient/monitoring/qm_perf_diagnostics_test.cpp
     src/test/unit/qmclient/monitoring/qm_perf_json_test.cpp
     src/test/unit/qmclient/monitoring/qm_device_sampler_lifecycle_test.cpp

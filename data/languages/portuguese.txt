@@ -8786,6 +8786,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == Lista de nomes do menu radial (| separa entradas; principal,dummy muda ambos os nomes)
 
+Pin friend
+== Fixar amigo
+
 Ping
 == Ping
 
@@ -11203,6 +11206,9 @@ Set voice input device
 
 Set voice output device
 == Definir dispositivo de saída de voz
+
+Set whether a friend is pinned
+== Definir se um amigo está fixado
 
 Set your checkpoints based on another player
 == Definir os teus checkpoints com base noutro jogador
@@ -14377,6 +14383,9 @@ Unmute:
 
 Unmuted
 == Som ativado
+
+Unpin friend
+== Desafixar amigo
 
 Unpredictable ghost opacity (0-100)
 == Opacidade do fantasma imprevisível (0-100)
