@@ -723,7 +723,7 @@ private:
 	void DrawSettingsSearchHighlight(const CUIRect &Rect) const;
 	friend class CUiScopedSettingsSearchHighlight;
 	SUiTheme m_QmControlTheme{};
-	std::array<unsigned, 8> m_aQmControlThemeConfig{};
+	std::array<unsigned, 7> m_aQmControlThemeConfig{};
 	bool m_HasQmControlTheme = false;
 	mutable int m_QuadBatchDepth = 0;
 	mutable int m_QuadBatchContainerIndex = -1;
@@ -775,6 +775,9 @@ private:
 		const void *m_pLastClickedId = nullptr;
 		float m_LastClickTime = -1.0f;
 		vec2 m_LastClickPos = vec2(-1.0f, -1.0f);
+		const void *m_pProcessedClickId = nullptr;
+		uint64_t m_ProcessedClickFrame = UINT64_MAX;
+		bool m_ProcessedClickWasDouble = false;
 	};
 	CDoubleClickState m_DoubleClickState;
 	const void *m_pLastEditingItem = nullptr;
@@ -985,6 +988,7 @@ public:
 	void SetDropDownFontSize(float FontSize) { m_DropDownFontSize = FontSize; }
 	void SetQmAnimationRuntime(CUiV2AnimationRuntime *pRuntime) { m_pQmAnimationRuntime = pRuntime; }
 	CUiV2AnimationRuntime *QmAnimationRuntime() const { return m_pQmAnimationRuntime; }
+	float QmSurfaceRounding(float Rounding) const;
 	void SetQmTooltips(CTooltips *pTooltips) { m_pQmTooltips = pTooltips; }
 	bool CardLabelHintsEnabled() const { return m_CardLabelHintsEnabled; }
 	CSettingsSearchHighlight *SettingsSearchHighlight() const { return m_pSettingsSearchHighlight; }
@@ -1112,6 +1116,7 @@ public:
 	void SetMouseSlow(bool MouseSlow) { m_MouseSlow = MouseSlow; }
 
 	bool ConsumeHotkey(EHotkey Hotkey);
+	bool HotkeyPressed(EHotkey Hotkey) const { return (m_HotkeysPressed & Hotkey) != 0; }
 	void ClearHotkeys() { m_HotkeysPressed = 0; }
 	bool OnInput(const IInput::CEvent &Event);
 
@@ -1405,6 +1410,8 @@ public:
 		const char m_ColorPickerId = 0;
 		const char m_aValueSelectorIds[5] = {0};
 		CButtonContainer m_aModeButtons[(int)MODE_HSLA + 1];
+		CButtonContainer m_aPresetButtons[ui_token::color::PICKER_PRESETS.size()];
+		void ApplyPreset(unsigned Rgb);
 		EEditState m_State = EEditState::NONE;
 	};
 	void ShowPopupColorPicker(float X, float Y, SColorPickerPopupContext *pContext);

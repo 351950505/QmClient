@@ -3534,22 +3534,28 @@ void CMenus::RenderServerbrowserFavoriteMaps(CUIRect View)
 	const std::vector<QmMapHistory::SMapHistoryRecord> &HistoryEntries = GameClient()->m_TClient.GetMapHistory().Entries();
 
 	static int s_FavoriteMapsWorkspaceTab = 0;
-	static CButtonContainer s_aFavoriteMapsWorkspaceTabButtons[3];
-	char aaWorkspaceTabLabels[3][128];
+	static CButtonContainer s_aFavoriteMapsWorkspaceTabButtons[4];
+	char aaWorkspaceTabLabels[4][128];
 	str_format(aaWorkspaceTabLabels[0], sizeof(aaWorkspaceTabLabels[0]), "%s (%d)", Localize("Favorite map"), (int)FavoriteMaps.size());
 	str_format(aaWorkspaceTabLabels[1], sizeof(aaWorkspaceTabLabels[1]), "%s (%d)", Localize("Map play history"), (int)HistoryEntries.size());
 	str_format(aaWorkspaceTabLabels[2], sizeof(aaWorkspaceTabLabels[2]), "%s (%d)", Localize("Local saves"), (int)vSaveEntries.size());
+	str_copy(aaWorkspaceTabLabels[3], Localize("Stats"), sizeof(aaWorkspaceTabLabels[3]));
 
 	CUIRect WorkspaceTabs;
 	View.HSplitTop(Layout.m_TabHeight, &WorkspaceTabs, &View);
 	const ColorRGBA TabInactiveColor = BrowserPanelColor(0.68f);
-	const char *apWorkspaceTabLabelPtrs[3] = {aaWorkspaceTabLabels[0], aaWorkspaceTabLabels[1], aaWorkspaceTabLabels[2]};
+	const char *apWorkspaceTabLabelPtrs[4] = {aaWorkspaceTabLabels[0], aaWorkspaceTabLabels[1], aaWorkspaceTabLabels[2], aaWorkspaceTabLabels[3]};
 	// 胶囊滑块配色按浏览器面板表面自适应。
 	const ui_widget::SCapsuleTabBarStyle WorkspaceTabStyle = CapsuleTabBarStyleFor(TabInactiveColor);
-	const int NewWorkspaceTab = DoSegmentedChoice(s_aFavoriteMapsWorkspaceTabButtons, apWorkspaceTabLabelPtrs, 3, s_FavoriteMapsWorkspaceTab, WorkspaceTabs, Layout.m_TabHeight * 0.20f, &WorkspaceTabStyle);
+	const int NewWorkspaceTab = DoSegmentedChoice(s_aFavoriteMapsWorkspaceTabButtons, apWorkspaceTabLabelPtrs, 4, s_FavoriteMapsWorkspaceTab, WorkspaceTabs, Layout.m_TabHeight * 0.20f, &WorkspaceTabStyle);
 	if(NewWorkspaceTab != s_FavoriteMapsWorkspaceTab)
 		s_FavoriteMapsWorkspaceTab = NewWorkspaceTab;
 	View.HSplitTop(Layout.m_SectionGap, nullptr, &View);
+	if(s_FavoriteMapsWorkspaceTab == 3)
+	{
+		RenderStatistics(View);
+		return;
+	}
 
 	View.Draw(BrowserPanelColor(0.82f), IGraphics::CORNER_ALL, Layout.m_PanelMargin);
 	CUiScopedSurfaceText SurfaceText(TextRender(), BrowserPanelColor(0.82f));

@@ -827,11 +827,8 @@ API key
 APP ID
 == ID de aplicación
 
-Appearance
-== Apariencia
-
-Appearance and command highlighting of the local console
-== Apariencia de la consola local y resaltado de comandos
+Appearance and command highlighting of local and remote consoles
+== Apariencia de las consolas local y remota y resaltado de comandos
 
 Appearance of help bubbles
 == Apariencia de las burbujas de ayuda
@@ -973,9 +970,6 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == Ya existe un activo con este nombre.
-
-Assets
-== Recursos
 
 Assets directory
 == Directorio de activos
@@ -2288,6 +2282,9 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == Color de la línea de gancho sin golpear nada
 
+Color presets
+== Preajustes de color
+
 Color tee outlines by team for spectating
 == Colorear el contorno del tee por equipo para espectadores
 
@@ -2332,6 +2329,9 @@ Command is not available on solo servers
 
 Command to run when joining server
 == Comando a ejecutar al unirse al servidor
+
+Command workshop
+== Taller de comandos
 
 Command:
 == Comando:
@@ -2407,9 +2407,6 @@ Config Filters
 
 Config version. Helps new client fix old config errors.
 == Versión de configuración. Ayuda al nuevo cliente a corregir errores de configuración antiguos.
-
-Configs
-== Configuraciones
 
 Configuration
 == Configuración
@@ -2642,8 +2639,8 @@ Console color
 Console color scheme
 == Consola: esquema de colores
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== Consola: esquema de colores: 0=Terminal moderno, 1=PowerShell clásico, 2=personalizado
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== Consola: esquema de colores: 0=Terminal moderno, 1=PowerShell clásico, 2=personalizado, 3=PowerShell 7
 
 Console command color
 == Consola: color de comandos
@@ -3052,6 +3049,9 @@ Cyrillic
 
 d = Prediction latency
 == d = Latencia de predicción
+
+Damped
+== Amortiguado
 
 Dark translucent
 == Oscuro translúcido
@@ -4769,6 +4769,9 @@ feat-003 dogfood: tokens + 12 widgets
 Feature Search
 == Búsqueda de funciones
 
+Features
+== Funciones
+
 Feet
 == Pies
 
@@ -5174,6 +5177,9 @@ Game graphics assets not from Teeworlds
 Game info
 == Información del juego
 
+Game interface
+== Interfaz del juego
+
 Game mode
 == Modo de juego
 
@@ -5227,9 +5233,6 @@ Gap between tee and nametag
 
 Gaussian
 == Gaussiano
-
-General
-== General
 
 Generated skin outline color
 == Color del contorno generado
@@ -6176,6 +6179,9 @@ Input overlay Y position (percent)
 Input switch
 == Cambio de entrada
 
+Input visualization
+== Visualización de entradas
+
 Insane
 == Insano
 
@@ -6203,6 +6209,9 @@ Interface accent color opacity percentage
 Interface animations
 == Animaciones de interfaz
 
+Interface corner style
+== Estilo de las esquinas de la interfaz
+
 Interface page
 == Página de interfaz
 
@@ -6214,6 +6223,12 @@ Interface surface
 
 Interface surface color
 == Color de la superficie de la interfaz
+
+Interface text size
+== Tamaño del texto de la interfaz
+
+Interface text size percentage
+== Porcentaje del tamaño del texto de la interfaz
 
 Interface transparency
 == Transparencia general de la interfaz
@@ -7847,6 +7862,12 @@ Nameplates
 Native scale (1.0)
 == Escala nativa (1.0)
 
+Navigation size
+== Tamaño de la navegación
+
+Navigation size percentage
+== Porcentaje del tamaño de la navegación
+
 Need to have started the map to swap with a player.
 == Necesitas haber comenzado el mapa para intercambiar con un jugador.
 
@@ -8317,6 +8338,9 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == Oficial
+
+Official binds
+== Asignaciones oficiales
 
 Official community links
 == Enlaces comunitarios oficiales
@@ -9175,6 +9199,9 @@ Position jump tip
 
 Position:
 == Posición:
+
+PowerShell 7
+== Colores de PowerShell 7
 
 Practice mode can't be enabled in team 0 mode.
 == El modo práctica no se puede activar en el modo team 0.
@@ -10412,6 +10439,9 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == Presupuesto de memoria de video para vista previa de recursos (porcentaje basado en el presupuesto local del dispositivo)
 
+Resources
+== Recursos
+
 Restart
 == Reiniciar
 
@@ -10534,6 +10564,9 @@ Round %d/%d
 
 Round-trip time
 == Tiempo de ida y vuelta
+
+Rounded
+== Redondeado
 
 Rounded caps
 == Extremos redondeados
@@ -10852,6 +10885,9 @@ Scroll mode: Off
 
 Scroll mode: On
 == Modo de desplazamiento: activado
+
+Scrolling
+== Desplazamiento
 
 Search
 == Buscar
@@ -11239,6 +11275,9 @@ Settings card titles use rainbow colors
 
 Settings file
 == Archivo de configuración
+
+Settings navigation migration version
+== Versión de migración de la navegación de ajustes
 
 Settings page opacity
 == Opacidad de la página de ajustes
@@ -12749,6 +12788,9 @@ Spree
 SQL Server name for record table
 == Nombre del servidor SQL para la tabla de registros
 
+Square
+== Recto
+
 Squishy Tee deformation duration
 == Duración de deformación de Tee elástico
 
@@ -14198,11 +14240,17 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == Escala de UI
 
+UI scrolling: 0=original, 1=damped
+== Desplazamiento de la interfaz: 0=original, 1=amortiguado
+
 UI server address
 == Dirección del servidor de UI
 
 UI size percentage
 == Tamaño UI (%)
+
+UI/UX
+== UI/UX
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == No se pudieron eliminar %d elementos seleccionados. El primer elemento fallido fue '%s'.
@@ -14572,6 +14620,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Usar la canalización de anillos procedurales con el renderizado mejorado activo
+
+Use rounded corners for interface surfaces
+== Usar esquinas redondeadas en las superficies de la interfaz
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Usar canalizaciones SDF para Dynamic Island y rectángulos redondeados con el renderizado mejorado activo

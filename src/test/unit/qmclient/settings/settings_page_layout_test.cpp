@@ -43,7 +43,7 @@ TEST(SettingsPageLayout, ReleaseViewportMatrixKeepsCardsAndNavigationInsideTheWi
 			ExpectInside(Layout.m_RestartBarRect, Available);
 			ExpectInside(Layout.m_ScrollViewport, Layout.m_ContentPanelRect);
 			ExpectInside(Layout.m_aColumns[0], Layout.m_ScrollViewport);
-			EXPECT_LE(Layout.m_ContentPanelRect.x + Layout.m_ContentPanelRect.w, Layout.m_TabBarRect.x);
+			EXPECT_LE(Layout.m_TabBarRect.x + Layout.m_TabBarRect.w, Layout.m_ContentPanelRect.x);
 			if(Layout.m_TwoColumns)
 			{
 				ExpectInside(Layout.m_aColumns[1], Layout.m_ScrollViewport);

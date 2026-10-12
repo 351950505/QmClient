@@ -62,3 +62,32 @@ TEST(QmConsoleAppearance, FontSizeAllowsOneThroughSevenWithoutClampingToEight)
 	for(int Size = 1; Size <= 7; ++Size)
 		EXPECT_FLOAT_EQ(QmConsoleAppearance::FontSize(Size), static_cast<float>(Size));
 }
+
+TEST(QmConsoleAppearance, PowerShellSevenPresetDistinguishesCommandParameterAndString)
+{
+	const auto Palette = QmConsoleAppearance::ResolvePalette(3, 40, {});
+	const auto Command = Palette.m_aColors[QmConsoleAppearance::COMMAND];
+	const auto Parameter = Palette.m_aColors[QmConsoleAppearance::PARAMETER];
+	const auto String = Palette.m_aColors[QmConsoleAppearance::STRING];
+	EXPECT_GT(Command.r, Command.b);
+	EXPECT_GT(Parameter.b, Parameter.r);
+	EXPECT_GT(String.g, String.r);
+	EXPECT_FLOAT_EQ(Palette.m_aColors[QmConsoleAppearance::BACKGROUND].a, 0.4f);
+	EXPECT_FLOAT_EQ(Command.a, 1.0f);
+	EXPECT_FLOAT_EQ(Parameter.a, 1.0f);
+	EXPECT_FLOAT_EQ(String.a, 1.0f);
+}
+
+TEST(QmConsoleAppearance, SwitchingPresetKeepsTheConfiguredCustomPalette)
+{
+	CConfig Config{};
+	QmConsoleAppearance::Reset(Config);
+	Config.m_QmConsoleCommandColor = ColorHSLA(0.7f, 0.8f, 0.6f).Pack(false);
+	Config.m_QmConsoleColorScheme = 2;
+	const auto Custom = QmConsoleAppearance::Palette(Config);
+	Config.m_QmConsoleColorScheme = 3;
+	const auto Preset = QmConsoleAppearance::Palette(Config);
+	EXPECT_NE(Preset.m_aColors[QmConsoleAppearance::COMMAND], Custom.m_aColors[QmConsoleAppearance::COMMAND]);
+	Config.m_QmConsoleColorScheme = 2;
+	EXPECT_EQ(QmConsoleAppearance::Palette(Config).m_aColors, Custom.m_aColors);
+}

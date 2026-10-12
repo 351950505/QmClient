@@ -143,6 +143,7 @@ void CUIElement::SUIElementRect::Reset()
 
 void CUIElement::SUIElementRect::Draw(const CUIRect *pRect, ColorRGBA Color, int Corners, float Rounding)
 {
+	Rounding = m_pParent->Ui()->QmSurfaceRounding(Rounding);
 	bool NeedsRecreate = false;
 	if(m_UIRectQuadContainer == -1 || m_Width != pRect->w || m_Height != pRect->h || m_QuadColor != Color || m_Rounding != Rounding || m_Corners != Corners)
 	{
@@ -421,6 +422,7 @@ bool CUi::PrepareGaussianBlur()
 
 void CUi::RenderGaussianBlur(const CUIRect &Rect, float Alpha, int Corners, float Rounding)
 {
+	Rounding = QmSurfaceRounding(Rounding);
 	// 调用方（模糊作用域与 HUD 背景）只看作用域，不看 qm_gaussian_blur，因此功能关闭时
 	// 每个半透明矩形仍会走到这里。关闭是用户的正常选择、不是失败，不能打 trace——
 	// 否则 qm_graphics_trace 一开，加载界面/主菜单每帧都会刷满 "prepare failed"。
@@ -972,6 +974,7 @@ void CUi::RegisterPassiveHotItem(const void *pId, const CUIRect *pRect)
 
 int CUi::QuadBatchRectContainer(float Width, float Height, float Rounding, int Corners) const
 {
+	Rounding = QmSurfaceRounding(Rounding);
 	if(!UiBatchableRectHasPositiveSize(Width, Height))
 		return -1;
 
@@ -1054,6 +1057,12 @@ void CUi::RenderBatchableRect(const CUIRect *pRect, ColorRGBA Color, int Corners
 		const_cast<CUi *>(this)->RenderGaussianBlur(*pRect, GaussianBlurScopeAlpha(), Corners, Rounding);
 	const int QuadContainerIndex = QuadBatchRectContainer(pRect->w, pRect->h, Rounding, Corners);
 	RenderQuadContainerBatchable(QuadContainerIndex, pRect->x + pRect->w / 2.0f, pRect->y + pRect->h / 2.0f, Color);
+}
+
+float CUi::QmSurfaceRounding(float Rounding) const
+{
+	// 客户端绑定共享 UI runtime；编辑器继续使用自己的控件形状。
+	return ResolveUiSurfaceRadius(Rounding, QmAnimationRuntime() == nullptr || g_Config.m_QmUiRoundedCorners != 0);
 }
 
 int CUi::DoButtonLogic(const void *pId, int Checked, const CUIRect *pRect, const unsigned Flags)
@@ -1190,11 +1199,18 @@ bool CUi::DoDoubleClickLogic(const void *pId)
 	if(RenderOnly())
 		return false;
 
+	const uint64_t Frame = Client()->PerfFrame();
+	if(m_DoubleClickState.m_pProcessedClickId == pId && m_DoubleClickState.m_ProcessedClickFrame == Frame)
+		return m_DoubleClickState.m_ProcessedClickWasDouble;
+	m_DoubleClickState.m_pProcessedClickId = pId;
+	m_DoubleClickState.m_ProcessedClickFrame = Frame;
+	m_DoubleClickState.m_ProcessedClickWasDouble = false;
 	if(m_DoubleClickState.m_pLastClickedId == pId &&
 		Client()->GlobalTime() - m_DoubleClickState.m_LastClickTime < 0.5f &&
 		distance(m_DoubleClickState.m_LastClickPos, MousePos()) <= 32.0f * Screen()->h / Graphics()->ScreenHeight())
 	{
 		m_DoubleClickState.m_pLastClickedId = nullptr;
+		m_DoubleClickState.m_ProcessedClickWasDouble = true;
 		return true;
 	}
 	m_DoubleClickState.m_pLastClickedId = pId;
@@ -1250,6 +1266,12 @@ void CUi::DoSmoothScrollLogic(float *pScrollOffset, float *pScrollOffsetChange, 
 	if(TotalSize < ViewPortSize)
 	{
 		*pScrollOffsetChange = -*pScrollOffset;
+	}
+	if(g_Config.m_QmUiScrollMode == 0)
+	{
+		*pScrollOffset += *pScrollOffsetChange;
+		*pScrollOffsetChange = 0.0f;
+		SmoothClamp = false;
 	}
 
 	// instant scrolling if distance too long
@@ -1464,7 +1486,7 @@ void CUi::DrawSettingsSearchHighlight(const CUIRect &Rect) const
 		return;
 	const ColorRGBA Accent = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(std::clamp(g_Config.m_QmUiAccentOpacity / 100.0f, 0.0f, 1.0f));
 	SRoundedSurfaceParams Params;
-	Params.m_Radius = std::min(ui_token::radius::TIGHT, Rect.h * 0.25f);
+	Params.m_Radius = QmSurfaceRounding(std::min(ui_token::radius::TIGHT, Rect.h * 0.25f));
 	Params.m_BorderWidth = 1.0f;
 	Params.m_PixelSize = PixelSize();
 	FlushQuadBatch();
@@ -1721,7 +1743,18 @@ bool CUi::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 
 	// Update mouse selection information
 	CLineInput::SMouseSelection *pMouseSelection = pLineInput->GetMouseSelection();
-	if(Inside)
+	if(Inside && MouseButtonClicked(0) && DoDoubleClickLogic(pLineInput))
+	{
+		if(pLineInput->IsActive() && (Input()->HasComposition() || Input()->GetCandidateCount()))
+		{
+			Input()->StopTextInput();
+			Input()->StartTextInput();
+		}
+		// 双击在本次文字遍历前提交全选，避免鼠标选区计算立即覆盖全选结果。
+		pMouseSelection->m_Selecting = false;
+		pLineInput->SelectAll();
+	}
+	else if(Inside)
 	{
 		if(!pMouseSelection->m_Selecting && MouseButtonClicked(0))
 		{
@@ -1836,7 +1869,17 @@ bool CUi::DoEditBoxMultiLine(CLineInput *pLineInput, const CUIRect *pRect, float
 		pLineInput->Deactivate();
 
 	CLineInput::SMouseSelection *pMouseSelection = pLineInput->GetMouseSelection();
-	if(Inside)
+	if(Inside && MouseButtonClicked(0) && DoDoubleClickLogic(pLineInput))
+	{
+		if(pLineInput->IsActive() && (Input()->HasComposition() || Input()->GetCandidateCount()))
+		{
+			Input()->StopTextInput();
+			Input()->StartTextInput();
+		}
+		pMouseSelection->m_Selecting = false;
+		pLineInput->SelectAll();
+	}
+	else if(Inside)
 	{
 		if(!pMouseSelection->m_Selecting && MouseButtonClicked(0))
 		{
@@ -1964,9 +2007,9 @@ void CUi::DoConfigTooltip(const void *pId, const CUIRect *pRect, const void *pVa
 
 const SUiTheme &CUi::QmControlTheme()
 {
-	const std::array<unsigned, 8> aConfig = {
+	const std::array<unsigned, 7> aConfig = {
 		g_Config.m_QmUiColor, static_cast<unsigned>(g_Config.m_QmUiOpacity), g_Config.m_QmUiFocusColor,
-		g_Config.m_QmUiAccentColor, static_cast<unsigned>(g_Config.m_QmUiAccentOpacity), g_Config.m_QmUiSelectedColor,
+		g_Config.m_QmUiAccentColor, static_cast<unsigned>(g_Config.m_QmUiAccentOpacity),
 		static_cast<unsigned>(g_Config.m_QmUiTextColorMode), g_Config.m_QmUiTextCustomColor};
 	// 同帧所有控件复用主题；配置变化时才重新解析颜色与前景。
 	if(!m_HasQmControlTheme || m_aQmControlThemeConfig != aConfig)

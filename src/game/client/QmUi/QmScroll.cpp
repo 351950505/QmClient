@@ -2,6 +2,8 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "QmScroll.h"
 
+#include <engine/shared/config.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -148,6 +150,17 @@ SQmScrollConfig QmSettingsScrollConfig(float UiScale, float SmoothScrollTimeSec)
 {
 	SQmScrollConfig Config = QmNativeWheelScrollConfig(UiScale, SmoothScrollTimeSec);
 	Config.m_WheelScale = 120.0f;
+	return Config;
+}
+
+SQmScrollConfig QmScrollConfigForMode(SQmScrollConfig Config, int Mode)
+{
+	if(Mode == 0)
+	{
+		Config.m_NativeWheelStep = true;
+		Config.m_NativeWheelAnimationTime = 0.0f;
+		Config.m_MaxOverscroll = 0.0f;
+	}
 	return Config;
 }
 
@@ -363,6 +376,15 @@ void CQmScrollState::Advance(float Dt, const SQmScrollMetrics &Metrics, const SQ
 			m_Velocity = 0.0f;
 	}
 	m_LastMaxOffset = MaxOffset;
+	if(Config.m_NativeWheelStep && Config.m_NativeWheelAnimationTime <= 0.0f)
+	{
+		// 切回原版时结束当前目标，不让上一种模式的速度继续推动列表。
+		if(m_AnimTime > 0.0f)
+			m_Offset = std::clamp(m_AnimTargetOffset, 0.0f, MaxOffset);
+		m_Offset = std::clamp(m_Offset, 0.0f, MaxOffset);
+		m_Velocity = m_AnimStartVelocity = 0.0f;
+		m_AnimTime = m_AnimTimeMax = 0.0f;
+	}
 	if(!std::isfinite(Dt) || Dt <= 0.0f)
 		return;
 
@@ -445,7 +467,7 @@ void CQmScrollController::ScrollByWheel(CQmScrollState &State, float WheelDelta,
 	SQmScrollMetrics Metrics;
 	Metrics.m_ViewportSize = ViewportHeight;
 	Metrics.m_ContentSize = ContentHeight;
-	State.AddWheelImpulse(WheelDelta, Metrics, Config);
+	State.AddWheelImpulse(WheelDelta, Metrics, QmScrollConfigForMode(Config, g_Config.m_QmUiScrollMode));
 }
 
 SQmScrollContainerFrame CQmScrollController::PreviewFrame(const CQmScrollState &State, const CUIRect &ViewRect, float ContentHeight, const SQmScrollContainerStyle &Style) const
@@ -459,7 +481,7 @@ SQmScrollContainerFrame CQmScrollController::Update(CQmScrollState &State, const
 	SQmScrollMetrics Metrics;
 	Metrics.m_ViewportSize = ScrollAxisViewportSize(ViewRect, Style);
 	Metrics.m_ContentSize = ContentHeight;
-	State.Advance(Dt, Metrics, Config);
+	State.Advance(Dt, Metrics, QmScrollConfigForMode(Config, g_Config.m_QmUiScrollMode));
 
 	return BuildScrollContainerFrame(ViewRect, ContentHeight, State.Offset(), Style, true);
 }
@@ -491,7 +513,7 @@ SQmScrollContainerFrame CQmScrollController::UpdateInternal(CQmScrollState &Stat
 	SQmScrollMetrics Metrics;
 	Metrics.m_ViewportSize = ScrollAxisViewportSize(MetricsView, Style);
 	Metrics.m_ContentSize = ContentHeight;
-	SQmScrollConfig EffectiveConfig = Config;
+	SQmScrollConfig EffectiveConfig = QmScrollConfigForMode(Config, g_Config.m_QmUiScrollMode);
 	if(Input.m_AltPressed)
 		EffectiveConfig.m_WheelScale *= QmScrollAltMultiplier();
 	if(Input.m_Hovered && Input.m_WheelDelta != 0.0f)

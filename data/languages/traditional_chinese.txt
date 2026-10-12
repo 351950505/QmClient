@@ -827,11 +827,8 @@ API key
 APP ID
 == 應用 ID
 
-Appearance
-== 遊戲界面
-
-Appearance and command highlighting of the local console
-== 本機控制台的外觀和命令醒目顯示
+Appearance and command highlighting of local and remote consoles
+== 本機與遠端控制台的外觀與命令醒目顯示
 
 Appearance of help bubbles
 == 提示氣泡外觀
@@ -973,9 +970,6 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == 同名材質已存在。
-
-Assets
-== 資源
 
 Assets directory
 == 資源目錄
@@ -2288,6 +2282,9 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == 未擊中任何物體的鉤線顏色
 
+Color presets
+== 色彩預設
+
 Color tee outlines by team for spectating
 == 按隊伍為 Tee 描邊著色，便於旁觀區分
 
@@ -2332,6 +2329,9 @@ Command is not available on solo servers
 
 Command to run when joining server
 == 加入伺服器時執行的命令
+
+Command workshop
+== 命令工坊
 
 Command:
 == 指令：
@@ -2407,9 +2407,6 @@ Config Filters
 
 Config version. Helps new client fix old config errors.
 == 配置版本。幫助新客戶修復舊配置的錯誤。
-
-Configs
-== 客戶端配置
 
 Configuration
 == 配置
@@ -2642,8 +2639,8 @@ Console color
 Console color scheme
 == 控制台: 配色
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== 控制台: 配色: 0=現代終端, 1=經典 PowerShell, 2=自訂
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== 控制台: 配色: 0=現代終端, 1=經典 PowerShell, 2=自訂, 3=PowerShell 7
 
 Console command color
 == 控制台: 命令顏色
@@ -3052,6 +3049,9 @@ Cyrillic
 
 d = Prediction latency
 == d = 預測延遲
+
+Damped
+== 阻尼
 
 Dark translucent
 == 深色半透明
@@ -4769,6 +4769,9 @@ feat-003 dogfood: tokens + 12 widgets
 Feature Search
 == 功能搜索
 
+Features
+== 功能
+
 Feet
 == 腳
 
@@ -5174,6 +5177,9 @@ Game graphics assets not from Teeworlds
 Game info
 == 遊戲信息
 
+Game interface
+== 遊戲介面
+
 Game mode
 == 遊戲模式
 
@@ -5227,9 +5233,6 @@ Gap between tee and nametag
 
 Gaussian
 == 高斯
-
-General
-== 常規
 
 Generated skin outline color
 == 生成描邊顏色
@@ -6176,6 +6179,9 @@ Input overlay Y position (percent)
 Input switch
 == 輸入切換
 
+Input visualization
+== 輸入視覺化
+
 Insane
 == 瘋狂
 
@@ -6203,6 +6209,9 @@ Interface accent color opacity percentage
 Interface animations
 == 介面動畫
 
+Interface corner style
+== 介面邊角樣式
+
 Interface page
 == 界面頁面
 
@@ -6214,6 +6223,12 @@ Interface surface
 
 Interface surface color
 == 介面表面顏色
+
+Interface text size
+== 介面文字大小
+
+Interface text size percentage
+== 介面文字大小百分比
 
 Interface transparency
 == 通用介面透明度
@@ -7847,6 +7862,12 @@ Nameplates
 Native scale (1.0)
 == 原生縮放 (1.0)
 
+Navigation size
+== 導覽大小
+
+Navigation size percentage
+== 導覽大小百分比
+
 Need to have started the map to swap with a player.
 == 你需要先開始地圖，才能和其他玩家交換位置
 
@@ -8317,6 +8338,9 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == 官方
+
+Official binds
+== 官方綁定
 
 Official community links
 == 官方社區入口
@@ -9175,6 +9199,9 @@ Position jump tip
 
 Position:
 == 座標
+
+PowerShell 7
+== PowerShell 7 配色
 
 Practice mode can't be enabled in team 0 mode.
 == 0 隊模式下不能開啟練習模式
@@ -10412,6 +10439,9 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == 資源預覽顯存預算百分比（基於設備本地顯存預算）
 
+Resources
+== 資源
+
 Restart
 == 重新開始
 
@@ -10534,6 +10564,9 @@ Round %d/%d
 
 Round-trip time
 == 往返時間
+
+Rounded
+== 圓角
 
 Rounded caps
 == 圓角端點
@@ -10852,6 +10885,9 @@ Scroll mode: Off
 
 Scroll mode: On
 == 滾動模式：開
+
+Scrolling
+== 捲動
 
 Search
 == 搜索
@@ -11239,6 +11275,9 @@ Settings card titles use rainbow colors
 
 Settings file
 == 設置文件
+
+Settings navigation migration version
+== 設定導覽遷移版本
 
 Settings page opacity
 == 設定頁不透明度
@@ -12749,6 +12788,9 @@ Spree
 SQL Server name for record table
 == 插入記錄表的 SQL Server 名稱
 
+Square
+== 方角
+
 Squishy Tee deformation duration
 == Q 彈 Tee 形變持續時間
 
@@ -14198,11 +14240,17 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI 大小
 
+UI scrolling: 0=original, 1=damped
+== 介面捲動：0=原版，1=阻尼
+
 UI server address
 == 界面伺服器地址
 
 UI size percentage
 == UI 大小百分比
+
+UI/UX
+== 介面與體驗
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == 無法刪除 %d 個選中項。第一個失敗項是“%s”。
@@ -14572,6 +14620,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == 啟用增強渲染時使用程序化圓環管線
+
+Use rounded corners for interface surfaces
+== 在介面區域使用圓角
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == 啟用增強渲染時，為動態島和圓角矩形使用 SDF 管線

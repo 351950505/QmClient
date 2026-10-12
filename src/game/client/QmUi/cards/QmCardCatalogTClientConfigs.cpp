@@ -602,7 +602,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientConfigsCard(const qm_card_
 			{
 				CUIRect Marker = RowItem;
 				Marker.w = std::min(3.0f * UiScale, Marker.w);
-				Marker.Draw(Staged ? color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)) : ColorRGBA(1.0f, 0.8f, 0.0f, 0.65f), IGraphics::CORNER_L, ui_token::radius::BASE);
+				Marker.Draw(Staged ? color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f) : ColorRGBA(1.0f, 0.8f, 0.0f, 0.65f), IGraphics::CORNER_L, ui_token::radius::BASE);
 			}
 			CUIRect NameLine = Layout.m_Name;
 			CUIRect Controls = Layout.m_Editor;

@@ -3241,6 +3241,12 @@ if(CLIENT)
     QmUi/SettingsSearchHighlight.cpp
     QmUi/SettingsSearchHighlight.h
     QmUi/SettingsSearchPage.cpp
+    QmUi/SettingsNavigation.cpp
+    QmUi/SettingsNavigation.h
+    QmUi/ModernSettingsPage.cpp
+    QmUi/MenuNavigation.h
+    QmUi/ResourceEditorWorkspace.cpp
+    QmUi/ResourceEditorWorkspace.h
     QmUi/SettingsSearchSession.h
     QmUi/cards/QmCardCatalog.cpp
     QmUi/cards/QmCardCatalog.h
@@ -4916,6 +4922,12 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/integration/qmclient/settings/qm_general_cards_test.cpp
     src/test/integration/qmclient/settings/qm_catalog_search_test.cpp
     src/test/integration/qmclient/settings/qm_settings_search_ranking_test.cpp
+    src/test/integration/qmclient/settings/qm_settings_navigation_test.cpp
+    src/test/unit/qmclient/settings/settings_text_scale_test.cpp
+    src/test/unit/qmclient/ui/menu_navigation_test.cpp
+    src/test/unit/qmclient/ui/qm_scroll_mode_test.cpp
+    src/test/unit/qmclient/ui/resource_editor_workspace_test.cpp
+    src/test/unit/qmclient/ui/ui_modern_theme_test.cpp
     src/test/integration/qmclient/settings/qm_title_cards_test.cpp
     src/test/integration/qmclient/settings/qm_spectator_cards_test.cpp
     src/test/integration/qmclient/settings/qm_tee_cards_test.cpp
@@ -5114,6 +5126,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/game/client/QmUi/QmTree.cpp
     src/game/client/QmUi/QmCardRegistry.cpp
     src/game/client/QmUi/SettingsSearchIndex.cpp
+    src/game/client/QmUi/SettingsNavigation.cpp
     src/game/client/QmUi/SettingsSearchHighlight.cpp
     src/game/client/QmUi/cards/QmCardCatalogIds.cpp
     src/game/client/QmUi/cards/QmCardCatalogSearch.cpp
@@ -5377,6 +5390,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/test/integration/qmclient/ui/qm_icon_text_test.cpp
       src/test/integration/qmclient/ui/qm_ui_element_lifetime_test.cpp
       src/test/integration/qmclient/ui/qm_settings_search_highlight_test.cpp
+      src/test/integration/qmclient/ui/qm_modern_text_input_test.cpp
+      src/test/integration/qmclient/ui/qm_color_presets_test.cpp
       src/game/client/QmUi/SettingsSearchHighlight.cpp
       src/engine/client/text.cpp
       src/game/client/ui.cpp

@@ -827,11 +827,8 @@ API key
 APP ID
 == ID do aplicativo
 
-Appearance
-== Aparência
-
-Appearance and command highlighting of the local console
-== Aparência do console local e destaque dos comandos
+Appearance and command highlighting of local and remote consoles
+== Aparência dos consoles local e remoto e destaque dos comandos
 
 Appearance of help bubbles
 == Aparência dos balões de ajuda
@@ -973,9 +970,6 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == Já existe um asset com este nome.
-
-Assets
-== Recursos
 
 Assets directory
 == Diretório de assets
@@ -2288,6 +2282,9 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == Cor da linha do gancho sem atingir nada
 
+Color presets
+== Predefinições de cores
+
 Color tee outlines by team for spectating
 == Colorir o contorno do tee por equipe para espectadores
 
@@ -2332,6 +2329,9 @@ Command is not available on solo servers
 
 Command to run when joining server
 == Comando para executar ao entrar no servidor
+
+Command workshop
+== Oficina de comandos
 
 Command:
 == Comando:
@@ -2407,9 +2407,6 @@ Config Filters
 
 Config version. Helps new client fix old config errors.
 == Versão da configuração. Ajuda o novo cliente a corrigir erros de configuração antiga.
-
-Configs
-== Configurações
 
 Configuration
 == Configuração
@@ -2642,8 +2639,8 @@ Console color
 Console color scheme
 == Console: esquema de cores
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== Console: esquema de cores: 0=Terminal moderno, 1=PowerShell clássico, 2=personalizado
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== Console: esquema de cores: 0=Terminal moderno, 1=PowerShell clássico, 2=personalizado, 3=PowerShell 7
 
 Console command color
 == Console: cor dos comandos
@@ -3052,6 +3049,9 @@ Cyrillic
 
 d = Prediction latency
 == d = Latência de previsão
+
+Damped
+== Amortecido
 
 Dark translucent
 == Escuro translúcido
@@ -4769,6 +4769,9 @@ feat-003 dogfood: tokens + 12 widgets
 Feature Search
 == Pesquisa de Recursos
 
+Features
+== Funções
+
 Feet
 == Pés
 
@@ -5174,6 +5177,9 @@ Game graphics assets not from Teeworlds
 Game info
 == Informações do jogo
 
+Game interface
+== Interface do jogo
+
 Game mode
 == Modo de jogo
 
@@ -5227,9 +5233,6 @@ Gap between tee and nametag
 
 Gaussian
 == Gaussiano
-
-General
-== Geral
 
 Generated skin outline color
 == Cor do contorno gerado
@@ -6176,6 +6179,9 @@ Input overlay Y position (percent)
 Input switch
 == Troca de entrada
 
+Input visualization
+== Visualização de entradas
+
 Insane
 == Insano
 
@@ -6203,6 +6209,9 @@ Interface accent color opacity percentage
 Interface animations
 == Animações da interface
 
+Interface corner style
+== Estilo dos cantos da interface
+
 Interface page
 == Página da interface
 
@@ -6214,6 +6223,12 @@ Interface surface
 
 Interface surface color
 == Cor da superfície da interface
+
+Interface text size
+== Tamanho do texto da interface
+
+Interface text size percentage
+== Tamanho do texto da interface em porcentagem
 
 Interface transparency
 == Transparência geral da interface
@@ -7847,6 +7862,12 @@ Nameplates
 Native scale (1.0)
 == Escala nativa (1.0)
 
+Navigation size
+== Tamanho da navegação
+
+Navigation size percentage
+== Tamanho da navegação em porcentagem
+
 Need to have started the map to swap with a player.
 == É necessário ter iniciado o mapa para trocar de lugar com um jogador.
 
@@ -8317,6 +8338,9 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == Oficial
+
+Official binds
+== Atalhos oficiais
 
 Official community links
 == Links oficiais da comunidade
@@ -9175,6 +9199,9 @@ Position jump tip
 
 Position:
 == Posição:
+
+PowerShell 7
+== Cores do PowerShell 7
 
 Practice mode can't be enabled in team 0 mode.
 == O modo de prática não pode ser ativado no modo team 0.
@@ -10412,6 +10439,9 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == Orçamento de VRAM para pré-visualização de recursos (porcentagem baseada no orçamento local do dispositivo)
 
+Resources
+== Recursos
+
 Restart
 == Reiniciar
 
@@ -10534,6 +10564,9 @@ Round %d/%d
 
 Round-trip time
 == Tempo de ida e volta
+
+Rounded
+== Arredondado
 
 Rounded caps
 == Pontas arredondadas
@@ -10852,6 +10885,9 @@ Scroll mode: Off
 
 Scroll mode: On
 == Modo de rolagem: ativado
+
+Scrolling
+== Rolagem
 
 Search
 == Pesquisar
@@ -11239,6 +11275,9 @@ Settings card titles use rainbow colors
 
 Settings file
 == Arquivo de configurações
+
+Settings navigation migration version
+== Versão de migração da navegação das configurações
 
 Settings page opacity
 == Opacidade da página de configurações
@@ -12749,6 +12788,9 @@ Spree
 SQL Server name for record table
 == Nome do SQL Server para a tabela de registros
 
+Square
+== Cantos retos
+
 Squishy Tee deformation duration
 == Duração da deformação do Tee elástico
 
@@ -14198,11 +14240,17 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == Escala da interface
 
+UI scrolling: 0=original, 1=damped
+== Rolagem da interface: 0=original, 1=amortecida
+
 UI server address
 == Endereço do servidor da UI
 
 UI size percentage
 == Porcentagem do tamanho da UI
+
+UI/UX
+== UI/UX
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == Não foi possível excluir %d itens selecionados. O primeiro item com falha foi '%s'.
@@ -14572,6 +14620,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Usar o pipeline de anéis procedurais quando a renderização aprimorada estiver ativa
+
+Use rounded corners for interface surfaces
+== Usar cantos arredondados nas superfícies da interface
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Usar pipelines SDF para Dynamic Island e retângulos arredondados quando a renderização aprimorada estiver ativa

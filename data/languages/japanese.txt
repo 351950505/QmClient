@@ -827,11 +827,8 @@ API key
 APP ID
 == アプリ ID
 
-Appearance
-== 外観
-
-Appearance and command highlighting of the local console
-== ローカルコンソールの外観とコマンドの強調表示
+Appearance and command highlighting of local and remote consoles
+== ローカルおよびリモートコンソールの外観とコマンドの強調表示
 
 Appearance of help bubbles
 == ヘルプ吹き出しの外観
@@ -973,9 +970,6 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == 同名のアセットが既に存在します。
-
-Assets
-== アセット
 
 Assets directory
 == アセットディレクトリ
@@ -2288,6 +2282,9 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == 何も当たらなかったフックラインの色
 
+Color presets
+== 色のプリセット
+
 Color tee outlines by team for spectating
 == 観戦時に見分けられるようチームごとにTeeの輪郭を色分け
 
@@ -2332,6 +2329,9 @@ Command is not available on solo servers
 
 Command to run when joining server
 == サーバー参加時に実行するコマンド
+
+Command workshop
+== コマンド工房
 
 Command:
 == コマンド：
@@ -2407,9 +2407,6 @@ Config Filters
 
 Config version. Helps new client fix old config errors.
 == 設定バージョン。新しいクライアントが古い設定のエラーを修正するのに役立ちます
-
-Configs
-== 設定
 
 Configuration
 == 設定
@@ -2642,8 +2639,8 @@ Console color
 Console color scheme
 == コンソール: 配色
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== コンソール: 配色: 0=モダンターミナル, 1=クラシック PowerShell, 2=カスタム
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== コンソール: 配色: 0=モダンターミナル, 1=クラシック PowerShell, 2=カスタム, 3=PowerShell 7
 
 Console command color
 == コンソール: コマンドの色
@@ -3052,6 +3049,9 @@ Cyrillic
 
 d = Prediction latency
 == d = 予測レイテンシ
+
+Damped
+== 減衰
 
 Dark translucent
 == 暗色半透明
@@ -4769,6 +4769,9 @@ feat-003 dogfood: tokens + 12 widgets
 Feature Search
 == 機能検索
 
+Features
+== 機能
+
 Feet
 == 足
 
@@ -5174,6 +5177,9 @@ Game graphics assets not from Teeworlds
 Game info
 == ゲーム情報
 
+Game interface
+== ゲーム画面
+
 Game mode
 == ゲームモード
 
@@ -5227,9 +5233,6 @@ Gap between tee and nametag
 
 Gaussian
 == ガウス
-
-General
-== 一般
 
 Generated skin outline color
 == 生成アウトラインの色
@@ -6176,6 +6179,9 @@ Input overlay Y position (percent)
 Input switch
 == 入力切り替え
 
+Input visualization
+== 入力の可視化
+
 Insane
 == インセイン
 
@@ -6203,6 +6209,9 @@ Interface accent color opacity percentage
 Interface animations
 == インターフェースアニメーション
 
+Interface corner style
+== インターフェースの角の形状
+
 Interface page
 == インターフェースページ
 
@@ -6214,6 +6223,12 @@ Interface surface
 
 Interface surface color
 == インターフェース表面の色
+
+Interface text size
+== インターフェースの文字サイズ
+
+Interface text size percentage
+== インターフェースの文字サイズの割合
 
 Interface transparency
 == 汎用インターフェース透明度
@@ -7847,6 +7862,12 @@ Nameplates
 Native scale (1.0)
 == ネイティブスケール (1.0)
 
+Navigation size
+== ナビゲーションのサイズ
+
+Navigation size percentage
+== ナビゲーションのサイズの割合
+
 Need to have started the map to swap with a player.
 == プレイヤーと入れ替えるにはマップを開始する必要があります。
 
@@ -8317,6 +8338,9 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == 公式
+
+Official binds
+== 標準のキー割り当て
 
 Official community links
 == 公式コミュニティリンク
@@ -9175,6 +9199,9 @@ Position jump tip
 
 Position:
 == 位置：
+
+PowerShell 7
+== PowerShell 7 の配色
 
 Practice mode can't be enabled in team 0 mode.
 == チーム 0 モードでは練習モードを有効にできません
@@ -10412,6 +10439,9 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == リソースプレビューのVRAM予算パーセント（デバイスのローカルVRAM予算に基づく）
 
+Resources
+== リソース
+
 Restart
 == 再起動
 
@@ -10534,6 +10564,9 @@ Round %d/%d
 
 Round-trip time
 == 往復時間
+
+Rounded
+== 角丸
 
 Rounded caps
 == 丸キャップ
@@ -10852,6 +10885,9 @@ Scroll mode: Off
 
 Scroll mode: On
 == スクロールモード: オン
+
+Scrolling
+== スクロール
 
 Search
 == 検索
@@ -11239,6 +11275,9 @@ Settings card titles use rainbow colors
 
 Settings file
 == 設定ファイル
+
+Settings navigation migration version
+== 設定ナビゲーションの移行バージョン
 
 Settings page opacity
 == 設定ページの不透明度
@@ -12749,6 +12788,9 @@ Spree
 SQL Server name for record table
 == レコードテーブルの SQL Server 名
 
+Square
+== 角型
+
 Squishy Tee deformation duration
 == Q 弾 Tee 変形持続時間
 
@@ -14198,11 +14240,17 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI スケール
 
+UI scrolling: 0=original, 1=damped
+== UI のスクロール：0=標準、1=減衰
+
 UI server address
 == UI サーバーアドレス
 
 UI size percentage
 == UI スケールのパーセンテージ
+
+UI/UX
+== UI/UX
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == 選択した %d 個のアイテムを削除できませんでした。最初に失敗したアイテムは「%s」です。
@@ -14572,6 +14620,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == 拡張レンダリング有効時に手続き型リングパイプラインを使用
+
+Use rounded corners for interface surfaces
+== インターフェースの表示領域に角丸を使用
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == 拡張レンダリング有効時に Dynamic Island と角丸矩形で SDF パイプラインを使用

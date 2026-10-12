@@ -827,11 +827,8 @@ API key
 APP ID
 == Uygulama kimliği
 
-Appearance
-== Görünüm
-
-Appearance and command highlighting of the local console
-== Yerel konsolun görünümü ve komut vurgulama
+Appearance and command highlighting of local and remote consoles
+== Yerel ve uzak konsolların görünümü ve komut vurgulama
 
 Appearance of help bubbles
 == Yardım balonlarının görünümü
@@ -973,9 +970,6 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == Bu ada sahip bir varlık zaten mevcut.
-
-Assets
-== Varlıklar
 
 Assets directory
 == Varlık dizini
@@ -2288,6 +2282,9 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == Hiçbir şeye çarpmayan kanca çizgisi rengi
 
+Color presets
+== Renk ön ayarları
+
 Color tee outlines by team for spectating
 == İzleyiciler için tee konturlarını takıma göre renklendir
 
@@ -2332,6 +2329,9 @@ Command is not available on solo servers
 
 Command to run when joining server
 == Sunucuya katılırken çalıştırılacak komut
+
+Command workshop
+== Komut atölyesi
 
 Command:
 == Komut:
@@ -2407,9 +2407,6 @@ Config Filters
 
 Config version. Helps new client fix old config errors.
 == Yapılandırma sürümü. Yeni istemcinin eski yapılandırma hatalarını düzeltmesine yardımcı olur.
-
-Configs
-== Yapılandırmalar
 
 Configuration
 == Yapılandırma
@@ -2642,8 +2639,8 @@ Console color
 Console color scheme
 == Konsol: renk şeması
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== Konsol: renk şeması: 0=Çağdaş terminal, 1=Klasik PowerShell, 2=özel
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== Konsol: renk şeması: 0=Çağdaş terminal, 1=Klasik PowerShell, 2=özel, 3=PowerShell 7
 
 Console command color
 == Konsol: komut rengi
@@ -3052,6 +3049,9 @@ Cyrillic
 
 d = Prediction latency
 == d = Tahmin gecikmesi
+
+Damped
+== Sönümlü
 
 Dark translucent
 == Koyu yarı saydam
@@ -4769,6 +4769,9 @@ feat-003 dogfood: tokens + 12 widgets
 Feature Search
 == Özellik Arama
 
+Features
+== İşlevler
+
 Feet
 == Ayaklar
 
@@ -5174,6 +5177,9 @@ Game graphics assets not from Teeworlds
 Game info
 == Oyun bilgisi
 
+Game interface
+== Oyun arayüzü
+
 Game mode
 == Oyun modu
 
@@ -5227,9 +5233,6 @@ Gap between tee and nametag
 
 Gaussian
 == Gauss
-
-General
-== Genel
 
 Generated skin outline color
 == Oluşturulan dış çizgi rengi
@@ -6176,6 +6179,9 @@ Input overlay Y position (percent)
 Input switch
 == Giriş anahtarı
 
+Input visualization
+== Girdi görselleştirme
+
 Insane
 == Çılgın
 
@@ -6203,6 +6209,9 @@ Interface accent color opacity percentage
 Interface animations
 == Arayüz animasyonları
 
+Interface corner style
+== Arayüz köşe stili
+
 Interface page
 == Arayüz sayfası
 
@@ -6214,6 +6223,12 @@ Interface surface
 
 Interface surface color
 == Arayüz yüzey rengi
+
+Interface text size
+== Arayüz metin boyutu
+
+Interface text size percentage
+== Arayüz metin boyutu yüzdesi
 
 Interface transparency
 == Genel arayüz şeffaflığı
@@ -7847,6 +7862,12 @@ Nameplates
 Native scale (1.0)
 == Yerel ölçek (1.0)
 
+Navigation size
+== Gezinme boyutu
+
+Navigation size percentage
+== Gezinme boyutu yüzdesi
+
 Need to have started the map to swap with a player.
 == Bir oyuncuyla yer değiştirmek için haritayı başlatmış olmanız gerekir.
 
@@ -8317,6 +8338,9 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == Resmi
+
+Official binds
+== Resmî tuş atamaları
 
 Official community links
 == Resmi topluluk bağlantıları
@@ -9175,6 +9199,9 @@ Position jump tip
 
 Position:
 == Konum:
+
+PowerShell 7
+== PowerShell 7 renkleri
 
 Practice mode can't be enabled in team 0 mode.
 == Takım 0 modunda antrenman modu etkinleştirilemez.
@@ -10412,6 +10439,9 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == Kaynak Önizleme VRAM Bütçe Yüzdesi (Cihazın Yerel VRAM Bütçesine Göre)
 
+Resources
+== Kaynaklar
+
 Restart
 == Yeniden Başlat
 
@@ -10534,6 +10564,9 @@ Round %d/%d
 
 Round-trip time
 == Gidiş-dönüş süresi
+
+Rounded
+== Yuvarlatılmış
 
 Rounded caps
 == Yuvarlak uçlar
@@ -10852,6 +10885,9 @@ Scroll mode: Off
 
 Scroll mode: On
 == Kaydırma modu: açık
+
+Scrolling
+== Kaydırma
 
 Search
 == Ara
@@ -11239,6 +11275,9 @@ Settings card titles use rainbow colors
 
 Settings file
 == Ayarlar dosyası
+
+Settings navigation migration version
+== Ayarlar gezinmesi geçiş sürümü
 
 Settings page opacity
 == Ayarlar sayfası opaklığı
@@ -12749,6 +12788,9 @@ Spree
 SQL Server name for record table
 == Kayıt tablosu için SQL Sunucu adı
 
+Square
+== Köşeli
+
 Squishy Tee deformation duration
 == Zıpzıp Tee deformasyon süresi
 
@@ -14198,11 +14240,17 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI ölçeği
 
+UI scrolling: 0=original, 1=damped
+== Arayüz kaydırma: 0=özgün, 1=sönümlü
+
 UI server address
 == UI sunucu adresi
 
 UI size percentage
 == UI boyut yüzdesi
+
+UI/UX
+== UI/UX
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == %d seçili öğe silinemiyor. İlk başarısız öğe '%s'.
@@ -14572,6 +14620,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Gelişmiş işleme etkin olduğunda prosedürel halka işlem hattını kullan
+
+Use rounded corners for interface surfaces
+== Arayüz yüzeylerinde yuvarlatılmış köşeler kullan
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Gelişmiş işleme etkin olduğunda Dynamic Island ve yuvarlatılmış dikdörtgenler için SDF işlem hatlarını kullan

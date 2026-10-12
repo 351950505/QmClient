@@ -313,7 +313,11 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 	for(const auto &Gpu : GpuList.m_vGpus)
 		GraphicsDisplayMeasureRevision = GraphicsDisplayMeasureRevision * 1099511628211ULL ^ str_quickhash(Gpu.m_aName);
 	const bool GraphicsVisualTextCustomVisible = g_Config.m_QmUiTextColorMode == 3;
-	const float GraphicsVisualContentHeight = ResolveSettingsContentFlowHeight(GraphicsMetrics, {MakeSettingsContentFlowEntry(GraphicsMetrics.m_ButtonHeight),
+	const float GraphicsVisualContentHeight = ResolveSettingsContentFlowHeight(GraphicsMetrics, {MakeSettingsContentFlowEntry(GraphicsMetrics.m_LineHeight),
+		MakeSettingsContentFlowEntry(GraphicsMetrics.m_LineHeight),
+		MakeSettingsContentFlowEntry(GraphicsMetrics.m_LineHeight),
+		MakeSettingsContentFlowEntry(GraphicsMetrics.m_LineHeight),
+		MakeSettingsContentFlowEntry(GraphicsMetrics.m_ButtonHeight),
 													    MakeSettingsContentFlowEntry(GraphicsMetrics.m_ButtonHeight),
 													    MakeSettingsContentFlowEntry(GraphicsMetrics.m_ButtonHeight),
 													    MakeSettingsContentFlowEntry(GraphicsMetrics.m_ButtonHeight),
@@ -719,6 +723,37 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 		vCards.back().m_Measure = [this, RenderDisplay](float Width) { return qm_card_catalog::QmCardRenderHook::MeasureContent(this, RenderDisplay, Width); };
 		AddCard(VisualSpec, GraphicsVisualMinCardHeight, VisualChromeHeight, [this, GraphicsMetrics, GraphicsPage, BodySize, DoGraphicsNumericField](CUIRect ContentRect) {
 			CSettingsContentRowFlow Rows(ContentRect, GraphicsMetrics);
+			static int s_TextScaleInputId;
+			static int s_NavigationScaleInputId;
+			if(DoGraphicsNumericField("ui-text-scale", &s_TextScaleInputId, &g_Config.m_QmUiTextScale, Rows.NextLine(), Localize("Interface text size"), 75, 150, &CUi::ms_LinearScrollbarScale, "%", CUi::SCROLLBAR_OPTION_DELAYUPDATE))
+				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::UI_SCALE_CHANGED);
+			if(DoGraphicsNumericField("ui-navigation-scale", &s_NavigationScaleInputId, &g_Config.m_QmUiNavScale, Rows.NextLine(), Localize("Navigation size"), 75, 150, &CUi::ms_LinearScrollbarScale, "%", CUi::SCROLLBAR_OPTION_DELAYUPDATE))
+				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::UI_SCALE_CHANGED);
+			static CUi::SDropDownState s_ScrollMode;
+			static CScrollRegion s_ScrollModeRegion;
+			s_ScrollMode.m_SelectionPopupContext.m_pScrollRegion = &s_ScrollModeRegion;
+			CUIRect ScrollRow = Rows.NextLine();
+			CUIRect ScrollLabel, ScrollControl;
+			ScrollRow.VSplitLeft(ResolveSettingsCardLabelWidth(ScrollRow.w, GraphicsMetrics), &ScrollLabel, &ScrollControl);
+			Ui()->DoLabel(&ScrollLabel, Localize("Scrolling"), BodySize, TEXTALIGN_ML);
+			const char *apScrollModes[] = {Localize("Original"), Localize("Damped")};
+			const int ScrollMode = DoSettingsDropDown(&ScrollControl, g_Config.m_QmUiScrollMode, apScrollModes, std::size(apScrollModes), s_ScrollMode, {}, &g_Config.m_QmUiScrollMode, nullptr, &ScrollRow);
+			g_Config.m_QmUiScrollMode = ScrollMode;
+
+			static CButtonContainer s_aCornerStyleButtons[2];
+			const CUIRect CornerLabel = Rows.NextLine();
+			const CUIRect CornerButtons = Rows.NextButton();
+			const CUIRect CornerRow{CornerLabel.x, CornerLabel.y, CornerLabel.w, CornerButtons.y + CornerButtons.h - CornerLabel.y};
+			Ui()->DoConfigTooltip(&g_Config.m_QmUiRoundedCorners, &CornerRow, &g_Config.m_QmUiRoundedCorners);
+			Ui()->DoLabel(&CornerLabel, Localize("Interface corner style"), BodySize, TEXTALIGN_ML);
+			const char *apCornerStyles[] = {Localize("Square"), Localize("Rounded")};
+			const int CornerStyle = DoSegmentedChoice(s_aCornerStyleButtons, apCornerStyles, std::size(apCornerStyles), g_Config.m_QmUiRoundedCorners, CornerButtons);
+			if(CornerStyle != g_Config.m_QmUiRoundedCorners)
+			{
+				g_Config.m_QmUiRoundedCorners = CornerStyle;
+				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
+			}
+
 			const bool TextCustomColorVisible = g_Config.m_QmUiTextColorMode == 3;
 			SSettingsContentMetrics ColorMetrics = GraphicsMetrics;
 			ColorMetrics.m_LineSpacing = 0.0f;
@@ -730,13 +765,6 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 			static CButtonContainer s_UiAccentColorResetId;
 			CUIRect UiAccentColorRow = Rows.NextButton();
 			if(DoLine_AlphaColorPicker(&s_UiAccentColorResetId, ColorMetrics, &UiAccentColorRow, Localize("Interface accent color"), &g_Config.m_QmUiAccentColor, &g_Config.m_QmUiAccentOpacity, DefaultConfig::QmUiAccentColor, DefaultConfig::QmUiAccentOpacity))
-				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
-
-			static CButtonContainer s_UiSelectedColorResetId;
-			const unsigned OldUiSelectedColor = g_Config.m_QmUiSelectedColor;
-			CUIRect UiSelectedColorRow = Rows.NextButton();
-			DoLine_ColorPicker(&s_UiSelectedColorResetId, ColorMetrics, &UiSelectedColorRow, Localize("Selected item color"), &g_Config.m_QmUiSelectedColor, color_cast<ColorRGBA>(ColorHSLA(DefaultConfig::QmUiSelectedColor)), false, nullptr, false);
-			if(OldUiSelectedColor != g_Config.m_QmUiSelectedColor)
 				InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
 
 			static CButtonContainer s_UiCardColorResetId;

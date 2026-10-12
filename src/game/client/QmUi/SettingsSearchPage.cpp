@@ -3,6 +3,7 @@
 #include "QmScroll.h"
 #include "SettingsPageLayout.h"
 #include "SettingsSearchHighlight.h"
+#include "SettingsNavigation.h"
 #include "SettingsSearchSession.h"
 #include "UiContext.h"
 #include "UiForms.h"
@@ -69,7 +70,7 @@ namespace
 			const char *pTab = Card.m_Target.m_pTab;
 			if(pTab != nullptr && str_comp(pTab, "global-search") == 0)
 				continue;
-			if(pTab != nullptr && ((Sixup && str_comp(pTab, "tee") == 0) || (!Sixup && str_comp(pTab, "tee7") == 0)))
+			if(!qm_settings_navigation::CardAvailable(Card.m_Target.m_pStableId, Sixup))
 				continue;
 			Out.m_vAllVisibleCards.push_back(std::move(Card));
 		}
@@ -409,7 +410,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 		s_GlobalSearchInputCollapsed = false;
 	const float InputContentHeight = s_GlobalSearchInputCollapsed ? 0.0f : 2.0f * LineHeight + LineSpacing;
 	const SSettingsCardSpec InputSpec{"deck:global-search-input", Localize("Feature Search"), qm_card_registry::ResolveLocalizedDescription("deck:global-search-input")};
-	const float InputChromeHeight = BuildSettingsCardFrame({0.0f, 0.0f, Page.m_ContentViewport.w, 0.0f}, InputSpec, InputContentHeight, UiScale).m_Rect.h;
+	const float InputChromeHeight = BuildSettingsCardFrame({0.0f, 0.0f, Page.m_ContentViewport.w, 0.0f}, InputSpec, InputContentHeight, UiScale, Metrics.m_TextScale).m_Rect.h;
 	const float CenteredOffsetY = std::max(0.0f, (Page.m_ContentViewport.h - InputChromeHeight) * 0.5f);
 	const float TargetOffsetY = HasSearchQuery ? 0.0f : CenteredOffsetY;
 	float InputOffsetY = TargetOffsetY;

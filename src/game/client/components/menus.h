@@ -25,7 +25,9 @@
 #include <game/client/QmUi/QmScroll.h>
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/QmVoteMenu.h>
+#include <game/client/QmUi/ResourceEditorWorkspace.h>
 #include <game/client/QmUi/SettingsCardDeck.h>
+#include <game/client/QmUi/SettingsNavigation.h>
 #include <game/client/QmUi/SettingsSearchSession.h>
 #include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
@@ -217,7 +219,7 @@ private:
 	float ResolveMenuTabAnimationValue(const void *pButtonId, bool Active, float DurationSec = 0.10f) const;
 	void InitSettingsTabLabelCache();
 	void UpdateSettingsTabLabels();
-	void PrepareSettingsTabLabelCache(float MainViewWidth, float TabBarWidth = -1.0f);
+	void PrepareSettingsTabLabelCache(float MainViewWidth, float TabBarWidthOverride = -1.0f, float NavigationScaleOverride = -1.0f);
 	void PrepareLanguagePageCache(float MainViewWidth, bool ForceComplete);
 	void SplitSettingsScrollbarRects(const CUIRect &Rect, unsigned Flags, CUIRect *pLabelRect, CUIRect *pValueRect, CUIRect *pScrollBarRect) const;
 	int DoButton_CheckBox_Common_WithLabelElement(const void *pId, const char *pText, const char *pBoxText, const CUIRect *pRect, unsigned Flags, CUIElement *pLabelElement, bool ProcessInput = true, float LabelFontSize = -1.0f, bool MarkedControl = false);
@@ -2506,10 +2508,11 @@ public:
 	bool ClaimOnlineReplaySpectatorBind(int Key);
 	bool IsActive() const { return m_MenuActive; }
 	bool IsSettingsPageActive() const;
-	std::array<int, 9> TooltipContext() const
+	std::array<int, 14> TooltipContext() const
 	{
 		return {m_MenuActive, m_MenuPage, m_GamePage, m_Popup, g_Config.m_UiSettingsPage,
-			m_QmClientSettingsTab, m_TClientSettingsTab, m_AppearanceSettingsTab, m_CreditsSettingsTab};
+			m_QmClientSettingsTab, m_TClientSettingsTab, m_AppearanceSettingsTab, m_CreditsSettingsTab,
+			m_ModernFriendsTab, m_ModernTeeTab, m_ModernVisualTab, m_ModernControlsTab, m_ModernFeaturesTab};
 	}
 	const char *CurrentQmUiPerfPage() const;
 	const char *CurrentQmUiPerfOperation() const;
@@ -2554,6 +2557,7 @@ public:
 		PAGE_RANK_DEMO,
 		PAGE_UNFINISHED_MAPS,
 		PAGE_STATS,
+		PAGE_RESOURCE_EDITOR,
 
 		PAGE_LENGTH,
 	};
@@ -2576,6 +2580,8 @@ public:
 		SETTINGS_PROFILES,
 		SETTINGS_CONFIGS,
 		SETTINGS_CONTRIBUTORS,
+		SETTINGS_FRIENDS,
+		SETTINGS_HUD,
 
 		SETTINGS_LENGTH,
 	};
@@ -2663,6 +2669,17 @@ public:
 	int m_QmUpdatePopupState = -1;
 	int m_TClientSettingsTab = 0;
 	int m_AppearanceSettingsTab = APPEARANCE_TAB_HUD;
+	int m_ModernFriendsTab = 0;
+	int m_ModernVisualTab = 0;
+	int m_ModernControlsTab = 0;
+	int m_ModernFeaturesTab = 0;
+	int m_ModernTeeTab = 0;
+	void RenderModernSettingsPage(CUIRect View, bool PrewarmOnly = false);
+	void RenderModernSettingsCards(CUIRect View, const char *pViewId, bool PrewarmOnly = false);
+	void OpenResourceEditorWorkspace(int Workspace = -1);
+	void RenderResourceEditorWorkspace(CUIRect View);
+	void SuspendResourceEditorWorkspace();
+	qm_resource_editor::CWorkspace m_ResourceEditorWorkspace;
 	CLineInputBuffered<128> m_GlobalCardSearchInput;
 	// 进入「搜索」设置页时自动聚焦输入框的一次性请求标志（渲染侧消费）。
 	bool m_FocusSettingsSearchOnEntry = false;
@@ -2870,6 +2887,7 @@ public:
 	ui_widget::SNumericFieldState *GetSettingsNumericFieldState(const void *pId);
 	bool DoSettingsLine_RadioMenu(int Page, int Tab, int Subtab, CUIRect &View, const char *pLabelTextId, const char *pLabel, std::vector<CButtonContainer> &vButtonContainers, const std::vector<const char *> &vButtonTextIds, const std::vector<const char *> &vLabels, const std::vector<int> &vValues, int &Value, const SSettingsContentMetrics &Metrics, const int *pOverrideSource = nullptr, const void *pConfigValue = nullptr, const void *pSecondConfigValue = nullptr);
 	void BuildBaseSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView);
+	void CollectBaseSettingsMenuTextPlanUnit(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView, int Page, int Tab);
 	void BuildIngameMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView);
 	void BuildSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems);
 	void BuildSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView);
@@ -2958,6 +2976,7 @@ private:
 
 	CQmSettingsPerfWindowTracker m_SettingsPerfWindowTracker;
 	int m_SettingsPerfLastPage = -1;
+	int m_SettingsPerfLastTab = -1;
 	int m_SettingsPerfLastTClientTab = -1;
 	int m_SettingsPerfLastQmClientTab = -1;
 	uint64_t m_IngameEscOpenFrame = 0;
@@ -3062,6 +3081,7 @@ private:
 	float SettingsPageUiScale(float ContentWidth) const;
 	SSettingsContentMetrics CurrentSettingsContentMetrics() const;
 	SSettingsPageLayoutFrame SettingsPageLayout(const CUIRect &ContentView, float UiScale) const;
+	void ApplyModernSettingsRoute(const qm_settings_navigation::SRoute &Route);
 	bool SetSettingsPageFromCardTab(const char *pTab);
 	void NavigateToSettingsCard(const qm_card_registry::SCardNavigationTarget &Target);
 	void RequestSettingsCardFocus(const char *pStableId);
@@ -3154,6 +3174,7 @@ private:
 	std::string m_SettingsCardFocusStableId;
 	qm_card_order::CModel m_SettingsCardOrderModel;
 	bool m_SettingsCardOrderLoaded = false;
+	uint64_t m_SettingsModernLayoutRevision = UINT64_MAX;
 	CSettingsCardDeck m_SettingsCardDeck;
 	qm_card_order::CModel m_SettingsCardRenderOnlyOrderModel;
 	std::string m_SettingsCardRenderOnlyOrderSource;

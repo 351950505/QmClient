@@ -9,6 +9,7 @@
 #include "QmUi/UiTheme.h"
 #include "QmUi/UiTokens.h"
 #include "components/qmclient/perf_logging.h"
+#include "components/tooltips.h"
 #include "ui.h"
 #include "ui_scrollregion.h"
 
@@ -1085,6 +1086,16 @@ int CUi::DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, 
 	return DoDropDown(pRect, CurSelection, pStrs, Num, State, DropDownProps);
 }
 
+void CUi::SColorPickerPopupContext::ApplyPreset(unsigned Rgb)
+{
+	m_RgbaColor = ResolveUiColorPickerPreset(Rgb, m_RgbaColor.a);
+	m_HslaColor = color_cast<ColorHSLA>(m_RgbaColor);
+	m_HsvaColor = color_cast<ColorHSVA>(m_HslaColor);
+	if(m_pHslaColor != nullptr)
+		*m_pHslaColor = m_HslaColor.Pack(m_Alpha);
+	m_State = EEditState::ONE_GO;
+}
+
 CUi::EPopupMenuFunctionResult CUi::PopupColorPicker(void *pContext, CUIRect View, bool Active)
 {
 	SColorPickerPopupContext *pColorPicker = static_cast<SColorPickerPopupContext *>(pContext);
@@ -1097,7 +1108,7 @@ CUi::EPopupMenuFunctionResult CUi::PopupColorPicker(void *pContext, CUIRect View
 	// 成模糊背板，选择方块因此显示为灰度渐变、不随所选色相变化。
 	CUiScopedGaussianBlurSuppression PickerBlurSuppression(pUI);
 
-	CUIRect ColorsArea, HueArea, BottomArea, ModeButtonArea, HueRect, SatRect, ValueRect, HexRect, AlphaRect;
+	CUIRect ColorsArea, HueArea, BottomArea, ModeButtonArea, HueRect, SatRect, ValueRect, HexRect, AlphaRect, PresetLabel, PresetButtons;
 
 	View.HSplitTop(140.0f, &ColorsArea, &BottomArea);
 	ColorsArea.VSplitRight(20.0f, &ColorsArea, &HueArea);
@@ -1124,6 +1135,9 @@ CUi::EPopupMenuFunctionResult CUi::PopupColorPicker(void *pContext, CUIRect View
 	HexRect.VSplitLeft(HexValueWidth, &HexRect, &AlphaRect);
 	AlphaRect.VSplitLeft(ValuePadding, nullptr, &AlphaRect);
 	BottomArea.HSplitTop(20.0f, &ModeButtonArea, &BottomArea);
+	BottomArea.HSplitTop(3.0f, nullptr, &BottomArea);
+	BottomArea.HSplitTop(12.0f, &PresetLabel, &BottomArea);
+	BottomArea.HSplitTop(3.0f, nullptr, &PresetButtons);
 
 	const ColorRGBA BlackColor = ColorRGBA(0.0f, 0.0f, 0.0f, 0.5f);
 
@@ -1321,6 +1335,38 @@ CUi::EPopupMenuFunctionResult CUi::PopupColorPicker(void *pContext, CUIRect View
 		pColorPicker->m_State = HuePickerRes;
 	}
 
+	SLabelProperties PresetLabelProps;
+	PresetLabelProps.m_MaxWidth = PresetLabel.w;
+	PresetLabelProps.m_StopAtEnd = true;
+	pUI->DoLabel(&PresetLabel, Localize("Color presets"), 10.0f, TEXTALIGN_ML, PresetLabelProps);
+	const float PresetGap = 3.0f;
+	const float PresetWidth = (PresetButtons.w - PresetGap * (ui_token::color::PICKER_PRESETS.size() - 1)) / ui_token::color::PICKER_PRESETS.size();
+	for(size_t i = 0; i < ui_token::color::PICKER_PRESETS.size(); ++i)
+	{
+		const unsigned Rgb = ui_token::color::PICKER_PRESETS[i];
+		CUIRect Swatch;
+		PresetButtons.VSplitLeft(PresetWidth, &Swatch, &PresetButtons);
+		PresetButtons.VSplitLeft(PresetGap, nullptr, &PresetButtons);
+		const void *pId = &pColorPicker->m_aPresetButtons[i];
+		if(pUI->DoButtonLogic(pId, 0, &Swatch, BUTTONFLAG_LEFT))
+		{
+			pColorPicker->ApplyPreset(Rgb);
+			PickerColorRGB = pColorPicker->m_RgbaColor;
+			PickerColorHSL = pColorPicker->m_HslaColor;
+			PickerColorHSV = pColorPicker->m_HsvaColor;
+		}
+		const ColorRGBA SwatchColor = ResolveUiColorPickerPreset(Rgb, 1.0f);
+		const bool Hovered = pUI->MouseHovered(&Swatch);
+		const ColorRGBA Border = Hovered ? pUI->QmControlTheme().m_FocusRing : ResolveUiSurfaceForeground(SwatchColor).WithAlpha(0.35f);
+		DrawRoundedSurface(pUI, Swatch, SwatchColor, Border, ui_token::radius::TIGHT, Hovered ? 2.0f : 1.0f);
+		if(pUI->m_pQmTooltips != nullptr)
+		{
+			char aHex[8];
+			str_format(aHex, sizeof(aHex), "#%06X", Rgb);
+			pUI->m_pQmTooltips->DoToolTipForRect(pId, &Swatch, aHex);
+		}
+	}
+
 	// Marker Color Area
 	const float MarkerX = ColorsArea.x + ColorsArea.w * PickerColorHSV.y;
 	const float MarkerY = ColorsArea.y + ColorsArea.h * (1.0f - PickerColorHSV.z);
@@ -1375,5 +1421,5 @@ void CUi::ShowPopupColorPicker(float X, float Y, SColorPickerPopupContext *pCont
 	PopupProps.m_BlockUnderlyingPointerInput = true;
 	PopupProps.m_BlockUnderlyingScroll = true;
 	PopupProps.m_Animate = true;
-	DoPopupMenu(pContext, X, Y, 160.0f + 10.0f, 209.0f + 10.0f, pContext, PopupColorPicker, PopupProps);
+	DoPopupMenu(pContext, X, Y, 160.0f + 10.0f, 247.0f + 10.0f, pContext, PopupColorPicker, PopupProps);
 }

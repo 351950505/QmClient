@@ -827,11 +827,8 @@ API key
 APP ID
 == ID d’application
 
-Appearance
-== Apparence
-
-Appearance and command highlighting of the local console
-== Apparence de la console locale et coloration des commandes
+Appearance and command highlighting of local and remote consoles
+== Apparence des consoles locale et distante et coloration des commandes
 
 Appearance of help bubbles
 == Apparence des bulles d’aide
@@ -973,9 +970,6 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == Un élément avec ce nom existe déjà.
-
-Assets
-== Ressources
 
 Assets directory
 == Répertoire des éléments
@@ -2288,6 +2282,9 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == Couleur de la ligne du crochet ne touchant rien
 
+Color presets
+== Préréglages de couleur
+
 Color tee outlines by team for spectating
 == Colorer le contour du tee par équipe pour les spectateurs
 
@@ -2332,6 +2329,9 @@ Command is not available on solo servers
 
 Command to run when joining server
 == Commande à exécuter lors de la connexion au serveur
+
+Command workshop
+== Atelier de commandes
 
 Command:
 == Commande :
@@ -2407,9 +2407,6 @@ Config Filters
 
 Config version. Helps new client fix old config errors.
 == Version de la configuration. Aide le nouveau client à corriger les anciennes erreurs de configuration.
-
-Configs
-== Configurations
 
 Configuration
 == Configuration
@@ -2642,8 +2639,8 @@ Console color
 Console color scheme
 == Console: palette de couleurs
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== Console: palette de couleurs: 0=Terminal moderne, 1=PowerShell classique, 2=personnalisée
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== Console: palette de couleurs: 0=Terminal moderne, 1=PowerShell classique, 2=personnalisée, 3=PowerShell 7
 
 Console command color
 == Console: couleur des commandes
@@ -3052,6 +3049,9 @@ Cyrillic
 
 d = Prediction latency
 == d = Latence de prédiction
+
+Damped
+== Amorti
 
 Dark translucent
 == Sombre translucide
@@ -4769,6 +4769,9 @@ feat-003 dogfood: tokens + 12 widgets
 Feature Search
 == Recherche de fonctionnalités
 
+Features
+== Fonctions
+
 Feet
 == Pieds
 
@@ -5174,6 +5177,9 @@ Game graphics assets not from Teeworlds
 Game info
 == Infos du jeu
 
+Game interface
+== Interface de jeu
+
 Game mode
 == Mode de jeu
 
@@ -5227,9 +5233,6 @@ Gap between tee and nametag
 
 Gaussian
 == Gaussien
-
-General
-== Général
 
 Generated skin outline color
 == Couleur du contour généré
@@ -6176,6 +6179,9 @@ Input overlay Y position (percent)
 Input switch
 == Commutateur d'entrée
 
+Input visualization
+== Visualisation des entrées
+
 Insane
 == Insane
 
@@ -6203,6 +6209,9 @@ Interface accent color opacity percentage
 Interface animations
 == Animations d’interface
 
+Interface corner style
+== Style des coins de l’interface
+
 Interface page
 == Page d'interface
 
@@ -6214,6 +6223,12 @@ Interface surface
 
 Interface surface color
 == Couleur de la surface de l'interface
+
+Interface text size
+== Taille du texte de l’interface
+
+Interface text size percentage
+== Taille du texte de l’interface en pourcentage
 
 Interface transparency
 == Opacité générale de l'interface
@@ -7847,6 +7862,12 @@ Nameplates
 Native scale (1.0)
 == Échelle native (1.0)
 
+Navigation size
+== Taille de la navigation
+
+Navigation size percentage
+== Taille de la navigation en pourcentage
+
 Need to have started the map to swap with a player.
 == Vous devez avoir commencé la carte pour échanger avec un joueur.
 
@@ -8317,6 +8338,9 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == Officiel
+
+Official binds
+== Raccourcis officiels
 
 Official community links
 == Liens communautaires officiels
@@ -9175,6 +9199,9 @@ Position jump tip
 
 Position:
 == Position :
+
+PowerShell 7
+== Palette PowerShell 7
 
 Practice mode can't be enabled in team 0 mode.
 == Le mode entraînement ne peut pas être activé en mode équipe 0.
@@ -10412,6 +10439,9 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == Budget mémoire vidéo pour l'aperçu des ressources (pourcentage du budget local)
 
+Resources
+== Ressources
+
 Restart
 == Redémarrer
 
@@ -10534,6 +10564,9 @@ Round %d/%d
 
 Round-trip time
 == Temps aller-retour
+
+Rounded
+== Arrondi
 
 Rounded caps
 == Caps arrondies
@@ -10852,6 +10885,9 @@ Scroll mode: Off
 
 Scroll mode: On
 == Mode défilement : activé
+
+Scrolling
+== Défilement
 
 Search
 == Rechercher
@@ -11239,6 +11275,9 @@ Settings card titles use rainbow colors
 
 Settings file
 == Fichier de paramètres
+
+Settings navigation migration version
+== Version de migration de la navigation des paramètres
 
 Settings page opacity
 == Opacité de la page des paramètres
@@ -12749,6 +12788,9 @@ Spree
 SQL Server name for record table
 == Nom du serveur SQL pour la table d'enregistrement
 
+Square
+== Angles droits
+
 Squishy Tee deformation duration
 == Durée de déformation du Tee rebondissant
 
@@ -14198,11 +14240,17 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == Échelle de l'interface utilisateur
 
+UI scrolling: 0=original, 1=damped
+== Défilement de l’interface : 0=original, 1=amorti
+
 UI server address
 == Adresse du serveur UI
 
 UI size percentage
 == Taille UI (%)
+
+UI/UX
+== UI/UX
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == Impossible de supprimer %d éléments sélectionnés. Le premier élément en échec était '%s'.
@@ -14572,6 +14620,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Utiliser le pipeline d’anneaux procéduraux lorsque le rendu amélioré est actif
+
+Use rounded corners for interface surfaces
+== Utiliser des coins arrondis pour les surfaces de l’interface
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Utiliser les pipelines SDF pour Dynamic Island et les rectangles arrondis lorsque le rendu amélioré est actif

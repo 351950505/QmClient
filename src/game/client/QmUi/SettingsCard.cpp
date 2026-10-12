@@ -66,7 +66,7 @@ void RenderSettingsCardHeaderIcon(const IUiContext &Ctx, const CUIRect &Rect, co
 	const bool Pressed = Hovered && Ctx.m_pUi->MouseButton(0);
 	const uint64_t NodeKey = BuildUiAnimNodeKey(Ctx.m_ScopeHash ^ str_quickhash("card-icon-feedback"), reinterpret_cast<uint64_t>(pId));
 	const float Scale = Ctx.m_pAnim != nullptr && pId != nullptr ? ResolveSettingsIconScale(*Ctx.m_pAnim, NodeKey, Hovered, Pressed, !Ctx.m_pUi->RenderOnly()) : 1.0f;
-	const float IconSize = std::clamp(ui_token::font::BODY * UiScale, 10.0f, ui_token::font::BODY) * Scale;
+	const float IconSize = std::clamp(ui_token::font::BODY * UiScale, 10.0f, ui_token::font::BODY) * ui_token::font::TextScale(g_Config.m_QmUiTextScale) * Scale;
 	const ColorRGBA IconColor = ResolveUiSurfaceIconColor(ChromeColor, Ctx.m_pUi->TextRender()->GetTextColor().WithAlpha(Alpha));
 	ITextRender *pTextRender = Ctx.m_pUi->TextRender();
 	ExecuteSettingsCardHeaderIcon(*pTextRender, IconColor, [&]() {
@@ -84,7 +84,7 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const CUIRect &Slot, cons
 	const float UiScale = Ctx.m_UiScale > 0.0f ? Ctx.m_UiScale : 1.0f;
 	const float ContentWidth = std::max(0.0f, Slot.w - 2.0f * ui_token::settings::CARD_PADDING * UiScale);
 	const float ContentHeight = Measure ? std::max(0.0f, Measure(ContentWidth)) : 0.0f;
-	const SSettingsCardFrame Frame = BuildSettingsCardFrame(Slot, Spec, ContentHeight, UiScale);
+	const SSettingsCardFrame Frame = BuildSettingsCardFrame(Slot, Spec, ContentHeight, UiScale, ui_token::font::TextScale(g_Config.m_QmUiTextScale));
 	return SettingsCard(Ctx, Frame, Spec, State, VisualOptions, Render, HeaderAction, RenderMeasured, pPointerInside);
 }
 
@@ -92,6 +92,7 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 {
 	const CQmCardLabelHintScope LabelHints(Ctx.m_pUi);
 	const float UiScale = Ctx.m_UiScale > 0.0f ? Ctx.m_UiScale : 1.0f;
+	const float TextScale = ui_token::font::TextScale(g_Config.m_QmUiTextScale);
 	SSettingsCardVisualState DrawState = State;
 	SSettingsCardFrame DrawFrame = ResolveSettingsCardDrawFrame(Frame, State.m_DrawOffsetX, State.m_DrawOffsetY);
 	CUIRect InfoButton{};
@@ -152,14 +153,14 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 		SLabelProperties TitleProps;
 		TitleProps.m_MaxWidth = DrawFrame.m_TitleRect.w;
 		TitleProps.m_EllipsisAtEnd = true;
-		RenderSettingsCardLabel(Ctx, Spec, false, DrawFrame.m_TitleRect, Spec.m_pTitle != nullptr ? Spec.m_pTitle : "", ui_token::font::TITLE * UiScale, TitleProps);
+		RenderSettingsCardLabel(Ctx, Spec, false, DrawFrame.m_TitleRect, Spec.m_pTitle != nullptr ? Spec.m_pTitle : "", ui_token::font::TITLE * UiScale * TextScale, TitleProps);
 		if(DrawCardChrome && Ctx.m_pTooltips != nullptr && Spec.m_pStableId != nullptr && Ctx.m_pUi->MouseHovered(&DrawFrame.m_TitleRect))
 		{
 			CUIRect TitleAnchor = DrawFrame.m_TitleRect;
-			TitleAnchor.w = std::min(TitleAnchor.w, Ctx.m_pTextRender->TextWidth(ui_token::font::TITLE * UiScale, Spec.m_pTitle != nullptr ? Spec.m_pTitle : ""));
+			TitleAnchor.w = std::min(TitleAnchor.w, Ctx.m_pTextRender->TextWidth(ui_token::font::TITLE * UiScale * TextScale, Spec.m_pTitle != nullptr ? Spec.m_pTitle : ""));
 			const uint64_t Key = BuildUiAnimNodeKey(Ctx.m_ScopeHash ^ str_quickhash("card-title-tip"), str_quickhash(Spec.m_pStableId));
 			const std::string Help = SettingsCardTooltipText(Spec);
-			Ctx.m_pTooltips->DoSmallToolTip(reinterpret_cast<const void *>(static_cast<uintptr_t>(Key)), &TitleAnchor, Help.c_str(), ResolveSettingsSmallFontSize(UiScale), ResolveSettingsCardInfoWidth(Ctx.m_pUi->Screen()->w, UiScale));
+			Ctx.m_pTooltips->DoSmallToolTip(reinterpret_cast<const void *>(static_cast<uintptr_t>(Key)), &TitleAnchor, Help.c_str(), ResolveSettingsSmallFontSize(UiScale) * TextScale, ResolveSettingsCardInfoWidth(Ctx.m_pUi->Screen()->w, UiScale));
 		}
 		// 标题只影响本卡片，不能把调用方的文本状态写死为默认白色。
 		Ctx.m_pTextRender->SetRenderFlags(PreviousRenderFlags);
@@ -265,7 +266,7 @@ bool CMenus::DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect
 	Options.m_Selected = SettingsToggleEntryValue(Entry);
 	Options.m_Radius *= Metrics.m_UiScale;
 	// 与 F1 筛选相同，以选中底色表达启用状态，不再另画滑动开关。
-	Options.m_Color = Options.m_Selected ? color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)).WithAlpha(1.0f) : ResolveConfiguredControlSurface();
+	Options.m_Color = ResolveConfiguredControlSurface();
 	ColorRGBA Fill = *Options.m_Color;
 	if(!Options.m_Enabled)
 		Fill.a *= 0.65f;

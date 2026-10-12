@@ -1611,6 +1611,10 @@ namespace qm_card_catalog
 		};
 
 		static constexpr SCardSettingSearch s_adeck_graphics_visual[] = {
+			{Localizable("Interface corner style"), "qm_ui_rounded_corners", "界面圆角 方角 边角样式"},
+			{Localizable("Interface text size"), "qm_ui_text_scale", "界面文字大小 字体缩放"},
+			{Localizable("Navigation size"), "qm_ui_nav_scale", "导航大小 顶栏比例"},
+			{Localizable("Scrolling"), "qm_ui_scroll_mode", "滚动 原版 阻尼 惯性"},
 			{Localizable("Auto"), nullptr, "自动"},
 			{Localizable("Black"), nullptr, "黑色"},
 			{Localizable("Blur mode"), nullptr, "模糊模式"},
@@ -1630,7 +1634,6 @@ namespace qm_card_catalog
 			{Localizable("Rainbow card titles"), nullptr, "卡片标题彩虹流动"},
 			{Localizable("Scoreboard surface"), nullptr, "计分板表面"},
 			{Localizable("Secondary menu background color"), nullptr, "二级菜单背景颜色"},
-			{Localizable("Selected item color"), nullptr, "选中项颜色"},
 			{Localizable("Settings card background"), nullptr, "设置卡片背景"},
 			{Localizable("Settings card border color"), nullptr, "设置卡片边框颜色"},
 			{Localizable("Show settings card borders"), nullptr, "显示设置卡片边框"},

@@ -6,16 +6,17 @@
 
 #include <algorithm>
 
-SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &, const float ContentHeight, const float UiScale)
+SSettingsCardFrame BuildSettingsCardFrame(const CUIRect &Slot, const SSettingsCardSpec &, const float ContentHeight, const float UiScale, const float TextScale)
 {
 	const float Scale = UiScale > 0.0f ? UiScale : 1.0f;
+	const float HeaderScale = Scale * std::clamp(TextScale, 0.75f, 1.5f);
 	const float Padding = ui_token::settings::CARD_PADDING * Scale;
-	const float TitleHeight = ui_token::settings::CARD_HEADER_TITLE_HEIGHT * Scale;
+	const float TitleHeight = ui_token::settings::CARD_HEADER_TITLE_HEIGHT * HeaderScale;
 	// 模块说明由标题悬浮提示承载，不再预留副标题行。
 	const float SubtitleHeight = 0.0f;
-	const float HeaderGap = ui_token::settings::CARD_HEADER_GAP * Scale;
+	const float HeaderGap = ui_token::settings::CARD_HEADER_GAP * HeaderScale;
 	const float HeaderHeight = TitleHeight + SubtitleHeight;
-	const float HandleSize = ui_token::settings::CARD_HANDLE_SIZE * Scale;
+	const float HandleSize = ui_token::settings::CARD_HANDLE_SIZE * HeaderScale;
 	const float SafeContentHeight = std::max(0.0f, ContentHeight);
 
 	SSettingsCardFrame Frame{};

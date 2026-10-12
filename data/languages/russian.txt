@@ -827,11 +827,8 @@ API key
 APP ID
 == ID приложения
 
-Appearance
-== Внешний вид
-
-Appearance and command highlighting of the local console
-== Оформление локальной консоли и подсветка команд
+Appearance and command highlighting of local and remote consoles
+== Оформление локальной и удалённой консолей и подсветка команд
 
 Appearance of help bubbles
 == Внешний вид всплывающих подсказок
@@ -973,9 +970,6 @@ Aspect ratio preset (0=off, 1=5:4, 2=4:3, 3=3:2, 4=16:9, 5=21:9, 6=custom)
 
 Asset with this name already exists.
 == Ресурс с таким именем уже существует.
-
-Assets
-== Ресурсы
 
 Assets directory
 == Папка ресурсов
@@ -2288,6 +2282,9 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == Цвет линии захвата, когда ни во что не попали
 
+Color presets
+== Цветовые пресеты
+
 Color tee outlines by team for spectating
 == Раскрашивать контур ти по командам для зрителей
 
@@ -2332,6 +2329,9 @@ Command is not available on solo servers
 
 Command to run when joining server
 == Команда, выполняемая при подключении к серверу
+
+Command workshop
+== Мастерская команд
 
 Command:
 == Команда:
@@ -2407,9 +2407,6 @@ Config Filters
 
 Config version. Helps new client fix old config errors.
 == Версия конфигурации. Помогает новому клиенту исправить старые ошибки конфигурации.
-
-Configs
-== Конфиги
 
 Configuration
 == Конфигурация
@@ -2642,8 +2639,8 @@ Console color
 Console color scheme
 == Консоль: цветовая схема
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
-== Консоль: цветовая схема: 0=Современный терминал, 1=Классический PowerShell, 2=своя
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
+== Консоль: цветовая схема: 0=Современный терминал, 1=Классический PowerShell, 2=своя, 3=PowerShell 7
 
 Console command color
 == Консоль: цвет команд
@@ -3052,6 +3049,9 @@ Cyrillic
 
 d = Prediction latency
 == d = Задержка предсказания
+
+Damped
+== С затуханием
 
 Dark translucent
 == Тёмный полупрозрачный
@@ -4769,6 +4769,9 @@ feat-003 dogfood: tokens + 12 widgets
 Feature Search
 == Поиск функций
 
+Features
+== Функции
+
 Feet
 == Ноги
 
@@ -5174,6 +5177,9 @@ Game graphics assets not from Teeworlds
 Game info
 == Информация об игре
 
+Game interface
+== Игровой интерфейс
+
 Game mode
 == Игровой режим
 
@@ -5227,9 +5233,6 @@ Gap between tee and nametag
 
 Gaussian
 == Гаусс
-
-General
-== Общие
 
 Generated skin outline color
 == Цвет сгенерированной обводки
@@ -6176,6 +6179,9 @@ Input overlay Y position (percent)
 Input switch
 == Переключение ввода
 
+Input visualization
+== Визуализация ввода
+
 Insane
 == Безумие
 
@@ -6203,6 +6209,9 @@ Interface accent color opacity percentage
 Interface animations
 == Анимации интерфейса
 
+Interface corner style
+== Стиль углов интерфейса
+
 Interface page
 == Страница интерфейса
 
@@ -6214,6 +6223,12 @@ Interface surface
 
 Interface surface color
 == Цвет поверхности интерфейса
+
+Interface text size
+== Размер текста интерфейса
+
+Interface text size percentage
+== Размер текста интерфейса в процентах
 
 Interface transparency
 == Общая прозрачность интерфейса
@@ -7847,6 +7862,12 @@ Nameplates
 Native scale (1.0)
 == Нативный масштаб (1.0)
 
+Navigation size
+== Размер навигации
+
+Navigation size percentage
+== Размер навигации в процентах
+
 Need to have started the map to swap with a player.
 == Необходимо начать карту, чтобы обменяться с игроком.
 
@@ -8317,6 +8338,9 @@ Off: disables all interface animations while preserving the options below
 
 Official
 == Официально
+
+Official binds
+== Стандартные привязки
 
 Official community links
 == Официальные ссылки сообщества
@@ -9175,6 +9199,9 @@ Position jump tip
 
 Position:
 == Позиция:
+
+PowerShell 7
+== Цвета PowerShell 7
 
 Practice mode can't be enabled in team 0 mode.
 == Режим тренировки нельзя включить в режиме команды 0.
@@ -10412,6 +10439,9 @@ Resource preview VRAM budget override (MB, 0=auto)
 Resource preview VRAM budget percentage (based on device local VRAM budget)
 == Бюджет видеопамяти для предпросмотра ресурсов (в процентах от локального бюджета устройства)
 
+Resources
+== Ресурсы
+
 Restart
 == Перезапустить
 
@@ -10534,6 +10564,9 @@ Round %d/%d
 
 Round-trip time
 == Время кругового обхода
+
+Rounded
+== Скруглённые
 
 Rounded caps
 == Скруглённые концы
@@ -10852,6 +10885,9 @@ Scroll mode: Off
 
 Scroll mode: On
 == Режим прокрутки: вкл.
+
+Scrolling
+== Прокрутка
 
 Search
 == Поиск
@@ -11239,6 +11275,9 @@ Settings card titles use rainbow colors
 
 Settings file
 == Файл настроек
+
+Settings navigation migration version
+== Версия миграции навигации настроек
 
 Settings page opacity
 == Непрозрачность страницы настроек
@@ -12749,6 +12788,9 @@ Spree
 SQL Server name for record table
 == Имя SQL-сервера для таблицы записей
 
+Square
+== Прямые
+
 Squishy Tee deformation duration
 == Длительность деформации упругого Tee
 
@@ -14198,11 +14240,17 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == Масштаб UI
 
+UI scrolling: 0=original, 1=damped
+== Прокрутка интерфейса: 0=исходная, 1=с затуханием
+
 UI server address
 == Адрес сервера UI
 
 UI size percentage
 == Размер UI (%)
+
+UI/UX
+== UI/UX
 
 Unable to delete %d selected items. The first failing item was '%s'.
 == Не удалось удалить %d выбранных элементов. Первый неудачный элемент: «%s».
@@ -14572,6 +14620,9 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Использовать процедурный конвейер колец при включённом расширенном рендеринге
+
+Use rounded corners for interface surfaces
+== Использовать скруглённые углы элементов интерфейса
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Использовать конвейеры SDF для Dynamic Island и скруглённых прямоугольников при включённом расширенном рендеринге
