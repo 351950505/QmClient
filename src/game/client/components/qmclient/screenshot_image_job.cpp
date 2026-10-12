@@ -37,6 +37,20 @@ void CQmScreenshotImageJob::Run()
 	}
 }
 
+bool CQmScreenshotImageJob::LoadRgbaImageFromDisk(IStorage *pStorage, const std::string &Path, int StorageType, CImageInfo &Image)
+{
+	if(!LoadImageFromDisk(pStorage, Path, StorageType, 0, Image))
+		return false;
+	// 旧接口返回原图是否已是 RGBA；转换是否成功应检查转换后的像素和格式。
+	ConvertToRgba(Image);
+	if(Image.m_pData == nullptr || Image.m_Format != CImageInfo::FORMAT_RGBA)
+	{
+		Image.Free();
+		return false;
+	}
+	return true;
+}
+
 bool CQmScreenshotImageJob::LoadImageFromDisk(IStorage *pStorage, const std::string &Path, int StorageType, int MaxEdge, CImageInfo &Image)
 {
 	Image.Free();

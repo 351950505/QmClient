@@ -17,22 +17,28 @@ namespace
 {
 	constexpr int64_t JOB_TIMEOUT_MS = 30000;
 
-	CImageInfo MakeSolidImage(size_t Width, size_t Height, ColorRGBA Color)
+	struct SLoadedImage
+	{
+		CImageInfo m_Image;
+		~SLoadedImage() { m_Image.Free(); }
+	};
+
+	CImageInfo MakeSolidImage(size_t Width, size_t Height, ColorRGBA Color, CImageInfo::EImageFormat Format = CImageInfo::FORMAT_RGBA)
 	{
 		CImageInfo Image;
 		Image.m_Width = Width;
 		Image.m_Height = Height;
-		Image.m_Format = CImageInfo::FORMAT_RGBA;
-		Image.m_pData = static_cast<uint8_t *>(std::malloc(Width * Height * 4));
+		Image.m_Format = Format;
+		Image.m_pData = static_cast<uint8_t *>(std::malloc(Width * Height * CImageInfo::PixelSize(Format)));
 		for(size_t Y = 0; Y < Height; ++Y)
 			for(size_t X = 0; X < Width; ++X)
 				Image.SetPixelColor(X, Y, Color);
 		return Image;
 	}
 
-	bool StorePng(IStorage *pStorage, const char *pFilename, size_t Width, size_t Height, ColorRGBA Color)
+	bool StorePng(IStorage *pStorage, const char *pFilename, size_t Width, size_t Height, ColorRGBA Color, CImageInfo::EImageFormat Format = CImageInfo::FORMAT_RGBA)
 	{
-		CImageInfo Image = MakeSolidImage(Width, Height, Color);
+		CImageInfo Image = MakeSolidImage(Width, Height, Color, Format);
 		const bool Saved = CImageLoader::SavePng(pStorage->OpenFile(pFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE), pFilename, Image);
 		Image.Free();
 		return Saved;
@@ -136,4 +142,61 @@ TEST(QmScreenshotImageJob, ReportsMissingAndUndecodableFilesAsFailed)
 	ASSERT_TRUE(RunJobToCompletion(pInvalid));
 	EXPECT_TRUE(pInvalid->LoadFailed());
 	EXPECT_EQ(pInvalid->Image(), nullptr);
+}
+
+TEST(QmScreenshotImageJob, ViewerConvertsRgbPngAndPreservesColors)
+{
+	CTestInfo Info;
+	auto pStorage = Info.CreateTestStorage();
+	ASSERT_NE(pStorage, nullptr);
+	const ColorRGBA SourceColor(0.25f, 0.5f, 0.75f, 1.0f);
+	ASSERT_TRUE(StorePng(pStorage.get(), "viewer-rgb.png", 3, 2, SourceColor, CImageInfo::FORMAT_RGB));
+
+	SLoadedImage Loaded;
+	ASSERT_TRUE(CQmScreenshotImageJob::LoadRgbaImageFromDisk(pStorage.get(), "viewer-rgb.png", IStorage::TYPE_SAVE, Loaded.m_Image));
+	ASSERT_NE(Loaded.m_Image.m_pData, nullptr);
+	EXPECT_EQ(Loaded.m_Image.m_Format, CImageInfo::FORMAT_RGBA);
+	EXPECT_EQ(Loaded.m_Image.m_Width, (size_t)3);
+	EXPECT_EQ(Loaded.m_Image.m_Height, (size_t)2);
+	const ColorRGBA Pixel = Loaded.m_Image.PixelColor(2, 1);
+	EXPECT_NEAR(Pixel.r, SourceColor.r, 0.01f);
+	EXPECT_NEAR(Pixel.g, SourceColor.g, 0.01f);
+	EXPECT_NEAR(Pixel.b, SourceColor.b, 0.01f);
+	EXPECT_FLOAT_EQ(Pixel.a, 1.0f);
+}
+
+TEST(QmScreenshotImageJob, ViewerPreservesRgbaPngAlpha)
+{
+	CTestInfo Info;
+	auto pStorage = Info.CreateTestStorage();
+	ASSERT_NE(pStorage, nullptr);
+	const ColorRGBA SourceColor(0.25f, 0.5f, 0.75f, 0.5f);
+	ASSERT_TRUE(StorePng(pStorage.get(), "viewer-rgba.png", 3, 2, SourceColor));
+
+	SLoadedImage Loaded;
+	ASSERT_TRUE(CQmScreenshotImageJob::LoadRgbaImageFromDisk(pStorage.get(), "viewer-rgba.png", IStorage::TYPE_SAVE, Loaded.m_Image));
+	ASSERT_NE(Loaded.m_Image.m_pData, nullptr);
+	EXPECT_EQ(Loaded.m_Image.m_Format, CImageInfo::FORMAT_RGBA);
+	const ColorRGBA Pixel = Loaded.m_Image.PixelColor(2, 1);
+	EXPECT_NEAR(Pixel.r, SourceColor.r, 0.01f);
+	EXPECT_NEAR(Pixel.g, SourceColor.g, 0.01f);
+	EXPECT_NEAR(Pixel.b, SourceColor.b, 0.01f);
+	EXPECT_NEAR(Pixel.a, SourceColor.a, 0.01f);
+}
+
+TEST(QmScreenshotImageJob, ViewerLoadFailureClearsPreviousImageAndCanRetry)
+{
+	CTestInfo Info;
+	auto pStorage = Info.CreateTestStorage();
+	ASSERT_NE(pStorage, nullptr);
+	ASSERT_TRUE(StorePng(pStorage.get(), "viewer-retry.png", 3, 2, ColorRGBA(0.25f, 0.5f, 0.75f, 1.0f)));
+
+	SLoadedImage Loaded;
+	ASSERT_TRUE(CQmScreenshotImageJob::LoadRgbaImageFromDisk(pStorage.get(), "viewer-retry.png", IStorage::TYPE_SAVE, Loaded.m_Image));
+	EXPECT_FALSE(CQmScreenshotImageJob::LoadRgbaImageFromDisk(pStorage.get(), "missing-viewer.png", IStorage::TYPE_SAVE, Loaded.m_Image));
+	EXPECT_EQ(Loaded.m_Image.m_pData, nullptr);
+	EXPECT_EQ(Loaded.m_Image.m_Width, (size_t)0);
+	EXPECT_EQ(Loaded.m_Image.m_Height, (size_t)0);
+	EXPECT_TRUE(CQmScreenshotImageJob::LoadRgbaImageFromDisk(pStorage.get(), "viewer-retry.png", IStorage::TYPE_SAVE, Loaded.m_Image));
+	EXPECT_EQ(Loaded.m_Image.m_Format, CImageInfo::FORMAT_RGBA);
 }

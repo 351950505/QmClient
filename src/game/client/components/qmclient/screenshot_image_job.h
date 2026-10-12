@@ -56,6 +56,8 @@ class CQmScreenshotImageJob : public IJob
 
 public:
 	static bool LoadImageFromDisk(IStorage *pStorage, const std::string &Path, int StorageType, int MaxEdge, CImageInfo &Image);
+	// 查看器加载完整 RGBA 图片，失败时不保留旧像素。
+	static bool LoadRgbaImageFromDisk(IStorage *pStorage, const std::string &Path, int StorageType, CImageInfo &Image);
 
 	CQmScreenshotImageJob(IStorage *pStorage, std::string Path, int StorageType, int MaxEdge);
 	~CQmScreenshotImageJob() override;
