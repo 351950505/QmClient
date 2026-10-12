@@ -20,7 +20,7 @@ def _usable_info(info):
         return False
     if not isinstance(info.get('map'), dict) or not _text(info['map'].get('name')):
         return False
-    if info.get('client_score_kind') is not None and not isinstance(info['client_score_kind'], str):
+    if 'client_score_kind' in info and not isinstance(info['client_score_kind'], str):
         return False
     clients = info.get('clients')
     if not isinstance(clients, list):
@@ -57,7 +57,7 @@ def validate_document(document):
         if not isinstance(server, dict) or not isinstance(server.get('addresses'), list):
             raise ValueError('invalid server addresses structure')
         location = server.get('location')
-        if location is not None and (not isinstance(location, str) or not location.startswith(LOCATION_PREFIXES)):
+        if 'location' in server and (not isinstance(location, str) or not location.startswith(LOCATION_PREFIXES)):
             raise ValueError('invalid server location')
         # 生产解析器在 info 不可消费时跳过，随后才检查地址元素类型。
         if not _usable_info(server.get('info')):

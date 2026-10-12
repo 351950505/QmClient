@@ -34,7 +34,7 @@ class ServerlistContract(unittest.TestCase):
     def test_info_types_control_characters_and_capacity_are_checked(self):
         for key, bad in (("max_clients", True), ("max_players", -1), ("max_clients", 2**31),
                          ("passworded", 0), ("name", "bad\nname"), ("game_type", None),
-                         ("clients", {}), ("client_score_kind", 3)):
+                         ("clients", {}), ("client_score_kind", 3), ("client_score_kind", None)):
             value = server()
             value["info"][key] = bad
             with self.subTest(key=key, bad=bad), self.assertRaises(ValueError):
@@ -73,6 +73,7 @@ class ServerlistContract(unittest.TestCase):
 
     def test_structural_failure_invalidates_otherwise_valid_list(self):
         for invalid in ({"addresses": False, "info": {}}, {"addresses": [], "location": "cn", "info": {}},
+                        {"addresses": [], "location": None, "info": {}},
                         {"addresses": [123], "info": server()["info"]}):
             with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                 validate_document({"servers": [server(), invalid]})
