@@ -4703,6 +4703,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/ui/players_menu_test.cpp
     src/test/integration/qmclient/ui/vote_map_loader_test.cpp
     src/test/unit/client/map_history_test.cpp
+    src/test/unit/client/map_tile_border_test.cpp
     src/test/unit/engine/map_load_test.cpp
     src/test/unit/engine/linereader_test.cpp
     src/test/unit/base/mapbugs_test.cpp
@@ -5078,6 +5079,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
   set(TESTS_EXTRA
     src/game/editor/mapitems/envelope.cpp
     src/game/map/envelope_eval.cpp
+    src/game/map/render_map.cpp
     src/engine/client/backend_threaded.cpp
     src/engine/client/backend/vulkan/backend_vulkan_qm_ext.cpp
     src/engine/client/backend/graphics_backend_contract.cpp
