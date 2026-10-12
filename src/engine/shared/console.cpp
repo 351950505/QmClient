@@ -808,16 +808,30 @@ void CConsole::Con_Echo(IResult *pResult, void *pUserData)
 	log_info("console", "%s", pResult->GetString(0));
 }
 
+void CConsole::ExecuteFileFromCommand(const char *pFilename, int ClientId)
+{
+	char aExecutableFile[IO_MAX_PATH_LENGTH];
+	if(m_pStorage != nullptr && (m_FlagMask & CFGFLAG_CLIENT) != 0 &&
+		!m_pStorage->FileExists(pFilename, IStorage::TYPE_ALL) &&
+		m_pStorage->GetExecutablePath(pFilename, aExecutableFile, sizeof(aExecutableFile)))
+	{
+		// 手动客户端脚本保留既有搜索优先级，未找到时再读取程序旁的同名文件。
+		ExecuteFile(aExecutableFile, ClientId, true, IStorage::TYPE_ABSOLUTE);
+		return;
+	}
+	ExecuteFile(pFilename, ClientId, true, IStorage::TYPE_ALL);
+}
+
 void CConsole::Con_Exec(IResult *pResult, void *pUserData)
 {
-	((CConsole *)pUserData)->ExecuteFile(pResult->GetString(0), pResult->m_ClientId, true, IStorage::TYPE_ALL);
+	((CConsole *)pUserData)->ExecuteFileFromCommand(pResult->GetString(0), pResult->m_ClientId);
 }
 
 void CConsole::Con_ToggleExec(IResult *pResult, void *pUserData)
 {
 	CConsole *pConsole = static_cast<CConsole *>(pUserData);
 	const char *pFilename = pResult->GetInteger(0) != 0 ? pResult->GetString(1) : pResult->GetString(2);
-	pConsole->ExecuteFile(pFilename, pResult->m_ClientId, true, IStorage::TYPE_ALL);
+	pConsole->ExecuteFileFromCommand(pFilename, pResult->m_ClientId);
 }
 
 void CConsole::ConCommandAccess(IResult *pResult, void *pUser)
