@@ -5879,7 +5879,7 @@ void CMenus::SetActive(bool Active)
 		CommitSettingsTeeSkinEdits();
 		if(g_Config.m_UiSettingsPage == SETTINGS_TEE)
 			FinalizeTeeListDrainPerfSession();
-		ClearQmClientSettingsSearchInputs();
+		ReleaseQmClientSettingsSearchInput();
 
 		if(m_NeedSendinfo)
 		{
@@ -6324,7 +6324,7 @@ void CMenus::OnReset()
 		m_pScreenshotWatermarkJob->Cancel();
 	m_TranslateProbe.Cancel();
 	ResetDemoScreenshotPreview();
-	ClearQmClientSettingsSearchInputs();
+	ReleaseQmClientSettingsSearchInput();
 	InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason::CONFIG_HASH_CHANGED);
 }
 
@@ -8352,7 +8352,7 @@ void CMenus::SetMenuPage(int NewPage)
 		MarkMenuInteraction();
 	if(OldPage == PAGE_SETTINGS && NewPage != PAGE_SETTINGS)
 	{
-		ClearQmClientSettingsSearchInputs();
+		ReleaseQmClientSettingsSearchInput();
 	}
 	if(PerfDebugEnabled() && OldPage != NewPage)
 	{

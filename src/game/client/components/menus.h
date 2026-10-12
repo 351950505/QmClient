@@ -2667,7 +2667,7 @@ public:
 	CLineInputBuffered<128> m_GlobalCardSearchInput;
 	// 进入「搜索」设置页时自动聚焦输入框的一次性请求标志（渲染侧消费）。
 	bool m_FocusSettingsSearchOnEntry = false;
-	void ClearQmClientSettingsSearchInputs();
+	void ReleaseQmClientSettingsSearchInput();
 
 	// DDRace
 	int DoButton_CheckBox_Tristate(const void *pId, const char *pText, TRISTATE Checked, const CUIRect *pRect);

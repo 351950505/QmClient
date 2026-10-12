@@ -2015,10 +2015,10 @@ void CGameConsole::OnRender()
 	if(SettingsOpen && g_Config.m_QmGaussianBlur)
 		Ui()->PrepareGaussianBlur();
 
-	// 本地背板只模糊底层画面一次，工具栏与状态栏不重复模糊。
+	// 两种控制台均只模糊底层画面一次，各自背板与工具栏不重复模糊。
+	Ui()->RenderGaussianBlur({0.0f, 0.0f, Screen.w, ConsoleHeight}, ConsoleHeightScale, IGraphics::CORNER_NONE, 0.0f);
 	if(LocalConsole)
 	{
-		Ui()->RenderGaussianBlur({0.0f, 0.0f, Screen.w, ConsoleHeight}, ConsoleHeightScale, IGraphics::CORNER_NONE, 0.0f);
 		QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, ConsoleHeight}, Palette.m_aColors[QmConsoleAppearance::BACKGROUND]);
 		QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, RowHeight}, Palette.m_Panel);
 		QmConsoleUi::DrawPanel(Ui(), {0.0f, ConsoleHeight - FooterHeight, Screen.w, FooterHeight}, Palette.m_Panel);

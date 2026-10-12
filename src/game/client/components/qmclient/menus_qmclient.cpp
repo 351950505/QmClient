@@ -32,6 +32,7 @@
 #include <game/client/QmUi/SettingsCardContentBridge.h>
 #include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/SettingsSearchSession.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/UiDogfood.h>
@@ -1239,18 +1240,10 @@ void CMenus::RenderSettingsQmClientContent(CUIRect MainView, bool PrewarmOnly)
 std::unordered_map<std::string, CBindSlot> g_CommandBindCache;
 bool g_CommandBindCacheInitialized = false;
 
-void CMenus::ClearQmClientSettingsSearchInputs()
+void CMenus::ReleaseQmClientSettingsSearchInput()
 {
-	if(Ui()->ActiveItem() == &m_GlobalCardSearchInput)
-	{
-		Ui()->ReleaseActiveTextInput(&m_GlobalCardSearchInput);
-	}
-	else
-	{
-		m_GlobalCardSearchInput.Deactivate();
-	}
-	m_GlobalCardSearchInput.Clear();
-	// 离开搜索页/关菜单时同步请求标志：若清空时正处「搜索」页，重开菜单回到该页时自动聚焦。
+	ReleaseSettingsSearchInput(Ui(), &m_GlobalCardSearchInput);
+	// 离页和关闭菜单只释放输入焦点，查询及匹配缓存保留到用户清空或重启。
 	m_FocusSettingsSearchOnEntry = g_Config.m_UiSettingsPage == SETTINGS_SEARCH;
 }
 

@@ -214,7 +214,8 @@ TEST(DiscreteSliderGeometry, DrawnStopsMatchClicksAtDifferentSizesAndOrigins)
 		SCOPED_TRACE(Rect.w);
 		const auto Geometry = ui_widget::ResolveDiscreteSliderGeometry(Rect);
 		ASSERT_TRUE(Geometry.IsUsable());
-		EXPECT_LE(Geometry.m_Track.h, Geometry.m_KnobSize * 0.5f);
+		EXPECT_GT(Geometry.m_Track.h, Geometry.m_KnobSize * 0.8f);
+		EXPECT_LT(Geometry.m_Track.h, Geometry.m_KnobSize);
 		EXPECT_GT(Geometry.m_Track.h, Geometry.m_DotSize);
 		const CUIRect FirstKnob = Geometry.KnobRect(0.0f, 1.0f);
 		const CUIRect LastKnob = Geometry.KnobRect(1.0f, 1.0f);

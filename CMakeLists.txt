@@ -5378,6 +5378,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/test/integration/qmclient/ui/qm_dropdown_popup_wheel_test.cpp
       src/test/integration/qmclient/ui/qm_font_combobox_test.cpp
       src/test/integration/qmclient/ui/qm_popup_blur_scope_test.cpp
+      src/test/integration/qmclient/ui/qm_settings_search_session_test.cpp
+      src/test/integration/qmclient/ui/qm_settings_paragraph_test.cpp
       src/test/integration/qmclient/ui/qm_console_settings_scroll_test.cpp
       src/test/integration/qmclient/ui/qm_scrollbar_color_submission_test.cpp
       src/test/integration/qmclient/ui/qm_background_controls_test.cpp

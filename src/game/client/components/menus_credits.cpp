@@ -16,6 +16,7 @@
 #include <game/client/QmUi/QmCardRegistry.h>
 #include <game/client/QmUi/SettingsCardContentBridge.h>
 #include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsParagraph.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/UiForms.h>
@@ -723,7 +724,16 @@ void CMenus::AppendQmClientContributorCards(std::vector<SSettingsCardDefinition>
 			TextRender()->TextColor(ColorRGBA(0.95f, 0.8f, 0.2f, 1.0f));
 		const char *pNames = !QmClient.QmSponsorNames().empty() ? s_Names.c_str() : QmClient.QmSponsorsStatus() == CQmClient::ESponsorsStatus::IDLE ? Localize("Loading") :
 																			      Localize("None");
-		Text("sponsor-names", pNames, TipSize, LineSpacing);
+		const float NamesLineSpacing = std::max(LineSpacing, TipSize * 0.25f);
+		if(Flow.MeasuredControl("sponsor-names", pNames, LineHeight, TipSize, 0.0f, NamesLineSpacing, TipSize * 0.125f, Row,
+			   [this](const SSettingsContentRowDeclaration &Declaration, float Width) { return MeasureSettingsParagraph(TextRender(), Declaration.m_Text.c_str(), std::max(1.0f, Width - Declaration.m_TextPadding * 2.0f), Declaration.m_FontSize, Declaration.m_TextLineSpacing); }) &&
+			Flow.Drawing())
+		{
+			static SSettingsParagraphState s_SponsorNamesParagraph;
+			Row.Margin(TipSize * 0.125f, &Row);
+			DrawSettingsParagraph(Ui(), s_SponsorNamesParagraph, Row, Flow.PublishedText("sponsor-names", pNames), TipSize, NamesLineSpacing);
+		}
+		Flow.Space(LineSpacing);
 		Text("qmclient-community-thanks", Localize("Thank you for your company and trust. This is what gives me the courage to keep going."), BodySize, 0.0f);
 		if(Flow.Drawing())
 			TextRender()->TextColor(PreviousColor);

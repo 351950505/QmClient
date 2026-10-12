@@ -460,6 +460,15 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 				if(pMenus->DoButton_Menu(&s_RefreshButton, Localize("Refresh"), 0, &Button) && Enabled)
 					Auth.RefreshTitleProfile();
 			});
+			RowAction("title-display-navigation", [&](CUIRect Row) {
+				static CButtonContainer s_DisplaySettings;
+				if(ui_widget::SecondaryButton(TitleCtx, &s_DisplaySettings, Localize("Title display"), Row) && Enabled)
+				{
+					const auto *pDisplayCard = qm_card_registry::FindByStableId("deck:qmclient-contributors-title-display");
+					if(pDisplayCard)
+						pMenus->NavigateToSettingsCard(qm_card_registry::ResolveCardNavigationTarget(*pDisplayCard, pMenus->SettingsCardOrderModel()));
+				}
+			});
 		}
 		else
 		{

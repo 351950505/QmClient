@@ -26,6 +26,7 @@
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/QmUi/cards/QmCardMeasureRevision.h>
 #include <game/client/components/qmclient/console_selection.h>
+#include <game/client/components/qmclient/spectator_hud_layout.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/qm_icon.h>
 #include <game/client/qm_icon_label.h>
@@ -755,3 +756,19 @@ static void BM_SettingsToggleGroupGeometry(benchmark::State &State)
 	State.SetItemsProcessed(State.iterations() * aItems.size());
 }
 BENCHMARK(BM_SettingsToggleGroupGeometry)->Arg(200)->Arg(400)->Arg(800);
+
+static void BM_SpectatorHudContentLayout(benchmark::State &State)
+{
+	// 三种文案长度测量实际布局接口，输入屏障避免常量折叠。
+	float Width = 400.0f;
+	float TextWidth = static_cast<float>(State.range(0));
+	for(auto _ : State)
+	{
+		benchmark::DoNotOptimize(Width);
+		benchmark::DoNotOptimize(TextWidth);
+		const auto Layout = QmSpectatorHudLayout(Width, TextWidth, 40.0f);
+		benchmark::DoNotOptimize(Layout);
+	}
+	State.SetItemsProcessed(State.iterations());
+}
+BENCHMARK(BM_SpectatorHudContentLayout)->Arg(32)->Arg(160)->Arg(600);

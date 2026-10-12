@@ -3594,6 +3594,12 @@ void CChat::OnRender()
 				const float QuadY = Line.m_TextYOffset - RealMsgPaddingY / 2.0f;
 				const float QuadOffsetX = AnimOffsetX + x * (1.0f - QuadScale);
 				const float QuadOffsetY = AnimOffsetY + QuadY * (1.0f - QuadScale);
+				if(BackgroundBaseColor.a > 0.0f)
+				{
+					const auto &Rect = Line.m_BackgroundRect;
+					Ui()->RenderGaussianBlur({Rect.x * QuadScale + QuadOffsetX, Rect.y * QuadScale + QuadOffsetY, Rect.w * QuadScale, Rect.h * QuadScale}, AnimAlpha, IGraphics::CORNER_ALL, Line.m_BackgroundRounding * QuadScale);
+				}
+				Graphics()->TextureClear();
 				Graphics()->SetColor(BackgroundBaseColor.WithMultipliedAlpha(AnimAlpha));
 				Graphics()->RenderQuadContainerEx(Line.m_QuadContainerIndex, 0, -1, QuadOffsetX, QuadOffsetY, QuadScale, QuadScale);
 			}
@@ -3710,7 +3716,11 @@ void CChat::OnRender()
 			const float PreviewWidth = minimum(ChatRect.w - x, TextWidth + RealMsgPaddingX * 1.5f + (g_Config.m_ClChatOld ? 0.0f : MessageTeeSize() + 2.0f));
 
 			if(!g_Config.m_ClChatOld)
+			{
+				if(BackgroundBaseColor.a > 0.0f)
+					Ui()->RenderGaussianBlur({x, PreviewY, PreviewWidth, RowHeight}, 1.0f, IGraphics::CORNER_ALL, MessageRounding());
 				Graphics()->DrawRect(x, PreviewY, PreviewWidth, RowHeight, BackgroundBaseColor, IGraphics::CORNER_ALL, MessageRounding());
+			}
 
 			TextRender()->TextColor(Line.m_TextColor);
 			TextRender()->Text(x + (g_Config.m_ClChatOld ? 0.0f : RealMsgPaddingX), PreviewY + RealMsgPaddingY * 0.5f, FontSize(), aPreviewText, -1.0f);
@@ -3733,6 +3743,7 @@ void CChat::OnRender()
 		Ui()->StartCheck();
 		Ui()->Update();
 		Ui()->MapScreen();
+		const CUiScopedGaussianBlur PopupBlurScope(Ui());
 		Ui()->RenderPopupMenus();
 		Ui()->FinishCheck();
 		Ui()->ClearHotkeys();

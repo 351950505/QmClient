@@ -29,7 +29,7 @@ namespace ui_widget
 	CUIRect SDiscreteSliderGeometry::FillRect(float Normalized) const
 	{
 		CUIRect Fill = m_Track;
-		// 去掉可见旋钮后，填充直接到达选中刻度；两端分别为空轨和满轨。
+		// 填充到达选中刻度并由旋钮覆盖端部；两端分别为空轨和满轨。
 		const float Progress = std::clamp(Normalized, 0.0f, 1.0f);
 		if(Progress <= 0.0f)
 			Fill.w = 0.0f;
@@ -48,8 +48,8 @@ namespace ui_widget
 		Geometry.m_KnobSize = std::min(18.0f * Scale, Rect.h / 1.12f);
 		// 两端预留悬停放大后的半径，绘制与鼠标换算共用圆心行程。
 		const float Padding = Geometry.m_KnobSize * 0.56f;
-		// 轨道明显细于旋钮，避免左端圆帽看起来像另一个旋钮。
-		const float TrackHeight = Geometry.m_KnobSize * 0.5f;
+		// 服务器筛选沿用独立的厚胶囊轨道，不套公共细滑条尺寸。
+		const float TrackHeight = Geometry.m_KnobSize * (6.0f / 7.0f);
 		Geometry.m_TravelStart = Rect.x + Padding;
 		Geometry.m_TravelWidth = std::max(0.0f, Rect.w - Padding * 2.0f);
 		// 胶囊延伸到端点旋钮外缘，圆点与鼠标换算仍使用圆心行程。

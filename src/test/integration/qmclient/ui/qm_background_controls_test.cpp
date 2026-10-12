@@ -171,6 +171,10 @@ namespace
 				m_vPendingColors.clear();
 			}
 		}
+		void DrawRect4(float X, float Y, float W, float H, ColorRGBA TopLeft, ColorRGBA TopRight, ColorRGBA BottomLeft, ColorRGBA BottomRight, int, float) override
+		{
+			RecordQuad(CQuadItem(X, Y, W, H), {TopLeft, TopRight, BottomLeft, BottomRight});
+		}
 		void QuadsEnd() override { FlushVertices(); }
 		void QuadsEndKeepVertices() override { FlushVertices(true); }
 		void QuadsDrawCurrentVertices(bool KeepVertices = true) override { FlushVertices(KeepVertices); }
@@ -1629,4 +1633,26 @@ TEST_F(QmBackgroundControlsIntegration, BackgroundScrollKeepsOffsetIgnoresReveal
 	EXPECT_FALSE(Region.WheelConsumedThisFrame());
 	m_Ui.ClipDisable();
 	EXPECT_FALSE(m_Recording.m_Clipped);
+}
+
+TEST_F(QmBackgroundControlsIntegration, ServerFilterDrawsVisibleKnobAtEachSelectedStop)
+{
+	const auto Ctx = ui_widget::ControlContext(&m_Ui);
+	const auto Geometry = ui_widget::ResolveDiscreteSliderGeometry(m_Rect, Ctx.m_UiScale);
+	ui_widget::SDiscreteSliderState State;
+	for(int Value : {0, 3, 6})
+	{
+		SCOPED_TRACE(Value);
+		int Selected = Value;
+		m_Recording.m_vSurfaces.clear();
+		ui_widget::DiscreteSlider(Ctx, &m_Button, State, &Selected, 0, 6, m_Rect);
+		ASSERT_FALSE(m_Recording.m_vSurfaces.empty());
+		const auto &Knob = m_Recording.m_vSurfaces.back();
+		EXPECT_FLOAT_EQ(Knob.m_FillColor.r, 1.0f);
+		EXPECT_GT(Knob.m_FillColor.a, 0.0f);
+		EXPECT_NEAR(Knob.m_Rect.z, Knob.m_Rect.w, 0.001f);
+		// 公共 GPU 提交会对齐设备像素，允许至多一个逻辑像素的圆心偏移。
+		const float PixelSize = m_Ui.Screen()->w / m_Recording.ScreenWidth();
+		EXPECT_NEAR(Knob.m_Rect.x + Knob.m_Rect.z * 0.5f, Geometry.Position(Value / 6.0f), PixelSize);
+	}
 }

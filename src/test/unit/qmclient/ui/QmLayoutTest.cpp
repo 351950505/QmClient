@@ -9,6 +9,7 @@
 #include <game/client/components/qmclient/score_hud_layout.h>
 #include <game/client/components/qmclient/scoreboard_layout.h>
 #include <game/client/components/qmclient/scoreboard_team_modes.h>
+#include <game/client/components/qmclient/spectator_hud_layout.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/qm_icon.h>
 #include <game/map/render_map.h>
@@ -957,4 +958,34 @@ TEST(QmSurfaceRoles, ConfiguredRolesRemainIndependentAtLowAndZeroOpacity)
 	EXPECT_EQ(ResolveConfiguredSecondaryPanelTheme().m_TextBody, ColorRGBA(0, 0, 0, 1));
 	g_Config.m_QmUiPopupColor = 0;
 	EXPECT_EQ(ResolveConfiguredSecondaryPanelTheme().m_TextBody, ColorRGBA(0, 0, 0, 1));
+}
+
+TEST(QmSpectatorHudLayout, ShortLabelShrinksAndLongLabelKeepsRightAnchor)
+{
+	const auto Short = QmSpectatorHudLayout(400.0f, 32.0f);
+	const auto Long = QmSpectatorHudLayout(400.0f, 160.0f);
+	EXPECT_FLOAT_EQ(Short.m_Width, 44.0f);
+	EXPECT_LT(Short.m_Width, Long.m_Width);
+	EXPECT_FLOAT_EQ(Short.m_Left + Short.m_Width, 400.0f);
+	EXPECT_FLOAT_EQ(Long.m_Left + Long.m_Width, 400.0f);
+	EXPECT_FLOAT_EQ(Long.m_TextWidth, 160.0f);
+}
+
+TEST(QmSpectatorHudLayout, AuxiliaryCameraTagFitsInsideEditorBounds)
+{
+	const auto Layout = QmSpectatorHudLayout(400.0f, 20.0f, 60.0f);
+	EXPECT_FLOAT_EQ(Layout.m_Width, 60.0f);
+	EXPECT_FLOAT_EQ(Layout.m_Left, 340.0f);
+	EXPECT_GE(Layout.m_TextWidth, 20.0f);
+}
+
+TEST(QmSpectatorHudLayout, OversizedLabelAndZeroViewportNeverOverflow)
+{
+	const auto Narrow = QmSpectatorHudLayout(40.0f, 200.0f, 60.0f);
+	EXPECT_FLOAT_EQ(Narrow.m_Left, 0.0f);
+	EXPECT_FLOAT_EQ(Narrow.m_Width, 40.0f);
+	EXPECT_FLOAT_EQ(Narrow.m_TextWidth, 28.0f);
+	const auto Empty = QmSpectatorHudLayout(0.0f, 200.0f);
+	EXPECT_FLOAT_EQ(Empty.m_Width, 0.0f);
+	EXPECT_FLOAT_EQ(Empty.m_TextWidth, 0.0f);
 }
