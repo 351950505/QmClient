@@ -55148,14 +55148,14 @@
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 142,
+      "line": 144,
       "text": "Failed to open the directory '%s'.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 143,
+      "line": 145,
       "text": "Error",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -135293,28 +135293,28 @@
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 61,
+      "line": 63,
       "text": "+spectate",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 61,
+      "line": 63,
       "text": "spectate_next",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 61,
+      "line": 63,
       "text": "spectate_previous",
       "category": "business_data",
       "reason": "command, config, or machine token"
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 142,
+      "line": 144,
       "text": "Editor",
       "category": "business_data",
       "reason": "localization context metadata"
@@ -207726,7 +207726,7 @@
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 61,
+      "line": 63,
       "text": "spectate -1",
       "category": "needs_review",
       "reason": "unclassified human-readable client string"
