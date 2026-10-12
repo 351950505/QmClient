@@ -60,8 +60,8 @@ void CQmMobileSpectator::OnNewSnapshot()
 
 void CQmMobileSpectator::PerformAction(int Action)
 {
-	const char *apCommands[] = {"spectate_previous", "+spectate", "spectate_next", "spectate -1", "zoom-", "zoom+"};
-	if(Action >= PREVIOUS && Action <= ZOOM_IN)
+	const char *apCommands[] = {"spectate_previous", "+spectate", "spectate_next", "spectate -1"};
+	if(Action >= PREVIOUS && Action <= FREEVIEW)
 	{
 		if(Action == FREEVIEW)
 			GameClient()->m_Spectator.Spectate(SPEC_FREEVIEW);
@@ -97,6 +97,13 @@ bool CQmMobileSpectator::OnTouchState(std::vector<IInput::CTouchFingerState> &vF
 	for(int i = 0; i < NUM_ACTIONS; ++i)
 		if((Actions & (1U << i)) != 0)
 			PerformAction(i);
+	if(m_Touch.ZoomFactor() != 1.0f)
+	{
+		// 连续倍率转为现有缩放命令的档位，复用自动旁观、多人取景和缩放限制。
+		char aCommand[64];
+		str_format(aCommand, sizeof(aCommand), "zoom+ %.6f", std::log(m_Touch.ZoomFactor()) / std::log(CCamera::ZOOM_STEP));
+		Console()->ExecuteLine(aCommand, IConsole::CLIENT_ID_UNSPECIFIED);
+	}
 	const vec2 Direction = m_Touch.JoystickDirection();
 	if(Direction != vec2(0.0f, 0.0f) && ControlsAvailable() &&
 		(Client()->State() == IClient::STATE_DEMOPLAYBACK || GameClient()->m_Snap.m_SpecInfo.m_Active))
@@ -165,7 +172,7 @@ void CQmMobileSpectator::OnRender()
 	KnobRect.Draw(ColorRGBA(1.0f, 1.0f, 1.0f, 0.32f), IGraphics::CORNER_ALL, 18.0f);
 	using namespace FontIcons;
 	const char *apLabels[] = {FONT_ICON_BACKWARD_STEP, FONT_ICON_USERS, FONT_ICON_FORWARD_STEP, FONT_ICON_ARROWS_LEFT_RIGHT,
-		FONT_ICON_MINUS, FONT_ICON_PLUS, FONT_ICON_GEAR, FONT_ICON_COMMENT,
+		FONT_ICON_GEAR, FONT_ICON_COMMENT,
 		Client()->State() == IClient::STATE_DEMOPLAYBACK && DemoPlayer()->BaseInfo()->m_Paused ? FONT_ICON_PLAY : FONT_ICON_PAUSE};
 	for(int i = 0; i < NUM_ACTIONS; ++i)
 	{

@@ -33,8 +33,6 @@ namespace qm_mobile_spectator
 		SELECT,
 		NEXT,
 		FREEVIEW,
-		ZOOM_OUT,
-		ZOOM_IN,
 		MENU,
 		CHAT,
 		PAUSE,
@@ -51,13 +49,53 @@ namespace qm_mobile_spectator
 	{
 		SLayout Result{};
 		Result.m_Joystick = {18.0f, Screen.y - 142.0f, 104.0f, 104.0f};
-		for(int i = PREVIOUS; i <= ZOOM_IN; ++i)
+		for(int i = PREVIOUS; i <= FREEVIEW; ++i)
 			Result.m_aButtons[i] = {Screen.x - 180.0f + (i % 3) * 54.0f, Screen.y - 118.0f + (i / 3) * 44.0f, 48.0f, 38.0f};
 		Result.m_aButtons[MENU] = {Screen.x - 62.0f, 16.0f, 44.0f, 34.0f};
 		Result.m_aButtons[CHAT] = {Screen.x - 112.0f, 16.0f, 44.0f, 34.0f};
 		Result.m_aButtons[PAUSE] = {Screen.x - 162.0f, 16.0f, 44.0f, 34.0f};
 		return Result;
 	}
+
+	inline bool InsideControl(const SLayout &Layout, vec2 Position)
+	{
+		if(distance(Position, Layout.m_Joystick.Center()) <= Layout.m_Joystick.w * 0.5f)
+			return true;
+		return std::any_of(Layout.m_aButtons.begin(), Layout.m_aButtons.end(), [&](const CUIRect &Button) { return Button.Inside(Position); });
+	}
+
+	// 手指身份类型独立于输入后端，生产路径使用 IInput 的不透明身份。
+	template<typename TIdentity>
+	class CPinchState
+	{
+		std::optional<std::array<TIdentity, 2>> m_Fingers;
+		float m_PreviousDistance = 0.0f;
+
+	public:
+		void Reset()
+		{
+			m_Fingers.reset();
+			m_PreviousDistance = 0.0f;
+		}
+		bool Active() const { return m_Fingers.has_value(); }
+		float Update(const TIdentity &FirstId, vec2 First, const TIdentity &SecondId, vec2 Second)
+		{
+			const bool SamePair = m_Fingers.has_value() &&
+					      (((*m_Fingers)[0] == FirstId && (*m_Fingers)[1] == SecondId) ||
+						      ((*m_Fingers)[0] == SecondId && (*m_Fingers)[1] == FirstId));
+			m_Fingers = std::array<TIdentity, 2>{FirstId, SecondId};
+			const float Distance = distance(First, Second);
+			if(!std::isfinite(Distance) || Distance < 8.0f)
+			{
+				// 距离无效时仍保留触摸归属，恢复到有效距离后重新建立基线。
+				m_PreviousDistance = 0.0f;
+				return 1.0f;
+			}
+			const float Factor = SamePair && m_PreviousDistance > 0.0f ? m_PreviousDistance / Distance : 1.0f;
+			m_PreviousDistance = Distance;
+			return Factor;
+		}
+	};
 
 	inline vec2 Direction(vec2 Offset, float Radius)
 	{
@@ -89,31 +127,75 @@ namespace qm_mobile_spectator
 	class CTouchState
 	{
 		std::vector<IInput::CTouchFinger> m_vPrevious;
+		std::vector<IInput::CTouchFinger> m_vMapFingers;
 		std::optional<IInput::CTouchFinger> m_JoystickFinger;
+		CPinchState<IInput::CTouchFinger> m_Pinch;
+		float m_ZoomFactor = 1.0f;
 		vec2 m_Direction = vec2(0.0f, 0.0f);
 		bool m_WaitForRelease = false;
 		bool m_OpenSelectorOnRelease = false;
+
+		void RememberFingers(const std::vector<IInput::CTouchFingerState> &vFingers)
+		{
+			m_vPrevious.clear();
+			for(const auto &Finger : vFingers)
+				m_vPrevious.push_back(Finger.m_Finger);
+		}
 
 	public:
 		void Cancel()
 		{
 			m_JoystickFinger.reset();
+			m_Pinch.Reset();
+			m_vMapFingers.clear();
+			m_ZoomFactor = 1.0f;
 			m_Direction = vec2(0.0f, 0.0f);
 			m_WaitForRelease = true;
 			m_OpenSelectorOnRelease = false;
 		}
 
 		vec2 JoystickDirection() const { return m_Direction; }
+		float ZoomFactor() const { return m_ZoomFactor; }
 
 		unsigned Update(const std::vector<IInput::CTouchFingerState> &vFingers, const SLayout &Layout, vec2 Screen)
 		{
 			unsigned Actions = 0;
 			m_Direction = vec2(0.0f, 0.0f);
+			m_ZoomFactor = 1.0f;
 			if(m_WaitForRelease)
 			{
 				if(!vFingers.empty())
 					return 0;
 				m_WaitForRelease = false;
+			}
+			m_vMapFingers.erase(std::remove_if(m_vMapFingers.begin(), m_vMapFingers.end(), [&](const auto &Identity) {
+				return std::none_of(vFingers.begin(), vFingers.end(), [&](const auto &Finger) { return Finger.m_Finger == Identity; });
+			}),
+				m_vMapFingers.end());
+			for(const auto &Finger : vFingers)
+				if(std::find(m_vPrevious.begin(), m_vPrevious.end(), Finger.m_Finger) == m_vPrevious.end() && !InsideControl(Layout, Finger.m_Position * Screen))
+					m_vMapFingers.push_back(Finger.m_Finger);
+			const bool CanPinch = vFingers.size() == 2 &&
+					      std::all_of(vFingers.begin(), vFingers.end(), [&](const auto &Finger) {
+						      return std::find(m_vMapFingers.begin(), m_vMapFingers.end(), Finger.m_Finger) != m_vMapFingers.end();
+					      });
+			if(m_Pinch.Active() && !CanPinch)
+			{
+				// 捏合结束后不把剩余手指转交给摇杆或按钮。
+				Cancel();
+				if(vFingers.empty())
+				{
+					m_WaitForRelease = false;
+					RememberFingers(vFingers);
+				}
+				return 0;
+			}
+			if(CanPinch)
+			{
+				m_ZoomFactor = m_Pinch.Update(vFingers[0].m_Finger, vFingers[0].m_Position * Screen,
+					vFingers[1].m_Finger, vFingers[1].m_Position * Screen);
+				RememberFingers(vFingers);
+				return 0;
 			}
 			bool JoystickPresent = false;
 			for(const auto &Finger : vFingers)
@@ -152,9 +234,7 @@ namespace qm_mobile_spectator
 			}
 			if(!JoystickPresent)
 				m_JoystickFinger.reset();
-			m_vPrevious.clear();
-			for(const auto &Finger : vFingers)
-				m_vPrevious.push_back(Finger.m_Finger);
+			RememberFingers(vFingers);
 			return Actions;
 		}
 	};
