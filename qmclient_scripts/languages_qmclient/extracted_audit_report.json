@@ -1,7 +1,7 @@
 {
   "summary": {
     "must_i18n": 10003,
-    "business_data": 13981,
+    "business_data": 13982,
     "test_only": 5622,
     "needs_review": 730,
     "violation": 0
@@ -55477,14 +55477,14 @@
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 144,
+      "line": 151,
       "text": "Failed to open the directory '%s'.",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 145,
+      "line": 152,
       "text": "Error",
       "category": "must_i18n",
       "reason": "active source key (localize_or_localizable)"
@@ -136042,7 +136042,14 @@
     },
     {
       "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
-      "line": 144,
+      "line": 104,
+      "text": "zoom+ %.6f",
+      "category": "business_data",
+      "reason": "display formatting template"
+    },
+    {
+      "file": "src/game/client/components/qmclient/mobile_spectator.cpp",
+      "line": 151,
       "text": "Editor",
       "category": "business_data",
       "reason": "localization context metadata"

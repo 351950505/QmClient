@@ -87,11 +87,88 @@ TEST(QmMobileSpectator, HeldButtonFiresOnceAndCanBePressedAgain)
 {
 	CTouchState Touch;
 	const auto Geometry = Layout(Screen);
-	const auto Fingers = FingerAt(Geometry.m_aButtons[ZOOM_IN].Center());
-	EXPECT_EQ(Touch.Update(Fingers, Geometry, Screen), 1U << ZOOM_IN);
+	const auto Fingers = FingerAt(Geometry.m_aButtons[FREEVIEW].Center());
+	EXPECT_EQ(Touch.Update(Fingers, Geometry, Screen), 1U << FREEVIEW);
 	EXPECT_EQ(Touch.Update(Fingers, Geometry, Screen), 0U);
 	Touch.Update({}, Geometry, Screen);
-	EXPECT_EQ(Touch.Update(Fingers, Geometry, Screen), 1U << ZOOM_IN);
+	EXPECT_EQ(Touch.Update(Fingers, Geometry, Screen), 1U << FREEVIEW);
+}
+
+TEST(QmMobileSpectator, ControlsAreExcludedFromMapGestureStarts)
+{
+	const auto Geometry = Layout(Screen);
+	EXPECT_TRUE(InsideControl(Geometry, Geometry.m_Joystick.Center()));
+	for(const auto &Button : Geometry.m_aButtons)
+		EXPECT_TRUE(InsideControl(Geometry, Button.Center()));
+	EXPECT_FALSE(InsideControl(Geometry, Screen * 0.5f));
+}
+
+TEST(QmMobileSpectator, FirstPinchFrameOnlyEstablishesDistance)
+{
+	CPinchState<int> Pinch;
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f)), 1.0f);
+	EXPECT_TRUE(Pinch.Active());
+}
+
+TEST(QmMobileSpectator, SpreadingFingersMagnifiesAndClosingWidensView)
+{
+	CPinchState<int> Pinch;
+	Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f));
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(200.0f, 0.0f)), 0.5f);
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f)), 2.0f);
+}
+
+TEST(QmMobileSpectator, HoldingPinchDistanceDoesNotKeepZooming)
+{
+	CPinchState<int> Pinch;
+	Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f));
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(30.0f, 20.0f), 2, vec2(130.0f, 20.0f)), 1.0f);
+}
+
+TEST(QmMobileSpectator, ReorderingSameFingersKeepsPinchDistance)
+{
+	CPinchState<int> Pinch;
+	Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f));
+	EXPECT_FLOAT_EQ(Pinch.Update(2, vec2(200.0f, 0.0f), 1, vec2(0.0f, 0.0f)), 0.5f);
+}
+
+TEST(QmMobileSpectator, ReplacingFingerRebasesWithoutZoomJump)
+{
+	CPinchState<int> Pinch;
+	Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f));
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(0.0f, 0.0f), 3, vec2(300.0f, 0.0f)), 1.0f);
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(0.0f, 0.0f), 3, vec2(150.0f, 0.0f)), 2.0f);
+}
+
+TEST(QmMobileSpectator, NearCoincidentAndInvalidPositionsResetPinchBaseline)
+{
+	CPinchState<int> Pinch;
+	Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f));
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(0.0f, 0.0f)), 1.0f);
+	EXPECT_TRUE(Pinch.Active());
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(200.0f, 0.0f)), 1.0f);
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(std::numeric_limits<float>::quiet_NaN(), 0.0f)), 1.0f);
+	EXPECT_TRUE(Pinch.Active());
+}
+
+TEST(QmMobileSpectator, ResetPreventsOldGestureDistanceFromAffectingNewGesture)
+{
+	CPinchState<int> Pinch;
+	Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f));
+	Pinch.Reset();
+	EXPECT_FALSE(Pinch.Active());
+	EXPECT_FLOAT_EQ(Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(300.0f, 0.0f)), 1.0f);
+}
+
+TEST(QmMobileSpectator, PinchScaleDependsOnDistanceInsteadOfFrameCount)
+{
+	CPinchState<int> Pinch;
+	Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f));
+	const float First = Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(150.0f, 0.0f));
+	const float Second = Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(200.0f, 0.0f));
+	Pinch.Reset();
+	Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(100.0f, 0.0f));
+	EXPECT_FLOAT_EQ(First * Second, Pinch.Update(1, vec2(0.0f, 0.0f), 2, vec2(200.0f, 0.0f)));
 }
 
 TEST(QmMobileSpectator, JoystickDragAcrossButtonDoesNotActivateButton)
