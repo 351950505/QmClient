@@ -3424,6 +3424,7 @@ if(CLIENT)
     components/qmclient/axiom_scores.h
     components/qmclient/axiom_scores_data.cpp
     components/qmclient/axiom_scores_data.h
+    components/qmclient/axiom_scores_parse_job.h
     components/qmclient/bind_editor.cpp
     components/qmclient/bind_editor.h
     components/qmclient/bind_settings.cpp
@@ -3480,6 +3481,7 @@ if(CLIENT)
     components/qmclient/vote_map_loader.h
     components/qmclient/map_vote_difficulty.h
     components/qmclient/markdown_cache_writer.h
+    components/qmclient/statistics_save_job.h
     components/qmclient/media_volume_logic.h
     components/qmclient/player_volume.cpp
     components/qmclient/player_volume.h
@@ -4595,6 +4597,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/integration/qmclient/client/qm_chat_emoji_resource_test.cpp
     src/test/integration/qmclient/client/qm_skin_download_session_test.cpp
     src/test/integration/qmclient/client/qm_font_download_storage_test.cpp
+    src/test/integration/qmclient/client/qm_statistics_save_test.cpp
     src/test/integration/engine/config_migration_backup_test.cpp
     src/test/integration/qmclient/client/bounded_file_reader_test.cpp
     src/test/integration/qmclient/client/qm_sponsors_draft_test.cpp

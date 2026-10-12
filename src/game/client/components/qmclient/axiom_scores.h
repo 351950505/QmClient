@@ -12,7 +12,8 @@
 #include <memory>
 #include <string>
 
-class CJsonFileWriter;
+class CJsonWriter;
+class CQmAxiomDdStatsParseJob;
 
 class IQmAxiomHttpRequest
 {
@@ -108,6 +109,7 @@ class CQmAxiomScores : public CComponent
 	SRequestSlot m_SearchRequest;
 	std::array<SRequestSlot, 2> m_aModeRequests;
 	SRequestSlot m_DdStatsRequest;
+	std::shared_ptr<CQmAxiomDdStatsParseJob> m_pDdStatsParseJob;
 	std::string m_ActivePlayerName;
 	std::map<std::string, SRequestSlot> m_SearchRequests;
 	std::map<std::string, SRequestSlot> m_ModeRequests;
@@ -141,6 +143,7 @@ class CQmAxiomScores : public CComponent
 
 protected:
 	virtual int64_t CurrentTick() const;
+	virtual void SubmitDdStatsParseJob(const std::shared_ptr<CQmAxiomDdStatsParseJob> &pJob);
 
 public:
 	CQmAxiomScores() = default;
@@ -173,7 +176,7 @@ public:
 	bool IsPlayerFailed(const char *pPlayerName) const;
 	int64_t LastSuccessfulSyncTimestamp() const { return m_LastSuccessfulSyncTimestamp; }
 	void LoadPersistentCache(const json_value *pRoot);
-	void WritePersistentCache(CJsonFileWriter &Writer) const;
+	void WritePersistentCache(CJsonWriter &Writer) const;
 	bool PersistentCacheDirty() const { return m_PersistentCacheDirty; }
 	void ClearPersistentCacheDirty() { m_PersistentCacheDirty = false; }
 };

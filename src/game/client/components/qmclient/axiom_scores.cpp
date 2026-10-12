@@ -1,9 +1,11 @@
 #include "axiom_scores.h"
+#include "axiom_scores_parse_job.h"
 
 #include <base/str.h>
 #include <base/system.h>
 
 #include <engine/client.h>
+#include <engine/engine.h>
 #include <engine/http.h>
 #include <engine/shared/config.h>
 #include <engine/shared/json.h>
@@ -69,7 +71,7 @@ namespace
 		return ReadInt64(pObject, pName, Out) && Out >= 0;
 	}
 
-	void WriteInt64(CJsonFileWriter &Writer, const char *pName, int64_t Value)
+	void WriteInt64(CJsonWriter &Writer, const char *pName, int64_t Value)
 	{
 		char aValue[64];
 		str_format(aValue, sizeof(aValue), "%lld", (long long)Value);
@@ -77,7 +79,7 @@ namespace
 		Writer.WriteStrValue(aValue);
 	}
 
-	void WriteOptionalInt64(CJsonFileWriter &Writer, const char *pName, const std::optional<int64_t> &Value)
+	void WriteOptionalInt64(CJsonWriter &Writer, const char *pName, const std::optional<int64_t> &Value)
 	{
 		if(Value)
 			WriteInt64(Writer, pName, *Value);
@@ -310,7 +312,7 @@ void CQmAxiomScores::LoadPersistentCache(const json_value *pRoot)
 	}
 }
 
-void CQmAxiomScores::WritePersistentCache(CJsonFileWriter &Writer) const
+void CQmAxiomScores::WritePersistentCache(CJsonWriter &Writer) const
 {
 	Writer.WriteAttribute("axiom");
 	Writer.BeginObject();
@@ -544,6 +546,7 @@ void CQmAxiomScores::AbortActiveRequests(bool ResetFetchingStates)
 	for(SRequestSlot &Slot : m_aModeRequests)
 		Slot.m_PlayerName.clear();
 	m_DdStatsRequest.m_PlayerName.clear();
+	m_pDdStatsParseJob.reset();
 	m_ActivePlayerName.clear();
 	++m_Generation;
 }
@@ -1016,11 +1019,27 @@ SQmAxiomLookupResult CQmAxiomScores::GetLookup(const char *pPlayerName) const
 	return Result;
 }
 
+void CQmAxiomScores::SubmitDdStatsParseJob(const std::shared_ptr<CQmAxiomDdStatsParseJob> &pJob)
+{
+	Engine()->AddJob(pJob);
+}
+
 void CQmAxiomScores::ProcessDdStatsRequest()
 {
 	if(!m_DdStatsRequest.m_pRequest || !m_DdStatsRequest.m_pRequest->Done())
 		return;
 
+	if(m_DdStatsRequest.m_pRequest->TransportSucceeded() && m_DdStatsRequest.m_pRequest->StatusCode() == 200)
+	{
+		if(!m_pDdStatsParseJob)
+		{
+			m_pDdStatsParseJob = std::make_shared<CQmAxiomDdStatsParseJob>(m_DdStatsRequest.m_pRequest, m_DdStatsRequest.m_PlayerName);
+			SubmitDdStatsParseJob(m_pDdStatsParseJob);
+		}
+		if(!m_pDdStatsParseJob->Ready())
+			return;
+	}
+	auto pParseJob = std::move(m_pDdStatsParseJob);
 	std::shared_ptr<IQmAxiomHttpRequest> pRequest = std::move(m_DdStatsRequest.m_pRequest);
 	const uint64_t ResponseGeneration = m_DdStatsRequest.m_Generation;
 	const std::string ResponsePlayerName = std::move(m_DdStatsRequest.m_PlayerName);
@@ -1038,18 +1057,14 @@ void CQmAxiomScores::ProcessDdStatsRequest()
 		return;
 	}
 
-	const unsigned char *pData = nullptr;
-	size_t DataSize = 0;
-	pRequest->Result(&pData, &DataSize);
-	std::vector<SQmDdStatsGameType> vGameTypes;
-	const EQmAxiomParseResult ParseResult = QmParseDdStatsPlayerResponse(reinterpret_cast<const char *>(pData), DataSize, ResponsePlayerName.c_str(), vGameTypes);
+	const EQmAxiomParseResult ParseResult = pParseJob->Result();
 	if(ParseResult != EQmAxiomParseResult::SUCCESS)
 	{
 		Entry.m_LastDdStatsFailureTick = Now;
 		return;
 	}
 
-	Entry.m_vDdStatsGameTypes = std::move(vGameTypes);
+	Entry.m_vDdStatsGameTypes = pParseJob->TakeGameTypes();
 	Entry.m_aDdStatsPlayTime.fill(0);
 	Entry.m_aHasDdStatsPlayTime.fill(false);
 	std::array<int64_t, 2> aPlayTimes{};
