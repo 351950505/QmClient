@@ -6,7 +6,6 @@
 #include <base/system.h>
 
 #include <engine/client.h>
-#include <engine/gfx/image_manipulation.h>
 #include <engine/storage.h>
 
 #define SDL_MAIN_HANDLED
@@ -102,7 +101,7 @@ int RunQmScreenshotViewer(const char *pPath, const char *pErrorTitle, const char
 	try
 	{
 		auto pStorage = CreateLocalStorage();
-		if(!CQmScreenshotImageJob::LoadImageFromDisk(pStorage.get(), pPath, IStorage::TYPE_ABSOLUTE, 0, Image) || !ConvertToRgba(Image))
+		if(!CQmScreenshotImageJob::LoadRgbaImageFromDisk(pStorage.get(), pPath, IStorage::TYPE_ABSOLUTE, Image))
 			return Fail();
 	}
 	catch(const std::exception &)

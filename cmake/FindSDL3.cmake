@@ -18,6 +18,14 @@ FetchContent_Declare(SDL3
   DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/downloads/sdl3"
 )
 FetchContent_MakeAvailable(SDL3)
+# 每次配置都幂等核对补丁，已有或离线下载缓存也必须使用同一修复。
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" "-DSDL3_SOURCE_DIR=${sdl3_SOURCE_DIR}" -P "${CMAKE_CURRENT_LIST_DIR}/PatchSDL3X11.cmake"
+  RESULT_VARIABLE QM_SDL3_PATCH_RESULT
+)
+if(NOT "${QM_SDL3_PATCH_RESULT}" STREQUAL "0")
+  message(FATAL_ERROR "Failed to apply the pinned SDL3 X11 allocation patch")
+endif()
 set_target_properties(SDL3-static PROPERTIES POSITION_INDEPENDENT_CODE ON)
 if(WIN32)
   # 项目已有 uuid 工具目标，显式链接系统库，避免 CMake 将 SDL 依赖解析成工具。
