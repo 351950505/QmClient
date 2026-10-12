@@ -14,7 +14,7 @@ NOW = 1_800_000_000
 
 def reply(document=None, headers=None):
     if document is None:
-        document = {"servers": [{"addresses": ["tw-0.6+udp://127.0.0.1:8303"], "info": {"name": "Server"}}], "extra": {"preserved": True}}
+        document = {"servers": [{"addresses": ["tw-0.6+udp://127.0.0.1:8303"], "info": {"name": "Server", "game_type": "DDRace", "version": "0.6", "map": {"name": "Map"}, "max_clients": 16, "max_players": 16, "passworded": False, "clients": []}}], "extra": {"preserved": True}}
     return Response(json.dumps(document).encode(), headers or {})
 
 
@@ -40,6 +40,28 @@ class SnapshotCollection(unittest.TestCase):
         responses = iter([Response(b"<html>bad</html>", {}), reply({"servers": []}), reply()])
         metadata = collect(self.output, lambda url: next(responses), NOW, ["https://one", "https://two", "https://three"])
         self.assertEqual(metadata["source"], "https://three")
+
+    def test_nonempty_unusable_list_advances_source_without_publishing_it(self):
+        bad = reply({"servers": [{"addresses": ["garbage"], "info": {}}]})
+        responses = iter([bad, reply()])
+        metadata = collect(self.output, lambda url: next(responses), NOW, ["https://bad", "https://valid"])
+        self.assertEqual(metadata["source"], "https://valid")
+        self.assertEqual(json.loads((self.output / "servers.json").read_bytes())["servers"][0]["info"]["name"], "Server")
+
+    def test_all_nonempty_unusable_lists_preserve_previous_snapshot(self):
+        self.run_collect(reply())
+        saved = {path.name: path.read_bytes() for path in self.output.iterdir()}
+        with self.assertRaises(SnapshotError):
+            self.run_collect(reply({"servers": [{"addresses": ["garbage"], "info": {}}]}))
+        self.assertEqual(saved, {path.name: path.read_bytes() for path in self.output.iterdir()})
+
+    def test_partially_usable_list_preserves_raw_entries_and_total_metadata_count(self):
+        document = json.loads(reply().body)
+        document["servers"].append({"addresses": ["unsupported"], "info": {}})
+        metadata = self.run_collect(reply(document))
+        self.assertEqual(metadata["count"], 2)
+        published = json.loads((self.output / "servers.json").read_bytes())
+        self.assertEqual(published["servers"], document["servers"])
 
     def test_all_failures_preserve_existing_body_and_timestamp(self):
         self.run_collect(reply())

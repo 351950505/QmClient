@@ -13,6 +13,8 @@ from email.parser import BytesParser
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
+from serverlist_contract import validate_document
+
 SOURCES = tuple(f"https://master{i}.ddnet.org/ddnet/15/servers.json" for i in range(1, 5))
 MAX_BODY = 8 * 1024 * 1024
 MAX_AGE = 24 * 60 * 60
@@ -87,16 +89,7 @@ def validate(response, now):
         document = json.loads(response.body)
     except (ValueError, UnicodeError) as error:
         raise SnapshotError("invalid JSON") from error
-    if not isinstance(document, dict) or not isinstance(document.get("servers"), list) or not document["servers"]:
-        raise SnapshotError("missing or empty servers array")
-    for server in document["servers"]:
-        if not isinstance(server, dict) or not isinstance(server.get("info"), dict):
-            raise SnapshotError("invalid server info structure")
-        addresses = server.get("addresses")
-        if not isinstance(addresses, list) or not addresses or not all(isinstance(item, str) and item for item in addresses):
-            raise SnapshotError("invalid server addresses")
-        if "location" in server and not isinstance(server["location"], str):
-            raise SnapshotError("invalid server location")
+    validate_document(document)
     updated = payload_time(response.headers, now)
     # 若上游已有快照字段，不能通过再次采集给旧内容重新计时。
     previous = document.get("qm_snapshot_updated_at")
