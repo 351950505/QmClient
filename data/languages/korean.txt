@@ -12536,6 +12536,15 @@ Some map sounds could not be loaded. Check the local console for details.
 Something hookable
 == 갈고리 가능한 블록
 
+Sort by favorites
+== 즐겨찾기순 정렬
+
+Sort by number of friends
+== 친구 수순 정렬
+
+Sort by number of QmClient players
+== QmClient 플레이어 수순 정렬
+
 Sort column in ghost list
 == 고스트 목록 정렬 열
 

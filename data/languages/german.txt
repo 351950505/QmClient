@@ -12536,6 +12536,15 @@ Some map sounds could not be loaded. Check the local console for details.
 Something hookable
 == Etwas einhakbar
 
+Sort by favorites
+== Nach Favoriten sortieren
+
+Sort by number of friends
+== Nach Anzahl der Freunde sortieren
+
+Sort by number of QmClient players
+== Nach Anzahl der QmClient-Spieler sortieren
+
 Sort column in ghost list
 == Sortierspalte in der Geisterliste
 
