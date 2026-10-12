@@ -39,7 +39,9 @@ bool CQmMobileSpectator::ControlsAvailable() const
 	if(IVideo::Current() != nullptr)
 		return false;
 #endif
-	return Graphics()->WindowActive() && !GameClient()->m_Menus.IsActive() && !GameClient()->m_Chat.IsActive() &&
+	IEngineGraphics *pEngineGraphics = Kernel()->RequestInterface<IEngineGraphics>();
+	const bool WindowActive = pEngineGraphics == nullptr || pEngineGraphics->WindowActive() != 0;
+	return WindowActive && !GameClient()->m_Menus.IsActive() && !GameClient()->m_Chat.IsActive() &&
 	       !GameClient()->m_GameConsole.IsActive() && !GameClient()->m_Spectator.IsActive() &&
 	       !GameClient()->m_Emoticon.IsActive() && !GameClient()->m_HudEditor.IsActive() &&
 	       !GameClient()->m_Scoreboard.IsActive() && !GameClient()->m_Motd.IsActive() &&

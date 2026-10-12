@@ -20221,7 +20221,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/mobile_spectator.cpp",
       "context": "",
-      "line": 143
+      "line": 145
     },
     {
       "key": "Error checking player name",
@@ -21579,7 +21579,7 @@
       "category": "localize_or_localizable",
       "source": "src/game/client/components/qmclient/mobile_spectator.cpp",
       "context": "Editor",
-      "line": 142
+      "line": 144
     },
     {
       "key": "Failed to open the directory '%s'.",
