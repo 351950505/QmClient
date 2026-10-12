@@ -7,7 +7,9 @@
 #include <game/client/components/qmclient/afk_presentation.h>
 #include <game/client/components/qmclient/input_overlay.h>
 #include <game/client/components/qmclient/score_hud_layout.h>
+#include <game/client/components/qmclient/scoreboard_layout.h>
 #include <game/client/components/qmclient/scoreboard_team_modes.h>
+#include <game/client/components/qmclient/spectator_hud_layout.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/qm_icon.h>
 #include <game/map/render_map.h>
@@ -499,6 +501,64 @@ TEST(QmScoreboardRender, SmallDeadTeeKeepsItsSizeAndIsCentered)
 	EXPECT_FLOAT_EQ(Tee.Center().y, Row.Center().y);
 }
 
+TEST(QmScoreboardLayout, DenseCapacityUsesTheAddedPanelHeight)
+{
+	const auto Short = QmScoreboardRowMetrics(333.0f, 43, 0, 0, false);
+	const auto Tall = QmScoreboardRowMetrics(388.0f, 43, 0, 0, false);
+	EXPECT_GT(Tall.m_LineHeight, Short.m_LineHeight);
+	EXPECT_GT(Tall.m_FontSize, Short.m_FontSize);
+	EXPECT_LE(ScoreboardRowsHeight(43, 0, 0, Tall.m_LineHeight, Tall.m_Spacing, Tall.m_FontSize / 1.5f, Tall.m_FontSize), 388.001f);
+}
+
+TEST(QmScoreboardLayout, TwoPlayersInLastColumnKeepTheFortyThreeRowDensity)
+{
+	// 原三列容量为 43；末列即使只剩两人，也使用相同容量而非两人字号。
+	const auto Last = QmScoreboardRowMetrics(388.0f, 43, 0, 0, false);
+	EXPECT_LE(ScoreboardRowsHeight(43, 0, 0, Last.m_LineHeight, Last.m_Spacing, Last.m_FontSize / 1.5f, Last.m_FontSize), 388.001f);
+	EXPECT_LT(ScoreboardRowsHeight(2, 0, 0, Last.m_LineHeight, Last.m_Spacing, Last.m_FontSize / 1.5f, Last.m_FontSize), 388.0f);
+	EXPECT_LT(Last.m_FontSize, QmScoreboardRowMetrics(388.0f, 2, 0, 0, false).m_FontSize);
+}
+
+TEST(QmScoreboardLayout, TeamLabelsAndModeIconsFitTheCapacityBudget)
+{
+	for(const int Capacity : {16, 24, 32, 43})
+	{
+		SCOPED_TRACE(Capacity);
+		const auto Metrics = QmScoreboardRowMetrics(388.0f, Capacity, Capacity, Capacity, false);
+		const float IconSize = minimum(SCOREBOARD_TEAM_MODE_ICON_SIZE, Metrics.m_FontSize);
+		EXPECT_LE(ScoreboardRowsHeight(Capacity, Capacity, Capacity, Metrics.m_LineHeight, Metrics.m_Spacing, Metrics.m_FontSize / 1.5f, IconSize), 388.001f);
+		EXPECT_GT(Metrics.m_LineHeight, 0.0f);
+		EXPECT_GT(Metrics.m_FontSize, 0.0f);
+	}
+}
+
+TEST(QmScoreboardLayout, ManualScrollRetainsFixedRowMetricsRegardlessOfHeight)
+{
+	for(const float Height : {0.0f, 200.0f, 388.0f, 800.0f})
+	{
+		SCOPED_TRACE(Height);
+		const auto Metrics = QmScoreboardRowMetrics(Height, 16, 16, 16, true);
+		EXPECT_FLOAT_EQ(Metrics.m_LineHeight, 20.0f);
+		EXPECT_FLOAT_EQ(Metrics.m_FontSize, 12.0f);
+		EXPECT_FLOAT_EQ(Metrics.m_TeeSizeMod, 0.4f);
+		EXPECT_FLOAT_EQ(Metrics.m_Spacing, 0.0f);
+	}
+}
+
+TEST(QmScoreboardLayout, SparseCapacityKeepsPreferredSizeAndSmallViewportShrinks)
+{
+	for(const int Capacity : {1, 4, 8, 12, 16})
+	{
+		SCOPED_TRACE(Capacity);
+		EXPECT_FLOAT_EQ(QmScoreboardRowMetrics(388.0f, Capacity, 0, 0, false).m_FontSize, 12.0f);
+	}
+	const auto Small = QmScoreboardRowMetrics(100.0f, 43, 43, 43, false);
+	EXPECT_LE(ScoreboardRowsHeight(43, 43, 43, Small.m_LineHeight, Small.m_Spacing, Small.m_FontSize / 1.5f, Small.m_FontSize), 100.001f);
+	const auto Zero = QmScoreboardRowMetrics(0.0f, 43, 0, 0, false);
+	EXPECT_FLOAT_EQ(Zero.m_LineHeight, 0.0f);
+	EXPECT_FLOAT_EQ(Zero.m_FontSize, 0.0f);
+}
+
 TEST(QmScoreHudLayout, ShortRankKeepsOriginalFootprint)
 {
 	const auto Layout = QmScoreHudLayout(300.0f, 14.0f, 7.0f, 18.0f);
@@ -898,4 +958,34 @@ TEST(QmSurfaceRoles, ConfiguredRolesRemainIndependentAtLowAndZeroOpacity)
 	EXPECT_EQ(ResolveConfiguredSecondaryPanelTheme().m_TextBody, ColorRGBA(0, 0, 0, 1));
 	g_Config.m_QmUiPopupColor = 0;
 	EXPECT_EQ(ResolveConfiguredSecondaryPanelTheme().m_TextBody, ColorRGBA(0, 0, 0, 1));
+}
+
+TEST(QmSpectatorHudLayout, ShortLabelShrinksAndLongLabelKeepsRightAnchor)
+{
+	const auto Short = QmSpectatorHudLayout(400.0f, 32.0f);
+	const auto Long = QmSpectatorHudLayout(400.0f, 160.0f);
+	EXPECT_FLOAT_EQ(Short.m_Width, 44.0f);
+	EXPECT_LT(Short.m_Width, Long.m_Width);
+	EXPECT_FLOAT_EQ(Short.m_Left + Short.m_Width, 400.0f);
+	EXPECT_FLOAT_EQ(Long.m_Left + Long.m_Width, 400.0f);
+	EXPECT_FLOAT_EQ(Long.m_TextWidth, 160.0f);
+}
+
+TEST(QmSpectatorHudLayout, AuxiliaryCameraTagFitsInsideEditorBounds)
+{
+	const auto Layout = QmSpectatorHudLayout(400.0f, 20.0f, 60.0f);
+	EXPECT_FLOAT_EQ(Layout.m_Width, 60.0f);
+	EXPECT_FLOAT_EQ(Layout.m_Left, 340.0f);
+	EXPECT_GE(Layout.m_TextWidth, 20.0f);
+}
+
+TEST(QmSpectatorHudLayout, OversizedLabelAndZeroViewportNeverOverflow)
+{
+	const auto Narrow = QmSpectatorHudLayout(40.0f, 200.0f, 60.0f);
+	EXPECT_FLOAT_EQ(Narrow.m_Left, 0.0f);
+	EXPECT_FLOAT_EQ(Narrow.m_Width, 40.0f);
+	EXPECT_FLOAT_EQ(Narrow.m_TextWidth, 28.0f);
+	const auto Empty = QmSpectatorHudLayout(0.0f, 200.0f);
+	EXPECT_FLOAT_EQ(Empty.m_Width, 0.0f);
+	EXPECT_FLOAT_EQ(Empty.m_TextWidth, 0.0f);
 }

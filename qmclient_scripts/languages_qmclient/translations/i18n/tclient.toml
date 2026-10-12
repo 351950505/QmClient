@@ -10567,3 +10567,88 @@ brazilian_portuguese = "A pasta antiga qmclient/fonts não é mais examinada. Mo
 portuguese = "A pasta antiga qmclient/fonts já não é examinada. Mova manualmente as suas fontes personalizadas para fonts/fonts_store dentro da pasta de configuração. A versão normal usa a pasta de configuração do utilizador; a versão portátil usa profile. As fontes incluídas em data/fonts não precisam de ser movidas."
 turkish = "Eski qmclient/fonts klasörü artık taranmıyor. Özel yazı tiplerinizi yapılandırma klasöründeki fonts/fonts_store konumuna elle taşıyın. Normal sürüm kullanıcı yapılandırma klasörünü, taşınabilir sürüm profile klasörünü kullanır. data/fonts içindeki birlikte gelen yazı tiplerinin taşınması gerekmez."
 polish = "Stary folder qmclient/fonts nie jest już skanowany. Przenieś własne czcionki ręcznie do fonts/fonts_store w folderze konfiguracji. Zwykła wersja używa folderu konfiguracji użytkownika, a przenośna — profile. Nie trzeba przenosić czcionek dostarczanych w data/fonts."
+
+
+[[message]]
+key = "Show position and angle"
+[message.translations]
+simplified_chinese = "显示位置和角度"
+traditional_chinese = "顯示位置和角度"
+japanese = "位置と角度を表示"
+korean = "위치와 각도 표시"
+russian = "Показывать позицию и угол"
+german = "Position und Winkel anzeigen"
+spanish = "Mostrar posición y ángulo"
+french = "Afficher la position et l'angle"
+brazilian_portuguese = "Mostrar posição e ângulo"
+portuguese = "Mostrar posição e ângulo"
+turkish = "Konum ve açıyı göster"
+polish = "Pokaż pozycję i kąt"
+
+
+[[message]]
+key = "Mini debug"
+[message.translations]
+simplified_chinese = "小型调试"
+traditional_chinese = "小型調試"
+japanese = "ミニデバッグ"
+korean = "미니 디버그"
+russian = "мини-отладка"
+german = "Mini-Debug"
+spanish = "mini depuración"
+french = "mini débogage"
+brazilian_portuguese = "mini debug"
+portuguese = "mini debug"
+turkish = "küçük hata ayıklama"
+polish = "mini debug"
+
+
+[[message]]
+key = "Reduce visual latency"
+[message.translations]
+simplified_chinese = "降低视觉延迟"
+traditional_chinese = "降低視覺延遲"
+japanese = "視覚的な遅延を低減"
+korean = "시각적 지연 감소"
+russian = "уменьшает визуальную задержку"
+german = "reduziert visuelle Latenz"
+spanish = "reduce la latencia visual"
+french = "réduit la latence visuelle"
+brazilian_portuguese = "reduz latência visual"
+portuguese = "reduz latência visual"
+turkish = "görsel gecikmeyi azaltır"
+polish = "zmniejsza opóźnienie wizualne"
+
+
+[[message]]
+key = "Negative stability buffer"
+[message.translations]
+simplified_chinese = "负稳定性缓冲"
+traditional_chinese = "負穩定性緩衝"
+japanese = "負の安定性バッファ"
+korean = "음수 안정성 버퍼"
+russian = "Буфер отрицательной стабильности"
+german = "Negativer Stabilitätspuffer"
+spanish = "Búfer de estabilidad negativa"
+french = "Tampon de stabilité négative"
+brazilian_portuguese = "Buffer de estabilidade negativa"
+portuguese = "Buffer de estabilidade negativa"
+turkish = "Negatif stabilite tamponu"
+polish = "Bufor ujemnej stabilności"
+
+
+[[message]]
+key = "For Gores"
+[message.translations]
+simplified_chinese = "用于 Gores"
+traditional_chinese = "用於 Gores"
+japanese = "Gores 用"
+korean = "Gores용"
+russian = "для Gores"
+german = "für Gores"
+spanish = "para Gores"
+french = "pour les Gores"
+brazilian_portuguese = "para Gores"
+portuguese = "para Gores"
+turkish = "Gores için"
+polish = "dla Gores"

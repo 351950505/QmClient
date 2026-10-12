@@ -256,3 +256,40 @@ TEST(QmChatTextLayout, MergedBackgroundIncludesFirstAuthorIndentAndBodyWidth)
 	Body.m_LongestLineWidth = 155.0f;
 	EXPECT_FLOAT_EQ(QmChatIndentedContentWidth(Prefix, Body), 200.0f);
 }
+
+TEST(QmChatTextLayout, IncomingTranslationIsPrimaryAndNetworkOriginalIsSecondary)
+{
+	const auto Blocks = QmChatTranslationTextBlocks("network original", "translation", false);
+	EXPECT_STREQ(Blocks.m_pPrimary, "translation");
+	EXPECT_STREQ(Blocks.m_pSecondary, "network original");
+	EXPECT_FALSE(Blocks.m_PrimaryIsNetworkText);
+}
+
+TEST(QmChatTextLayout, OutgoingEchoKeepsTranslationPrimaryAndLocalOriginalSecondary)
+{
+	const auto Blocks = QmChatTranslationTextBlocks("network translation", "local original", true);
+	EXPECT_STREQ(Blocks.m_pPrimary, "network translation");
+	EXPECT_STREQ(Blocks.m_pSecondary, "local original");
+	EXPECT_TRUE(Blocks.m_PrimaryIsNetworkText);
+}
+
+TEST(QmChatTextLayout, WordFilterKeepsUnmatchedLocalOriginalVisible)
+{
+	EXPECT_EQ(QmChatTranslationDisplayText("hello world", false, true), "hello world");
+}
+
+TEST(QmChatTextLayout, HiddenMessageSuppressesLocalOriginal)
+{
+	EXPECT_TRUE(QmChatTranslationDisplayText("hello world", true, false).empty());
+	EXPECT_TRUE(QmChatTranslationDisplayText("hello world", true, true).empty());
+}
+
+TEST(QmChatTextLayout, WordFilterMasksLocalOriginalWithoutChangingStoredText)
+{
+	QmStreamerWordFilter::SetAdditionalWords({"qmprivateword"});
+	const std::string Original = "hello qmprivateword world";
+	EXPECT_EQ(QmChatTranslationDisplayText(Original, false, true), "hello *** world");
+	EXPECT_EQ(QmChatTranslationDisplayText(Original, false, false), Original);
+	EXPECT_EQ(Original, "hello qmprivateword world");
+	QmStreamerWordFilter::SetAdditionalWords({});
+}

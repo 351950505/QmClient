@@ -29,6 +29,7 @@ public:
 	void Translate(const char *pName, bool ShowProgress = true);
 	void Translate(CChat::CLine &Line, bool ShowProgress = true, bool AutoTriggered = false);
 	bool TryTranslateOutgoingChat(int Team, const char *pText);
+	void InvalidateOutgoingConnection(int Connection) { m_Jobs.CancelOutgoing(Connection); }
 
 	void AutoTranslate(CChat::CLine &Line);
 

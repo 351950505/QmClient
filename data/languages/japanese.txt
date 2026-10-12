@@ -250,6 +250,9 @@
 0 - Disabled, 1-9999 minutes
 == 0 - 無効、1-9999 分
 
+0 = auto
+== 0 = 自動
+
 0 disables timed rotation; skins only switch on random start events
 == 0 で時間によるローテーションを無効化。ランダム開始時のみスキンを切り替えます
 
@@ -623,6 +626,9 @@ After uploading again, use: reload or hot_reload
 Afterimage pop
 == 残像ポップ
 
+AGC, experimental
+== AGC、実験的
+
 Agree
 == 同意
 
@@ -722,9 +728,6 @@ Alpha
 Also apply to dummy
 == ダミーにも適用する
 
-Also send the original text when translating outgoing messages
-== 送信メッセージの翻訳時にも原文を送る
-
 Always show
 == 常に表示
 
@@ -806,6 +809,9 @@ Anti Ping Smoothing
 Anti-spoof specific rate limit (0 = unlimited).
 == アンチスプーフ固有のレート制限（0 = 無制限）
 
+AntiPing
+== AntiPing
+
 AntiPing (latency compensation)
 == AntiPing（レイテンシ補正）
 
@@ -869,9 +875,6 @@ Apply a writable preset and edit first
 Apply Changes
 == 変更を適用
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== サブウィンドウとドロップダウンの背景をぼかす
-
 Apply input early before next tick for prediction
 == 予測のために次の tick の前に早期に入力を適用
 
@@ -886,6 +889,12 @@ Apply squishy Tee deformation to other players
 
 Apply this preset
 == このプリセットを適用
+
+Apply to dummy
+== ダミーに適用
+
+Apply to player
+== プレイヤーに適用
 
 Apply watermark
 == ウォーターマークを適用
@@ -1069,6 +1078,9 @@ Auto execute
 
 Auto fetch replay info on refresh
 == リフレッシュ時にリプレイ情報を自動取得
+
+Auto gain control for mic
+== マイクの自動ゲイン制御
 
 Auto gain control for mic (AGC, experimental)
 == マイクの自動ゲイン制御（AGC、実験的）
@@ -1988,6 +2000,9 @@ Cheats are disabled on this server
 Cheats are enabled on this server
 == このサーバーではチートが有効です
 
+Check again
+== 再確認
+
 check ddnet-saves.txt in config_directory.
 == config_directory の ddnet-saves.txt を確認してください。
 
@@ -2006,6 +2021,9 @@ Check output device, confirm headphones/speakers are still online
 Checking for existing player with your name
 == 同じ名前のプレイヤーがいるか確認中
 
+Checking for updates...
+== 更新を確認中…
+
 Checking Steam...
 == Steam を確認中…
 
@@ -2020,9 +2038,6 @@ Chinese font:
 
 CHN
 == 中国
-
-Choose a GPU for this app in system graphics settings, then restart the client.
-== システムのグラフィックス設定でこのアプリの GPU を選択し、クライアントを再起動してください。
 
 Choose colors for weapons and entity lasers
 == Choose colors for weapons and entity lasers
@@ -2288,6 +2303,12 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == 何も当たらなかったフックラインの色
 
+Color picker saturation/value area shape: 0=square, 1=wheel
+== カラーピッカーの彩度/明度領域の形状: 0=四角、1=色相環
+
+Color picker saved swatches (format: name|#hex entries separated by semicolons)
+== 保存した色見本（形式: 名前|#16進数、項目はセミコロンで区切る）
+
 Color tee outlines by team for spectating
 == 観戦時に見分けられるようチームごとにTeeの輪郭を色分け
 
@@ -2383,6 +2404,9 @@ Compressor release time (ms)
 
 Compressor threshold (percent)
 == コンプレッサーのしきい値（パーセント）
+
+Concurrency
+== 同時実行数
 
 Concurrency (0 = auto)
 == 同時実行数（0 = 自動）
@@ -2912,17 +2936,29 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == 現在のカットは無効か、すでに追加されています
 
+Current driver
+== 現在のドライバー
+
 Current file
 == 現在のファイル
 
 Current GPU
 == 現在の GPU
 
+Current graphics backend
+== 現在のグラフィックスバックエンド
+
 Current rescue mode: %s
 == 現在のレスキューモード：%s
 
 Current status
 == 現在のステータス
+
+Current version: %s
+== 現在のバージョン：%s
+
+Current version: %s (up to date)
+== 現在のバージョン：%s（最新）
 
 Current: Ranks
 == 現在：ランク
@@ -3482,6 +3518,9 @@ Discard cached server pings older than this many hours (0 = never expire)
 Discard changes
 == 変更を破棄
 
+Discard update
+== 更新を破棄
+
 Disconnect
 == 切断
 
@@ -3644,8 +3683,17 @@ Download the rank 1 demo for this map
 Download this asset?
 == このアセットをダウンロードしますか？
 
+Download update
+== 更新をダウンロード
+
+Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.
+== ダウンロードの検証が完了しました。「終了してインストール」で現在のバージョンを置き換えます。設定は保持されます。「後で」を選ぶと、クライアント終了時にインストールします。
+
 Downloaded
 == ダウンロード済み
+
+Downloaded: %.1f MiB (total size unknown)
+== ダウンロード済み：%.1f MiB（総サイズ不明）
 
 Downloading map
 == マップをダウンロード中
@@ -4145,8 +4193,8 @@ Enable fat skin
 Enable freeze call sound
 == フリーズコール音を有効にする
 
-Enable frosted glass blur behind secondary popups and dropdowns
-== サブウィンドウとドロップダウンの背景ぼかしを有効にする
+Enable FTAPI auto-translate
+== FTAPI 自動翻訳を有効化
 
 Enable FTAPI auto-translate (may overload the service)
 == FTAPI 自動翻訳を有効化（サービスに過負荷がかかる可能性あり）
@@ -4364,6 +4412,9 @@ Enable tee trails
 Enable the finished indicator and wait for player data
 == クリア表示を有効にし、プレイヤーデータの取得をお待ちください
 
+Enable thinking mode
+== 思考モードを有効にする
+
 Enable thinking mode (slower)
 == 思考モードを有効にする（低速）
 
@@ -4580,6 +4631,9 @@ Execute the specified file
 Existing Player
 == 既存のプレイヤー
 
+Exit and install
+== 終了してインストール
+
 Exit replay view
 == リプレイ視聴を終了
 
@@ -4594,6 +4648,9 @@ Expanded dropdown background color
 
 Expanded dropdown background opacity percentage
 == 展開リスト背景 — 不透明度（パーセント）
+
+Experimental
+== 実験的
 
 Export
 == エクスポート
@@ -4730,6 +4787,9 @@ Fake CTF flags
 Fallback simple noise reduction strength
 == フォールバック簡易ノイズ低減強度
 
+Fast input
+== 高速入力
+
 Fast input (reduce visual latency)
 == Fast input（視覚的な遅延を低減）
 
@@ -4765,6 +4825,9 @@ Favorites
 
 feat-003 dogfood: tokens + 12 widgets
 == feat-003 dogfood: トークン + 12 ウィジェット
+
+Feature guide and announcements
+== 機能ガイドとお知らせ
 
 Feature Search
 == 機能検索
@@ -4951,6 +5014,9 @@ Font store:
 
 Font weight:
 == フォントの太さ：
+
+For Gores
+== Gores 用
 
 For more info: /cmdlist
 == 詳細は /cmdlist を参照
@@ -5707,6 +5773,9 @@ High Detail
 
 High to low
 == 高い順
+
+Higher input latency
+== 入力遅延増加
 
 Higher values make the wave move faster. Zero stops the movement.
 == 値が大きいほど波が速く動きます。ゼロで動きが止まります。
@@ -6632,6 +6701,9 @@ Last viewed client release notes
 Latency
 == レイテンシ
 
+Latency compensation
+== レイテンシ補正
+
 Latency Jitter
 == レイテンシジッター
 
@@ -6664,6 +6736,9 @@ Leaks your IP address to all servers by pinging each of them, also acquiring the
 
 Learn
 == チュートリアル Wiki
+
+Leave empty to detect automatically
+== 空欄で自動検出
 
 Leave empty to disable
 == 空欄にして無効化
@@ -7190,6 +7265,9 @@ Map uploaded successfully.
 Mapper
 == 作者
 
+Maps
+== マップ
+
 Maps finished
 == クリアしたマップ
 
@@ -7349,6 +7427,9 @@ Maximum undo steps in editor history (editor, envelope editor, and server settin
 may cause delay
 == 遅延が発生する可能性があります
 
+May overload the service
+== サービスに過負荷がかかる可能性あり
+
 Memory
 == メモリ
 
@@ -7447,6 +7528,9 @@ Milliseconds to apply quick input early
 
 Min size
 == 最小サイズ
+
+Mini debug
+== ミニデバッグ
 
 Mini features
 == ミニ機能
@@ -7850,6 +7934,9 @@ Native scale (1.0)
 Need to have started the map to swap with a player.
 == プレイヤーと入れ替えるにはマップを開始する必要があります。
 
+Negative stability buffer
+== 負の安定性バッファ
+
 Negative stability buffer (for Gores)
 == 負の安定性バッファ（Gores 用）
 
@@ -7873,9 +7960,6 @@ Netversion
 
 Network
 == ネットワーク
-
-Network error
-== ネットワークエラー
 
 Network timeout
 == ネットワークタイムアウト
@@ -7918,6 +8002,9 @@ New preset name
 
 New random timeout code
 == 新しいランダムタイムアウトコード
+
+New version available
+== 新しいバージョンが利用可能です
 
 Newest first
 == リリースが新しい順
@@ -8600,6 +8687,9 @@ Overwrite clan even if empty
 Own hook line width
 == 自分のフックラインの幅
 
+Own team only
+== 自チームのみ
+
 p = Ping latency
 == p = Ping レイテンシ
 
@@ -9140,14 +9230,8 @@ Polished
 Pop wave
 == 拡大の波
 
-Popup & dropdown blur
-== ポップアップとドロップダウンのぼかし
-
 Popup animation
 == ポップアップアニメーション
-
-Popup blur
-== ポップアップのぼかし
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == クライアントからサーバーへの接続用ポート（0=ランダム, >=1024 で手動設定）
@@ -9196,6 +9280,9 @@ Predict client movement
 
 Predict dummy movement
 == ダミーの移動を予測
+
+Predict events
+== イベント予測
 
 Predict events (experimental)
 == イベント予測（実験的）
@@ -9560,6 +9647,9 @@ Quads are used for background decoration
 Query current map info
 == 現在のマップ情報を照会
 
+Query isolated serverlist consumer state
+== 隔離サーバーリスト利用側の状態を照会
+
 Query map info for %s
 == %s のマップ情報を照会
 
@@ -9857,6 +9947,9 @@ Reduce antiping and player prediction when frozen
 Reduce prediction while frozen
 == 凍結中に予測量を減らす
 
+Reduce visual latency
+== 視覚的な遅延を低減
+
 Reduced
 == 縮小
 
@@ -9871,6 +9964,9 @@ Refresh
 
 Refresh interval
 == 更新間隔
+
+Refresh isolated serverlist consumer
+== 隔離サーバーリスト利用側を更新
 
 Refresh Rate
 == リフレッシュレート
@@ -9910,6 +10006,9 @@ Release date
 
 Release notes
 == リリースノート
+
+Release page
+== リリースページ
 
 Reload
 == 再読み込み
@@ -10661,6 +10760,9 @@ Save loaded; the local record could not be removed.
 Save player names in replay
 == リプレイにプレイヤー名を保存
 
+Save power by lowering update rate
+== 更新レートを下げて省電力
+
 Save power by lowering update rate (higher input latency)
 == 更新レートを下げて省電力（入力遅延増加）
 
@@ -10789,6 +10891,9 @@ Scoreboard surface color
 
 Scoreboard transparency
 == スコアボード透明度
+
+Scoreboard, chat, spectating
+== スコアボード、チャット、観戦
 
 Scores are private on this server
 == このサーバーではスコアは非公開です
@@ -10934,6 +11039,9 @@ Select a map
 Select a player to manage
 == 管理するプレイヤーを選択
 
+Select a preset, then apply it to player or dummy
+== プリセットを選択し、プレイヤーまたはダミーに適用
+
 Select a saved .map file (client limit: 64 MiB).
 == 保存済みの .map ファイルを選択してください（クライアントの上限: 64 MiB）。
 
@@ -10976,6 +11084,9 @@ Selected text color
 Selected timertype is not supported by your client
 == 選択したタイマータイプはお使いのクライアントでサポートされていません
 
+Selecting download source...
+== ダウンロード元を選択中…
+
 Selection
 == 選択
 
@@ -11011,9 +11122,6 @@ Send emote when entering freeze
 
 Send emoticon in water
 == 水中で表情を送信
-
-Send original text with translation
-== 送信メッセージの翻訳時に原文も送信
 
 Send probability
 == 送信確率
@@ -11392,6 +11500,9 @@ Show client ID in scoreboard, chat and spectator menu
 
 Show client ID on a separate line in nametag
 == ネームタグの別の行にクライアント ID を表示
+
+Show client IDs
+== クライアント ID を表示
 
 Show client IDs (scoreboard, chat, spectating)
 == クライアント ID を表示（スコアボード、チャット、観戦）
@@ -11864,6 +11975,9 @@ Show only servers with unfinished maps
 Show only team chat messages
 == チームチャットメッセージのみ表示
 
+Show original text below outgoing translation
+== 送信する翻訳文の下に原文を表示
+
 Show other players' coordinates
 == 他のプレイヤーの座標を表示
 
@@ -11978,6 +12092,9 @@ Show player Tee
 Show players' key presses
 == プレイヤーのキー入力を表示
 
+Show position and angle
+== 位置と角度を表示
+
 Show position and angle (mini debug)
 == 位置と角度を表示（ミニデバッグ）
 
@@ -12086,6 +12203,9 @@ Show swap option
 Show synchronized sponsor chat styles
 == 同期された支援者チャットのスタイルを表示
 
+Show system fonts
+== システムフォントを表示
+
 Show system media info on HUD
 == HUD にシステムメディア情報を表示
 
@@ -12142,6 +12262,9 @@ Show the number of tees still alive
 
 Show the occasional sponsor reminder in the main menu
 == メインメニューでスポンサー通知を時々表示する
+
+Show the original text locally below translated outgoing messages
+== 送信した翻訳メッセージの下に原文をローカルでのみ表示し、原文はサーバーに送信しません
 
 Show the pet
 == ペットを表示
@@ -12292,6 +12415,9 @@ Shrink
 
 Shrug:
 == 肩をすくめる：
+
+Shuffle skin queue
+== スキンキューをシャッフル
 
 Shut down
 == シャットダウン
@@ -12463,6 +12589,9 @@ Slide left
 
 Slow down the demo
 == デモの速度を下げる
+
+Slower
+== 低速
 
 Small Tee size
 == 小さな Tee のサイズ
@@ -12835,6 +12964,9 @@ Status normal, check details below if still experiencing issues
 
 Status Scheme:
 == ステータススキーム：
+
+Steam client path
+== Steam クライアントのパス
 
 Steam client path (leave empty to detect automatically)
 == Steam クライアントのパス（空欄で自動検出）
@@ -13262,6 +13394,9 @@ Tee 0.7
 Tee appearance
 == Tee 外観
 
+Tee collision
+== Tee の衝突
+
 Tee collision (Tee to Tee)
 == Tee の衝突（Tee 対 Tee）
 
@@ -13273,6 +13408,9 @@ Tee cry
 
 Tee death probe
 == Tee のデス判定
+
+Tee freeze probe
+== Tee のフリーズ判定
 
 Tee freeze probe (Tee to Freeze)
 == Tee のフリーズ判定（Tee 対 Freeze）
@@ -13288,6 +13426,12 @@ Tee size
 
 Tee status bar
 == Tee ステータスバー
+
+Tee to Freeze
+== Tee 対 Freeze
+
+Tee to Tee
+== Tee 対 Tee
 
 Tee trail color
 == Tee トレイルの色
@@ -13495,9 +13639,6 @@ The server is running a non-standard tuning on a pure game type.
 
 The server rejected the map upload.
 == サーバーがマップのアップロードを拒否しました。
-
-The update is ready and will be installed when you exit.
-== アップデートの準備ができました。終了時にインストールされます。
 
 The watermarked screenshot was saved next to the original
 == ウォーターマーク付きのスクリーンショットを元画像の隣に保存しました
@@ -14012,6 +14153,9 @@ Translate:
 Translated chat text size as a percentage of the original text (50-100)
 == チャット翻訳文の文字サイズを原文の文字サイズに対する割合で指定（50-100）
 
+Translated message could not be queued; original was not sent
+== 翻訳メッセージを送信キューに追加できませんでした。原文は送信されていません
+
 Translated text hidden due to streamer mode
 == ストリーマーモードのため翻訳テキストを非表示
 
@@ -14021,14 +14165,14 @@ Translated text size
 Translating to %s...
 == %s に翻訳中...
 
-Translation backend invalid, sending original
-== 翻訳バックエンドが無効なため、原文を送信
-
 Translation button active color
 == 翻訳ボタンオン時の色
 
 Translation button cancel color
 == 翻訳ボタンオフ時の色
+
+Translation canceled because the sender changed
+== 送信者が変更されたため、翻訳をキャンセルしました
 
 Translation color alpha migration completed flag
 == 翻訳カラーのアルファ移行完了フラグ
@@ -14047,9 +14191,6 @@ Translation menu selected color
 
 Translation model was not found. Check the model name.
 == 翻訳モデルが見つかりません。モデル名を確認してください。
-
-Translation queue full, sending original
-== 翻訳キューが満杯のため、原文を送信
 
 Translation service
 == 翻訳サービス
@@ -14417,11 +14558,11 @@ Update notice
 Update or add a specific war group
 == 特定の敵対グループを更新または追加
 
-Update package available
-== このバージョンの更新パッケージをダウンロードできます
-
 Update Rate
 == 更新レート
+
+Update ready to install
+== 更新をインストールできます
 
 Upload .map files. Server and admin passwords: s.
 == .map ファイルをアップロードします。サーバーと管理者のパスワードは s です。
@@ -14521,9 +14662,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == 敵リストを使用してプレイヤーインジケーターを駆動
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== 拡張レンダリング有効時にガウスぼかしパイプラインを使用
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == 高帯域モードを使用（サーバー帯域を 2 倍、LAN のみ）
@@ -14653,6 +14791,9 @@ Variable custom font weight for Latin text
 
 Velocity
 == 速度
+
+Verifying downloaded update...
+== ダウンロードした更新を検証中…
 
 Version
 == バージョン

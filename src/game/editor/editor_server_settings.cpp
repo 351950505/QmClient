@@ -299,6 +299,12 @@ void CEditor::DoMapSettingsEditBox(CMapSettingsBackend::CContext *pContext, cons
 	if(pLineInput->IsActive())
 		m_MapSettingsBackend.m_pCompletionInput = pLineInput;
 	Context.SetFontSize(FontSize);
+	if(Context.m_CommandBrowser.IsOpen() && Input()->HasComposition())
+	{
+		Context.m_CommandBrowser.Close();
+		Context.m_DropdownContext.m_ShouldHide = true;
+		Context.m_DropdownContext.m_ShortcutUsed = false;
+	}
 
 	// Small utility to render a floating part above the input rect.
 	// Use to display either the error or the current argument name
@@ -337,18 +343,31 @@ void CEditor::DoMapSettingsEditBox(CMapSettingsBackend::CContext *pContext, cons
 	}
 
 	// Ctrl+Shift+Space 也走实际事件；系统保留热键时使用点击入口。
-	const char *pCompletionTooltip = Localize("Enter a server setting. Press Ctrl+Space or Ctrl+Shift+Space, or click ... to show available settings. If the IME reserves the shortcut, use ... .", "Editor");
+	const char *pCompletionTooltip = Localize("Enter a server setting. Press Ctrl+Space or Ctrl+Shift+Space to complete at the cursor. Click All commands to browse every command without changing the text until you select one. If the IME reserves the shortcut, use the button.", "Editor");
+	const char *pCompletionLabel = Localize("All commands", "Editor");
 	CUIRect CompletionButton;
-	ToolBar.VSplitRight(ToolBar.h, &ToolBar, &CompletionButton);
-	const bool CompletionClicked = DoButton_Editor(&Context.m_DropdownContext.m_ShortcutUsed, "...", 0, &CompletionButton, BUTTONFLAG_LEFT, pCompletionTooltip);
+	const float CompletionWidth = minimum(TextRender()->TextWidth(FontSize, pCompletionLabel) + 12.0f, maximum(0.0f, ToolBar.w * 0.5f));
+	ToolBar.VSplitRight(CompletionWidth, &ToolBar, &CompletionButton);
+	const bool CompletionClicked = DoButton_Editor(&Context.m_CommandBrowser, pCompletionLabel, 0, &CompletionButton, BUTTONFLAG_LEFT, pCompletionTooltip);
 	if(m_MapSettingsBackend.m_SettingsCompletion.Request(*pLineInput, *Input(), CompletionClicked))
 	{
+		if(CompletionClicked)
+			Context.m_CommandBrowser.Open();
+		else
+			Context.m_CommandBrowser.Close();
+		Context.m_CurrentCompletionIndex = -1;
 		Ui()->SetActiveItem(pLineInput);
 		m_MapSettingsBackend.m_pCompletionInput = pLineInput;
 		Context.m_DropdownContext.m_ShortcutUsed = true;
 		Context.m_DropdownContext.m_ShouldHide = false;
 		Context.Update();
 		Context.UpdateCursor(true);
+	}
+	if(Context.m_DropdownContext.m_Visible && Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE))
+	{
+		Context.m_CommandBrowser.Close();
+		Context.m_DropdownContext.m_ShouldHide = true;
+		Context.m_DropdownContext.m_ShortcutUsed = false;
 	}
 
 	// Color the arguments
@@ -358,6 +377,8 @@ void CEditor::DoMapSettingsEditBox(CMapSettingsBackend::CContext *pContext, cons
 	// Do and render clearable edit box with the colors
 	if(DoClearableEditBox(pLineInput, &ToolBar, FontSize, IGraphics::CORNER_L, pCompletionTooltip, vColorSplits))
 	{
+		if(!CompletionClicked)
+			Context.m_CommandBrowser.Close();
 		Context.Update(); // Update the context when contents change
 		Context.m_DropdownContext.m_ShouldHide = false;
 	}
@@ -388,11 +409,12 @@ void CEditor::DoMapSettingsEditBox(CMapSettingsBackend::CContext *pContext, cons
 
 	// If we have possible matches for the current argument, let's display an editbox suggestions dropdown
 	const auto &vPossibleCommands = Context.PossibleMatches();
-	int Selected = DoEditBoxDropdown<SPossibleValueMatch>(&Context.m_DropdownContext, pLineInput, &ToolBar, x - PartMargin, DropdownMaxHeight, Context.CurrentArg() >= 0, vPossibleCommands, MapSettingsDropdownRenderCallback);
+	const bool BrowsingCommands = Context.m_CommandBrowser.IsOpen();
+	int Selected = DoEditBoxDropdown<SPossibleValueMatch>(&Context.m_DropdownContext, pLineInput, &ToolBar, BrowsingCommands ? ToolBar.x : x - PartMargin, DropdownMaxHeight, !BrowsingCommands && Context.CurrentArg() >= 0, vPossibleCommands, MapSettingsDropdownRenderCallback);
 
 	// If the dropdown just became visible, update the context
 	// This is needed when input loses focus and then we click a command in the map settings list
-	if(Context.m_DropdownContext.m_DidBecomeVisible)
+	if(Context.m_DropdownContext.m_DidBecomeVisible && !BrowsingCommands)
 	{
 		Context.Update();
 		Context.UpdateCursor(true);
@@ -407,6 +429,16 @@ void CEditor::DoMapSettingsEditBox(CMapSettingsBackend::CContext *pContext, cons
 			if(Selected != -1)
 			{
 				const char *pStr = vPossibleCommands[Selected].m_pValue;
+				if(BrowsingCommands)
+				{
+					Context.m_CommandBrowser.Select(*pLineInput, pStr);
+					Context.m_CurrentCompletionIndex = -1;
+					Context.m_DropdownContext.m_ShouldHide = true;
+					Context.m_DropdownContext.m_ShortcutUsed = false;
+					Context.Update();
+					Context.UpdateCursor(true);
+					return;
+				}
 				int Len = pContext->m_CurrentCompletionIndex == -1 ? str_length(Context.CurrentArgValue()) : (pContext->m_CurrentCompletionIndex < (int)vPossibleCommands.size() ? str_length(vPossibleCommands[pContext->m_CurrentCompletionIndex].m_pValue) : 0);
 				size_t Start = Context.CurrentArgOffset();
 				size_t End = Start + Len;
@@ -420,6 +452,8 @@ void CEditor::DoMapSettingsEditBox(CMapSettingsBackend::CContext *pContext, cons
 	{
 		Context.m_DropdownContext.m_ListBox.SetActive(false);
 	}
+	if(!Context.m_DropdownContext.m_Visible)
+		Context.m_CommandBrowser.Close();
 }
 
 template<typename T>
@@ -427,6 +461,18 @@ int CEditor::DoEditBoxDropdown(SEditBoxDropdownContext *pDropdown, CLineInput *p
 {
 	// Do an edit box with a possible dropdown
 	// This is a generic method which can display any data we want
+	// 输入框已把列表上的点击当作外部点击释放焦点，先按可见列表的真实区域恢复归属。
+	CUIRect DropdownHitRect = *pEditBoxRect;
+	DropdownHitRect.x = x;
+	DropdownHitRect.y += pEditBoxRect->h + 0.1f;
+	DropdownHitRect.h = minimum(vData.size() * 15.0f + 1.0f, MaxHeight);
+	if(AutoWidth)
+		DropdownHitRect.w = pDropdown->m_Width + pDropdown->m_ListBox.ScrollbarWidth();
+	if(CQmEditorSettingsCommandBrowser::RestoreInputOnClick(*Ui(), *pLineInput, DropdownHitRect,
+		   pDropdown->m_Visible && !pDropdown->m_ShouldHide && !vData.empty() && m_Dialog == DIALOG_NONE && !Ui()->IsPopupOpen()))
+	{
+		pDropdown->m_MousePressedInside = true;
+	}
 
 	pDropdown->m_Selected = std::clamp(pDropdown->m_Selected, -1, (int)vData.size() - 1);
 
@@ -1222,6 +1268,7 @@ void CMapSettingsBackend::CContext::Reset()
 	m_aCommand[0] = '\0';
 	m_DropdownContext.m_Selected = -1;
 	m_CurrentCompletionIndex = -1;
+	m_CommandBrowser.Close();
 	m_DropdownContext.m_ShortcutUsed = false;
 	m_DropdownContext.m_MousePressedInside = false;
 	m_DropdownContext.m_Visible = false;
@@ -1699,11 +1746,11 @@ void CMapSettingsBackend::CContext::UpdatePossibleMatches()
 	m_vPossibleMatches.clear();
 	m_DropdownContext.m_Selected = -1;
 
-	if(m_CommentOffset == 0 || (m_aCommand[0] == '\0' && !m_DropdownContext.m_ShortcutUsed))
+	if(!m_CommandBrowser.IsOpen() && (m_CommentOffset == 0 || (m_aCommand[0] == '\0' && !m_DropdownContext.m_ShortcutUsed)))
 		return;
 
 	// First case: argument index under cursor is -1 => we're on the command/setting name
-	if(m_CursorArgIndex == -1)
+	if(m_CommandBrowser.IsOpen() || m_CursorArgIndex == -1)
 	{
 		// Use a substring from the start of the input to the cursor offset
 		char aSubString[128];
@@ -1712,11 +1759,11 @@ void CMapSettingsBackend::CContext::UpdatePossibleMatches()
 		// Iterate through available map settings and find those which the beginning matches with the command/setting name we are writing
 		for(auto &pSetting : m_pBackend->m_vpMapSettings)
 		{
-			if(str_startswith_nocase(pSetting->m_pName, aSubString))
+			if(m_CommandBrowser.Matches(pSetting->m_pName, aSubString))
 			{
 				m_vPossibleMatches.emplace_back(SPossibleValueMatch{
 					pSetting->m_pName,
-					m_CursorArgIndex,
+					-1,
 					pSetting.get(),
 				});
 			}

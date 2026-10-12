@@ -63,6 +63,26 @@ TEST_F(CQmRemovedUiConfig, LegacySwitchIsNotRegistered)
 	EXPECT_EQ(m_pConsole->GetCommandInfo("qm_new_ui", CFGFLAG_CLIENT, false), nullptr);
 }
 
+TEST_F(CQmRemovedUiConfig, RemovedBlurSwitchesCannotOverrideMasterAndAreNotSaved)
+{
+	EXPECT_EQ(m_pConsole->GetCommandInfo("qm_enhanced_blur", CFGFLAG_CLIENT, false), nullptr);
+	EXPECT_EQ(m_pConsole->GetCommandInfo("qm_ui_popup_blur", CFGFLAG_CLIENT, false), nullptr);
+	g_Config.m_QmGaussianBlur = 1;
+	m_pConfigManager->StoreUnknownCommand("qm_enhanced_blur 0", ConfigDomain::QMCLIENT);
+	m_pConfigManager->StoreUnknownCommand("QM_UI_POPUP_BLUR 0", ConfigDomain::QMCLIENT);
+	m_pConfigManager->StoreUnknownCommand("qm_ui_popup_blur_extra 7", ConfigDomain::QMCLIENT);
+	EXPECT_EQ(g_Config.m_QmGaussianBlur, 1);
+	ASSERT_TRUE(m_pConfigManager->Save());
+	const std::string Saved = ReadSavedConfig();
+	EXPECT_EQ(Saved.find("qm_enhanced_blur 0"), std::string::npos);
+	EXPECT_EQ(Saved.find("QM_UI_POPUP_BLUR 0"), std::string::npos);
+	EXPECT_NE(Saved.find("qm_ui_popup_blur_extra 7"), std::string::npos);
+	m_pConsole->ExecuteLine("qm_gaussian_blur 0");
+	EXPECT_EQ(g_Config.m_QmGaussianBlur, 0);
+	m_pConsole->ExecuteLine("qm_gaussian_blur 1");
+	EXPECT_EQ(g_Config.m_QmGaussianBlur, 1);
+}
+
 TEST_F(CQmRemovedUiConfig, SavingLegacyFileDropsUiSwitchAndPreservesOtherSettings)
 {
 	const char aLegacyConfig[] =

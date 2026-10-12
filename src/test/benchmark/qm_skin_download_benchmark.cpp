@@ -1,6 +1,7 @@
 #include <engine/http.h>
 
 #include <game/client/components/qmclient/skin_download_session.h>
+#include <game/client/components/settings_resource_jobs.h>
 
 #include <benchmark/benchmark.h>
 
@@ -56,3 +57,19 @@ namespace
 	}
 }
 BENCHMARK(BM_QmSkinDownloadPendingPoll)->Arg(1)->Arg(32)->Arg(128);
+
+// 每轮处理完整的混合优先级快照；准备在计时外，分类与遍历分配包含在计时内。
+static void BM_QmSkinLoadRequestPriority(benchmark::State &State)
+{
+	std::vector<int> Requests;
+	for(int i = 0; i < State.range(0); ++i)
+		Requests.push_back(i);
+	for(auto _ : State)
+	{
+		int Visited = 0;
+		SettingsVisitSkinLoadRequests(Requests, [](int Index) { return static_cast<ESettingsResourcePriority>(Index % 3); }, [](int Index) { return Index < 32; }, [&](int Index) { benchmark::DoNotOptimize(Index); ++Visited; });
+		benchmark::DoNotOptimize(Visited);
+	}
+	State.SetItemsProcessed(State.iterations() * State.range(0));
+}
+BENCHMARK(BM_QmSkinLoadRequestPriority)->Arg(32)->Arg(256)->Arg(2048);

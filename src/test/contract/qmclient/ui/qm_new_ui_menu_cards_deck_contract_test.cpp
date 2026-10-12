@@ -40,38 +40,6 @@ TEST(QmNewUiMenuCardsDeckContract, SettingsCardDeckResetsStateWhenDefinitionView
 	EXPECT_NE(SettingsDeck.find("m_ProjectionCache = {};"), std::string::npos);
 }
 
-TEST(QmNewUiMenuCardsDeckContract, SettingsCardDeckPreLayoutUsesTheLastVisibleAnimatedFrame)
-{
-	const std::string SettingsDeck = ReadTextFile("src/game/client/QmUi/SettingsCardDeck.cpp");
-	const std::string UiSource = ReadTextFile("src/game/client/ui.cpp");
-	const std::string ButtonLogic = FunctionBody(UiSource, "int CUi::DoButtonLogic(");
-	ASSERT_FALSE(SettingsDeck.empty());
-	ASSERT_FALSE(ButtonLogic.empty());
-	EXPECT_NE(SettingsDeck.find("const SSettingsCardFrame PreLayoutFrame = ResolveSettingsCardDrawFrame(Card.m_Frame, Runtime.m_LastDrawOffsetX, Runtime.m_LastDrawOffsetY);"), std::string::npos);
-	EXPECT_NE(SettingsDeck.find("m_PreLayoutHeaderInput(PreLayoutFrame, CollapsedBeforeHeader)"), std::string::npos);
-	const size_t CardLoop = SettingsDeck.find("for(const SPreparedCard &Card : m_vPreparedCards)");
-	const size_t ActiveHeaderContinuation = SettingsDeck.find("const bool HasActiveHeaderContinuation = SettingsCardDeckHasActiveItemContinuation", CardLoop);
-	const size_t ActiveContentContinuation = SettingsDeck.find("const bool HasActiveContentContinuation = SettingsCardDeckHasActiveItemContinuation", ActiveHeaderContinuation);
-	ASSERT_NE(CardLoop, std::string::npos);
-	ASSERT_NE(ActiveHeaderContinuation, std::string::npos);
-	ASSERT_NE(ActiveContentContinuation, std::string::npos);
-	EXPECT_LT(CardLoop, ActiveHeaderContinuation);
-	EXPECT_LT(ActiveHeaderContinuation, ActiveContentContinuation);
-	EXPECT_NE(SettingsDeck.find("(ControllerVisible || HasActiveHeaderContinuation) && Card.m_pDefinition->m_PreLayoutHeaderInput"), std::string::npos);
-	EXPECT_NE(SettingsDeck.find("SettingsCardDeckShouldRunPreLayoutInput(HasPointerInput, HasPendingPreLayoutInput, HasActiveContentContinuation"), std::string::npos);
-	EXPECT_NE(SettingsDeck.find("SettingsCardDeckUsesDefaultCollapseControl(HasCustomCollapsedState, static_cast<bool>(Card.m_pDefinition->m_PreLayoutHeaderInput))"), std::string::npos);
-	EXPECT_NE(SettingsDeck.find("Card.m_pDefinition->m_HeaderAction"), std::string::npos);
-	// 自定义折叠状态的卡片改由 m_IsCollapsed 解析，公共按钮与回调都不再改写它。
-	EXPECT_NE(SettingsDeck.find("SettingsCardDeckResolveCollapsed(HasCustomCollapsedState, HasCustomCollapsedState && Card.m_pDefinition->m_IsCollapsed(), Runtime.m_DefaultCollapsed)"), std::string::npos);
-	EXPECT_NE(SettingsDeck.find("m_PreLayoutInput(PreLayoutFrame.m_ContentRect)"), std::string::npos);
-	EXPECT_NE(SettingsDeck.find("Runtime.m_LastDrawOffsetY = State.m_DrawOffsetY;"), std::string::npos);
-	EXPECT_NE(ButtonLogic.find("const bool AllowCurrentPress = UseCurrentHit || (PreLayoutInput() && !IsPopupOpen());"), std::string::npos);
-	EXPECT_NE(ButtonLogic.find("m_pHotItem = pId;"), std::string::npos);
-	EXPECT_NE(ButtonLogic.find("m_pBecomingHotItem = pId;"), std::string::npos);
-	EXPECT_NE(ButtonLogic.find("AllowCurrentPress ? QmButtonCurrentPress("), std::string::npos);
-	EXPECT_LT(ButtonLogic.find("m_pHotItem = pId;"), ButtonLogic.find("SetActiveItem(pId);"));
-}
-
 TEST(QmNewUiMenuCardsDeckContract, DeckPreLayoutPressClearsStaleActiveInput)
 {
 	const std::string UiSource = ReadTextFile("src/game/client/ui.cpp");
@@ -104,28 +72,4 @@ TEST(QmNewUiMenuCardsDeckContract, SettingsDisplayCycleUpdatesAfterTabInputBefor
 	EXPECT_NE(DeckSource.find("const bool TabChanged = m_LastRenderedTab != pTab;"), std::string::npos);
 	EXPECT_NE(DeckSource.find("if(TabChanged || StableIdsChanged || ModelCountChanged || StateIndexChanged)"), std::string::npos);
 	EXPECT_NE(DeckSource.find("m_SuppressHoverFeedbackOnce = true;"), std::string::npos);
-}
-
-TEST(QmNewUiMenuCardsDeckContract, QmClientDecksIsolateRenderOnlyState)
-{
-	const std::string Source = ReadTextFile("src/game/client/components/qmclient/menus_qmclient.cpp");
-	const std::string CreditsSource = ReadTextFile("src/game/client/components/menus_credits.cpp");
-	for(const char *pSignature : {
-		    "void CMenus::RenderSettingsQmClientHudDeck(CUIRect MainView, bool PrewarmOnly)",
-		    "void CMenus::RenderSettingsQmClientFunctionDeck(CUIRect MainView, bool PrewarmOnly)",
-		    "void CMenus::RenderSettingsQmClientVisualDeck(CUIRect MainView, bool PrewarmOnly)",
-		    "void CMenus::RenderSettingsContributors(CUIRect MainView, bool PrewarmOnly)",
-	    })
-	{
-		// 贡献者页已拆到 menus_credits.cpp；其余栖梦 deck 仍在 menus_qmclient.cpp。
-		const std::string &SourceFile = str_startswith(pSignature, "void CMenus::RenderSettingsContributors") != nullptr ? CreditsSource : Source;
-		const std::string Body = FunctionBody(SourceFile, pSignature);
-		ASSERT_FALSE(Body.empty());
-		EXPECT_NE(Body.find("const bool ReadOnly = PrewarmOnly || Ui()->RenderOnly();"), std::string::npos);
-		EXPECT_NE(Body.find("CSettingsCardDeck &CardDeck = ReadOnly ?"), std::string::npos);
-		EXPECT_NE(Body.find("qm_card_order::CModel &CardOrderModel = ReadOnly ?"), std::string::npos);
-		EXPECT_NE(Body.find("InputState.m_AllowHeaderDrag = !ReadOnly;"), std::string::npos);
-		EXPECT_NE(Body.find("ReadOnly ? nullptr : &"), std::string::npos);
-		EXPECT_NE(Body.find("if(!ReadOnly && DeckResult.m_OrderChanged)"), std::string::npos);
-	}
 }

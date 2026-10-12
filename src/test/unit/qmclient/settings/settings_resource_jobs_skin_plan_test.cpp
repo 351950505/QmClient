@@ -20,6 +20,96 @@ TEST(SettingsResourceJobsSkinPlan, SkinSnapshotRejectsStaleGeneration)
 	EXPECT_FALSE(SettingsSkinListPlanGenerationMatches(Result, 8));
 }
 
+TEST(SettingsResourceJobsSkinPlan, CurrentViewportRequestsPrecedeOldVisibleAndPrefetch)
+{
+	const std::vector<int> Requests{0, 1, 2, 3, 4};
+	const std::array<ESettingsResourcePriority, 5> Priorities{ESettingsResourcePriority::PREFETCH, ESettingsResourcePriority::VISIBLE, ESettingsResourcePriority::BACKGROUND, ESettingsResourcePriority::VISIBLE, ESettingsResourcePriority::VISIBLE};
+	std::vector<int> Visited;
+	SettingsVisitSkinLoadRequests(Requests, [&](int Index) { return Priorities[Index]; }, [](int Index) { return Index == 3 || Index == 4; }, [&](int Index) { Visited.push_back(Index); });
+	EXPECT_EQ(Visited, (std::vector<int>{3, 4, 1, 0, 2}));
+	Visited.clear();
+	SettingsVisitSkinLoadRequests(Requests, [&](int Index) { return Priorities[Index]; }, [](int Index) { return Index == 1; }, [&](int Index) { Visited.push_back(Index); });
+	EXPECT_EQ(Visited, (std::vector<int>{1, 3, 4, 0, 2}));
+}
+
+TEST(SettingsResourceJobsSkinPlan, BlockedPrefetchDoesNotEndRequestBatch)
+{
+	const std::vector<ESettingsResourcePriority> Requests{ESettingsResourcePriority::PREFETCH, ESettingsResourcePriority::VISIBLE};
+	std::vector<ESettingsResourcePriority> Started;
+	SettingsVisitSkinLoadRequests(Requests, [](auto Priority) { return Priority; }, [](auto) { return false; }, [&](auto Priority) {
+		const auto Admission = SettingsSkinSourceAdmissionDecision({false, Priority, false, 2, 2, 4});
+		if(Admission.m_PromoteAllowed)
+			Started.push_back(Priority); });
+	EXPECT_EQ(Started, (std::vector<ESettingsResourcePriority>{ESettingsResourcePriority::VISIBLE}));
+}
+
+TEST(SettingsResourceJobsSkinPlan, RequestBatchClassificationSurvivesVisitorChanges)
+{
+	const std::vector<int> Requests{0, 1};
+	std::array<ESettingsResourcePriority, 2> Priorities{ESettingsResourcePriority::VISIBLE, ESettingsResourcePriority::PREFETCH};
+	std::vector<int> Visited;
+	SettingsVisitSkinLoadRequests(Requests, [&](int Index) { return Priorities[Index]; }, [](int) { return false; }, [&](int Index) {
+		Visited.push_back(Index);
+		Priorities[Index] = ESettingsResourcePriority::BACKGROUND; });
+	EXPECT_EQ(Visited, (std::vector<int>{0, 1}));
+}
+
+TEST(SettingsResourceJobsSkinPlan, RejectedRequestDoesNotSkipLaterRequestOfSameRank)
+{
+	const std::vector<int> Requests{0, 1, 2};
+	std::vector<int> Attempted;
+	std::vector<int> Started;
+	SettingsVisitSkinLoadRequests(Requests, [](int) { return ESettingsResourcePriority::VISIBLE; }, [](int) { return true; }, [&](int Index) {
+		Attempted.push_back(Index);
+		if(Index == 0)
+			return false;
+		Started.push_back(Index);
+		return true; });
+	EXPECT_EQ(Attempted, Requests);
+	EXPECT_EQ(Started, (std::vector<int>{1, 2}));
+}
+
+TEST(SettingsResourceJobsSkinPlan, ViewportPriorityExpiresUnlessRepublished)
+{
+	CSettingsSkinLoadViewport Viewport;
+	Viewport.BeginFrame();
+	Viewport.Publish({"cat", "default"});
+	EXPECT_TRUE(Viewport.Contains("cat"));
+	Viewport.BeginFrame();
+	EXPECT_FALSE(Viewport.Contains("cat"));
+	Viewport.Publish({"cat", "default"});
+	EXPECT_TRUE(Viewport.Contains("cat"));
+	Viewport.Publish({"dog"});
+	EXPECT_FALSE(Viewport.Contains("cat"));
+	EXPECT_TRUE(Viewport.Contains("dog"));
+	Viewport.Publish({});
+	EXPECT_FALSE(Viewport.Contains("dog"));
+}
+
+TEST(SettingsResourceJobsSkinPlan, MeasurementDoesNotReplaceRealViewport)
+{
+	CSettingsSkinLoadViewport Viewport;
+	Viewport.BeginFrame();
+	Viewport.Publish({"cat"});
+	Viewport.Publish({"dog"}, true);
+	EXPECT_TRUE(Viewport.Contains("cat"));
+	EXPECT_FALSE(Viewport.Contains("dog"));
+	Viewport.BeginFrame();
+	Viewport.Publish({"dog"}, true);
+	EXPECT_FALSE(Viewport.Contains("cat"));
+	EXPECT_FALSE(Viewport.Contains("dog"));
+}
+
+TEST(SettingsResourceJobsSkinPlan, ActualViewportExcludesFullyClippedAndMeasurementRows)
+{
+	const CUIRect Clip{10.0f, 20.0f, 50.0f, 80.0f};
+	EXPECT_TRUE(CSettingsSkinLoadViewport::RowVisible(false, {0.0f, 10.0f, 30.0f, 30.0f}, &Clip));
+	EXPECT_FALSE(CSettingsSkinLoadViewport::RowVisible(false, {0.0f, 0.0f, 30.0f, 20.0f}, &Clip));
+	EXPECT_FALSE(CSettingsSkinLoadViewport::RowVisible(false, {0.0f, 30.0f, 10.0f, 20.0f}, &Clip));
+	EXPECT_FALSE(CSettingsSkinLoadViewport::RowVisible(true, Clip, &Clip));
+	EXPECT_TRUE(CSettingsSkinLoadViewport::RowVisible(false, Clip, nullptr));
+}
+
 TEST(SettingsResourceJobsSkinPlan, AssetListRejectsStaleJobGeneration)
 {
 	EXPECT_TRUE(SettingsAssetListJobGenerationMatches(4, 4));

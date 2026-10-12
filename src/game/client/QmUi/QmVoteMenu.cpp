@@ -156,17 +156,9 @@ void CMenus::RenderVoteMapLibrary(CUIRect MainView)
 		TextRender()->TextColor(Previous);
 	};
 	auto CompactButton = [&](CButtonContainer &Button, const char *pText, int Checked, const CUIRect &Rect) {
-		ui_widget::SButtonSurfaceOptions Options;
-		Options.m_Enabled = Checked >= 0;
-		Options.m_Selected = Checked > 0;
-		Options.m_Radius = 4.0f;
-		const ColorRGBA Fill = ui_widget::DrawButtonSurface(ui_widget::ControlContext(Ui()), &Button, Rect, Options);
-		CUiScopedSurfaceText ButtonText(TextRender(), Fill);
-		CUIRect Text;
-		Rect.VMargin(4.0f, &Text);
-		Label(Text, pText, 12.0f, TEXTALIGN_MC, Checked < 0);
+		const bool Clicked = ui_widget::SecondaryButton(ui_widget::ControlContext(Ui()), &Button, pText, Rect, Checked < 0, EUiButtonGeometry::CONTROL, Checked > 0);
 		GameClient()->m_Tooltips.DoToolTip(&Button, &Rect, pText);
-		return Checked >= 0 && !Ui()->RenderOnly() && Ui()->DoButtonLogic(&Button, Checked, &Rect, BUTTONFLAG_LEFT) != 0;
+		return Clicked;
 	};
 	CUIRect Refresh, Search, Exclude;
 	Header.VSplitRight(28.0f, &Header, &Refresh);
@@ -425,14 +417,12 @@ void CMenus::RenderVoteMapLibrary(CUIRect MainView)
 		MapLabel.VSplitLeft(20.0f, &Marker, &MapLabel);
 		const bool Favorite = GameClient()->m_TClient.IsFavoriteMap(Map.m_Name.c_str());
 		const auto Completion = CompletionFor(pCommunity, Map.m_Name.c_str());
-		if(Ui()->HotItem() == &Map.m_Points)
-			Marker.Draw(Ink.WithAlpha(0.08f), IGraphics::CORNER_ALL, 4.0f);
 		const ColorRGBA PreviousText = TextRender()->GetTextColor();
 		const CQmIconSemanticColorScope SemanticColor;
 		TextRender()->TextColor(Favorite ? ResolveUiSurfaceIconColor(SurfaceText.Surface(), ColorRGBA(1.0f, 0.76f, 0.24f, 1.0f)) : PreviousText.WithMultipliedAlpha(0.3f));
-		Ui()->DoLabel_QmIcon(&Marker, EQmIcon::STAR, FontIcons::FONT_ICON_STAR, 12.0f, TEXTALIGN_MC);
+		const bool FavoriteClicked = ui_widget::DoIconButton(ui_widget::ControlContext(Ui()), &Map.m_Points, EQmIcon::STAR, FontIcons::FONT_ICON_STAR, 0, Marker, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, true, std::nullopt, false, true, &Marker) != 0;
 		TextRender()->TextColor(PreviousText);
-		if(Ui()->DoButtonLogic(&Map.m_Points, 0, &Marker, BUTTONFLAG_LEFT))
+		if(FavoriteClicked)
 		{
 			if(Favorite)
 				GameClient()->m_TClient.RemoveFavoriteMap(Map.m_Name.c_str());

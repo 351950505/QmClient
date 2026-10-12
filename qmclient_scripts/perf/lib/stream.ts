@@ -85,13 +85,19 @@ export class PerfLogCollector {
     const events = [...this.events.slice(offset), ...this.events.slice(0, offset)];
     const entries = [...this.frames.entries, ...this.details.entries, ...events, ...this.configs.entries()]
       .sort((a, b) => a.timestamp.localeCompare(b.timestamp) || Number(a.fields.frame ?? 0) - Number(b.fields.frame ?? 0));
+    const sampledFrameEntries = this.frames.seen - this.frames.entries.length;
+    const sampledDetailEntries = this.details.seen - this.details.entries.length;
+    const droppedEventEntries = this.eventsSeen - events.length;
     return {
       entries,
       diagnostics: {
         ...diagnostics,
         totalEntries: this.totalEntries,
         retainedEntries: entries.length,
-        sampledEntries: this.frames.seen - this.frames.entries.length + this.details.seen - this.details.entries.length + this.eventsSeen - events.length,
+        sampledEntries: sampledFrameEntries + sampledDetailEntries + droppedEventEntries,
+        sampledFrameEntries,
+        sampledDetailEntries,
+        droppedEventEntries,
         configurationIncomplete: this.configs.incomplete,
       },
     };

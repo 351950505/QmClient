@@ -231,9 +231,9 @@ public final class QmMediaExporter {
 					if(closed)
 						return;
 					Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType(source))
-						.putExtra(Intent.EXTRA_STREAM, uri)
-						.setClipData(ClipData.newRawUri("media", uri))
-						.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+						.putExtra(Intent.EXTRA_STREAM, uri);
+					intent.setClipData(ClipData.newRawUri("media", uri));
+					intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 					try { activity.startActivity(Intent.createChooser(intent, activity.getText(R.string.qm_media_share))); }
 					catch(RuntimeException error) { notifyUser(R.string.qm_media_failed); }
 				});

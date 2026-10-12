@@ -43,6 +43,67 @@ inline bool CanDownloadQmClientRelease(const SQmClientUpdateRelease &Release, bo
 	return Release.m_NewVersion && (Release.m_PackageAvailable || UseQmClientSetupUpdate(SetupInstalled, Release, PortableBuild));
 }
 
+enum class EQmClientUpdateAction
+{
+	CANCEL,
+	INSTALL,
+	DOWNLOAD,
+	CHECK,
+	RETRY,
+};
+
+enum class EQmClientUpdateStatus
+{
+	IDLE,
+	CHECKING,
+	SELECTING_SOURCE,
+	DOWNLOADING,
+	VERIFYING,
+	READY,
+	INSTALLING,
+	FAILED,
+	AVAILABLE,
+	CURRENT,
+};
+
+inline bool ShouldStartQmClientUpdateCheckOnOpen(bool Attempted, bool Busy, bool Ready, bool Installing)
+{
+	return !Attempted && !Busy && !Ready && !Installing;
+}
+
+// 主菜单和详情共用状态优先级；传输完成不代表签名校验及安装准备完成。
+inline EQmClientUpdateStatus ResolveQmClientUpdateStatus(bool Checking, bool Downloading, bool HasPackage, bool PackageTransferred, bool Ready, bool Installing, bool Failed, bool Fetched, bool NewVersion)
+{
+	if(Installing)
+		return EQmClientUpdateStatus::INSTALLING;
+	if(Ready)
+		return EQmClientUpdateStatus::READY;
+	if(Checking)
+		return EQmClientUpdateStatus::CHECKING;
+	if(Downloading)
+		return !HasPackage ? EQmClientUpdateStatus::SELECTING_SOURCE : PackageTransferred ? EQmClientUpdateStatus::VERIFYING :
+												    EQmClientUpdateStatus::DOWNLOADING;
+	if(Failed)
+		return EQmClientUpdateStatus::FAILED;
+	if(Fetched)
+		return NewVersion ? EQmClientUpdateStatus::AVAILABLE : EQmClientUpdateStatus::CURRENT;
+	return EQmClientUpdateStatus::IDLE;
+}
+
+// 操作文案和点击路径共用状态，检查完成不会隐式开始下载。
+inline EQmClientUpdateAction ResolveQmClientUpdateAction(bool Busy, bool Ready, bool Fetched, bool Failed, bool Downloadable)
+{
+	if(Busy)
+		return EQmClientUpdateAction::CANCEL;
+	if(Ready)
+		return EQmClientUpdateAction::INSTALL;
+	if(Failed)
+		return EQmClientUpdateAction::RETRY;
+	if(Fetched && Downloadable)
+		return EQmClientUpdateAction::DOWNLOAD;
+	return EQmClientUpdateAction::CHECK;
+}
+
 bool ParseQmClientUpdateManifest(const char *pJson, size_t JsonSize, const char *pCurrentVersion, SQmClientUpdateManifest &Manifest, char *pError, size_t ErrorSize, bool LocalIsDevelopmentBuild = false, bool SetupPackage = false, bool PortableBuild = false, bool SevenZipPackage = false);
 bool ParseQmClientUpdateRelease(const char *pJson, size_t JsonSize, const char *pCurrentVersion, SQmClientUpdateRelease &Release, char *pError, size_t ErrorSize, bool LocalIsDevelopmentBuild = false, bool PortableBuild = false);
 

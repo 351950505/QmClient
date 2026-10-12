@@ -461,6 +461,44 @@ TEST(Skins, SkinQueueEntryEqualityComparesSkinNameAndFlags)
 	EXPECT_FALSE(Base == DifferentHasSixup);
 }
 
+TEST(Skins, ShuffleQueueRetainsEveryEntryAndCurrentColoredSkin)
+{
+	std::vector<CSkins::CSkinQueueEntry> Queue(12);
+	for(size_t i = 0; i < Queue.size(); ++i)
+	{
+		Queue[i].m_SkinName = "same-name";
+		Queue[i].m_UseCustomColor = true;
+		Queue[i].m_ColorBody = (int)i;
+		Queue[i].m_ColorFeet = (int)i + 100;
+		Queue[i].m_HasSixup = true;
+		Queue[i].m_aSixupSkinPartColors[0] = (int)i + 200;
+	}
+	const auto Original = Queue;
+	const int Index = CSkins::ShuffleSkinQueueEntries(Queue, 5, 1234);
+	ASSERT_GE(Index, 0);
+	ASSERT_LT(Index, (int)Queue.size());
+	EXPECT_EQ(Queue[Index], Original[5]);
+	EXPECT_NE(Queue, Original);
+	for(const auto &Entry : Original)
+		EXPECT_EQ(std::count(Queue.begin(), Queue.end(), Entry), 1);
+}
+
+TEST(Skins, ShuffleQueueHandlesEmptySingleAndInvalidSelection)
+{
+	std::vector<CSkins::CSkinQueueEntry> Queue;
+	EXPECT_EQ(CSkins::ShuffleSkinQueueEntries(Queue, 99, 7), 0);
+	Queue.emplace_back();
+	Queue[0].m_SkinName = "default";
+	const auto Entry = Queue[0];
+	EXPECT_EQ(CSkins::ShuffleSkinQueueEntries(Queue, -1, 7), 0);
+	EXPECT_EQ(Queue[0], Entry);
+	Queue.emplace_back();
+	Queue[1].m_SkinName = "other";
+	const auto Last = Queue.back();
+	const int Index = CSkins::ShuffleSkinQueueEntries(Queue, 99, 7);
+	EXPECT_EQ(Queue[Index], Last);
+}
+
 TEST(Skins, SkinQueuePresetKindDeterminesProtection)
 {
 	CSkins::CSkinQueuePreset UserPreset;

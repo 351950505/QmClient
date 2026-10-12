@@ -58,6 +58,13 @@ public:
 	}
 };
 
+// 选择结果由来源控件持有；UI 只保留弱引用，控件销毁后不会留下悬空指针。
+struct SQmUiSelectionCommit
+{
+	CQmUiInteractionSource m_Source;
+	bool m_Cancelled = false;
+};
+
 // 刷新弹窗栈实际持有的来源信息，而非控件中打开弹窗时的属性副本。
 // 不重开弹层，不覆盖已选择的条目、几何或入场动画。
 template<typename TPopupRange, typename TId>

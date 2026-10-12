@@ -1586,9 +1586,10 @@ namespace qm_card_catalog
 			{nullptr, "gfx_vsync", nullptr},
 			{nullptr, "qm_graphics_mode", nullptr},
 			{nullptr, "qm_vulkan_api_version", nullptr},
-			{Localizable("Choose a GPU for this app in system graphics settings, then restart the client."), nullptr, "在系统图形设置中为此程序选择 GPU，然后重启客户端。"},
 			{Localizable("Could not open system graphics settings."), nullptr, "无法打开系统图形设置。"},
-			{Localizable("Current GPU"), nullptr, "当前 GPU"},
+			{Localizable("Current GPU"), nullptr, "当前显卡"},
+			{Localizable("Current driver"), nullptr, "当前驱动"},
+			{Localizable("Current graphics backend"), nullptr, "当前图形后端"},
 			{Localizable("Error"), nullptr, "错误"},
 			{Localizable("Ok"), nullptr, "确定"},
 			{Localizable("System graphics settings"), nullptr, "系统图形设置"},
@@ -1678,7 +1679,6 @@ namespace qm_card_catalog
 			{Localizable("Animate settings card expand and collapse height changes"), nullptr, "展开或折叠设置卡片时播放高度过渡动画"},
 			{Localizable("Animate settings card lists when entering a page"), nullptr, "进入设置页面时播放卡片列表入场动画"},
 			{Localizable("Animate settings card reorder and layout reflow"), nullptr, "拖动排序或布局重排时播放卡片位置过渡动画"},
-			{Localizable("Apply frosted glass blur behind secondary popups and dropdowns"), nullptr, "对二级弹窗与下拉列表背后的内容应用模糊"},
 			{Localizable("Card height animation"), nullptr, "设置卡片高度过渡动画"},
 			{Localizable("Card list entry animation"), nullptr, "设置卡片列表入场动画"},
 			{Localizable("Card reflow animation"), nullptr, "设置卡片重排动画"},
@@ -1686,7 +1686,6 @@ namespace qm_card_catalog
 			{Localizable("Full: each enabled animation category uses its complete transition"), nullptr, "完整：按下方各项开关播放完整过渡和展示动画"},
 			{Localizable("Off"), nullptr, "关"},
 			{Localizable("Off: disables all interface animations while preserving the options below"), nullptr, "关闭：停用全部界面动画，但保留下面各项开关的设置"},
-			{Localizable("Popup & dropdown blur"), nullptr, "弹窗与下拉列表模糊"},
 			{Localizable("Presentation animations"), nullptr, "界面展示动画"},
 			{Localizable("Reduced"), nullptr, "精简"},
 			{Localizable("Reduced: uses shorter transitions and disables presentation animations"), nullptr, "精简：保留更短的过渡效果，并停用展示动画"},
@@ -1697,7 +1696,6 @@ namespace qm_card_catalog
 			{nullptr, "qm_ui_card_reflow_animations", nullptr},
 			{nullptr, "qm_ui_list_entry_animations", nullptr},
 			{nullptr, "qm_ui_motion_level", nullptr},
-			{nullptr, "qm_ui_popup_blur", nullptr},
 		};
 
 		static constexpr SCardSettingSearch s_adeck_sound_toggle[] = {

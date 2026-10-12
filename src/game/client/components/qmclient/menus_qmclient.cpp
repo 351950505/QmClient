@@ -27,8 +27,12 @@
 #include <game/client/QmUi/QmModuleLayoutAdapter.h>
 #include <game/client/QmUi/QmModuleTypes.h>
 #include <game/client/QmUi/QmScroll.h>
+#include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCardCollapseState.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/SettingsSearchSession.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/UiDogfood.h>
@@ -36,6 +40,7 @@
 #include <game/client/QmUi/UiNavigation.h>
 #include <game/client/QmUi/UiOverlays.h>
 #include <game/client/QmUi/UiSurface.h>
+#include <game/client/QmUi/UiSurfaceText.h>
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/QmUi/cards/QmCardCatalogFunctionMetrics.h>
 #include <game/client/QmUi/cards/QmCardCatalogInternal.h>
@@ -313,63 +318,6 @@ void CMenus::BuildQmClientSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &v
 	g_Config.m_UiSettingsPage = PreviousSettingsPage;
 }
 
-CMenus::SSettingsQmScrollFrame CMenus::BeginSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, CUIRect *pView, float ContentHeight, const SQmSettingsCardStyle &CardStyle, float UiScale, float PreviousOffsetY, bool Enabled)
-{
-	SSettingsQmScrollFrame Frame;
-	Frame.m_ViewRect = *pView;
-	Frame.m_ClipRect = *pView;
-	Frame.m_PreviousOffsetY = PreviousOffsetY;
-	Frame.m_Enabled = Enabled;
-	const SQmResolvedScrollPolicy ScrollPolicy = QmResolveScrollPolicy({EQmScrollProfile::SETTINGS_OUTER}, UiScale, g_Config.m_UiSmoothScrollTime / 1000.0f);
-	Frame.m_Style = ScrollPolicy.m_Style;
-	(void)CardStyle;
-	if(!Enabled)
-		return Frame;
-
-	const SQmScrollConfig ScrollConfig = QmSettingsScrollConfig(UiScale, g_Config.m_UiSmoothScrollTime / 1000.0f);
-
-	SQmScrollContainerInput ScrollInput;
-	ScrollInput.m_Hovered = Ui()->MouseHovered(pView);
-	ScrollInput.m_MouseValid = true;
-	ScrollInput.m_MouseX = Ui()->MouseX();
-	ScrollInput.m_MouseY = Ui()->MouseY();
-	ScrollInput.m_MouseDown = Ui()->MouseButton(0);
-	ScrollInput.m_MousePressed = Ui()->MouseButtonClicked(0);
-
-	const SQmScrollContainerFrame ProbeFrame = ScrollContainer.PreviewFrame(ScrollState, *pView, ContentHeight, Frame.m_Style);
-	CUIRect WheelHotRect = ProbeFrame.m_ClipRect;
-	if(ProbeFrame.m_ScrollbarVisible)
-		WheelHotRect.w += Frame.m_Style.m_ScrollbarWidth;
-	ScrollInput.m_Hovered = Ui()->MouseHovered(&WheelHotRect);
-	ScrollInput.m_ModifierPressed = Input()->ModifierIsPressed();
-	ScrollInput.m_AltPressed = Input()->AltIsPressed();
-
-	if(ProbeFrame.m_ScrollbarVisible)
-	{
-		const void *pScrollbarId = &ScrollContainer;
-		ScrollInput.m_ThumbHovered = Ui()->MouseHovered(&ProbeFrame.m_ScrollbarThumbRect);
-		ScrollInput.m_TrackHovered = Ui()->MouseHovered(&ProbeFrame.m_ScrollbarTrackRect) && !ScrollInput.m_ThumbHovered;
-		if(ScrollInput.m_ThumbHovered || ScrollInput.m_TrackHovered)
-			Ui()->SetHotItem(pScrollbarId);
-		if((Ui()->HotItem() == pScrollbarId || ScrollInput.m_ThumbHovered || ScrollInput.m_TrackHovered) && ScrollInput.m_MousePressed)
-			Ui()->SetActiveItem(pScrollbarId);
-		if(Ui()->CheckActiveItem(pScrollbarId))
-		{
-			ScrollInput.m_ThumbHovered = ScrollInput.m_ThumbHovered || ScrollContainer.ScrollbarDragActive(ScrollState);
-			ScrollInput.m_TrackHovered = ScrollInput.m_TrackHovered && !ScrollContainer.ScrollbarDragActive(ScrollState);
-			if(!ScrollInput.m_MouseDown)
-				Ui()->SetActiveItem(nullptr);
-		}
-	}
-
-	Frame.m_Frame = ScrollContainer.Update(ScrollState, *pView, ContentHeight, GameClient()->UiRuntimeV2()->FrameDt(), ScrollInput, Frame.m_Style, ScrollConfig);
-	Frame.m_ClipRect = Frame.m_Frame.m_ClipRect;
-	Frame.m_Offset.y = -Frame.m_Frame.m_Offset;
-	*pView = Frame.m_ClipRect;
-	Ui()->ClipEnable(&Frame.m_ClipRect);
-	return Frame;
-}
-
 void CMenus::RenderQmSettingsSliderWithValueInput(const void *pId, const CUIRect &ControlColumn, int *pValue, int MinValue, int MaxValue, const char *pSuffix, bool PrewarmOnly, unsigned Flags)
 {
 	const int OriginalValue = *pValue;
@@ -439,8 +387,12 @@ bool CMenus::RenderQmFunctionCheckbox(const void *pId, const char *pTextId, cons
 
 bool CMenus::RenderQmVisualCheckbox(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue)
 {
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Row;
-	Content.HSplitTop(LineHeight, &Row, &Content);
+	const bool HasRow = Flow.Control(pTextId, LineHeight, Row);
+	Flow.Space(LineSpacing);
+	if(!HasRow)
+		return false;
 	const char *pOverrideTooltip = TemporaryOverrideTooltip(pValue);
 	Ui()->DoConfigTooltip(pId, &Row, pValue);
 	SLabelProperties LabelProps;
@@ -457,48 +409,12 @@ bool CMenus::RenderQmVisualCheckbox(CUIRect &Content, float LineHeight, float Li
 	const bool Changed = DoSettingsButton_CheckBox(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, pId, pTextId, pText, *pValue, &Row, LabelProps, pOverrideTooltip == nullptr) != 0;
 	if(Changed)
 		*pValue ^= 1;
-	Content.HSplitTop(LineSpacing, nullptr, &Content);
 	return Changed;
 }
 
 void CMenus::RenderQmVisualLabel(const char *pTextId, CUIRect *pRect, const char *pText, float FontSize, int TextAlign, const SLabelProperties &LabelProps)
 {
 	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, pTextId, pRect, pText, FontSize, TextAlign, LabelProps, (int)pRect->w);
-}
-
-void CMenus::FinishSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, SSettingsQmScrollFrame &Frame, const CUIRect &EndRect, float *pContentHeight, float *pPreviousOffsetY, bool TrackScrollActive)
-{
-	if(!Frame.m_Enabled)
-		return;
-
-	Ui()->ClipDisable();
-	*pContentHeight = maximum(0.0f, std::ceil(EndRect.y + EndRect.h - (Frame.m_ClipRect.y + Frame.m_Offset.y)));
-	Frame.m_Frame = ScrollContainer.PreviewFrame(ScrollState, Frame.m_ViewRect, *pContentHeight, Frame.m_Style);
-	CUIRect WheelHotRect = Frame.m_Frame.m_ClipRect;
-	if(Frame.m_Frame.m_ScrollbarVisible)
-		WheelHotRect.w += Frame.m_Style.m_ScrollbarWidth;
-	const void *pWheelOwnerId = &ScrollContainer;
-	const bool WheelEligible = Frame.m_Frame.m_ScrollbarVisible && !Ui()->UnderlyingScrollBlocked() && Ui()->MouseHovered(&WheelHotRect);
-	Ui()->RegisterWheelOwner(pWheelOwnerId, EUiWheelOwnerPriority::PAGE, WheelHotRect, WheelEligible);
-	float WheelDelta = 0.0f;
-	if(Ui()->TryConsumeWheel(pWheelOwnerId, &WheelDelta))
-	{
-		const SQmScrollConfig ScrollConfig = QmSettingsScrollConfig(1.0f, g_Config.m_UiSmoothScrollTime / 1000.0f);
-		ScrollContainer.ScrollByWheel(ScrollState, WheelDelta, Frame.m_ViewRect.h, *pContentHeight, ScrollConfig);
-		Frame.m_Frame = ScrollContainer.PreviewFrame(ScrollState, Frame.m_ViewRect, *pContentHeight, Frame.m_Style);
-	}
-	const float CurrentOffsetY = Frame.m_Frame.m_ScrollbarVisible ? Frame.m_Frame.m_Offset : 0.0f;
-	if(TrackScrollActive)
-	{
-		m_SettingsScrollActive = m_SettingsScrollActive || absolute(CurrentOffsetY - Frame.m_PreviousOffsetY) > 0.01f;
-		if(pPreviousOffsetY != nullptr)
-			*pPreviousOffsetY = CurrentOffsetY;
-	}
-	if(Frame.m_Frame.m_ScrollbarVisible)
-	{
-		DrawRoundedSurface(Ui(), Frame.m_Frame.m_ScrollbarTrackRect, ColorRGBA(1.0f, 1.0f, 1.0f, 0.08f), ColorRGBA(), Frame.m_Frame.m_ScrollbarTrackRect.w * 0.5f);
-		DrawRoundedSurface(Ui(), Frame.m_Frame.m_ScrollbarThumbRect, ColorRGBA(1.0f, 1.0f, 1.0f, 0.34f), ColorRGBA(), Frame.m_Frame.m_ScrollbarThumbRect.w * 0.5f);
-	}
 }
 
 bool CMenus::RenderQmHudCheckbox(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue)
@@ -636,18 +552,18 @@ void CMenus::RenderSettingsQmClientHudDeck(CUIRect MainView, bool PrewarmOnly)
 	InputState.m_CtrlPressed = !ReadOnly && Input()->ModifierIsPressed();
 	InputState.m_AllowHeaderDrag = !ReadOnly;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	static qm_card_order::CModel s_HudPrewarmOrderModel;
 	static bool s_HudPrewarmOrderModelInitialized = false;
 	static CSettingsCardDeck s_HudPrewarmDeck;
-	if(ReadOnly && !s_HudPrewarmOrderModelInitialized)
+	if(Ui()->MeasurementOnly() && !s_HudPrewarmOrderModelInitialized)
 	{
 		s_HudPrewarmOrderModel.LoadMerged("", qm_card_registry::BuildDefaultEntries());
 		s_HudPrewarmOrderModelInitialized = true;
 	}
-	qm_card_order::CModel &CardOrderModel = ReadOnly ? s_HudPrewarmOrderModel : SettingsCardOrderModel();
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_HudPrewarmDeck : m_SettingsCardDeck;
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "hud", DefinitionsRevision, BuildDefinitions, CardOrderModel, ReadOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	qm_card_order::CModel &CardOrderModel = Ui()->MeasurementOnly() ? s_HudPrewarmOrderModel : SettingsCardOrderModel();
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_HudPrewarmDeck : m_SettingsCardDeck;
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "hud", DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }
@@ -739,18 +655,19 @@ void CMenus::RenderSettingsQmClientFunctionDeck(CUIRect MainView, bool PrewarmOn
 	InputState.m_CtrlPressed = !ReadOnly && Input()->ModifierIsPressed();
 	InputState.m_AllowHeaderDrag = !ReadOnly;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	static qm_card_order::CModel s_FunctionPrewarmOrderModel;
 	static bool s_FunctionPrewarmOrderModelInitialized = false;
 	static CSettingsCardDeck s_FunctionPrewarmDeck;
-	if(ReadOnly && !s_FunctionPrewarmOrderModelInitialized)
+	if(Ui()->MeasurementOnly() && !s_FunctionPrewarmOrderModelInitialized)
 	{
 		s_FunctionPrewarmOrderModel.LoadMerged("", qm_card_registry::BuildDefaultEntries());
 		s_FunctionPrewarmOrderModelInitialized = true;
 	}
-	qm_card_order::CModel &CardOrderModel = ReadOnly ? s_FunctionPrewarmOrderModel : SettingsCardOrderModel();
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_FunctionPrewarmDeck : m_SettingsCardDeck;
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "function", DefinitionsRevision, BuildDefinitions, CardOrderModel, ReadOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	qm_card_order::CModel &CardOrderModel = Ui()->MeasurementOnly() ? s_FunctionPrewarmOrderModel : SettingsCardOrderModel();
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_FunctionPrewarmDeck : m_SettingsCardDeck;
+	const uint64_t MeasurementEnvironmentRevision = ResolveSettingsCardDefinitionsRevision(m_SettingsCardDeckDisplayCycle, m_MenuTextPoolGeneration, MainView.w, 0);
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "function", DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions(), MeasurementEnvironmentRevision);
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }
@@ -819,18 +736,18 @@ void CMenus::RenderSettingsQmClientVisualDeck(CUIRect MainView, bool PrewarmOnly
 	InputState.m_CtrlPressed = !ReadOnly && Input()->ModifierIsPressed();
 	InputState.m_AllowHeaderDrag = !ReadOnly;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
 	static qm_card_order::CModel s_VisualPrewarmOrderModel;
 	static bool s_VisualPrewarmOrderModelInitialized = false;
 	static CSettingsCardDeck s_VisualPrewarmDeck;
-	if(ReadOnly && !s_VisualPrewarmOrderModelInitialized)
+	if(Ui()->MeasurementOnly() && !s_VisualPrewarmOrderModelInitialized)
 	{
 		s_VisualPrewarmOrderModel.LoadMerged("", qm_card_registry::BuildDefaultEntries());
 		s_VisualPrewarmOrderModelInitialized = true;
 	}
-	qm_card_order::CModel &CardOrderModel = ReadOnly ? s_VisualPrewarmOrderModel : SettingsCardOrderModel();
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_VisualPrewarmDeck : m_SettingsCardDeck;
-	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "visual", DefinitionsRevision, BuildDefinitions, CardOrderModel, ReadOnly ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
+	qm_card_order::CModel &CardOrderModel = Ui()->MeasurementOnly() ? s_VisualPrewarmOrderModel : SettingsCardOrderModel();
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_VisualPrewarmDeck : m_SettingsCardDeck;
+	const SSettingsCardDeckResult DeckResult = CardDeck.RenderCached(CardCtx, Page, "visual", DefinitionsRevision, BuildDefinitions, CardOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_ScrollRegion, InputState, SettingsCardMotionSpec(), SettingsCardDeckVisualOptions());
 	if(!ReadOnly && DeckResult.m_OrderChanged)
 		SaveSettingsCardOrderModel();
 }
@@ -898,8 +815,8 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	static std::unordered_map<std::string, CButtonContainer> s_GlobalSearchActionButtons;
 	// 分类布局只用于解析搜索和导航；以下两个模型仅属于搜索页，不持久化。
 	const qm_card_order::CModel &CardOrderModel = SettingsCardOrderModel();
-	qm_card_order::CModel &DeckOrderModel = ReadOnly ? s_GlobalSearchPrewarmOrderModel : s_GlobalSearchCache.m_Model;
-	CSettingsCardDeck &CardDeck = ReadOnly ? s_GlobalSearchPrewarmDeck : m_SettingsCardDeck;
+	qm_card_order::CModel &DeckOrderModel = Ui()->MeasurementOnly() ? s_GlobalSearchPrewarmOrderModel : s_GlobalSearchCache.m_Model;
+	CSettingsCardDeck &CardDeck = Ui()->MeasurementOnly() ? s_GlobalSearchPrewarmDeck : m_SettingsCardDeck;
 	const char *pLanguage = g_Config.m_ClLanguagefile;
 	const uint64_t LayoutRevision = CardOrderModel.LayoutRevision();
 	if(!s_GlobalSearchCache.m_Valid || s_GlobalSearchCache.m_Search != (pModuleSearch != nullptr ? pModuleSearch : "") || s_GlobalSearchCache.m_Language != (pLanguage != nullptr ? pLanguage : "") || s_GlobalSearchCache.m_Sixup != Client()->IsSixup() || s_GlobalSearchCache.m_LayoutRevision != LayoutRevision || s_GlobalSearchCache.m_TextGeneration != m_MenuTextPoolGeneration)
@@ -934,7 +851,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	StandardPrepare.m_Page = Page;
 	StandardPrepare.m_Metrics = Metrics;
 	StandardPrepare.m_UiContext = SearchCtx;
-	StandardPrepare.m_pScrollRegion = ReadOnly ? nullptr : &s_GlobalSearchScrollRegion;
+	StandardPrepare.m_pScrollRegion = Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion;
 	std::vector<const char *> vStandardIds;
 	vStandardIds.reserve(SearchVisibleGlobalCards.size());
 	for(const auto &Card : SearchVisibleGlobalCards)
@@ -947,10 +864,9 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (Client()->IsSixup() ? 1u : 0u);
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ (ReadOnly ? 1u : 0u);
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::MeasureModuleCardsRevision(s_GlobalSearchFunctionCardLayout);
-	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ TranslationTestLayoutRevision();
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::MeasureContentRevision(g_Localization.Languages().size(), GameClient()->m_MenuBackground.GetThemes().size());
 	if(std::any_of(SearchVisibleGlobalCards.begin(), SearchVisibleGlobalCards.end(), [](const SQmGlobalSearchCard &Card) { return str_startswith(Card.m_pStableId, "deck:controls-") != nullptr; }))
-		CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::QmCardRenderHook::PrepareControlsCards(this, MainView.w, ReadOnly, ReadOnly ? nullptr : &s_GlobalSearchScrollRegion);
+		CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ qm_card_catalog::QmCardRenderHook::PrepareControlsCards(this, MainView.w, ReadOnly, Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion);
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ s_GlobalSearchFunctionCardLayout.m_BlockWordsRevision;
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ s_GlobalSearchFunctionCardLayout.m_KeywordRulesRevision;
 	CardLayoutRevision = CardLayoutRevision * 1099511628211ULL ^ s_GlobalSearchFunctionCardLayout.m_FavoriteMapsRevision;
@@ -966,7 +882,7 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	s_GlobalSearchCardBuild.m_Metrics = Metrics;
 	s_GlobalSearchCardBuild.m_LabelWidth = ResolveSettingsCardLabelWidth(Page.m_TwoColumns ? Page.m_aColumns[0].w : Page.m_ContentViewport.w, Metrics);
 	s_GlobalSearchCardBuild.m_UiContext = SearchCtx;
-	s_GlobalSearchCardBuild.m_pScrollRegion = ReadOnly ? nullptr : &s_GlobalSearchScrollRegion;
+	s_GlobalSearchCardBuild.m_pScrollRegion = Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion;
 	s_GlobalSearchCardBuild.m_Padding = CardStyle.m_Padding;
 	s_GlobalSearchCardBuild.m_CornerRadius = CardStyle.m_CornerRadius;
 	s_GlobalSearchCardBuild.m_pCollapsed = s_aGlobalSearchCollapsed.data();
@@ -977,18 +893,21 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 
 	const bool HasSearchQuery = pModuleSearch != nullptr && pModuleSearch[0] != '\0';
 	// s_GlobalSearchCardBuild 是函数内静态对象，直接引用即可，无需附加捕获。
-	const auto BuildDefinitions = [this, UiScale, BodySize, SmallSize, LineHeight, LineSpacing, SearchMatchedGlobalCardCount, HasSearchQuery, ReadOnly, SearchCtx, &SearchVisibleGlobalCards](std::vector<SSettingsCardDefinition> &vCards) {
+	const auto BuildDefinitions = [this, UiScale, BodySize, SmallSize, LineHeight, LineSpacing, Metrics, SearchMatchedGlobalCardCount, HasSearchQuery, ReadOnly, SearchCtx, &SearchVisibleGlobalCards](std::vector<SSettingsCardDefinition> &vCards) {
 		vCards.reserve(SearchMatchedGlobalCardCount + 1);
 		// 搜索输入卡片已脱离卡组，在 RenderCached 之前手动绘制并定位。
 
 		SSettingsCardDefinition EmptyCard;
 		EmptyCard.m_Spec = {"deck:global-search-empty", Localize("Search"), qm_card_registry::ResolveLocalizedDescription("deck:global-search-results")};
-		EmptyCard.m_Measure = [LineHeight](float) { return LineHeight; };
-		EmptyCard.m_Render = [this, SmallSize, LineHeight](CUIRect Content) {
-			CUIRect Row;
-			Content.HSplitTop(LineHeight, &Row, &Content);
-			DoSettingsMenuLabel(SETTINGS_SEARCH, -1, -1, "qmclient-search-no-matching-features", &Row, Localize("No matching features found. Try other keywords"), SmallSize, TEXTALIGN_ML, {}, (int)Row.w);
+		EmptyCard.m_RenderMeasured = [this, SmallSize, LineHeight](CUIRect &Content) {
+			CSettingsContentLayoutFlow Flow(Content);
+			Flow.Text("search-empty", Localize("No matching features found. Try other keywords"), 0, SmallSize, 0, {}, [this, SmallSize](const CUIRect &Row, const char *pText) {
+				SLabelProperties Props;
+				Props.m_MaxWidth = Row.w;
+				Props.m_EnableWidthCheck = false;
+				Ui()->DoLabel(&Row, pText, SmallSize, TEXTALIGN_ML, Props); }, LineHeight);
 		};
+		qm_settings_content::UseDeclaredContent(EmptyCard, Ui(), TextRender());
 		EmptyCard.m_IsVisible = [HasSearchQuery, SearchMatchedGlobalCardCount] { return HasSearchQuery && SearchMatchedGlobalCardCount == 0; };
 		vCards.push_back(std::move(EmptyCard));
 
@@ -1001,22 +920,19 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 				Definition.m_Spec = {Card.m_pStableId, pDefault != nullptr && pDefault->m_pTitle != nullptr ? Localize(pDefault->m_pTitle) : Localize("Global card"), qm_card_registry::ResolveLocalizedDescription(Card.m_pStableId)};
 				// 兜底卡无法复用原页面的卡片构建器（构建闭包绑定在各自页面），
 				// 退化为「描述 + 定位按钮」的导航卡，而不是只有一行定位。
-				Definition.m_Measure = [LineHeight, LineSpacing](float) { return LineHeight + LineSpacing * 0.65f + LineHeight; };
 				CButtonContainer *pOpenButton = &s_GlobalSearchActionButtons[std::string("open:") + Card.m_pStableId];
-				Definition.m_Render = [this, Description = Card.m_Description, Target = Card.m_Target, pOpenButton, ReadOnly, LineHeight, LineSpacing, SmallSize](CUIRect Content) {
+				Definition.m_RenderMeasured = [this, Description = Card.m_Description, Target = Card.m_Target, pOpenButton, ReadOnly, LineHeight, LineSpacing, SmallSize, Metrics](CUIRect &Content) {
+					CSettingsContentLayoutFlow Flow(Content);
 					CUIRect Row;
-					Content.HSplitTop(LineHeight, &Row, &Content);
-					SLabelProperties DescProps;
-					DescProps.m_MaxWidth = Row.w;
-					DescProps.m_EllipsisAtEnd = true;
-					TextRender()->TextColor(ColorRGBA(0.9f, 0.9f, 0.9f, 0.82f));
-					Ui()->DoLabel(&Row, Description.c_str(), SmallSize, TEXTALIGN_ML, DescProps);
-					TextRender()->TextColor(TextRender()->DefaultTextColor());
-					Content.HSplitTop(LineSpacing * 0.65f, nullptr, &Content);
-					Content.HSplitTop(LineHeight, &Row, &Content);
+					Flow.Text("search-description", Description.c_str(), 0, SmallSize, LineSpacing * 0.65f, {}, [this, SmallSize](const CUIRect &DescriptionRow, const char *pText) {
+						SLabelProperties Props;
+						Props.m_MaxWidth = DescriptionRow.w;
+						Props.m_EnableWidthCheck = false;
+						Ui()->DoLabel(&DescriptionRow, pText, SmallSize, TEXTALIGN_ML, Props); }, LineHeight);
+					if(!Flow.Control("search-locate", LineHeight, Row))
+						return;
 					const char *pLabel = Localize("Locate");
-					const float TextWidth = TextRender()->TextWidth(SmallSize, pLabel);
-					CUIRect LocateButton = {Row.x, Row.y, std::min(Row.w, TextWidth + 16.0f), Row.h};
+					const CUIRect LocateButton = ResolveSettingsActionGroupLayout(Row, 1, Metrics, 0.0f).m_aButtons[0];
 					if(LocateButton.w <= 0.0f)
 						return;
 					if(!ReadOnly && Ui()->DoButtonLogic(pOpenButton, 0, &LocateButton, BUTTONFLAG_LEFT))
@@ -1027,11 +943,10 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 						return;
 					}
 					// 完整按钮组件：圆角底 + 居中文本，而非纯文本。
-					const bool Hovered = !ReadOnly && Ui()->MouseHovered(&LocateButton);
-					const ColorRGBA ChromeColor(1.0f, 1.0f, 1.0f, Hovered ? 0.28f : 0.18f);
-					DrawRoundedSurface(Ui(), LocateButton, ChromeColor, ChromeColor, 5.0f);
+					ui_widget::DrawButtonSurface(ui_widget::ControlContext(Ui()), pOpenButton, LocateButton);
 					Ui()->DoLabel(&LocateButton, pLabel, SmallSize, TEXTALIGN_MC);
 				};
+				qm_settings_content::UseDeclaredContent(Definition, Ui(), TextRender());
 				vCards.push_back(std::move(Definition));
 				continue;
 			}
@@ -1161,8 +1076,9 @@ void CMenus::RenderSettingsGlobalSearchContent(CUIRect MainView, bool PrewarmOnl
 	// 搜索结果按匹配顺序排列，不修改分类页的持久布局。
 	InputState.m_AllowHeaderDrag = false;
 	InputState.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
-	InputState.m_pScrollParams = ReadOnly ? nullptr : &ScrollParams;
-	CardDeck.RenderCached(SearchCtx, DeckPage, "global-search", DefinitionsRevision, BuildDefinitions, DeckOrderModel, ReadOnly ? nullptr : &s_GlobalSearchScrollRegion, InputState, Motion, SettingsCardDeckVisualOptions());
+	InputState.m_pScrollParams = Ui()->MeasurementOnly() ? nullptr : &ScrollParams;
+	const uint64_t MeasurementEnvironmentRevision = ResolveSettingsCardDefinitionsRevision(m_SettingsCardDeckDisplayCycle, m_MenuTextPoolGeneration, MainView.w, 0);
+	CardDeck.RenderCached(SearchCtx, DeckPage, "global-search", DefinitionsRevision, BuildDefinitions, DeckOrderModel, Ui()->MeasurementOnly() ? nullptr : &s_GlobalSearchScrollRegion, InputState, Motion, SettingsCardDeckVisualOptions(), MeasurementEnvironmentRevision);
 }
 
 void CMenus::RenderSettingsQmClientContent(CUIRect MainView, bool PrewarmOnly)
@@ -1324,18 +1240,10 @@ void CMenus::RenderSettingsQmClientContent(CUIRect MainView, bool PrewarmOnly)
 std::unordered_map<std::string, CBindSlot> g_CommandBindCache;
 bool g_CommandBindCacheInitialized = false;
 
-void CMenus::ClearQmClientSettingsSearchInputs()
+void CMenus::ReleaseQmClientSettingsSearchInput()
 {
-	if(Ui()->ActiveItem() == &m_GlobalCardSearchInput)
-	{
-		Ui()->ReleaseActiveTextInput(&m_GlobalCardSearchInput);
-	}
-	else
-	{
-		m_GlobalCardSearchInput.Deactivate();
-	}
-	m_GlobalCardSearchInput.Clear();
-	// 离开搜索页/关菜单时同步请求标志：若清空时正处「搜索」页，重开菜单回到该页时自动聚焦。
+	ReleaseSettingsSearchInput(Ui(), &m_GlobalCardSearchInput);
+	// 离页和关闭菜单只释放输入焦点，查询及匹配缓存保留到用户清空或重启。
 	m_FocusSettingsSearchOnEntry = g_Config.m_UiSettingsPage == SETTINGS_SEARCH;
 }
 
@@ -1490,49 +1398,35 @@ namespace
 
 void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 {
-	const IUiContext Ctx = SettingsUiContext("qm_new_features_popup");
+	const SUiTheme PanelTheme = ResolveConfiguredSecondaryPanelTheme();
+	IUiContext Ctx = SettingsUiContext("qm_new_features_popup");
+	Ctx.m_pTheme = &PanelTheme;
+	CUiScopedSurfaceText PanelText(TextRender(), PanelTheme.m_Surface);
+	const ColorRGBA PanelForeground = ResolveConfiguredTextColor(PanelText.Surface());
 	const float UiScale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
-	const float TitleSize = ui_token::font::TITLE * UiScale;
 	const float HeadlineSize = ui_token::font::HEADLINE * UiScale;
 	const float BodySize = ui_token::font::BODY * UiScale;
 	const float TipSize = ui_token::font::TIP * UiScale;
-	const float Padding = ui_token::spacing::LG * UiScale;
 	const float Gap = ui_token::spacing::MD * UiScale;
-	const float ButtonH = 26.0f * UiScale;
+	const float ButtonH = ui_token::secondary_panel::NEWS_ACTION_HEIGHT * UiScale;
 	const float JumpButtonW = 110.0f * UiScale;
 
-	// 遮罩：弹窗期间抢占启动菜单的绘制，先压暗整屏再画面板。
-	Screen.Draw(ui_token::color::SURFACE_OVERLAY, IGraphics::CORNER_NONE, 0.0f);
+	const CUIRect Panel = Screen;
+	static ui_widget::SSecondaryPanelLabel s_Title;
+	static CButtonContainer s_HeaderClose;
+	ui_widget::CSecondaryPanel PanelHeader(Ctx, Panel, !Ui()->RenderOnly(), ui_widget::ResolveSecondaryPanelMetrics(std::max(0.0f, Ui()->Screen()->w - 16.0f), ESettingsSecondaryPanelKind::NEWS, UiScale), {});
+	if(PanelHeader.Header(s_Title, s_HeaderClose, Localize("New features")))
+	{
+		m_Popup = POPUP_NONE;
+		return;
+	}
+	CUIRect Inner = PanelHeader.ContentRect();
 
-	CUIRect Panel;
-	// 小窗口下先夹住上限，避免 std::clamp 出现 lo > hi。
-	const float MaxPanelW = std::max(160.0f, Screen.w - 2.0f * ui_token::spacing::LG);
-	const float MaxPanelH = std::max(200.0f, Screen.h - 2.0f * ui_token::spacing::LG);
-	Panel.w = std::clamp(820.0f * UiScale, 160.0f, MaxPanelW);
-	Panel.h = std::clamp(Screen.h - 4.0f * ui_token::spacing::LG, 200.0f, MaxPanelH);
-	Panel.x = Screen.x + (Screen.w - Panel.w) * 0.5f;
-	Panel.y = Screen.y + (Screen.h - Panel.h) * 0.5f;
-
-	CUIRect ShadowRect = Panel;
-	ShadowRect.x += ui_token::elevation::SHADOW_X_HIGH;
-	ShadowRect.y += ui_token::elevation::SHADOW_Y_HIGH;
-	DrawRoundedSurface(Ctx, ShadowRect, ui_token::color::SURFACE_SHADOW, ColorRGBA(), ui_token::radius::CARD);
-	DrawRoundedSurface(Ctx, Panel, ui_token::color::SURFACE_ELEVATED, ui_token::color::BORDER_SUBTLE, ui_token::radius::CARD);
-
-	CUIRect Inner;
-	Panel.Margin(Padding, &Inner);
-
-	const char *pTitle = Localize("New features");
-	char aVersion[64];
-	str_format(aVersion, sizeof(aVersion), "%s %s", CLIENT_NAME, CLIENT_RELEASE_VERSION);
-
-	CUIRect TitleRow, SubTitleRow;
-	Inner.HSplitTop(TitleSize * 1.3f, &TitleRow, &Inner);
-	Ui()->DoLabel(&TitleRow, pTitle, TitleSize, TEXTALIGN_ML);
+	CUIRect SubTitleRow;
 	Inner.HSplitTop(TipSize * 1.6f, &SubTitleRow, &Inner);
-	TextRender()->TextColor(ui_token::color::TEXT_TIP);
-	Ui()->DoLabel(&SubTitleRow, aVersion, TipSize, TEXTALIGN_ML);
-	TextRender()->TextColor(TextRender()->DefaultTextColor());
+	TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.65f));
+	Ui()->DoLabel(&SubTitleRow, Localize("Feature guide and announcements"), TipSize, TEXTALIGN_ML);
+	TextRender()->TextColor(PanelForeground);
 	Inner.HSplitTop(Gap, nullptr, &Inner);
 
 	CQmClient &QmClient = GameClient()->m_QmClient;
@@ -1540,8 +1434,8 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 	QmClient.MarkQmNewsRead();
 	if(m_QmNewFeaturesScrollReset && QmClient.HasDeveloperCredential())
 		QmClient.QmNewsReloadDraft();
-	// 底部：关闭按钮及仅限开发者凭据的公告草稿操作。
-	CUIRect ButtonRow, CloseButtonRect;
+	// 底部：仅保留检查更新入口；关闭交给标题栏 X 与点击面板外。
+	CUIRect ButtonRow;
 	Inner.HSplitBottom(ButtonH, &Inner, &ButtonRow);
 	Inner.HSplitBottom(Gap, &Inner, nullptr);
 	if(QmClient.HasDeveloperCredential())
@@ -1549,12 +1443,14 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 		CUIRect DevRow, ReloadDraftRect, PublishRect, OpenFolderRect, DevStatus;
 		Inner.HSplitBottom(ButtonH, &Inner, &DevRow);
 		Inner.HSplitBottom(Gap, &Inner, nullptr);
-		const float DevButtonW = std::min(DevRow.w * 0.28f, 150.0f * UiScale);
-		DevRow.VSplitLeft(DevButtonW, &ReloadDraftRect, &DevRow);
-		DevRow.VSplitLeft(Gap, nullptr, &DevRow);
-		DevRow.VSplitLeft(DevButtonW, &PublishRect, &DevRow);
-		DevRow.VSplitLeft(Gap, nullptr, &DevRow);
-		DevRow.VSplitLeft(DevButtonW, &OpenFolderRect, &DevStatus);
+		static ui_widget::SSettingsActionGroupState s_DevActionWidths;
+		const char *apDevActions[] = {Localize("Reload"), Localize("Publish"), Localize("Open folder")};
+		const auto DevActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_DevActionWidths, DevRow, apDevActions, 3, ResolveSettingsContentMetrics(DevRow.w), ESettingsActionGroupWidth::CONTENT);
+		ReloadDraftRect = DevActions.m_aButtons[0];
+		PublishRect = DevActions.m_aButtons[1];
+		OpenFolderRect = DevActions.m_aButtons[2];
+		const float ActionsRight = OpenFolderRect.x + OpenFolderRect.w;
+		DevStatus = {ActionsRight, DevRow.y, std::max(0.0f, DevRow.x + DevRow.w - ActionsRight), DevRow.h};
 		DevStatus.VSplitLeft(Gap, nullptr, &DevStatus);
 
 		static CButtonContainer s_ReloadDraftButton, s_PublishButton, s_OpenFolderButton;
@@ -1584,30 +1480,30 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 		}
 		if(pDevStatus != nullptr)
 		{
-			TextRender()->TextColor(ui_token::color::TEXT_TIP);
+			TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.65f));
 			Ui()->DoLabel(&DevStatus, pDevStatus, TipSize, TEXTALIGN_ML);
-			TextRender()->TextColor(TextRender()->DefaultTextColor());
+			TextRender()->TextColor(PanelForeground);
 		}
 	}
-	CloseButtonRect = ButtonRow;
-	CloseButtonRect.w = std::min(ButtonRow.w, 200.0f * UiScale);
-	CloseButtonRect.x = ButtonRow.x + (ButtonRow.w - CloseButtonRect.w) * 0.5f;
-	static CButtonContainer s_CloseButton;
-	if(ui_widget::PrimaryButton(Ctx, &s_CloseButton, Localize("Close"), CloseButtonRect) || Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE))
+	static ui_widget::SSettingsActionGroupState s_NewsActionWidths;
+	const char *apNewsActions[] = {Localize("Check for updates")};
+	const auto NewsActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_NewsActionWidths, ButtonRow, apNewsActions, 1, ResolveSettingsContentMetrics(ButtonRow.w));
+	static CButtonContainer s_CheckUpdatesButton;
+	if(ui_widget::SecondaryButton(Ctx, &s_CheckUpdatesButton, Localize("Check for updates"), NewsActions.m_aButtons[0]))
 	{
-		m_Popup = POPUP_NONE;
+		ShowQmUpdatePopup();
 		return;
 	}
 
-	// 条目区：内容超出时滚动；每次打开回到顶部。
+	// 条目区：内容超出时滚动；每次打开回到顶部。滚动条与速度沿用设置页策略，滑块用面板强调色。
 	static CScrollRegion s_ScrollRegion;
 	if(m_QmNewFeaturesScrollReset)
 	{
 		s_ScrollRegion.Reset();
 		m_QmNewFeaturesScrollReset = false;
 	}
-	CScrollRegionParams ScrollParams;
-	ScrollParams.m_ScrollUnit = 3.0f * BodySize;
+	CScrollRegionParams ScrollParams = QmSettingsScrollRegionParams(1.0f);
+	ScrollParams.m_pSliderThemeColor = &PanelTheme.m_Accent;
 	vec2 ScrollOffset;
 	CUIRect ScrollArea = Inner;
 	s_ScrollRegion.Begin(&ScrollArea, &ScrollOffset, &ScrollParams);
@@ -1666,7 +1562,7 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 				if(s_ScrollRegion.AddRect(Separator))
 				{
 					Separator.h = 1.0f;
-					DrawRoundedSurface(Ctx, Separator, ui_token::color::BORDER_SUBTLE, ColorRGBA(), 0.0f);
+					DrawRoundedSurface(Ctx, Separator, PanelTheme.m_Border, ColorRGBA(), 0.0f);
 				}
 				continue;
 			}
@@ -1697,9 +1593,9 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 					str_format(aMarker, sizeof(aMarker), "%d.", Block.m_Number);
 				CUIRect Marker;
 				TextRect.VSplitLeft(Indent, &Marker, &TextRect);
-				TextRender()->TextColor(ui_token::color::TEXT_TIP);
+				TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.65f));
 				Ui()->DoLabel(&Marker, aMarker, BodySize, TEXTALIGN_TL);
-				TextRender()->TextColor(TextRender()->DefaultTextColor());
+				TextRender()->TextColor(PanelForeground);
 			}
 			if(Block.m_Kind == qm_md::EBlockKind::QUOTE)
 			{
@@ -1708,9 +1604,9 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 				DrawRoundedSurface(Ctx, Bar, ui_token::color::ACCENT_PRIMARY_DIM, ColorRGBA(), 0.0f);
 				TextRect.VSplitLeft(10.0f * UiScale, nullptr, &TextRect);
 			}
-			TextRender()->TextColor(Block.m_Kind == qm_md::EBlockKind::HEADING1 || Block.m_Kind == qm_md::EBlockKind::HEADING2 || Block.m_Kind == qm_md::EBlockKind::HEADING3 ? ui_token::color::TEXT_PRIMARY : ui_token::color::TEXT_SECONDARY);
+			TextRender()->TextColor(Block.m_Kind == qm_md::EBlockKind::HEADING1 || Block.m_Kind == qm_md::EBlockKind::HEADING2 || Block.m_Kind == qm_md::EBlockKind::HEADING3 ? PanelForeground : PanelForeground.WithMultipliedAlpha(0.72f));
 			Ui()->DoLabel(&TextRect, Text.c_str(), FontSize, TEXTALIGN_TL, {.m_MaxWidth = TextRect.w});
-			TextRender()->TextColor(TextRender()->DefaultTextColor());
+			TextRender()->TextColor(PanelForeground);
 			for(const qm_md::SSpan &Span : Block.m_vSpans)
 			{
 				if(Span.m_Link.empty() || BroadcastLinkButtonIndex >= (int)std::size(s_aBroadcastLinkButtons))
@@ -1761,13 +1657,13 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 			Separator.w = EntryRect.w;
 			Separator.h = 1.0f;
 			Separator.y = EntryRect.y - Gap * 0.5f;
-			DrawRoundedSurface(Ctx, Separator, ui_token::color::BORDER_SUBTLE, ColorRGBA(), 0.0f);
+			DrawRoundedSurface(Ctx, Separator, PanelTheme.m_Border, ColorRGBA(), 0.0f);
 		}
 
 		CUIRect TitleRect = JumpRow;
-		TextRender()->TextColor(ui_token::color::TEXT_PRIMARY);
+		TextRender()->TextColor(PanelForeground);
 		Ui()->DoLabel(&TitleRect, Localize(Entry.m_pName), HeadlineSize, TEXTALIGN_ML);
-		TextRender()->TextColor(TextRender()->DefaultTextColor());
+		TextRender()->TextColor(PanelForeground);
 
 		if(Entry.m_pCardTab != nullptr && Entry.m_pCardStableId != nullptr)
 		{
@@ -1790,18 +1686,18 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 
 		CUIRect SummaryRow, UsageRow, EntryRow;
 		EntryContent.HSplitTop(SummaryLines * BodySize * 1.5f, &SummaryRow, &EntryContent);
-		TextRender()->TextColor(ui_token::color::TEXT_SECONDARY);
+		TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.72f));
 		Ui()->DoLabel(&SummaryRow, Localize(Entry.m_pSummary), BodySize, TEXTALIGN_TL, {.m_MaxWidth = TextWidth});
-		TextRender()->TextColor(TextRender()->DefaultTextColor());
+		TextRender()->TextColor(PanelForeground);
 
 		EntryContent.HSplitTop(UsageLines * TipSize * 1.6f, &UsageRow, &EntryContent);
 		EntryContent.HSplitTop(EntryLines * TipSize * 1.6f, &EntryRow, &EntryContent);
-		TextRender()->TextColor(ui_token::color::TEXT_TIP);
+		TextRender()->TextColor(PanelForeground.WithMultipliedAlpha(0.65f));
 		char aUsage[512];
 		str_format(aUsage, sizeof(aUsage), Localize("Usage: %s"), Localize(Entry.m_pUsage));
 		Ui()->DoLabel(&UsageRow, aUsage, TipSize, TEXTALIGN_TL, {.m_MaxWidth = TextWidth});
 		Ui()->DoLabel(&EntryRow, aEntryLine, TipSize, TEXTALIGN_TL, {.m_MaxWidth = TextWidth});
-		TextRender()->TextColor(TextRender()->DefaultTextColor());
+		TextRender()->TextColor(PanelForeground);
 	}
 	s_ScrollRegion.End();
 }
@@ -1818,35 +1714,46 @@ bool CMenus::RenderQmFunctionCheckboxRow(CUIRect &Content, const float LineHeigh
 void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 {
 	auto &Update = GameClient()->m_TClient;
-	const int State = Update.IsUpdateChecking() ? 1 : Update.IsUpdateDownloading() ? 2 :
-						  Update.m_UpdateReady                 ? 3 :
-						  Update.m_UpdateCheckFailed           ? 4 :
-											 0;
+	const int State = static_cast<int>(Update.QmClientUpdateStatus());
 	if(State != m_QmUpdatePopupState)
 	{
 		m_QmUpdatePopupState = State;
 		log_info("qm-update", "popup_state=%d", State);
 	}
-	const IUiContext Ctx = SettingsUiContext("qm_update_popup");
-	const float Scale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
-	const float Padding = std::min(ui_token::spacing::LG * Scale, Screen.w * 0.04f);
-	const float Gap = std::min(ui_token::spacing::MD * Scale, Screen.w * 0.02f);
+	const SUiTheme PanelTheme = ResolveConfiguredSecondaryPanelTheme();
+	IUiContext Ctx = SettingsUiContext("qm_update_popup");
+	Ctx.m_pTheme = &PanelTheme;
+	CUiScopedSurfaceText PanelText(TextRender(), PanelTheme.m_Surface);
+	const float RequestedScale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
+	const float ViewportWidth = std::max(0.0f, Ui()->Screen()->w - 16.0f);
+	const CUIRect Panel = Screen;
+	static ui_widget::SSecondaryPanelLabel s_Title, s_TitleCaption;
+	static CButtonContainer s_HeaderClose;
+	ui_widget::CSecondaryPanel PanelHeader(Ctx, Panel, !Ui()->RenderOnly(), ui_widget::ResolveSecondaryPanelMetrics(ViewportWidth, ESettingsSecondaryPanelKind::UPDATE, RequestedScale), {});
+	// 版本与更新状态合并为标题右侧小字；正文只保留进度、说明与操作。
+	char aTitleCaption[160];
+	if(State == static_cast<int>(EQmClientUpdateStatus::CURRENT))
+		str_format(aTitleCaption, sizeof(aTitleCaption), Localize("Current version: %s (up to date)"), CLIENT_RELEASE_VERSION);
+	else if(State == static_cast<int>(EQmClientUpdateStatus::IDLE))
+		str_format(aTitleCaption, sizeof(aTitleCaption), Localize("Current version: %s"), CLIENT_RELEASE_VERSION);
+	else
+		str_copy(aTitleCaption, Update.QmClientUpdateStatusText());
+	if(PanelHeader.Header(s_Title, s_HeaderClose, Localize("Update"), &s_TitleCaption, aTitleCaption))
+	{
+		Update.m_UpdatePopupRequested = false;
+		m_Popup = POPUP_NONE;
+		return;
+	}
+	CUIRect Content = PanelHeader.ContentRect();
+	if(Content.w <= 0.0f || Content.h <= 0.0f)
+		return;
+	const float Scale = ui_widget::ResolveUpdatePanelContentScale(Content, RequestedScale);
+	const float Gap = std::min(ui_token::spacing::MD * Scale, ViewportWidth * 0.02f);
 	const float BodySize = ui_token::font::BODY * Scale;
-	const float TitleSize = ui_token::font::TITLE * Scale;
-	Screen.Draw(ui_token::color::SURFACE_OVERLAY, IGraphics::CORNER_NONE, 0.0f);
-	CUIRect Panel = Screen;
-	Panel.w = std::min(600.0f * Scale, std::max(0.0f, Screen.w - 2 * Padding));
-	Panel.h = std::min(350.0f * Scale, std::max(0.0f, Screen.h - 2 * Padding));
-	Panel.x += (Screen.w - Panel.w) * 0.5f;
-	Panel.y += (Screen.h - Panel.h) * 0.5f;
-	DrawRoundedSurface(Ctx, Panel, ui_token::color::SURFACE_ELEVATED, ui_token::color::BORDER_SUBTLE, ui_token::radius::CARD);
-	CUIRect Content;
-	Panel.Margin(Padding, &Content);
 	CUIRect Row;
-	Content.HSplitTop(TitleSize * 1.5f, &Row, &Content);
-	Ui()->DoLabel(&Row, Localize("Update"), TitleSize, TEXTALIGN_ML);
 	CUIRect Buttons;
-	Content.HSplitBottom(BodySize * 2.4f, &Content, &Buttons);
+	// 底部单行操作区：主操作、次操作与版本发布页；关闭交给标题栏 X 与点击外部。
+	Content.HSplitBottom(BodySize * ui_token::secondary_panel::UPDATE_ACTION_LINE_FACTOR, &Content, &Buttons);
 	Content.HSplitBottom(Gap, &Content, nullptr);
 	// 下载能力固定在操作区上方，说明可独立滚动，缺包提示不会被长说明挤掉。
 #if defined(CONF_QMCLIENT_PORTABLE)
@@ -1854,15 +1761,42 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 #else
 	constexpr bool QmUpdatePortableBuild = false;
 #endif
-	if(Update.m_FetchedQmClientUpdateInfo)
+	if(Update.QmClientUpdateStatus() == EQmClientUpdateStatus::AVAILABLE && !Update.CanDownloadQmClientUpdate())
 	{
-		const bool PackageAvailable = Update.m_UpdateRelease.m_PackageAvailable || Update.m_UpdateUseSetup;
-		const char *pPackage = PackageAvailable      ? Localize("Update package available") :
-				       QmUpdatePortableBuild ? Localize("No downloadable portable package for this version") :
+		const char *pPackage = QmUpdatePortableBuild ? Localize("No downloadable portable package for this version") :
 							       Localize("No compatible Windows update package for this version");
 		CUIRect Availability;
 		Content.HSplitBottom(QmWrappedLineCount(TextRender(), BodySize, pPackage, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Content, &Availability);
 		Ui()->DoLabel(&Availability, pPackage, BodySize, TEXTALIGN_TL, {.m_MaxWidth = Availability.w});
+		Content.HSplitBottom(Gap, &Content, nullptr);
+	}
+	// 下载进度固定在说明滚动区外，长发布说明不会遮住下载结果。
+	if(Update.IsUpdateDownloading() && Update.m_pUpdatePackageTask)
+	{
+		const auto &Task = Update.m_pUpdatePackageTask;
+		char aProgress[128];
+		const bool KnownSize = Task->Size() > 0;
+		const int Percent = std::clamp(Task->Progress(), 0, 100);
+		if(KnownSize)
+			str_format(aProgress, sizeof(aProgress), "%.1f / %.1f MiB (%d%%)", Task->Current() / 1048576.0, Task->Size() / 1048576.0, Percent);
+		else
+			str_format(aProgress, sizeof(aProgress), Localize("Downloaded: %.1f MiB (total size unknown)"), std::max(0.0, Task->Current()) / 1048576.0);
+		Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
+		Ui()->DoLabel(&Row, aProgress, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Row.w});
+		CUIRect Bar;
+		Content.HSplitTop(std::max(4.0f, Gap), &Bar, &Content);
+		DrawRoundedSurface(Ctx, Bar, PanelTheme.m_Border, ColorRGBA(), ui_token::radius::CARD);
+		if(KnownSize)
+			Bar.w *= Percent / 100.0f;
+		else
+		{
+			// 无 Content-Length 时显示活动条，不伪造百分比或已完成状态。
+			Bar.x += Bar.w * 0.7f * (0.5f + 0.5f * std::sin(Client()->LocalTime() * 3.0f));
+			Bar.w *= 0.3f;
+		}
+		if(Bar.w > 0.0f)
+			DrawRoundedSurface(Ctx, Bar, PanelTheme.m_Accent, ColorRGBA(), ui_token::radius::CARD);
+		Content.HSplitTop(Gap, nullptr, &Content);
 	}
 	static CScrollRegion s_ScrollRegion;
 	if(m_QmUpdateScrollReset)
@@ -1870,8 +1804,10 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		s_ScrollRegion.Reset();
 		m_QmUpdateScrollReset = false;
 	}
-	CScrollRegionParams ScrollParams;
-	ScrollParams.m_ScrollUnit = BodySize * 3;
+	// 滚动条几何与滚轮速度沿用设置页外层策略，弹窗与设置页手感一致；
+	// 滑块显式使用面板主题强调色，避免弹窗表面对比不足时回落成前景白。
+	CScrollRegionParams ScrollParams = QmSettingsScrollRegionParams(1.0f);
+	ScrollParams.m_pSliderThemeColor = &PanelTheme.m_Accent;
 	vec2 ScrollOffset;
 	s_ScrollRegion.Begin(&Content, &ScrollOffset, &ScrollParams);
 	Content.x += ScrollOffset.x;
@@ -1880,48 +1816,18 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		if(s_ScrollRegion.AddRect(Rect))
 			Ui()->DoLabel(&Rect, pText, FontSize, Alignment, {.m_MaxWidth = Rect.w});
 	};
-	const char *pStatus = Localize("Update");
-	if(Update.m_UpdateCheckFailed)
-		pStatus = Update.m_UpdateNetworkError ? Localize("Network error") : Localize("Update failed. Please try again");
-	else if(Update.m_UpdateReady)
-		pStatus = Localize("The update is ready and will be installed when you exit.");
-	else if(Update.IsUpdateChecking())
-		pStatus = Localize("(Fetching Update Info)");
-	else if(Update.IsUpdateDownloading())
-		pStatus = Localize("Downloading update...");
-	else if(Update.NeedQmClientUpdate())
-		pStatus = Localize("(Update required)");
-	else if(Update.m_FetchedQmClientUpdateInfo)
-		pStatus = Localize("You are already on the latest version");
-	Content.HSplitTop(QmWrappedLineCount(TextRender(), BodySize, pStatus, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Row, &Content);
-	Label(Row, pStatus, BodySize, TEXTALIGN_TL);
-	char aVersion[128];
-	const bool DifferentVersion = Update.m_FetchedQmClientUpdateInfo && str_comp(CLIENT_RELEASE_VERSION, Update.m_UpdateRelease.m_aVersion) != 0;
-	str_format(aVersion, sizeof(aVersion), "QmClient %s%s%s", CLIENT_RELEASE_VERSION,
-		DifferentVersion ? " → " : "", DifferentVersion ? Update.m_UpdateRelease.m_aVersion : "");
-	Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
-	Label(Row, aVersion, BodySize, TEXTALIGN_ML);
-	if(Update.IsUpdateDownloading() && Update.m_pUpdatePackageTask)
+	if(Update.m_UpdateReady)
 	{
-		const auto &Task = Update.m_pUpdatePackageTask;
-		char aProgress[128];
-		str_format(aProgress, sizeof(aProgress), "%.1f / %.1f MiB (%d%%)", Task->Current() / 1048576.0, Task->Size() / 1048576.0, Task->Progress());
-		Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
-		Label(Row, aProgress, BodySize, TEXTALIGN_ML);
-		CUIRect Bar;
-		Content.HSplitTop(std::max(2.0f, Gap * 0.5f), &Bar, &Content);
-		if(s_ScrollRegion.AddRect(Bar))
-		{
-			DrawRoundedSurface(Ctx, Bar, ui_token::color::BORDER_SUBTLE, ColorRGBA(), ui_token::radius::CARD);
-			Bar.w *= std::clamp(Task->Progress() / 100.0f, 0.0f, 1.0f);
-			DrawRoundedSurface(Ctx, Bar, ui_token::color::ACCENT_PRIMARY_DIM, ColorRGBA(), ui_token::radius::CARD);
-		}
+		const char *pReady = Localize("Download verified. Exit and install to replace this version; your settings are preserved. Later installs when you exit.");
+		Content.HSplitTop(QmWrappedLineCount(TextRender(), BodySize, pReady, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Row, &Content);
+		Label(Row, pReady, BodySize, TEXTALIGN_TL);
 	}
 	const auto *pSource = Update.IsUpdateChecking() ? Update.m_UpdateMetadataRequest.Source() : Update.m_UpdateDownloadAttempt.Current();
 	if(pSource && (Update.IsUpdateChecking() || Update.IsUpdateDownloading()))
 	{
-		Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
-		Label(Row, pSource->m_Prefix.empty() ? "GitHub" : pSource->m_Prefix.c_str(), BodySize, TEXTALIGN_ML);
+		const char *pSourceText = pSource->m_Prefix.empty() ? "GitHub" : pSource->m_Prefix.c_str();
+		Content.HSplitTop(QmWrappedLineCount(TextRender(), BodySize, pSourceText, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Row, &Content);
+		Label(Row, pSourceText, BodySize, TEXTALIGN_TL);
 	}
 	if(Update.m_UpdateCheckFailed && Update.m_aUpdateError[0])
 	{
@@ -1930,14 +1836,15 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	}
 	if(Update.m_FetchedQmClientUpdateInfo)
 	{
-		Content.HSplitTop(BodySize * 1.8f, &Row, &Content);
-		Label(Row, Localize("Release notes"), BodySize, TEXTALIGN_ML);
 		// 按元数据/字体/宽度版本缓存段落和测量；每帧只绘制滚动区域内的段落。
 		struct SNoteParagraph
 		{
 			std::string m_Text;
+			std::string m_Marker;
+			qm_md::EBlockKind m_Kind = qm_md::EBlockKind::PARAGRAPH;
 			float m_FontScale = 1;
 			float m_Height = 0;
+			float m_Indent = 0;
 		};
 		static std::vector<SNoteParagraph> s_vNotes;
 		static uint64_t s_NotesRevision = UINT64_MAX, s_FontRevision = UINT64_MAX;
@@ -1948,10 +1855,11 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 			for(const auto &Block : qm_md::Parse(Update.m_UpdateRelease.m_Notes.c_str()))
 			{
 				SNoteParagraph Paragraph;
+				Paragraph.m_Kind = Block.m_Kind;
 				if(Block.m_Kind == qm_md::EBlockKind::BULLET)
-					Paragraph.m_Text = "• ";
+					Paragraph.m_Marker = "•";
 				else if(Block.m_Kind == qm_md::EBlockKind::NUMBERED)
-					Paragraph.m_Text = std::to_string(Block.m_Number) + ". ";
+					Paragraph.m_Marker = std::to_string(Block.m_Number) + ".";
 				for(const auto &Span : Block.m_vSpans)
 					Paragraph.m_Text += Span.m_Text;
 				// 发布说明中的链接与设置标记仅作文本，不执行第三方动作。
@@ -1959,7 +1867,9 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 					Paragraph.m_Text = Block.m_SettingsLabel;
 				if(Block.m_Kind == qm_md::EBlockKind::HEADING1 || Block.m_Kind == qm_md::EBlockKind::HEADING2 || Block.m_Kind == qm_md::EBlockKind::HEADING3)
 					Paragraph.m_FontScale = 1.15f;
-				if(!Paragraph.m_Text.empty())
+				if(Block.m_Kind == qm_md::EBlockKind::QUOTE)
+					Paragraph.m_FontScale = ui_token::font::TIP / ui_token::font::BODY;
+				if(!Paragraph.m_Text.empty() || Block.m_Kind == qm_md::EBlockKind::SEPARATOR)
 					s_vNotes.push_back(std::move(Paragraph));
 			}
 			s_NotesRevision = Update.m_UpdateInfoRevision;
@@ -1972,12 +1882,21 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		}
 		else
 		{
+			// 发布者已提供标题时直接使用，不再叠加同义的“发布说明”标题。
+			const auto FirstKind = s_vNotes.front().m_Kind;
+			if(FirstKind != qm_md::EBlockKind::HEADING1 && FirstKind != qm_md::EBlockKind::HEADING2 && FirstKind != qm_md::EBlockKind::HEADING3)
+			{
+				Content.HSplitTop(BodySize * 1.8f, &Row, &Content);
+				Label(Row, Localize("Release notes"), BodySize, TEXTALIGN_ML);
+			}
 			if(s_NotesWidth != Content.w || s_NotesSize != BodySize || s_FontRevision != TextRender()->GlyphAtlasRevision())
 			{
 				for(auto &Paragraph : s_vNotes)
 				{
 					const float Size = BodySize * Paragraph.m_FontScale;
-					Paragraph.m_Height = QmWrappedLineCount(TextRender(), Size, Paragraph.m_Text.c_str(), std::max(1.0f, Content.w)) * Size * 1.6f + Gap * 0.5f;
+					Paragraph.m_Indent = Paragraph.m_Marker.empty() ? 0.0f : std::min(Content.w * 0.25f, TextRender()->TextWidth(Size, Paragraph.m_Marker.c_str()) + Gap);
+					Paragraph.m_Height = Paragraph.m_Kind == qm_md::EBlockKind::SEPARATOR ? 1.0f + Gap * 0.5f :
+														QmWrappedLineCount(TextRender(), Size, Paragraph.m_Text.c_str(), std::max(1.0f, Content.w - Paragraph.m_Indent)) * Size * 1.6f + Gap * 0.5f;
 				}
 				s_NotesWidth = Content.w;
 				s_NotesSize = BodySize;
@@ -1986,46 +1905,72 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 			for(const auto &Paragraph : s_vNotes)
 			{
 				Content.HSplitTop(Paragraph.m_Height, &Row, &Content);
+				if(Paragraph.m_Kind == qm_md::EBlockKind::SEPARATOR)
+				{
+					if(s_ScrollRegion.AddRect(Row))
+					{
+						Row.h = 1.0f;
+						DrawRoundedSurface(Ctx, Row, PanelTheme.m_Border, ColorRGBA(), 0.0f);
+					}
+					continue;
+				}
+				if(Paragraph.m_Indent > 0.0f)
+				{
+					CUIRect Marker;
+					Row.VSplitLeft(Paragraph.m_Indent, &Marker, &Row);
+					Label(Marker, Paragraph.m_Marker.c_str(), BodySize * Paragraph.m_FontScale, TEXTALIGN_TL);
+				}
+				const ColorRGBA TextColor = TextRender()->GetTextColor();
+				if(Paragraph.m_Kind == qm_md::EBlockKind::QUOTE)
+					TextRender()->TextColor(TextColor.WithMultipliedAlpha(0.65f));
 				Label(Row, Paragraph.m_Text.c_str(), BodySize * Paragraph.m_FontScale, TEXTALIGN_TL);
+				TextRender()->TextColor(TextColor);
 			}
 		}
 	}
 	s_ScrollRegion.End();
 	// 按可用宽度均分按钮；长译文由共享按钮的文本适配处理。
-	CUIRect Action, Manual, Close;
-	const float ButtonWidth = std::max(0.0f, (Buttons.w - 2 * Gap) / 3);
-	Buttons.VSplitLeft(ButtonWidth, &Action, &Buttons);
-	Buttons.VSplitLeft(Gap, nullptr, &Buttons);
-	Buttons.VSplitLeft(ButtonWidth, &Manual, &Buttons);
-	Buttons.VSplitLeft(Gap, nullptr, &Close);
-	static CButtonContainer s_Action, s_Manual, s_Close;
+	CUIRect Action, Recheck, Manual;
+	static CButtonContainer s_Action, s_Recheck, s_Manual;
 	const bool Busy = Update.IsUpdateChecking() || Update.IsUpdateDownloading();
 	// 缺包时仍可重新检查发布者后补的附件；下载能力由生产包选择器阻断。
-	const char *pAction = Busy ? Localize("Cancel") : Update.m_UpdateReady                                      ? Localize("Quit") :
-						  Update.m_FetchedQmClientUpdateInfo && !Update.m_UpdateCheckFailed ? Localize("Check for updates") :
-														      Localize("Retry");
-	if(ui_widget::PrimaryButton(Ctx, &s_Action, pAction, Action))
+	const EQmClientUpdateAction UpdateAction = ResolveQmClientUpdateAction(Busy, Update.m_UpdateReady, Update.m_FetchedQmClientUpdateInfo, Update.m_UpdateCheckFailed, Update.CanDownloadQmClientUpdate());
+	const char *pAction = UpdateAction == EQmClientUpdateAction::CANCEL   ? Localize("Cancel") :
+			      UpdateAction == EQmClientUpdateAction::INSTALL  ? Localize("Exit and install") :
+			      UpdateAction == EQmClientUpdateAction::DOWNLOAD ? Localize("Download update") :
+			      UpdateAction == EQmClientUpdateAction::RETRY    ? Localize("Retry") :
+										Localize("Check for updates");
+	const bool ShowRecheck = UpdateAction == EQmClientUpdateAction::DOWNLOAD;
+	const char *pRecheck = Update.m_UpdateReady ? Localize("Discard update") : ShowRecheck ? Localize("Check again") :
+												 Localize("New features");
+	static ui_widget::SSettingsActionGroupState s_UpdateActionWidths;
+	const char *apActions[] = {pAction, pRecheck, Localize("Release page")};
+	const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_UpdateActionWidths, Buttons, apActions, 3, ResolveSettingsContentMetrics(Buttons.w));
+	Action = ActionLayout.m_aButtons[0];
+	Recheck = ActionLayout.m_aButtons[1];
+	Manual = ActionLayout.m_aButtons[2];
+	if(ui_widget::PrimaryButton(Ctx, &s_Action, pAction, Action, Update.m_UpdateInstallerStarted))
 	{
-		if(Busy)
+		if(UpdateAction == EQmClientUpdateAction::CANCEL)
 		{
 			Update.CancelQmClientUpdate();
-			m_Popup = POPUP_NONE;
 		}
-		else if(Update.m_UpdateReady)
+		else if(UpdateAction == EQmClientUpdateAction::INSTALL)
 			Client()->Quit();
+		else if(UpdateAction == EQmClientUpdateAction::DOWNLOAD)
+			Update.RequestQmClientUpdateDownload();
 		else
-			Update.RequestQmClientUpdateCheckAndUpdate();
+			Update.RequestQmClientUpdateCheck();
 	}
-	if(ui_widget::SecondaryButton(Ctx, &s_Manual, "GitHub", Manual))
-		Client()->ViewLink(qm_update::MANUAL_DOWNLOAD_URL);
-	if(ui_widget::SecondaryButton(Ctx, &s_Close, Localize("Close"), Close) || Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE))
+	if(ui_widget::SecondaryButton(Ctx, &s_Recheck, pRecheck, Recheck, Update.m_UpdateInstallerStarted))
 	{
-		Update.m_UpdatePopupRequested = false;
-		m_Popup = POPUP_NONE;
+		if(Update.m_UpdateReady)
+			Update.CancelQmClientUpdate();
+		else if(ShowRecheck)
+			Update.RequestQmClientUpdateCheck();
+		else
+			ShowQmNewFeaturesPopup();
 	}
-}
-
-uint64_t CMenus::TranslationTestLayoutRevision() const
-{
-	return static_cast<uint64_t>(m_TranslateProbe.Pending()) | (static_cast<uint64_t>(m_TranslateProbe.HasResult()) << 1) | (static_cast<uint64_t>(m_TranslateProbeDiagnostics != 0) << 2) | (static_cast<uint64_t>(m_TranslateProbe.Response().m_Notice) << 3) | (static_cast<uint64_t>(str_length(m_TranslateProbe.Response().m_Text)) << 8) | (static_cast<uint64_t>(GameClient()->m_Translate.LastDiagnostic().m_Notice) << 24);
+	if(ui_widget::SecondaryButton(Ctx, &s_Manual, Localize("Release page"), Manual))
+		Client()->ViewLink(qm_update::MANUAL_DOWNLOAD_URL);
 }

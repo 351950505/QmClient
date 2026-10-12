@@ -9,6 +9,58 @@
 
 #include <utility>
 
+TEST(QmClientUpdateStatus, OpeningAfterCancelledCheckDoesNotRestartIt)
+{
+	EXPECT_TRUE(ShouldStartQmClientUpdateCheckOnOpen(false, false, false, false));
+	EXPECT_FALSE(ShouldStartQmClientUpdateCheckOnOpen(true, false, false, false));
+	EXPECT_FALSE(ShouldStartQmClientUpdateCheckOnOpen(false, true, false, false));
+	EXPECT_FALSE(ShouldStartQmClientUpdateCheckOnOpen(false, false, true, false));
+	EXPECT_FALSE(ShouldStartQmClientUpdateCheckOnOpen(false, false, false, true));
+}
+
+TEST(QmClientUpdateStatus, DownloadCompletionWaitsForVerificationAndPreparation)
+{
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, true, false, false, false, false, false, true, true), EQmClientUpdateStatus::SELECTING_SOURCE);
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, true, true, false, false, false, false, true, true), EQmClientUpdateStatus::DOWNLOADING);
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, true, true, true, false, false, false, true, true), EQmClientUpdateStatus::VERIFYING);
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, false, false, false, true, false, false, true, true), EQmClientUpdateStatus::READY);
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, false, false, false, true, true, false, true, true), EQmClientUpdateStatus::INSTALLING);
+}
+
+TEST(QmClientUpdateStatus, CheckDistinguishesAvailableReleaseFromCurrentVersion)
+{
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, false, false, false, false, false, false, false, false), EQmClientUpdateStatus::IDLE);
+	EXPECT_EQ(ResolveQmClientUpdateStatus(true, false, false, false, false, false, false, false, false), EQmClientUpdateStatus::CHECKING);
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, false, false, false, false, false, false, true, true), EQmClientUpdateStatus::AVAILABLE);
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, false, false, false, false, false, false, true, false), EQmClientUpdateStatus::CURRENT);
+}
+
+TEST(QmClientUpdateStatus, FailureOverridesStaleMetadataAndRetryOverridesFailure)
+{
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, false, false, false, false, false, true, true, true), EQmClientUpdateStatus::FAILED);
+	EXPECT_EQ(ResolveQmClientUpdateStatus(true, false, false, false, false, false, true, true, true), EQmClientUpdateStatus::CHECKING);
+	EXPECT_EQ(ResolveQmClientUpdateStatus(false, true, true, false, false, false, true, true, true), EQmClientUpdateStatus::DOWNLOADING);
+}
+
+TEST(QmClientUpdateAction, MetadataWithoutNewVersionOnlyOffersCheck)
+{
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, true, false, false), EQmClientUpdateAction::CHECK);
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, false, false, true), EQmClientUpdateAction::CHECK);
+}
+
+TEST(QmClientUpdateAction, CompatibleNewVersionOffersDownloadBeforeInstall)
+{
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, true, false, true), EQmClientUpdateAction::DOWNLOAD);
+	EXPECT_EQ(ResolveQmClientUpdateAction(true, false, true, false, true), EQmClientUpdateAction::CANCEL);
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, true, true, false, true), EQmClientUpdateAction::INSTALL);
+}
+
+TEST(QmClientUpdateAction, FailureOffersRetryAndRecoveredMetadataOffersDownload)
+{
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, true, true, true), EQmClientUpdateAction::RETRY);
+	EXPECT_EQ(ResolveQmClientUpdateAction(false, false, true, false, true), EQmClientUpdateAction::DOWNLOAD);
+}
+
 namespace
 {
 	void WriteRelease(CJsonWriter &Writer, const char *pTag, bool Prerelease, bool Draft = false, bool Complete = true)

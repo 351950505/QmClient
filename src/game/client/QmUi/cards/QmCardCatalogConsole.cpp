@@ -1,8 +1,9 @@
 #include "QmCardCatalogInternal.h"
-#include "QmCardMeasureRevision.h"
 #include "QmConsoleSettingsLayout.h"
 
 #include <game/client/QmUi/SecondaryPanel.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
+#include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/components/console.h>
 #include <game/client/components/menus.h>
@@ -13,8 +14,10 @@
 
 void CMenus::RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly)
 {
-	// F1 面板、分类页和搜索页共用配置与控件；测量不处理输入，失活父层由弹窗栈阻断交互。
-	if(PrewarmOnly)
+	CSettingsContentLayoutFlow Flow(Content);
+	// F1 面板、分类页和搜索页共用配置与控件；后台帧保留真实控件绘制，只有纯测量帧才进入 RenderOnly。
+	const bool MeasureOnly = PrewarmOnly && !Ui()->BackgroundRender();
+	if(MeasureOnly)
 		Ui()->BeginRenderOnly();
 	struct SControls
 	{
@@ -30,32 +33,32 @@ void CMenus::RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetr
 	SControls &Controls = s_aControls[Ui()->RenderingPopupMenus() ? 1 : 0];
 	const IUiContext Ctx = SettingsUiContext("console_appearance", Metrics.m_UiScale);
 	CUIRect Row;
-	const auto TakeRow = [&]() {
-		Content.HSplitTop(Metrics.m_LineHeight, &Row, &Content);
-		Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
+	const auto TakeRow = [&](const char *pId, float Height) {
+		const bool HasRow = Flow.Control(pId, Height, Row);
+		Flow.Space(Metrics.m_LineSpacing);
+		return HasRow;
 	};
-	const auto Numeric = [&](ui_widget::SNumericFieldState &State, int *pValue, const char *pLabel, int Min, int Max, const char *pSuffix) {
-		TakeRow();
+	const auto Numeric = [&](ui_widget::SNumericFieldState &State, int *pValue, const char *pId, const char *pLabel, int Min, int Max, const char *pSuffix) {
+		if(!TakeRow(pId, Metrics.m_LineHeight))
+			return;
 		ui_widget::SNumericFieldOptions Options;
 		Options.m_pLabel = pLabel;
 		Options.m_pSuffix = pSuffix;
 		Options.m_FontSize = Metrics.m_BodySize;
 		ui_widget::NumericField(Ctx, &State, &State, pValue, Min, Max, Row, Options);
 	};
-	Numeric(Controls.m_FontSize, &g_Config.m_QmConsoleFontSize, Localize("Console font size"), 1, 24, "");
-	Numeric(Controls.m_Opacity, &g_Config.m_QmConsoleOpacity, Localize("Console background opacity"), 20, 100, "%");
-	TakeRow();
-	if(DoButton_CheckBox(&Controls.m_Highlight, Localize("Highlight console commands"), g_Config.m_QmConsoleHighlightCommands, &Row, Metrics.m_BodySize))
+	Numeric(Controls.m_FontSize, &g_Config.m_QmConsoleFontSize, "console-font-size", Localize("Console font size"), 1, 24, "");
+	Numeric(Controls.m_Opacity, &g_Config.m_QmConsoleOpacity, "console-opacity", Localize("Console background opacity"), 20, 100, "%");
+	if(TakeRow("console-highlight", Metrics.m_LineHeight) && DoButton_CheckBox(&Controls.m_Highlight, Localize("Highlight console commands"), g_Config.m_QmConsoleHighlightCommands, &Row, Metrics.m_BodySize))
 		g_Config.m_QmConsoleHighlightCommands ^= 1;
-	TakeRow();
-	Ui()->DoLabel(&Row, Localize("Console color scheme"), Metrics.m_BodySize, TEXTALIGN_ML);
+	if(TakeRow("console-scheme-label", Metrics.m_LineHeight))
+		Ui()->DoLabel(&Row, Localize("Console color scheme"), Metrics.m_BodySize, TEXTALIGN_ML);
 	const char *apSchemes[] = {Localize("Modern terminal"), Localize("Classic PowerShell"), Localize("Custom")};
-	// 预设各占一行，窄窗口和长译文都保留完整按钮。
-	for(int i = 0; i < 3; ++i)
+	if(TakeRow("console-scheme-choice", Metrics.m_LineHeight))
 	{
-		TakeRow();
-		if(DoButton_MenuTab(&Controls.m_aSchemes[i], apSchemes[i], g_Config.m_QmConsoleColorScheme == i, &Row, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, ui_token::radius::BASE, nullptr, nullptr, Metrics.m_BodySize))
-			g_Config.m_QmConsoleColorScheme = i;
+		const int Scheme = DoSegmentedChoice(Controls.m_aSchemes, apSchemes, 3, g_Config.m_QmConsoleColorScheme, Row, ui_token::radius::BASE, nullptr, Metrics.m_BodySize, &g_Config.m_QmConsoleColorScheme);
+		if(!Ui()->RenderOnly())
+			g_Config.m_QmConsoleColorScheme = Scheme;
 	}
 	if(g_Config.m_QmConsoleColorScheme == 2)
 	{
@@ -76,36 +79,44 @@ void CMenus::RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetr
 			{Localize("Console search match color"), &g_Config.m_QmConsoleSearchColor, DefaultConfig::QmConsoleSearchColor},
 			{Localize("Console selected search match color"), &g_Config.m_QmConsoleSearchSelectedColor, DefaultConfig::QmConsoleSearchSelectedColor}};
 		for(size_t i = 0; i < std::size(aColors); ++i)
-			DoLine_ColorPicker(&Controls.m_aColorReset[i], Metrics, &Content, aColors[i].m_pLabel, aColors[i].m_pValue,
-				color_cast<ColorRGBA>(ColorHSLA(aColors[i].m_Default)), false, nullptr, false, false);
+		{
+			char aId[32];
+			str_format(aId, sizeof(aId), "console-color-%zu", i);
+			if(Flow.Control(aId, ResolveSettingsColorRowLayout({}, Metrics, false).m_ConsumedHeight, Row))
+			{
+				CUIRect ColorRow = Row;
+				DoLine_ColorPicker(&Controls.m_aColorReset[i], Metrics, &ColorRow, aColors[i].m_pLabel, aColors[i].m_pValue,
+					color_cast<ColorRGBA>(ColorHSLA(aColors[i].m_Default)), false, nullptr, false, true);
+			}
+		}
 	}
 
 	const auto Palette = QmConsoleAppearance::Palette(g_Config);
 	const float FontSize = QmConsoleAppearance::FontSize(g_Config.m_QmConsoleFontSize);
-	Content.HSplitTop(QmConsoleSettingsLayout::PreviewHeight(g_Config.m_QmConsoleFontSize), &Row, &Content);
-	Row.Draw(Palette.m_aColors[QmConsoleAppearance::BACKGROUND], IGraphics::CORNER_ALL, 5.0f);
-	Row.Margin(6.0f, &Row);
-	const ColorRGBA Previous = TextRender()->GetTextColor();
-	TextRender()->TextColor(Palette.m_aColors[QmConsoleAppearance::TEXT]);
-	CTextCursor Cursor;
-	Cursor.SetPosition(vec2(Row.x, Row.y));
-	Cursor.m_FontSize = FontSize;
-	Cursor.m_LineWidth = Row.w;
-	Cursor.m_MaxLines = 2;
-	const char *pPreview = "> echo \"QmClient\"; player_color 42\nhttps://ddnet.org";
-	std::vector<STextColorSplit> vColors;
-	if(g_Config.m_QmConsoleHighlightCommands)
-		QmConsoleSyntax::AppendColors(pPreview + 2, Palette, vColors, 2);
-	const char *pLink = str_find(pPreview, "https://");
-	vColors.emplace_back(static_cast<int>(pLink - pPreview), str_length(pLink), Palette.m_aColors[QmConsoleAppearance::LINK]);
-	QmConsoleText::ComposeColorSplits(pPreview, vColors, Cursor.m_vColorSplits);
-	TextRender()->TextEx(&Cursor, pPreview);
-	TextRender()->TextColor(Previous);
-	Content.HSplitTop(Metrics.m_LineSpacing, nullptr, &Content);
-	TakeRow();
-	if(ui_widget::SecondaryButton(Ctx, &Controls.m_Reset, Localize("Reset console appearance"), Row, Ui()->RenderOnly()))
+	if(TakeRow("console-preview", QmConsoleSettingsLayout::PreviewHeight(g_Config.m_QmConsoleFontSize)) && Flow.Drawing() && !Ui()->DrawingSuppressed())
+	{
+		Row.Draw(Palette.m_aColors[QmConsoleAppearance::BACKGROUND], IGraphics::CORNER_ALL, 5.0f);
+		Row.Margin(6.0f, &Row);
+		const ColorRGBA Previous = TextRender()->GetTextColor();
+		TextRender()->TextColor(Palette.m_aColors[QmConsoleAppearance::TEXT]);
+		CTextCursor Cursor;
+		Cursor.SetPosition(vec2(Row.x, Row.y));
+		Cursor.m_FontSize = FontSize;
+		Cursor.m_LineWidth = Row.w;
+		Cursor.m_MaxLines = 2;
+		const char *pPreview = "> echo \"QmClient\"; player_color 42\nhttps://ddnet.org";
+		std::vector<STextColorSplit> vColors;
+		if(g_Config.m_QmConsoleHighlightCommands)
+			QmConsoleSyntax::AppendColors(pPreview + 2, Palette, vColors, 2);
+		const char *pLink = str_find(pPreview, "https://");
+		vColors.emplace_back(static_cast<int>(pLink - pPreview), str_length(pLink), Palette.m_aColors[QmConsoleAppearance::LINK]);
+		QmConsoleText::ComposeColorSplits(pPreview, vColors, Cursor.m_vColorSplits);
+		TextRender()->TextEx(&Cursor, pPreview);
+		TextRender()->TextColor(Previous);
+	}
+	if(TakeRow("console-reset", Metrics.m_LineHeight) && ui_widget::SecondaryButton(Ctx, &Controls.m_Reset, Localize("Reset console appearance"), Row, PrewarmOnly) && Flow.Input() && !Ui()->RenderOnly())
 		QmConsoleAppearance::Reset(g_Config);
-	if(PrewarmOnly)
+	if(MeasureOnly)
 		Ui()->EndRenderOnly();
 }
 
@@ -113,7 +124,15 @@ namespace qm_card_catalog
 {
 	bool BuildConsoleCard(const SQmCardBuildContext &Ctx, SSettingsCardDefinition &Out)
 	{
-		MakeModuleCard(Ctx, qm_module::EQmModuleId::Console, "qm:console", "Console settings", "Appearance and command highlighting of the local console", [Ctx](CUIRect &Content) { QmCardRenderHook::RenderQmConsoleContent(Ctx.m_pMenus, Content, Ctx.m_Metrics, Ctx.m_ReadOnly); }, [Metrics = Ctx.m_Metrics](float) { return QmConsoleSettingsLayout::ContentHeight(Metrics, g_Config.m_QmConsoleColorScheme == 2, g_Config.m_QmConsoleFontSize); }, MeasureModuleCardRevision(qm_module::EQmModuleId::Console), {}, Out);
+		MakeModuleCard(
+			Ctx,
+			qm_module::EQmModuleId::Console,
+			"qm:console",
+			"Console settings",
+			"Appearance and command highlighting of the local console",
+			[Ctx](CUIRect &Content) { QmCardRenderHook::RenderQmConsoleContent(Ctx.m_pMenus, Content, Ctx.m_Metrics, Ctx.m_ReadOnly); },
+			Out);
+		UseDeclaredModuleContent(Ctx, Out);
 		return true;
 	}
 }

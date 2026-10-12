@@ -27,13 +27,15 @@ class VerifyWindowsPackageTest(unittest.TestCase):
 		self.tools.write_text("map_extract.exe\ntwping.exe\n", encoding="utf-8")
 		self.runtime_names = {"DDNet.exe", "DDNet-Server.exe", "QmClient-Updater.exe", "qm-nmt-helper.exe"}
 
-	def write_package(self, extra: tuple[str, ...] = (), missing: str = "", portable: bool = False) -> None:
+	def write_package(self, extra: tuple[str, ...] = (), missing: str = "", portable: bool = False, steam_appid: bool = True) -> None:
 		names = self.runtime_names | (set() if portable else {"map_extract.exe", "twping.exe"})
 		with zipfile.ZipFile(self.package, "w") as archive:
 			for name in sorted(names - {missing}):
 				archive.writestr(f"QmClient/{name}", b"binary")
 			archive.writestr("QmClient/data/fonts/中文字体.ttf", b"font")
 			archive.writestr("QmClient/freetype.dll", b"runtime")
+			if steam_appid:
+				archive.writestr("QmClient/steam_appid.txt", b"412220")
 			for name in extra:
 				archive.writestr(name, b"extra")
 
@@ -86,12 +88,22 @@ class VerifyWindowsPackageTest(unittest.TestCase):
 				with self.assertRaisesRegex(ValueError, "missing/duplicate"):
 					MODULE.verify(self.package, self.runtime, self.tools, False)
 
+	def test_missing_root_steam_appid_is_rejected(self) -> None:
+		self.write_package(steam_appid=False)
+		with self.assertRaisesRegex(ValueError, "steam_appid"):
+			MODULE.verify(self.package, self.runtime, self.tools, False)
+		# data 子目录里的同名文件不能替代包根位置。
+		self.write_package(steam_appid=False, extra=("QmClient/data/steam_appid.txt",))
+		with self.assertRaisesRegex(ValueError, "steam_appid"):
+			MODULE.verify(self.package, self.runtime, self.tools, False)
+
 	@unittest.skipUnless(shutil.which("7z"), "7z CLI is not installed")
 	def test_real_sevenzip_archive_inventory_rejects_unexpected_program(self) -> None:
 		directory = self.root / "QmClient"
 		directory.mkdir()
 		for name in self.runtime_names | {"map_extract.exe", "twping.exe"}:
 			(directory / name).write_bytes(b"program")
+		(directory / "steam_appid.txt").write_bytes(b"412220")
 		package = self.root / "package.7z"
 		subprocess.run(["7z", "a", "-t7z", str(package), directory.name], cwd=self.root, check=True, capture_output=True, timeout=30)
 		MODULE.verify(package, self.runtime, self.tools, False)

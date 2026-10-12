@@ -35,6 +35,8 @@ public:
 
 private:
 	curl_slist *m_pRequestHeaders = nullptr;
+	curl_slist *m_pDnsBootstrap = nullptr;
+	CURLSH *m_pDnsShare = nullptr;
 
 	char m_aErr[CURL_ERROR_SIZE];
 

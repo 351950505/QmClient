@@ -14,8 +14,12 @@
 #include <game/client/QmUi/QmAnimResolve.h>
 #include <game/client/QmUi/QmCardRegistry.h>
 #include <game/client/QmUi/QmUiPerf.h>
+#include <game/client/QmUi/SecondaryPanel.h>
 #include <game/client/QmUi/SettingsCard.h>
+#include <game/client/QmUi/SettingsCardContentBridge.h>
+#include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContext.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiSurface.h>
@@ -303,6 +307,7 @@ namespace
 
 	struct STeeSettingsPageState
 	{
+		std::array<int, NUM_DUMMIES> m_aSelectedQueuePreset = {-1, -1};
 		bool m_SkinListScrollActiveLastFrame = false;
 		int m_SkinListScrollCooldownFrames = 0;
 		int m_SkinListPostScrollRecoveryFrames = 0;
@@ -500,53 +505,113 @@ void CMenus::FinalizeTeeListDrainPerfSession()
 	ResetTeeSettingsPageState();
 }
 
+namespace
+{
+	struct STeeOptionsContentState
+	{
+		std::array<CSettingsContentLayoutCache, 2> m_aCaches;
+		std::array<std::shared_ptr<const CSettingsContentLayout>, 2> m_apLayouts;
+	};
+	thread_local STeeOptionsContentState *s_pTeeOptionsContent = nullptr;
+}
+
 void CMenus::RenderSettingsTeeOptions(CUIRect Content, const SSettingsContentMetrics &TeeMetrics)
 {
 	const float BodySize = TeeMetrics.m_BodySize;
-	const SSettingsTeeOptionsLayout Layout = ResolveSettingsTeeOptionsLayout(Content, TeeMetrics);
-	CUIRect Downloads = Layout.m_Downloads;
-	CUIRect Prefix = Layout.m_Prefix;
-	const auto NextRow = [&TeeMetrics](CUIRect &View) {
+	CSettingsContentLayoutFlow Flow(Content);
+	bool ShouldRefresh = false;
+	std::array<SSettingsCardDefinition, 2> aColumns;
+	aColumns[0].m_RenderMeasured = [&](CUIRect &Downloads) {
+		CSettingsContentLayoutFlow Column(Downloads);
+		const auto Checkbox = [&](const char *pId, const char *pLabel, int *pValue, float Spacing) {
+			CUIRect Row;
+			if(!Column.Control(pId, TeeMetrics.m_LineHeight, Row, Spacing))
+				return false;
+			const bool Changed = DoSettingsButton_CheckBox(SETTINGS_TEE, -1, pValue, pId, pLabel, *pValue, &Row);
+			if(!Changed || !Column.Input() || Ui()->RenderOnly())
+				return false;
+			*pValue ^= 1;
+			return true;
+		};
+		ShouldRefresh = Checkbox("tee-download-skins", Localize("Download skins"), &g_Config.m_ClDownloadSkins, 0.0f);
+		ShouldRefresh = Checkbox("tee-download-community-skins", Localize("Download community skins"), &g_Config.m_ClDownloadCommunitySkins, TeeMetrics.m_LineSpacing) || ShouldRefresh;
+		ShouldRefresh = Checkbox("tee-vanilla-skins-only", Localize("Vanilla skins only"), &g_Config.m_ClVanillaSkinsOnly, TeeMetrics.m_LineSpacing) || ShouldRefresh;
+		Checkbox("tee-fat-skins", Localize("Fat skins (DDFat)"), &g_Config.m_ClFatSkins, TeeMetrics.m_LineSpacing);
+		Checkbox("tee-show-skin-metadata", Localize("Show skin date and author"), &g_Config.m_QmSkinShowMetadata, TeeMetrics.m_LineSpacing);
+	};
+	aColumns[1].m_RenderMeasured = [&](CUIRect &Prefix) {
+		CSettingsContentLayoutFlow Column(Prefix);
 		CUIRect Row;
-		View.HSplitTop(TeeMetrics.m_LineHeight, &Row, &View);
-		View.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &View);
-		return Row;
-	};
-	const auto Checkbox = [&](const char *pId, const char *pLabel, int *pValue) {
-		CUIRect Row = NextRow(Downloads);
-		if(!DoSettingsButton_CheckBox(SETTINGS_TEE, -1, pValue, pId, pLabel, *pValue, &Row))
-			return false;
-		*pValue ^= 1;
-		return true;
-	};
-	bool ShouldRefresh = Checkbox("tee-download-skins", Localize("Download skins"), &g_Config.m_ClDownloadSkins);
-	ShouldRefresh = Checkbox("tee-download-community-skins", Localize("Download community skins"), &g_Config.m_ClDownloadCommunitySkins) || ShouldRefresh;
-	ShouldRefresh = Checkbox("tee-vanilla-skins-only", Localize("Vanilla skins only"), &g_Config.m_ClVanillaSkinsOnly) || ShouldRefresh;
-	Checkbox("tee-fat-skins", Localize("Fat skins (DDFat)"), &g_Config.m_ClFatSkins);
-	Checkbox("tee-show-skin-metadata", Localize("Show skin date and author"), &g_Config.m_QmSkinShowMetadata);
-
-	CUIRect Label = NextRow(Prefix);
-	DoSettingsMenuLabel(SETTINGS_TEE, -1, -1, "tee_skin_prefix_label", &Label, Localize("Skin prefix"), BodySize, TEXTALIGN_ML);
-	const CUIRect Input = NextRow(Prefix);
-	static CLineInput s_SkinPrefixInput(g_Config.m_ClSkinPrefix, sizeof(g_Config.m_ClSkinPrefix));
-	ui_widget::SInputFieldOptions InputOptions;
-	InputOptions.m_Clearable = true;
-	InputOptions.m_FontSize = BodySize;
-	if(ui_widget::InputField(SettingsUiContext("settings_tee_skin_prefix_text_input", TeeMetrics.m_UiScale), &s_SkinPrefixInput, Input, InputOptions).m_Changed)
-		ShouldRefresh = true;
-
-	CUIRect Presets = NextRow(Prefix);
-	static const char *s_apPrefixes[] = {"kitty", "santa"};
-	static CButtonContainer s_aPrefixButtons[std::size(s_apPrefixes)];
-	for(size_t Index = 0; Index < std::size(s_apPrefixes); ++Index)
-	{
-		CUIRect Button;
-		Presets.VSplitLeft(Presets.w / (std::size(s_apPrefixes) - Index), &Button, &Presets);
-		Button.VMargin(TeeMetrics.m_LineSpacing * 0.5f, &Button);
-		if(DoButton_Menu(&s_aPrefixButtons[Index], s_apPrefixes[Index], 0, &Button))
+		if(Column.Control("tee-skin-prefix-label", TeeMetrics.m_InputHeight, Row))
+			DoSettingsMenuLabel(SETTINGS_TEE, -1, -1, "tee_skin_prefix_label", &Row, Localize("Skin prefix"), BodySize, TEXTALIGN_ML);
+		if(Column.Control("tee-skin-prefix-input", TeeMetrics.m_InputHeight, Row, TeeMetrics.m_LineSpacing))
 		{
-			str_copy(g_Config.m_ClSkinPrefix, s_apPrefixes[Index]);
-			ShouldRefresh = true;
+			static CLineInput s_SkinPrefixInput(g_Config.m_ClSkinPrefix, sizeof(g_Config.m_ClSkinPrefix));
+			ui_widget::SInputFieldOptions InputOptions;
+			InputOptions.m_Clearable = true;
+			InputOptions.m_FontSize = BodySize;
+			const bool Changed = ui_widget::InputField(SettingsUiContext("settings_tee_skin_prefix_text_input", TeeMetrics.m_UiScale), &s_SkinPrefixInput, Row, InputOptions).m_Changed;
+			ShouldRefresh = (Changed && Column.Input() && !Ui()->RenderOnly()) || ShouldRefresh;
+		}
+		if(Column.Control("tee-skin-prefix-presets", TeeMetrics.m_InputHeight, Row, TeeMetrics.m_LineSpacing))
+		{
+			static const char *s_apPrefixes[] = {"kitty", "santa"};
+			static CButtonContainer s_aPrefixButtons[std::size(s_apPrefixes)];
+			static ui_widget::SSettingsActionGroupState s_PrefixActionWidths;
+			const auto PrefixActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_PrefixActionWidths, Row, s_apPrefixes, std::size(s_apPrefixes), TeeMetrics);
+			for(size_t Index = 0; Index < std::size(s_apPrefixes); ++Index)
+			{
+				CUIRect Button = PrefixActions.m_aButtons[Index];
+				if(DoButton_Menu(&s_aPrefixButtons[Index], s_apPrefixes[Index], 0, &Button) && Column.Input() && !Ui()->RenderOnly())
+				{
+					str_copy(g_Config.m_ClSkinPrefix, s_apPrefixes[Index]);
+					ShouldRefresh = true;
+				}
+			}
+		}
+	};
+	const auto *pScope = CSettingsContentLayoutScope::Current();
+	if(pScope == nullptr)
+	{
+		const auto Layout = ResolveSettingsTeeOptionsLayout(Content, TeeMetrics);
+		CUIRect Downloads = Layout.m_Downloads, Prefix = Layout.m_Prefix;
+		aColumns[0].m_RenderMeasured(Downloads);
+		aColumns[1].m_RenderMeasured(Prefix);
+	}
+	else
+	{
+		dbg_assert(s_pTeeOptionsContent != nullptr, "missing Tee options declaration owner");
+		const float Width = pScope->m_pLayout ? pScope->m_pLayout->Width() : Content.w;
+		auto Layout = ResolveSettingsTeeOptionsLayout({Content.x, Content.y, Width, 0}, TeeMetrics);
+		const bool Inline = Layout.m_Downloads.y == Layout.m_Prefix.y;
+		std::array<CUIRect, 2> aViews{Layout.m_Downloads, Layout.m_Prefix};
+		for(size_t Index = 0; Index < aColumns.size(); ++Index)
+		{
+			qm_settings_content::UseDeclaredContent(aColumns[Index], Ui(), TextRender());
+			if(Flow.Declaring())
+				s_pTeeOptionsContent->m_apLayouts[Index] = aColumns[Index].m_ResolveContentLayout(s_pTeeOptionsContent->m_aCaches[Index], aViews[Index].w);
+			if(s_pTeeOptionsContent->m_apLayouts[Index])
+				aViews[Index].h = s_pTeeOptionsContent->m_apLayouts[Index]->Height();
+		}
+		const float Height = Inline ? std::max(aViews[0].h, aViews[1].h) : aViews[0].h + TeeMetrics.m_SectionGap + aViews[1].h;
+		CUIRect Block;
+		if(!Flow.Control("tee-skin-options-columns", Height, Block))
+			return;
+		aViews[0].x = aViews[1].x = Block.x;
+		aViews[0].y = aViews[1].y = Block.y;
+		if(Inline)
+			aViews[1].x += aViews[0].w + TeeMetrics.m_SectionGap;
+		else
+			aViews[1].y += aViews[0].h + TeeMetrics.m_SectionGap;
+		for(size_t Index = 0; Index < aColumns.size(); ++Index)
+		{
+			const auto &pLayout = s_pTeeOptionsContent->m_apLayouts[Index];
+			if(!pLayout || pLayout->Width() <= 0.0f)
+				continue;
+			if(Flow.Input() && !Ui()->RenderOnly())
+				aColumns[Index].m_ContentLayoutInput(*pLayout, aViews[Index]);
+			else if(Flow.Drawing())
+				aColumns[Index].m_ContentLayoutDraw(*pLayout, aViews[Index]);
 		}
 	}
 	if(ShouldRefresh)
@@ -1074,6 +1139,7 @@ void CMenus::RenderSettingsTeeSkinList(CUIRect Content, const SSettingsContentMe
 	if(s_vVisibleSkinIndices.capacity() < 32)
 		s_vVisibleSkinIndices.reserve(32);
 	std::vector<size_t> &vVisibleSkinIndices = s_vVisibleSkinIndices;
+	std::vector<std::string> vCurrentVisibleSkinNames;
 	const SQmPerformanceMetrics &PerfSnapshot = GameClient()->m_QmMonitoring.Snapshot().m_Performance;
 	SSettingsAdaptiveBudgetInput TeeBudgetInput;
 	TeeBudgetInput.m_FrameId = Client()->PerfFrame();
@@ -1258,6 +1324,8 @@ void CMenus::RenderSettingsTeeSkinList(CUIRect Content, const SSettingsContentMe
 			++RowsRendered;
 
 		vVisibleSkinIndices.push_back(i);
+		if(CSettingsSkinLoadViewport::RowVisible(Ui()->MeasurementOnly(), Item.m_Rect, Ui()->IsClipped() ? Ui()->ClipArea() : nullptr))
+			vCurrentVisibleSkinNames.emplace_back(pSkinContainer->Name());
 		const bool EntryNonTerminalWaiting = !SourceReady &&
 						     (State == CSkins::CSkinContainer::EState::UNLOADED ||
 							     State == CSkins::CSkinContainer::EState::BACKGROUND_REQUESTED ||
@@ -1424,9 +1492,11 @@ void CMenus::RenderSettingsTeeSkinList(CUIRect Content, const SSettingsContentMe
 	const int TailItems = (int)vSkinList.size() - VisibleRange.m_EndItem;
 	if(TailItems > 0)
 		s_ListBox.SkipItems(TailItems);
+	GameClient()->m_Skins.SetSettingsVisibleSkinLoads(std::move(vCurrentVisibleSkinNames), Ui()->MeasurementOnly());
 	for(auto It = vVisibleSkinIndices.rbegin(); It != vVisibleSkinIndices.rend(); ++It)
 	{
-		vSkinList[*It].RequestLoad(ESettingsResourcePriority::VISIBLE);
+		if(!Ui()->MeasurementOnly())
+			vSkinList[*It].RequestLoad(ESettingsResourcePriority::VISIBLE);
 	}
 	const bool SkinListScrollInteraction = m_SettingsScrollActive || s_ListBox.ScrollbarActive() || s_ListBox.ScrollbarAnimating() || s_SkinListScrollActiveLastFrame;
 	const int PreviousSkinListScrollCooldownFrames = s_SkinListScrollCooldownFrames;
@@ -1910,7 +1980,8 @@ void CMenus::RenderSettingsTeeSkinList(CUIRect Content, const SSettingsContentMe
 	TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
 	TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 	static CButtonContainer s_SkinRefreshButton;
-	if(!Ui()->RenderOnly() && (DoButton_Menu_QmIcon(&s_SkinRefreshButton, EQmIcon::ARROW_ROTATE_RIGHT, FONT_ICON_ARROW_ROTATE_RIGHT, 0, &RefreshButton) || Input()->KeyPress(KEY_F5) || (Input()->KeyPress(KEY_R) && Input()->ModifierIsPressed())))
+	const bool RefreshClicked = DoButton_Menu_QmIcon(&s_SkinRefreshButton, EQmIcon::ARROW_ROTATE_RIGHT, FONT_ICON_ARROW_ROTATE_RIGHT, 0, &RefreshButton) != 0;
+	if(!Ui()->RenderOnly() && (RefreshClicked || Input()->KeyPress(KEY_F5) || (Input()->KeyPress(KEY_R) && Input()->ModifierIsPressed())))
 	{
 		ShouldRefresh = true;
 	}
@@ -2136,7 +2207,10 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 	int &QueueIndex = QueueDummy ? g_Config.m_QmDummySkinQueueIndex : g_Config.m_QmSkinQueueIndex;
 	int &QueueRandomJoin = QueueDummy ? g_Config.m_QmDummySkinQueueRandomJoin : g_Config.m_QmSkinQueueRandomJoin;
 	const int AppliedPresetIndex = GameClient()->m_Skins.AppliedSkinQueuePresetIndex(QueueDummy);
-	const int ActivePresetIndex = AppliedPresetIndex;
+	int &SelectedPresetIndex = gs_TeeSettingsPageState.m_aSelectedQueuePreset[QueueDummy];
+	if(SelectedPresetIndex < 0 || (size_t)SelectedPresetIndex >= GameClient()->m_Skins.SkinQueuePresets(QueueDummy).size())
+		SelectedPresetIndex = AppliedPresetIndex >= 0 ? AppliedPresetIndex : 0;
+	const int ActivePresetIndex = SelectedPresetIndex;
 	const bool QueueDirty = GameClient()->m_Skins.SkinQueueDirty(QueueDummy);
 	const auto &SkinQueue = GameClient()->m_Skins.SkinQueue(QueueDummy);
 	const auto &vQueuePresets = GameClient()->m_Skins.SkinQueuePresets(QueueDummy);
@@ -2152,7 +2226,18 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 	CUIRect QueueTarget;
 	QueueSection.HSplitTop(TeeMetrics.m_LineHeight, &QueueTarget, &QueueSection);
 	QueueSection.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &QueueSection);
-	DoSettingsMenuLabel(SETTINGS_TEE, -1, -1, "tee-queue-target", &QueueTarget, QueueDummy ? Localize("Dummy") : Localize("Player"), BodySize, TEXTALIGN_ML);
+	CUIRect PlayerTarget, DummyTarget;
+	static ui_widget::SSettingsActionGroupState s_QueueTargetWidths;
+	const char *apQueueTargets[] = {Localize("Player"), Localize("Dummy")};
+	const auto TargetActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_QueueTargetWidths, QueueTarget, apQueueTargets, std::size(apQueueTargets), TeeMetrics);
+	PlayerTarget = TargetActions.m_aButtons[0];
+	DummyTarget = TargetActions.m_aButtons[1];
+	static CButtonContainer s_aQueueTargets[NUM_DUMMIES];
+	int RequestedTarget = QueueDummy;
+	if(DoSettingsButton_Menu(SETTINGS_TEE, -1, -1, &s_aQueueTargets[0], "tee-queue-target-player", Localize("Player"), QueueDummy == 0, &PlayerTarget, TeeMetrics))
+		RequestedTarget = 0;
+	if(DoSettingsButton_Menu(SETTINGS_TEE, -1, -1, &s_aQueueTargets[1], "tee-queue-target-dummy", Localize("Dummy"), QueueDummy == 1, &DummyTarget, TeeMetrics))
+		RequestedTarget = 1;
 	QueueSection.HSplitTop(TeeMetrics.m_LineHeight, &QueueHeader, &QueueSection);
 	if(DoSettingsButton_CheckBox(SETTINGS_TEE, -1, &QueueEnabled, QueueDummy ? "tee-dummy-skin-queue-enabled" : "tee-player-skin-queue-enabled", Localize("Enable rotation"), QueueEnabled, &QueueHeader))
 	{
@@ -2239,9 +2324,12 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 	QueueList.HSplitTop(TeeMetrics.m_LineHeight, &QueueListHeader, &QueueListBody);
 	QueueListBody.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &QueueListBody);
 	QueueListBody.HSplitTop(minimum(QueueListBody.h, QueueGeometry.m_QueueListViewportHeight), &QueueListBody, nullptr);
-	CUIRect QueueListHeaderLabel, QueueRandomRect, ClearQueueRect;
-	QueueListHeader.VSplitRight(minimum(QueueListHeader.w, TeeMetrics.m_ButtonHeight), &QueueListHeader, &ClearQueueRect);
-	QueueListHeader.VSplitRight(minimum(QueueListHeader.w, TeeMetrics.m_ButtonHeight), &QueueListHeaderLabel, &QueueRandomRect);
+	CUIRect QueueListHeaderLabel, QueueRandomRect, QueueShuffleRect, ClearQueueRect;
+	const auto QueueHeaderActions = ResolveSettingsInputActionsLayout(QueueListHeader, 3, TeeMetrics);
+	QueueListHeaderLabel = QueueHeaderActions.m_Input;
+	QueueRandomRect = QueueHeaderActions.m_Actions.m_aButtons[0];
+	QueueShuffleRect = QueueHeaderActions.m_Actions.m_aButtons[1];
+	ClearQueueRect = QueueHeaderActions.m_Actions.m_aButtons[2];
 	CurrentQueueLabelProps.m_MaxWidth = QueueListHeaderLabel.w;
 	Ui()->DoLabel(&QueueListHeaderLabel, aCurrentQueueLabel, BodySize, TEXTALIGN_ML, CurrentQueueLabelProps);
 	static CButtonContainer s_TeeRandomSkinQueueButton;
@@ -2255,6 +2343,11 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 		}
 	}
 	GameClient()->m_Tooltips.DoToolTip(&s_TeeRandomSkinQueueButton, &QueueRandomRect, Localize("Apply a random skin from the queue"));
+	static CButtonContainer s_TeeShuffleSkinQueueButton;
+	const bool CanShuffleQueue = SkinQueue.size() > 1;
+	if(Ui()->DoButton_QmIcon(&s_TeeShuffleSkinQueueButton, EQmIcon::ARROWS_LEFT_RIGHT, FONT_ICON_ARROWS_LEFT_RIGHT, CanShuffleQueue ? 0 : -1, &QueueShuffleRect, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL) && CanShuffleQueue)
+		GameClient()->m_Skins.ShuffleSkinQueue(QueueDummy);
+	GameClient()->m_Tooltips.DoToolTip(&s_TeeShuffleSkinQueueButton, &QueueShuffleRect, Localize("Shuffle skin queue"));
 	static CButtonContainer s_TeeClearCurrentSkinQueueButton;
 	if(Ui()->DoButton_QmIcon(&s_TeeClearCurrentSkinQueueButton, EQmIcon::TRASH, FONT_ICON_TRASH, 0, &ClearQueueRect, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL))
 	{
@@ -2467,11 +2560,10 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 
 	if(QueuePresets.h > 0.0f)
 	{
-		CUIRect PresetHeader, PresetList, PresetControls;
+		CUIRect PresetHeader, PresetList;
 		QueuePresets.HSplitTop(TeeMetrics.m_LineHeight, &PresetHeader, &QueuePresets);
-		const float ActionGapWidth = TeeMetrics.m_LineSpacing;
-		const float ActionButtonWidth = TeeMetrics.m_ButtonHeight;
-		PresetHeader.VSplitRight(ActionButtonWidth * 4.0f + ActionGapWidth * 3.0f, &PresetHeader, &PresetControls);
+		const auto PresetHeaderActions = ResolveSettingsInputActionsLayout(PresetHeader, 4, TeeMetrics);
+		PresetHeader = PresetHeaderActions.m_Input;
 		char aPresetLabel[128];
 		str_format(aPresetLabel, sizeof(aPresetLabel), "%s (%d)", Localize("Preset bar"), (int)vQueuePresets.size());
 		SLabelProperties PresetLabelProps;
@@ -2481,14 +2573,12 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 		PresetLabelProps.m_MaxWidth = PresetHeader.w;
 		DoSettingsMenuLabel(SETTINGS_TEE, -1, -1, "tee_queue_presets_label", &PresetHeader, aPresetLabel, BodySize, TEXTALIGN_ML, PresetLabelProps);
 		CUIRect SaveButton, SaveAsButton, RenamePresetButton, RemovePresetButton;
-		PresetControls.VSplitLeft(ActionButtonWidth, &SaveButton, &PresetControls);
-		PresetControls.VSplitLeft(ActionGapWidth, nullptr, &PresetControls);
-		PresetControls.VSplitLeft(ActionButtonWidth, &SaveAsButton, &PresetControls);
-		PresetControls.VSplitLeft(ActionGapWidth, nullptr, &PresetControls);
-		PresetControls.VSplitLeft(ActionButtonWidth, &RenamePresetButton, &PresetControls);
-		PresetControls.VSplitLeft(ActionGapWidth, nullptr, &RemovePresetButton);
+		SaveButton = PresetHeaderActions.m_Actions.m_aButtons[0];
+		SaveAsButton = PresetHeaderActions.m_Actions.m_aButtons[1];
+		RenamePresetButton = PresetHeaderActions.m_Actions.m_aButtons[2];
+		RemovePresetButton = PresetHeaderActions.m_Actions.m_aButtons[3];
 		const bool HasAppliedPreset = ActivePresetIndex >= 0 && (size_t)ActivePresetIndex < vQueuePresets.size();
-		const bool CanSavePreset = HasAppliedPreset && ActivePresetIndex != (int)CSkins::SKIN_QUEUE_SERVER_PRESET && QueueDirty;
+		const bool CanSavePreset = HasAppliedPreset && ActivePresetIndex == AppliedPresetIndex && ActivePresetIndex != (int)CSkins::SKIN_QUEUE_SERVER_PRESET && QueueDirty;
 		const bool CanSaveAsPreset = !SkinQueue.empty();
 		const bool CanRenamePreset = HasAppliedPreset && ActivePresetIndex != (int)CSkins::SKIN_QUEUE_SERVER_PRESET;
 		const bool CanRemovePreset = HasAppliedPreset && (size_t)ActivePresetIndex >= 2;
@@ -2501,7 +2591,8 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 		static CButtonContainer s_SaveAsPresetButton;
 		if(Ui()->DoButton_QmIcon(&s_SaveAsPresetButton, EQmIcon::COPY, FONT_ICON_COPY, CanSaveAsPreset ? 0 : -1, &SaveAsButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL) && CanSaveAsPreset)
 		{
-			GameClient()->m_Skins.AddSkinQueuePresetFromCurrent(QueueDummy);
+			if(GameClient()->m_Skins.AddSkinQueuePresetFromCurrent(QueueDummy))
+				SelectedPresetIndex = GameClient()->m_Skins.AppliedSkinQueuePresetIndex(QueueDummy);
 		}
 		GameClient()->m_Tooltips.DoToolTip(&s_SaveAsPresetButton, &SaveAsButton, CanSaveAsPreset ? Localize("Save current queue as a new preset") : Localize("Queue is empty"));
 		static CButtonContainer s_RenameSelectedPresetButton;
@@ -2520,6 +2611,20 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 		GameClient()->m_Tooltips.DoToolTip(&s_RemoveSelectedPresetButton, &RemovePresetButton, CanRemovePreset ? Localize("Delete this preset") : Localize("Apply a preset first"));
 
 		QueuePresets.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &QueuePresets);
+		CUIRect ApplyRow, ApplyPlayer, ApplyDummy;
+		QueuePresets.HSplitTop(TeeMetrics.m_ButtonHeight, &ApplyRow, &QueuePresets);
+		QueuePresets.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &QueuePresets);
+		static ui_widget::SSettingsActionGroupState s_QueueApplyWidths;
+		const char *apApplyLabels[] = {Localize("Apply to player"), Localize("Apply to dummy")};
+		const auto ApplyActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_QueueApplyWidths, ApplyRow, apApplyLabels, std::size(apApplyLabels), TeeMetrics);
+		ApplyPlayer = ApplyActions.m_aButtons[0];
+		ApplyDummy = ApplyActions.m_aButtons[1];
+		static CButtonContainer s_aApplyQueuePresetButtons[NUM_DUMMIES];
+		int ApplyPresetTarget = -1;
+		if(DoSettingsButton_Menu(SETTINGS_TEE, -1, -1, &s_aApplyQueuePresetButtons[0], "tee-queue-apply-player", Localize("Apply to player"), HasAppliedPreset ? 0 : -1, &ApplyPlayer, TeeMetrics) && HasAppliedPreset)
+			ApplyPresetTarget = 0;
+		if(DoSettingsButton_Menu(SETTINGS_TEE, -1, -1, &s_aApplyQueuePresetButtons[1], "tee-queue-apply-dummy", Localize("Apply to dummy"), HasAppliedPreset ? 0 : -1, &ApplyDummy, TeeMetrics) && HasAppliedPreset)
+			ApplyPresetTarget = 1;
 		PresetList = QueuePresets;
 		if(vQueuePresets.empty())
 		{
@@ -2577,7 +2682,7 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 				}
 				else
 				{
-					pPresetTooltip = Localize("Apply this preset");
+					pPresetTooltip = Localize("Select a preset, then apply it to player or dummy");
 				}
 				GameClient()->m_Tooltips.DoToolTip(&s_vPresetItemIds[i], &SelectRect, pPresetTooltip);
 			}
@@ -2594,58 +2699,73 @@ void CMenus::RenderSettingsTeeSkinQueue(CUIRect Content, const SSettingsContentM
 				m_SkinQueuePresetRenamePopupContext.m_PresetIndex = RenamePresetIndex;
 				m_SkinQueuePresetRenamePopupContext.m_NameInput.Set(vQueuePresets[RenamePresetIndex].m_Name.c_str());
 				m_SkinQueuePresetRenamePopupContext.m_NameInput.SelectAll();
-				Ui()->DoPopupMenu(&m_SkinQueuePresetRenamePopupContext, Ui()->MouseX(), Ui()->MouseY(), 260.0f, 72.0f, &m_SkinQueuePresetRenamePopupContext, PopupSkinQueuePresetRename);
+				auto Props = ui_widget::SecondaryPanelProperties(ui_widget::ESecondaryPanelPlacement::ANCHORED);
+				Props.m_OnClosed = [this] { Ui()->ReleaseActiveTextInput(&m_SkinQueuePresetRenamePopupContext.m_NameInput); };
+				Ui()->DoPopupMenu(&m_SkinQueuePresetRenamePopupContext, Ui()->MouseX(), Ui()->MouseY(), 260.0f, 72.0f, &m_SkinQueuePresetRenamePopupContext, PopupSkinQueuePresetRename, Props);
 			}
 			else if(SelectPresetIndex >= 0)
 			{
-				CommitSettingsTeeSkinEdits();
-				const SQmRecentTeeSkin Before = QmCurrentTeeSkin(g_Config, QueueDummy != 0);
-				GameClient()->m_Skins.ApplySkinQueuePreset((size_t)SelectPresetIndex, QueueDummy);
-				if(!(Before == QmCurrentTeeSkin(g_Config, QueueDummy != 0)))
-					GameClient()->m_Skins.RecordRecentSkin(QueueDummy);
+				SelectedPresetIndex = SelectPresetIndex;
 			}
 			else if(RemovePresetIndex >= 0)
 			{
 				GameClient()->m_Skins.RemoveSkinQueuePreset((size_t)RemovePresetIndex, QueueDummy);
+				for(int &Index : gs_TeeSettingsPageState.m_aSelectedQueuePreset)
+					Index = CSkins::NextAppliedPresetIndexAfterRemove(Index, RemovePresetIndex);
+			}
+			else if(ApplyPresetTarget >= 0)
+			{
+				CommitSettingsTeeSkinEdits();
+				const SQmRecentTeeSkin Before = QmCurrentTeeSkin(g_Config, ApplyPresetTarget != 0);
+				GameClient()->m_Skins.ApplySkinQueuePreset((size_t)ActivePresetIndex, ApplyPresetTarget);
+				gs_TeeSettingsPageState.m_aSelectedQueuePreset[ApplyPresetTarget] = ActivePresetIndex;
+				if(!(Before == QmCurrentTeeSkin(g_Config, ApplyPresetTarget != 0)))
+					GameClient()->m_Skins.RecordRecentSkin(ApplyPresetTarget);
 			}
 		}
+	}
+	if(RequestedTarget != QueueDummy && !Ui()->RenderOnly())
+	{
+		CommitSettingsTeeSkinEdits();
+		m_Dummy = RequestedTarget != 0;
+		m_SkinListScrollToSelected = true;
 	}
 }
 
 void CMenus::RenderSettingsTeeGlow(CUIRect Content, const SSettingsContentMetrics &TeeMetrics)
 {
-	const float UiScale = TeeMetrics.m_UiScale;
 	const float BodySize = TeeMetrics.m_BodySize;
-	CUIRect TeeGlowPanel = Content;
+	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect TeeGlowRow;
-	TeeGlowPanel.HSplitTop(TeeMetrics.m_LineHeight, &TeeGlowRow, &TeeGlowPanel);
-	if(DoSettingsButton_CheckBox(SETTINGS_TEE, -1, &g_Config.m_QmTeamTeeGlow, "tee-team-glow", Localize("Team tee glow"), g_Config.m_QmTeamTeeGlow, &TeeGlowRow))
+	if(Flow.Control("tee-team-glow", TeeMetrics.m_LineHeight, TeeGlowRow))
 	{
-		g_Config.m_QmTeamTeeGlow ^= 1;
+		if(DoSettingsButton_CheckBox(SETTINGS_TEE, -1, &g_Config.m_QmTeamTeeGlow, "tee-team-glow", Localize("Team tee glow"), g_Config.m_QmTeamTeeGlow, &TeeGlowRow) && Flow.Input() && !Ui()->RenderOnly())
+			g_Config.m_QmTeamTeeGlow ^= 1;
 	}
-	TeeGlowPanel.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &TeeGlowPanel);
-	TeeGlowPanel.HSplitTop(TeeMetrics.m_LineHeight, &TeeGlowRow, &TeeGlowPanel);
-	CUIRect Team0GlowLabel, Team0GlowDropDown;
-	TeeGlowRow.VSplitRight(minimum(TeeGlowRow.w, 90.0f * UiScale), &Team0GlowLabel, &Team0GlowDropDown);
-	Team0GlowLabel.VSplitRight(TeeMetrics.m_LineSpacing, &Team0GlowLabel, nullptr);
-	DoSettingsMenuLabel(SETTINGS_TEE, -1, -1, "tee-team-glow-team0-label", &Team0GlowLabel, Localize("Team 0 glow"), BodySize, TEXTALIGN_ML);
-	const char *apTeam0GlowModes[] = {Localize("Off"), Localize("Tee color"), Localize("Custom color"), Localize("Rainbow")};
-	static CUi::SDropDownState s_Team0GlowModeDropDownState;
-	const int Team0ModeNew = DoSettingsDropDown(&Team0GlowDropDown, std::clamp(g_Config.m_QmTeamTeeGlowTeam0Mode, 0, 3), apTeam0GlowModes, std::size(apTeam0GlowModes), s_Team0GlowModeDropDownState, {}, &g_Config.m_QmTeamTeeGlowTeam0Mode, nullptr, &TeeGlowRow);
-	if(Team0ModeNew != g_Config.m_QmTeamTeeGlowTeam0Mode)
-		g_Config.m_QmTeamTeeGlowTeam0Mode = Team0ModeNew;
+	if(Flow.Control("tee-team-glow-team0-mode", TeeMetrics.m_LineHeight, TeeGlowRow, TeeMetrics.m_LineSpacing))
+	{
+		CUIRect Team0GlowLabel, Team0GlowDropDown;
+		SplitSettingsControlRow(TeeGlowRow, TeeMetrics, &Team0GlowLabel, &Team0GlowDropDown, ESettingsControlWidth::SHORT_CHOICE);
+		DoSettingsMenuLabel(SETTINGS_TEE, -1, -1, "tee-team-glow-team0-label", &Team0GlowLabel, Localize("Team 0 glow"), BodySize, TEXTALIGN_ML);
+		const char *apTeam0GlowModes[] = {Localize("Off"), Localize("Tee color"), Localize("Custom color"), Localize("Rainbow")};
+		static CUi::SDropDownState s_Team0GlowModeDropDownState;
+		const int Team0ModeNew = DoSettingsDropDown(&Team0GlowDropDown, std::clamp(g_Config.m_QmTeamTeeGlowTeam0Mode, 0, 3), apTeam0GlowModes, std::size(apTeam0GlowModes), s_Team0GlowModeDropDownState, {}, &g_Config.m_QmTeamTeeGlowTeam0Mode, nullptr, &TeeGlowRow);
+		if(Flow.Input() && !Ui()->RenderOnly() && Team0ModeNew != g_Config.m_QmTeamTeeGlowTeam0Mode)
+			g_Config.m_QmTeamTeeGlowTeam0Mode = Team0ModeNew;
+	}
 	const auto Slider = [&](const char *pId, const char *pLabel, int *pValue) {
-		TeeGlowPanel.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &TeeGlowPanel);
-		TeeGlowPanel.HSplitTop(TeeMetrics.m_LineHeight, &TeeGlowRow, &TeeGlowPanel);
-		DoSettingsScrollbarOption(SETTINGS_TEE, -1, pId, pValue, pValue, &TeeGlowRow, pLabel, 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+		if(Flow.Control(pId, TeeMetrics.m_LineHeight, TeeGlowRow, TeeMetrics.m_LineSpacing))
+			DoSettingsScrollbarOption(SETTINGS_TEE, -1, pId, pValue, pValue, &TeeGlowRow, pLabel, 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
 	};
 	Slider("tee-team-glow-strength", Localize("Team tee glow intensity"), &g_Config.m_QmTeamTeeGlowStrength);
 	Slider("tee-team-glow-size", Localize("Team tee glow halo size"), &g_Config.m_QmTeamTeeGlowSize);
 	if(g_Config.m_QmTeamTeeGlowTeam0Mode == 2)
 	{
-		TeeGlowPanel.HSplitTop(TeeMetrics.m_LineSpacing, nullptr, &TeeGlowPanel);
-		static CButtonContainer s_Team0GlowColorId;
-		DoLine_ColorPicker(&s_Team0GlowColorId, TeeMetrics, &TeeGlowPanel, Localize("Team 0 glow color"), &g_Config.m_QmTeamTeeGlowColor, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f), false, nullptr, false, false);
+		if(Flow.Control("tee-team-glow-team0-color", TeeMetrics.m_ButtonHeight, TeeGlowRow, TeeMetrics.m_LineSpacing))
+		{
+			static CButtonContainer s_Team0GlowColorId;
+			DoLine_ColorPicker(&s_Team0GlowColorId, TeeMetrics, &TeeGlowRow, Localize("Team 0 glow color"), &g_Config.m_QmTeamTeeGlowColor, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f), false, nullptr, false, false);
+		}
 	}
 }
 
@@ -2683,12 +2803,12 @@ namespace qm_card_catalog
 			return false;
 		CMenus *pMenus = Ctx.m_pMenus;
 		const SSettingsContentMetrics Metrics = Ctx.m_Metrics;
+		FSettingsCardMeasure MeasureBlock;
 		Out = {};
 		Out.m_Spec = {pDefault->m_pStableId, Localize(pDefault->m_pTitle), qm_card_registry::ResolveLocalizedDescription(*pDefault)};
 		if(str_comp(pStableId, "deck:tee-identity") == 0)
 		{
-			Out.m_MeasureEachFrame = true;
-			Out.m_Measure = [pMenus, Metrics](float Width) {
+			MeasureBlock = [pMenus, Metrics](float Width) {
 				const bool Custom = (pMenus->m_Dummy ? g_Config.m_ClDummyUseCustomColor : g_Config.m_ClPlayerUseCustomColor) != 0;
 				return ResolveSettingsTeeEditorLayout({0.0f, 0.0f, Width, 0.0f}, Metrics, Custom).m_Height;
 			};
@@ -2698,12 +2818,22 @@ namespace qm_card_catalog
 		}
 		else if(str_comp(pStableId, "deck:tee-skin-options") == 0)
 		{
-			Out.m_Measure = [Metrics](float Width) { return ResolveSettingsTeeOptionsLayout({0.0f, 0.0f, Width, 0.0f}, Metrics).m_Height; };
-			Out.m_Render = [pMenus, Metrics](CUIRect Content) { pMenus->RenderSettingsTeeOptions(Content, Metrics); };
+			auto pState = std::make_shared<STeeOptionsContentState>();
+			Out.m_RenderMeasured = [pMenus, Metrics, pState, ReadOnly = Ctx.m_ReadOnly](CUIRect &Content) {
+				auto *pPrevious = s_pTeeOptionsContent;
+				s_pTeeOptionsContent = pState.get();
+				// 后台只隔离输入；只有测量和预热才抑制真实控件绘制。
+				const bool PrewarmOnly = pMenus->Ui()->MeasurementOnly() || pMenus->m_MenuTextPlanCollecting || (ReadOnly && !pMenus->Ui()->BackgroundRender());
+				const CUiScopedMeasurement Measurement(pMenus->Ui(), PrewarmOnly);
+				pMenus->RenderSettingsTeeOptions(Content, Metrics);
+				s_pTeeOptionsContent = pPrevious;
+			};
+			UseDeclaredModuleContent(Ctx, Out);
+			return true;
 		}
 		else if(str_comp(pStableId, "deck:tee-skin-list") == 0)
 		{
-			Out.m_Measure = [Metrics](float Width) { return ResolveSettingsTeeToolbarLayout({0.0f, 0.0f, Width, 0.0f}, Metrics).m_Height + 300.0f * Metrics.m_UiScale; };
+			MeasureBlock = [Metrics](float Width) { return ResolveSettingsTeeToolbarLayout({0.0f, 0.0f, Width, 0.0f}, Metrics).m_Height + 300.0f * Metrics.m_UiScale; };
 			Out.m_RenderWhenClipped = true;
 			Out.m_Render = [pMenus, Metrics, Viewport = Ctx.m_Page.m_ScrollViewport](CUIRect Content) {
 				if(pMenus->Ui()->RenderOnly() || Content.Intersection(Viewport).h > 0.0f)
@@ -2714,8 +2844,7 @@ namespace qm_card_catalog
 		}
 		else if(str_comp(pStableId, "deck:tee-skin-queue") == 0)
 		{
-			Out.m_MeasureEachFrame = true;
-			Out.m_Measure = [pMenus, Metrics](float Width) {
+			MeasureBlock = [pMenus, Metrics](float Width) {
 				const CSkins &Skins = pMenus->GameClient()->m_Skins;
 				return ResolveSettingsTeeQueuePanelHeight(Metrics, static_cast<int>(Skins.SkinQueue(pMenus->m_Dummy).size()), static_cast<int>(Skins.SkinQueuePresets(pMenus->m_Dummy).size()), Width);
 			};
@@ -2723,12 +2852,19 @@ namespace qm_card_catalog
 		}
 		else if(str_comp(pStableId, "deck:tee-glow") == 0)
 		{
-			Out.m_MeasureEachFrame = true;
-			Out.m_Measure = [Metrics](float) { return ResolveSettingsTeeGlowHeight(Metrics, g_Config.m_QmTeamTeeGlowTeam0Mode == 2); };
-			Out.m_Render = [pMenus, Metrics](CUIRect Content) { pMenus->RenderSettingsTeeGlow(Content, Metrics); };
+			Out.m_RenderMeasured = [pMenus, Metrics, ReadOnly = Ctx.m_ReadOnly](CUIRect &Content) {
+				// 与皮肤选项共用测量语义，后台保留发光控件的可见绘制。
+				const bool PrewarmOnly = pMenus->Ui()->MeasurementOnly() || pMenus->m_MenuTextPlanCollecting || (ReadOnly && !pMenus->Ui()->BackgroundRender());
+				const CUiScopedMeasurement Measurement(pMenus->Ui(), PrewarmOnly);
+				pMenus->RenderSettingsTeeGlow(Content, Metrics);
+			};
+			UseDeclaredModuleContent(Ctx, Out);
+			return true;
 		}
 		else
 			return false;
+		// 专用 Tee 编辑器与网格共用外层布局发布，内部仍由既有纯几何解析器管理。
+		qm_settings_content::UseDeclaredBlockContent(Out, Ctx.m_UiContext.m_pUi, QmCardRenderHook::TextRenderer(pMenus), std::move(MeasureBlock));
 		return true;
 	}
 }

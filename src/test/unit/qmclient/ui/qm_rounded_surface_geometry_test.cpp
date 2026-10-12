@@ -5,6 +5,33 @@
 
 #include <gtest/gtest.h>
 
+TEST(QmRoundedSurface, BorderMeshStaysInsideTinyAndNarrowSurfaces)
+{
+	for(const vec2 Size : {vec2(1, 1), vec2(2, 40), vec2(160, 24)})
+	{
+		SCOPED_TRACE(Size.x);
+		SCOPED_TRACE(Size.y);
+		SRoundedSurfaceParams Params;
+		Params.m_Radius = 100;
+		Params.m_BorderWidth = 100;
+		const auto Plan = ResolveRoundedSurfacePlan({20, 30, Size.x, Size.y}, Params, false);
+		const auto Mesh = ResolveRoundedSurfaceBorderMesh(Plan, IGraphics::CORNER_ALL);
+		for(const auto &Quad : Mesh)
+		{
+			for(float X : {Quad.m_X0, Quad.m_X1, Quad.m_X2, Quad.m_X3})
+			{
+				EXPECT_GE(X, Plan.m_Rect.x);
+				EXPECT_LE(X, Plan.m_Rect.x + Plan.m_Rect.w);
+			}
+			for(float Y : {Quad.m_Y0, Quad.m_Y1, Quad.m_Y2, Quad.m_Y3})
+			{
+				EXPECT_GE(Y, Plan.m_Rect.y);
+				EXPECT_LE(Y, Plan.m_Rect.y + Plan.m_Rect.h);
+			}
+		}
+	}
+}
+
 TEST(QmRoundedSurface, QuantizedGeometryClampsRadiusAndInvalidSizes)
 {
 	const SRoundedRectGeometry Geometry = ResolveRoundedRectGeometry(0.24f, 0.74f, 10.32f, 4.19f, 3.9f, 0.5f);

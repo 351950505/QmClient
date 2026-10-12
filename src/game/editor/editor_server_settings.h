@@ -271,6 +271,7 @@ public:
 		bool m_AllowUnknownCommands;
 		SEditBoxDropdownContext m_DropdownContext;
 		int m_CurrentCompletionIndex;
+		CQmEditorSettingsCommandBrowser m_CommandBrowser;
 
 	protected:
 		// Methods

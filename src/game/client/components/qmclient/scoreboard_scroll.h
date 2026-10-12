@@ -17,6 +17,7 @@ inline bool QmScoreboardUiInput(TUi &Ui, bool Interactive, const IInput::CEvent 
 inline void QmScoreboardScrollAlpha(CScrollRegionParams &Params, float ContentAlpha)
 {
 	const float Alpha = std::clamp(ContentAlpha, 0.0f, 1.0f);
+	Params.m_SliderAlpha *= Alpha;
 	Params.m_ClipBgColor.a *= Alpha;
 	Params.m_ScrollbarBgColor.a *= Alpha;
 	Params.m_RailBgColor.a *= Alpha;
