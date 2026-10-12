@@ -19,6 +19,7 @@
 #include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsLabelMetadata.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
+#include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiButtonStyle.h>
 #include <game/client/QmUi/UiSurface.h>
 #include <game/client/QmUi/UiTheme.h>
@@ -722,3 +723,16 @@ static void BM_RoundedSurfaceBorderMesh(benchmark::State &State)
 	State.SetItemsProcessed(State.iterations());
 }
 BENCHMARK(BM_RoundedSurfaceBorderMesh);
+
+static void BM_SettingsToggleGroupGeometry(benchmark::State &State)
+{
+	// 固定八个不同文本宽度的同组开关，测量每次真实解析的分列与行高成本。
+	const std::array<SSettingsToggleSize, 8> aItems = {{{80, 24}, {120, 24}, {90, 24}, {180, 24}, {110, 24}, {70, 24}, {130, 24}, {100, 24}}};
+	for(auto _ : State)
+	{
+		const auto Grid = ResolveSettingsToggleGrid(static_cast<float>(State.range(0)), aItems, 4);
+		benchmark::DoNotOptimize(Grid);
+	}
+	State.SetItemsProcessed(State.iterations() * aItems.size());
+}
+BENCHMARK(BM_SettingsToggleGroupGeometry)->Arg(200)->Arg(400)->Arg(800);

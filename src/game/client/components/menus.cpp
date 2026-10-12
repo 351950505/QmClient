@@ -768,6 +768,7 @@ qm_card_order::CModel &CMenus::SettingsCardOrderModelForRenderPass()
 	{
 		m_SettingsCardRenderOnlyOrderModel.LoadMerged(g_Config.m_QmGlobalCardOrder, qm_card_registry::BuildDefaultEntries());
 		qm_card_registry::RepairLegacyCreditsTabs(m_SettingsCardRenderOnlyOrderModel);
+		qm_card_registry::RepairLegacyNameplateTitleLayout(m_SettingsCardRenderOnlyOrderModel);
 		qm_card_registry::RepairLegacyTeeLayout(m_SettingsCardRenderOnlyOrderModel);
 		m_SettingsCardRenderOnlyOrderSource = g_Config.m_QmGlobalCardOrder;
 		m_SettingsCardRenderOnlyOrderInitialized = true;
@@ -828,8 +829,9 @@ void CMenus::LoadSettingsCardOrderModel()
 	// 归属修复不依赖布局版本，也不能被较早的可选布局迁移阻断。
 	// 写回失败时仍保留可显示的内存布局，下次加载会再次尝试修复。
 	const bool CreditsLayoutChanged = qm_card_registry::RepairLegacyCreditsTabs(m_SettingsCardOrderModel);
+	const bool NameplateTitleLayoutChanged = qm_card_registry::RepairLegacyNameplateTitleLayout(m_SettingsCardOrderModel);
 	const bool TeeLayoutChanged = qm_card_registry::RepairLegacyTeeLayout(m_SettingsCardOrderModel);
-	if((CreditsLayoutChanged || TeeLayoutChanged) && !PersistCurrentLayout())
+	if((CreditsLayoutChanged || NameplateTitleLayoutChanged || TeeLayoutChanged) && !PersistCurrentLayout())
 	{
 		m_SettingsCardOrderLoaded = true;
 		return;
@@ -2004,6 +2006,8 @@ void CMenus::DoLaserPreview(const CUIRect *pRect, const ColorHSLA LaserOutlineCo
 	// TicksBody = 4.0 for less laser width for weapon alignment
 	if(LaserType == LASERTYPE_RIFLE || LaserType == LASERTYPE_SHOTGUN)
 	{
+		// 先画激光，再画武器，让枪身遮住重叠的光束。
+		GameClient()->m_Items.RenderLaser(From, Pos, OuterColor, InnerColor, 4.0f, TicksHead, LaserType, g_Config.m_QmLaserGlowIntensity);
 		switch(LaserType)
 		{
 		case LASERTYPE_RIFLE:
@@ -2023,7 +2027,6 @@ void CMenus::DoLaserPreview(const CUIRect *pRect, const ColorHSLA LaserOutlineCo
 			Graphics()->QuadsEnd();
 			break;
 		}
-		GameClient()->m_Items.RenderLaser(From, Pos, OuterColor, InnerColor, 4.0f, TicksHead, LaserType, g_Config.m_QmLaserGlowIntensity);
 	}
 	else
 	{
@@ -2241,6 +2244,12 @@ ColorHSLA CMenus::DoButton_ColorPicker(const CUIRect *pRect, unsigned int *pHsla
 
 	DrawRoundedSurface(Ui(), *pRect, color_cast<ColorRGBA>(HslaColor), Outline, 4.0f, 3.0f);
 
+	return DoButton_ColorPickerLogic(pRect, pHslaColor, Alpha);
+}
+
+ColorHSLA CMenus::DoButton_ColorPickerLogic(const CUIRect *pRect, unsigned int *pHslaColor, bool Alpha)
+{
+	ColorHSLA HslaColor = ColorHSLA(*pHslaColor, Alpha);
 	if(Ui()->DoButtonLogic(pHslaColor, 0, pRect, BUTTONFLAG_LEFT))
 	{
 		m_ColorPickerPopupContext.m_pHslaColor = pHslaColor;
@@ -2412,6 +2421,7 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 
 	const bool DemoBrowserScreenshotsActive = ActivePage == PAGE_DEMOS && DemoBrowserBrowsingScreenshots();
 	const bool DemoBrowserReplaysActive = ActivePage == PAGE_DEMOS && !DemoBrowserBrowsingScreenshots();
+	const bool MobileSpectator = qm_mobile_spectator::Enabled();
 	auto OpenDemoBrowser = [&](const EDemoBrowserSource Source) {
 		SetDemoBrowserSource(Source);
 		NewPage = PAGE_DEMOS;
@@ -2450,7 +2460,7 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 	static CButtonContainer s_EditorButton;
 	// 编辑器按钮并入右侧滑块导航，统一绘制在槽位收集完成后。
 	aRightNavSlots[2] = Button;
-	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &Button, Localize("Editor"));
+	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &Button, MobileSpectator ? Localize("Videos directory") : Localize("Editor"));
 
 	// 截图/回放并入滑块导航槽位（离线与在线同构）。
 	Box.VSplitRight(MenubarIconGap, &Box, nullptr);
@@ -2494,11 +2504,14 @@ void CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 	}
 	GameClient()->m_Tooltips.DoToolTip(&s_DemoButton, &aRightNavSlots[1], Localize("Demos"));
 
-	if(DoMenuTabV2_QmIcon(&s_EditorButton, EQmIcon::PEN_TO_SQUARE, FONT_ICON_PEN_TO_SQUARE, false, &aRightNavSlots[2], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true))
+	if(DoMenuTabV2_QmIcon(&s_EditorButton, MobileSpectator ? EQmIcon::VIDEO : EQmIcon::PEN_TO_SQUARE, MobileSpectator ? FONT_ICON_VIDEO : FONT_ICON_PEN_TO_SQUARE, false, &aRightNavSlots[2], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true))
 	{
-		g_Config.m_ClEditor = 1;
+		if(MobileSpectator)
+			GameClient()->m_QmMobileSpectator.ShowMediaFiles(true);
+		else
+			g_Config.m_ClEditor = 1;
 	}
-	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &aRightNavSlots[2], Localize("Editor"));
+	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &aRightNavSlots[2], MobileSpectator ? Localize("Videos directory") : Localize("Editor"));
 
 	if(DoMenuTabV2_QmIcon(&s_SettingsButton, EQmIcon::GEAR, FONT_ICON_GEAR, ActivePage == PAGE_SETTINGS, &aRightNavSlots[3], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true))
 	{
@@ -4383,6 +4396,8 @@ void CMenus::Render()
 				m_SettingsScrollActive);
 			if(CanPrewarmSettings && MenuOpenFrame > 0)
 				PrewarmVisibleSettingsResources(MainView);
+			if(m_GamePage != PAGE_CALLVOTE)
+				m_QmVoteMenu.m_Loader.Suspend();
 			if(m_GamePage == PAGE_GAME)
 			{
 				CPerfTimer StageTimer;
@@ -5361,7 +5376,9 @@ void CMenus::RenderPopupFullscreen(CUIRect Screen)
 		}
 		else if(m_JoinTutorial.m_LocalServerState == CJoinTutorial::ELocalServerState::WAITING_START)
 		{
-			if(LastStateChangeSeconds >= 5.0f)
+			if(GameClient()->m_LocalServer.IsServerStarting())
+				m_JoinTutorial.m_StateChange = time_get_nanoseconds();
+			if(LastStateChangeSeconds >= 5.0f && !GameClient()->m_LocalServer.IsServerStarting())
 			{
 				ShowFinalErrorMessage();
 			}
@@ -5389,6 +5406,8 @@ void CMenus::RenderPopupFullscreen(CUIRect Screen)
 			Ui()->ConsumeHotkey(CUi::HOTKEY_ESCAPE) ||
 			Ui()->ConsumeHotkey(CUi::HOTKEY_ENTER))
 		{
+			if(GameClient()->m_LocalServer.IsServerStarting())
+				GameClient()->m_LocalServer.KillServer();
 			m_Popup = POPUP_NONE;
 		}
 	}
@@ -5702,6 +5721,11 @@ void CMenus::RenderPopupLoading(CUIRect Screen)
 #if defined(CONF_VIDEORECORDER)
 void CMenus::PopupConfirmDemoReplaceVideo()
 {
+	if(Client()->State() == IClient::STATE_DEMOPLAYBACK && GameClient()->m_DemoCamera.Dirty() && !GameClient()->m_DemoCamera.Save())
+	{
+		PopupMessage(Localize("Error"), Localize("Failed to save camera path"), Localize("Ok"));
+		return;
+	}
 	char aBuf[IO_MAX_PATH_LENGTH];
 	char aDemoFilename[IO_MAX_PATH_LENGTH];
 	const char *pDemoFolder = m_HasPendingDemoRenderSource ? m_aPendingDemoRenderFolder : m_aCurrentDemoFolder;
@@ -5716,6 +5740,7 @@ void CMenus::PopupConfirmDemoReplaceVideo()
 	const std::string VideoPath = qmclient::media_paths::Resolve(Storage(), g_Config, (std::string("videos/") + aVideoName + ".mp4").c_str());
 	const std::string WholePath = qmclient::media_paths::CompletePath(Storage(), VideoPath);
 	str_copy(m_aDemoRenderedVideoPath, WholePath.c_str());
+	GameClient()->m_DemoCamera.PrepareSource(aBuf, DemoStorageType);
 	const char *pError = Client()->DemoPlayer_Render(aBuf, DemoStorageType, aVideoName, m_Speed, m_StartPaused);
 	m_HasPendingDemoRenderSource = false;
 	m_vDemoCutSegments.clear();
@@ -5831,6 +5856,8 @@ void CMenus::RenderThemeSelection(CUIRect MainView, const SSettingsContentMetric
 
 void CMenus::SetActive(bool Active)
 {
+	if(!Active)
+		m_QmVoteMenu.m_Loader.Suspend();
 	if(Active != m_MenuActive)
 	{
 		if(Active)
@@ -6309,6 +6336,7 @@ void CMenus::OnReset()
 
 void CMenus::OnShutdown()
 {
+	m_QmVoteMenu.m_Loader.Suspend();
 	if(m_pScreenshotWatermarkJob)
 		m_pScreenshotWatermarkJob->Cancel();
 	m_pScreenshotWatermarkJob.reset();
@@ -7425,8 +7453,24 @@ int CMenus::CountMissingSettingsMenuTextPlanItems() const
 	return maximum(0, (int)m_vSettingsMenuTextPrebuildPlan.size() - (int)m_SettingsMenuTextPlanCursor);
 }
 
+bool CMenus::SettingsMenuTextPrebuildReady(const char *pOperationOverride) const
+{
+	const char *pOperation = pOperationOverride != nullptr ? pOperationOverride : SettingsPerfActiveOperation();
+	return Ui()->Screen() != nullptr &&
+	       s_LastPlanCollectionScreenBucket == round_to_int(Ui()->Screen()->w) &&
+	       !m_SettingsMenuTextPlanCollectionDirty && !m_SettingsMenuTextPlanMetadataDirty &&
+	       m_SettingsMenuTextPlanCollectionGeneration == m_MenuTextPoolGeneration &&
+	       m_SettingsMenuTextPlanGeneration == m_MenuTextPoolGeneration &&
+	       m_SettingsMenuTextPlanCollectionOperation == (pOperation != nullptr ? pOperation : "") &&
+	       m_SettingsMenuTextPlanCollectionComplete &&
+	       m_SettingsMenuTextPlanCursor >= m_vSettingsMenuTextPrebuildPlan.size();
+}
+
 void CMenus::PrebuildSettingsMenuTextPool(int Budget, const char *pScopeOverride, const char *pOperationOverride)
 {
+	// 完成后停止空调度和明细格式化；语言、缩放、页面和代际失效仍会重新预建。
+	if(SettingsMenuTextPrebuildReady(pOperationOverride))
+		return;
 	PrebuildSettingsTextPoolForLoading(Budget, pOperationOverride);
 	const int Built = m_SettingsMenuTextLastPrebuildStats.m_Built;
 	const int Reused = m_SettingsMenuTextLastPrebuildStats.m_Reused;
@@ -7509,7 +7553,7 @@ int CMenus::PrebuildSettingsTextPoolForLoading(int Budget, const char *pOperatio
 {
 	m_SettingsMenuTextLastPrebuildStats = {};
 	m_SettingsMenuTextLastPrebuildStats.m_Budget = maximum(Budget, 0);
-	if(Budget <= 0 || Ui()->Screen() == nullptr)
+	if(Budget <= 0 || Ui()->Screen() == nullptr || SettingsMenuTextPrebuildReady(pOperationOverride))
 		return maximum(Budget, 0);
 
 	SSettingsAdaptiveBudgetInput Input;
@@ -7919,6 +7963,11 @@ bool CMenus::OnInput(const IInput::CEvent &Event)
 
 void CMenus::OnStateChange(int NewState, int OldState)
 {
+	m_QmVoteMenu.m_Loader.Suspend();
+	m_QmVoteMenu.m_SelectedName.clear();
+	m_QmVoteMenu.m_Status.clear();
+	m_QmVoteMenu.m_Dirty = true;
+	m_QmPlayersMenu.m_Selection.Validate(nullptr);
 	if(NewState == IClient::STATE_DEMOPLAYBACK)
 	{
 		m_DemoDisplayExpanded = false;

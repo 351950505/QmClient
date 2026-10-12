@@ -12,7 +12,7 @@ python qmclient_scripts/benchmark/run.py --filter ".*" --smoke
 python qmclient_scripts/benchmark/run.py --filter "BM_FontCategoryClassify|BM_AnimLayoutCacheHits" --min-time 1 --warmup 0.2 --repetitions 7
 ```
 
-过滤器必须显式给出，全量使用 `.*`。默认每个 case 至少计时 0.2 秒、预热 0.05 秒、重复 5 次，并开启原生随机交错；使用 `--no-interleave` 可显式关闭。短 case 有较高波动时延长时间并核对环境，默认参数不是性能质量阈值。
+过滤器必须显式给出，全量使用 `.*`。默认构建并行度为 6，可通过 `-j` 为并行任务分配份额。默认每个 case 至少计时 0.2 秒、预热 0.05 秒、重复 5 次，并开启原生随机交错；使用 `--no-interleave` 可显式关闭。短 case 有较高波动时延长时间并核对环境，默认参数不是性能质量阈值。
 
 `--smoke` 使用原生 dry-run，只证明每个 case 能完成且无原生错误；摘要不输出耗时/吞吐指标。完整测量要求 Release 或 RelWithDebInfo，以及 Google Benchmark 库本身为 release。`--timeout` 控制枚举和测量进程，默认 600 秒；构建按正常入口完成，不因计时到期留下后台编译子进程。
 

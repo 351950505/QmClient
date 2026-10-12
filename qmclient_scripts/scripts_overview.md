@@ -16,7 +16,7 @@
 
 根目录 `scripts/` 视为 DDNet 上游同步目录。QmClient 自有逻辑、gate 入口、生成脚本和检查脚本都放在 `qmclient_scripts/`，不要在 gate 或 GitHub workflow 中直接调用 QmClient 修改过的 `scripts/` 文件。
 
-需要复用上游脚本时，先把脚本复制到 `qmclient_scripts/`，在复制件上做 QmClient 适配；不要让 `qmclient_scripts/` 里的脚本反向依赖根目录 `scripts/` 的 QmClient 特化行为。唯一例外是明确保持上游原样的脚本或平台入口，例如 `scripts/android/cmake_android.sh`。
+需要复用上游脚本时，先把脚本复制到 `qmclient_scripts/`，在复制件上做 QmClient 适配；不要让 `qmclient_scripts/` 里的脚本反向依赖根目录 `scripts/` 的 QmClient 特化行为。允许引用明确保持上游原样的通用辅助文件，例如 `scripts/compile_libs/_build_common.sh`。Android 平台构建入口使用 `qmclient_scripts/android/cmake_android.sh`，从当前 CMake 下载的 SDL3 源码同步 Java 绑定。
 
 ### 1. `gate/`
 
@@ -155,6 +155,8 @@ python3 qmclient_scripts/gate/check_gate.py --mode default
 python3 qmclient_scripts/gate/check_gate.py --mode full
 ```
 
+本地 gate 默认最多使用 6 个构建 job。按已核对的机器预算或同时进行的独立构建分配资源时，可设置 `QM_GATE_BUILD_JOBS` 为正整数；该值最多使用当前机器的 CPU 数量。CI 未指定该变量时使用运行器全部 CPU。
+
 ### P5 设置页迁移结构清单
 
 ```bash
@@ -278,4 +280,4 @@ python3 qmclient_scripts/gate/check_gate.py --mode default --explain-scope --rep
 - 不要把 `qmclient_scripts/` 根目录当成完全平级；门禁相关内容统一以 `gate/` 为准
 - 不要在 QmClient gate 或 workflow 中直接调用根目录 `scripts/` 下的 QmClient 特化脚本；改用 `qmclient_scripts/` 复制件
 
-本地 Windows 三种发布产物统一入口：`qmclient_scripts/cmake-windows.cmd --build cmake-build-release --target package_windows_release -j 6`。普通版完整工具包为 7z，专用便携版在同一目录的 `portable-build` 中生成 ZIP，Setup 使用普通版载荷；校验后自动汇总到 `QmClient_Release` 并生成 `SHA256SUMS.txt`。执行 `game-client` 不触发打包；发布入口不签名、不上传或公开 Release。
+本地 Windows 三种发布产物统一入口：`qmclient_scripts/cmake-windows.cmd --build cmake-build-release --target package_windows_release -j 6`。普通版完整工具包为 7z，专用便携版在同一目录的 `portable-build` 中生成 7z，Setup 使用普通版载荷；校验后自动汇总到 `QmClient_Release` 并生成 `SHA256SUMS.txt`。执行 `game-client` 不触发打包；发布入口不签名、不上传或公开 Release。

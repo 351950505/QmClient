@@ -6,9 +6,10 @@
 
 #include <engine/shared/linereader.h>
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <jni.h>
 
+#include <atomic>
 #include <string>
 #include <vector>
 
@@ -17,27 +18,27 @@ static bool UnpackAsset(const char *pFilename)
 	char aAssetFilename[IO_MAX_PATH_LENGTH] = "asset_integrity_files/";
 	str_append(aAssetFilename, pFilename);
 
-	// This uses SDL_RWFromFile because it can read Android assets,
+	// This uses SDL_IOFromFile because it can read Android assets,
 	// which are files stored in the app's APK file. All data files
 	// are stored as assets and unpacked to the external storage.
-	SDL_RWops *pAssetFile = SDL_RWFromFile(aAssetFilename, "rb");
+	SDL_IOStream *pAssetFile = SDL_IOFromFile(aAssetFilename, "rb");
 	if(!pAssetFile)
 	{
 		log_error("android", "Failed to open asset '%s' for reading", pFilename);
 		return false;
 	}
 
-	const long int FileLength = SDL_RWsize(pAssetFile);
+	const long int FileLength = SDL_GetIOSize(pAssetFile);
 	if(FileLength < 0)
 	{
-		SDL_RWclose(pAssetFile);
+		SDL_CloseIO(pAssetFile);
 		log_error("android", "Failed to determine length of asset '%s'", pFilename);
 		return false;
 	}
 
 	char *pData = static_cast<char *>(malloc(FileLength));
-	const size_t ReadLength = SDL_RWread(pAssetFile, pData, 1, FileLength);
-	SDL_RWclose(pAssetFile);
+	const size_t ReadLength = SDL_ReadIO(pAssetFile, pData, FileLength);
+	SDL_CloseIO(pAssetFile);
 
 	if(ReadLength != (size_t)FileLength)
 	{
@@ -92,15 +93,15 @@ static bool EqualIntegrityFiles(const char *pAssetFilename, const char *pStorage
 	char aAssetFilename[IO_MAX_PATH_LENGTH] = "asset_integrity_files/";
 	str_append(aAssetFilename, pAssetFilename);
 
-	SDL_RWops *pAssetFile = SDL_RWFromFile(aAssetFilename, "rb");
+	SDL_IOStream *pAssetFile = SDL_IOFromFile(aAssetFilename, "rb");
 	if(!pAssetFile)
 	{
 		return false;
 	}
 
 	char aAssetMainSha256[SHA256_MAXSTRSIZE];
-	const size_t AssetReadLength = SDL_RWread(pAssetFile, aAssetMainSha256, 1, sizeof(aAssetMainSha256) - 1);
-	SDL_RWclose(pAssetFile);
+	const size_t AssetReadLength = SDL_ReadIO(pAssetFile, aAssetMainSha256, sizeof(aAssetMainSha256) - 1);
+	SDL_CloseIO(pAssetFile);
 	if(AssetReadLength != sizeof(aAssetMainSha256) - 1)
 	{
 		return false;
@@ -161,7 +162,7 @@ static std::vector<CIntegrityFileLine> ReadIntegrityFile(const char *pFilename)
 const char *InitAndroid()
 {
 	// Change current working directory to our external storage location
-	const char *pPath = SDL_AndroidGetExternalStoragePath();
+	const char *pPath = SDL_GetAndroidExternalStoragePath();
 	if(pPath == nullptr)
 	{
 		return "The external storage is not available.";
@@ -250,22 +251,13 @@ constexpr uint32_t COMMAND_RESTART_APP = COMMAND_USER + 1;
 
 void RestartAndroidApp()
 {
-	SDL_AndroidSendMessage(COMMAND_RESTART_APP, 0);
+	SDL_SendAndroidMessage(COMMAND_RESTART_APP, 0);
 }
 
 bool StartAndroidServer(const char **ppArguments, size_t NumArguments)
 {
-	// We need the notification-permission to show a notification for the foreground service.
-	// We use SDL for this instead of doing it on the Java side because this function blocks
-	// until the user made a choice, which is easier to handle. Only Android 13 (API 33) and
-	// newer support requesting this permission at runtime.
-	if(SDL_GetAndroidSDKVersion() >= 33 && !SDL_AndroidRequestPermission("android.permission.POST_NOTIFICATIONS"))
-	{
-		return false;
-	}
-
-	JNIEnv *pEnv = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
-	jobject Activity = (jobject)SDL_AndroidGetActivity();
+	JNIEnv *pEnv = static_cast<JNIEnv *>(SDL_GetAndroidJNIEnv());
+	jobject Activity = (jobject)SDL_GetAndroidActivity();
 	jclass ActivityClass = pEnv->GetObjectClass(Activity);
 
 	jclass StringClass = pEnv->FindClass("java/lang/String");
@@ -290,8 +282,8 @@ bool StartAndroidServer(const char **ppArguments, size_t NumArguments)
 
 void ExecuteAndroidServerCommand(const char *pCommand)
 {
-	JNIEnv *pEnv = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
-	jobject Activity = (jobject)SDL_AndroidGetActivity();
+	JNIEnv *pEnv = static_cast<JNIEnv *>(SDL_GetAndroidJNIEnv());
+	jobject Activity = (jobject)SDL_GetAndroidActivity();
 	jclass ActivityClass = pEnv->GetObjectClass(Activity);
 
 	jstring Command = pEnv->NewStringUTF(pCommand);
@@ -306,8 +298,8 @@ void ExecuteAndroidServerCommand(const char *pCommand)
 
 bool IsAndroidServerRunning()
 {
-	JNIEnv *pEnv = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
-	jobject Activity = (jobject)SDL_AndroidGetActivity();
+	JNIEnv *pEnv = static_cast<JNIEnv *>(SDL_GetAndroidJNIEnv());
+	jobject Activity = (jobject)SDL_GetAndroidActivity();
 	jclass ActivityClass = pEnv->GetObjectClass(Activity);
 
 	jmethodID MethodId = pEnv->GetMethodID(ActivityClass, "isServerRunning", "()Z");
@@ -319,7 +311,112 @@ bool IsAndroidServerRunning()
 	return Result;
 }
 
-bool RequestAndroidAudioRecordPermission()
+bool ShowAndroidMediaFiles(const char *pDirectory, bool Videos, const char *const *ppExcluded, size_t NumExcluded)
 {
-	return SDL_AndroidRequestPermission("android.permission.RECORD_AUDIO");
+	JNIEnv *pEnv = static_cast<JNIEnv *>(SDL_GetAndroidJNIEnv());
+	if(pEnv == nullptr)
+		return false;
+	jobject Activity = static_cast<jobject>(SDL_GetAndroidActivity());
+	if(Activity == nullptr)
+		return false;
+	const bool HasFrame = pEnv->PushLocalFrame(8) == 0;
+	// JNI 的 NewStringUTF 使用 modified UTF-8，路径中的表情等字符需转为 UTF-16。
+	auto MakeString = [&](const char *pText) {
+		std::vector<jchar> vCharacters;
+		while(*pText != '\0')
+		{
+			const int Codepoint = str_utf8_decode(&pText);
+			if(Codepoint < 0)
+				vCharacters.push_back(0xfffd);
+			else if(Codepoint <= 0xffff)
+				vCharacters.push_back((jchar)Codepoint);
+			else
+			{
+				vCharacters.push_back((jchar)(0xd800 + ((Codepoint - 0x10000) >> 10)));
+				vCharacters.push_back((jchar)(0xdc00 + ((Codepoint - 0x10000) & 0x3ff)));
+			}
+		}
+		return pEnv->NewString(vCharacters.data(), (jsize)vCharacters.size());
+	};
+	const bool Success = HasFrame && [&] {
+		jclass ActivityClass = pEnv->GetObjectClass(Activity);
+		if(ActivityClass == nullptr)
+			return false;
+		jmethodID Method = pEnv->GetMethodID(ActivityClass, "showMediaFiles", "(Ljava/lang/String;Z[Ljava/lang/String;)V");
+		if(Method == nullptr)
+			return false;
+		jclass StringClass = pEnv->FindClass("java/lang/String");
+		if(StringClass == nullptr)
+			return false;
+		jstring Directory = MakeString(pDirectory);
+		if(Directory == nullptr)
+			return false;
+		jobjectArray Excluded = pEnv->NewObjectArray((jsize)NumExcluded, StringClass, nullptr);
+		if(Excluded == nullptr)
+			return false;
+		for(size_t i = 0; i < NumExcluded; ++i)
+		{
+			jstring Path = MakeString(ppExcluded[i]);
+			if(Path == nullptr)
+				return false;
+			pEnv->SetObjectArrayElement(Excluded, (jsize)i, Path);
+			pEnv->DeleteLocalRef(Path);
+			if(pEnv->ExceptionCheck())
+				return false;
+		}
+		pEnv->CallVoidMethod(Activity, Method, Directory, (jboolean)Videos, Excluded);
+		return !pEnv->ExceptionCheck();
+	}();
+	if(pEnv->ExceptionCheck())
+	{
+		pEnv->ExceptionDescribe();
+		pEnv->ExceptionClear();
+	}
+	if(HasFrame)
+		pEnv->PopLocalFrame(nullptr);
+	pEnv->DeleteLocalRef(Activity);
+	return Success;
+}
+
+namespace
+{
+	// SDL 回调可能晚于组件销毁，用户数据只指向进程期的原子状态。
+	std::atomic<EAndroidPermissionState> gs_RecordPermission = EAndroidPermissionState::UNKNOWN;
+	std::atomic<EAndroidPermissionState> gs_NotificationPermission = EAndroidPermissionState::UNKNOWN;
+
+	void SDLCALL PermissionResult(void *pUser, const char *pPermission, bool Granted)
+	{
+		static_cast<std::atomic<EAndroidPermissionState> *>(pUser)->store(Granted ? EAndroidPermissionState::GRANTED : EAndroidPermissionState::DENIED);
+	}
+
+	void RequestPermission(const char *pPermission, std::atomic<EAndroidPermissionState> &State)
+	{
+		if(State.exchange(EAndroidPermissionState::PENDING) == EAndroidPermissionState::PENDING)
+			return;
+		if(!SDL_RequestAndroidPermission(pPermission, PermissionResult, &State))
+			State.store(EAndroidPermissionState::DENIED);
+	}
+}
+
+void RequestAndroidAudioRecordPermission()
+{
+	RequestPermission("android.permission.RECORD_AUDIO", gs_RecordPermission);
+}
+
+EAndroidPermissionState AndroidAudioRecordPermission()
+{
+	return gs_RecordPermission.load();
+}
+
+void RequestAndroidNotificationPermission()
+{
+	if(SDL_GetAndroidSDKVersion() < 33)
+		gs_NotificationPermission.store(EAndroidPermissionState::GRANTED);
+	else
+		RequestPermission("android.permission.POST_NOTIFICATIONS", gs_NotificationPermission);
+}
+
+EAndroidPermissionState AndroidNotificationPermission()
+{
+	return gs_NotificationPermission.load();
 }

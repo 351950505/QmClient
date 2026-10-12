@@ -36,20 +36,6 @@ TEST(QmNewUiMenuRenderEngineContract, KcpLogUsesBoundedFormatting)
 	EXPECT_NE(Source.find("vsnprintf(buffer, sizeof(buffer), fmt, argptr);"), std::string::npos);
 }
 
-TEST(QmNewUiMenuRenderEngineContract, DisplayChangedDoesNotUseDisplayUnionData)
-{
-	const std::string Source = ReadTextFile("src/engine/client/input.cpp");
-	const size_t CaseStart = Source.find("case SDL_WINDOWEVENT_DISPLAY_CHANGED:");
-	ASSERT_NE(CaseStart, std::string::npos);
-	const size_t Break = Source.find("break;", CaseStart);
-	ASSERT_NE(Break, std::string::npos);
-	const std::string Body = Source.substr(CaseStart, Break - CaseStart);
-
-	EXPECT_EQ(Body.find("Event.display.data1"), std::string::npos);
-	EXPECT_NE(Body.find("Event.window.data1"), std::string::npos);
-	EXPECT_NE(Body.find("Graphics()->SwitchWindowScreen(DisplayIndex, false);"), std::string::npos);
-}
-
 TEST(QmNewUiMenuRenderEngineContract, ImplausibleRefreshRatesAreNotPersisted)
 {
 	const std::string Backend = ReadTextFile("src/engine/client/backend_sdl.cpp");

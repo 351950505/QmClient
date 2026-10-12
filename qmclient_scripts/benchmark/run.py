@@ -139,7 +139,7 @@ def main(argv: list[str] | None = None) -> int:
 	parser.add_argument("--interleave", action=argparse.BooleanOptionalAction, default=True)
 	parser.add_argument("--smoke", action="store_true", help="仅检查所有 case 能运行，不能作为性能证据")
 	parser.add_argument("--timeout", type=_finite, default=600, help="枚举及测量进程超时秒数；不取消构建的子进程")
-	parser.add_argument("-j", "--jobs", type=int, default=14)
+	parser.add_argument("-j", "--jobs", type=int, default=6)
 	args = parser.parse_args(argv)
 	if args.min_time <= 0 or args.timeout <= 0 or args.repetitions < 1 or args.jobs < 1:
 		parser.error("min-time, timeout, repetitions and jobs must be positive")

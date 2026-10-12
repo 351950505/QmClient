@@ -121,13 +121,13 @@ void CInputOverlay::ObservePhysicalInput(const IInput::CEvent &Event, bool HadCo
 		if(m_ConfigMode == EConfigMode::VECTOR)
 			Enabled = std::any_of(m_vElements.begin(), m_vElements.end(), [&](const SElement &Element) {
 				return (Element.m_InputKind == EInputKind::KEY && Element.m_Key == Event.m_Key) ||
-				       (Element.m_InputKind == EInputKind::MOUSE && Element.m_MouseButton > 0 && KEY_MOUSE_1 + Element.m_MouseButton - 1 == Event.m_Key);
+				       (Element.m_InputKind == EInputKind::MOUSE && Element.m_MouseButton > 0 && QmInputOverlay::NativeMouseButtonKey(Element.m_MouseButton) == Event.m_Key);
 			});
 		else
 			Enabled = std::any_of(m_vObsLayouts.begin(), m_vObsLayouts.end(), [&](const SObsLayout &Layout) {
 				return std::any_of(Layout.m_vElements.begin(), Layout.m_vElements.end(), [&](const SObsElement &Element) {
 					return (Element.m_InputKind == EObsInputKind::KEY && Element.m_Key == Event.m_Key) ||
-					       (Element.m_InputKind == EObsInputKind::MOUSE && Element.m_MouseButton > 0 && KEY_MOUSE_1 + Element.m_MouseButton - 1 == Event.m_Key);
+					       (Element.m_InputKind == EObsInputKind::MOUSE && Element.m_MouseButton > 0 && QmInputOverlay::NativeMouseButtonKey(Element.m_MouseButton) == Event.m_Key);
 				});
 			});
 	}
@@ -456,13 +456,11 @@ void CInputOverlay::OnRender()
 				for(const SObsElement &Element : Layout.m_vElements)
 				{
 					const int Key = Element.m_InputKind == EObsInputKind::KEY ? Element.m_Key :
-												    (Element.m_InputKind == EObsInputKind::MOUSE && Element.m_MouseButton > 0 ? KEY_MOUSE_1 + Element.m_MouseButton - 1 : KEY_UNKNOWN);
-					const bool Active = IsObsActive(Element);
-					if(Element.m_ActiveOnly && !Active)
-						continue;
+												    (Element.m_InputKind == EObsInputKind::MOUSE ? QmInputOverlay::NativeMouseButtonKey(Element.m_MouseButton) : KEY_UNKNOWN);
 					const float W = (Element.m_MapW > 0.0f ? Element.m_MapW : Layout.m_DefaultWidth) * LayoutScale;
 					const float H = (Element.m_MapH > 0.0f ? Element.m_MapH : Layout.m_DefaultHeight) * LayoutScale;
-					RenderKeyCount(Key, {LayoutOriginX + Element.m_PosX * LayoutScale, LayoutOriginY + Element.m_PosY * LayoutScale, W, H}, Opacity * (Active ? 1.0f : m_ObsInactiveAlpha));
+					// 计数持续显示，不跟随按下高亮图层的隐藏或透明度。
+					RenderKeyCount(Key, {LayoutOriginX + Element.m_PosX * LayoutScale, LayoutOriginY + Element.m_PosY * LayoutScale, W, H}, Opacity);
 				}
 			}
 		}
@@ -622,7 +620,7 @@ void CInputOverlay::OnRender()
 		for(const SElement &Element : m_vElements)
 		{
 			const int Key = Element.m_InputKind == EInputKind::KEY ? Element.m_Key :
-										 (Element.m_InputKind == EInputKind::MOUSE && Element.m_MouseButton > 0 ? KEY_MOUSE_1 + Element.m_MouseButton - 1 : KEY_UNKNOWN);
+										 (Element.m_InputKind == EInputKind::MOUSE ? QmInputOverlay::NativeMouseButtonKey(Element.m_MouseButton) : KEY_UNKNOWN);
 			const float Skew = Element.m_Shape == EShape::PARALLELOGRAM ? Element.m_Skew * Scale : 0.0f;
 			RenderKeyCount(Key, {OriginX + Element.m_X * Scale + Skew * 0.5f, OriginY + Element.m_Y * Scale, Element.m_W * Scale, Element.m_H * Scale}, Opacity);
 		}

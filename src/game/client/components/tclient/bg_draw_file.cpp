@@ -1,5 +1,6 @@
 #include "bg_draw_file.h"
 
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -49,7 +50,7 @@ bool BgDrawFile::Read(const std::function<bool(char *pBuf, int Length)> &ReadLin
 	for(int Count = 0; Count < MAX_PARTS_PER_ITEM; ++Count)
 	{
 		if(!ReadLine(aBuf, sizeof(aBuf)))
-			return false;
+			return !Data.empty();
 		if(aBuf[0] == '\0' || aBuf[0] == EOF || aBuf[0] == ',')
 			return !Data.empty();
 		if(aBuf[0] == '#')
@@ -67,9 +68,12 @@ bool BgDrawFile::Read(const std::function<bool(char *pBuf, int Length)> &ReadLin
 		{
 			ParseFloat(pCursor, a, false);
 		}
+		if(!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(w) ||
+			!std::isfinite(r) || !std::isfinite(g) || !std::isfinite(b) || !std::isfinite(a))
+			continue;
 		Data.emplace_back(x, y, w, r, g, b, a);
 	}
-	return true;
+	return !Data.empty();
 }
 bool BgDrawFile::Write(FILE *pFile, const CBgDrawItemData &Data)
 {

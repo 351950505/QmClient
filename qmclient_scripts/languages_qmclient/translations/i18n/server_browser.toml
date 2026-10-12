@@ -673,10 +673,26 @@ turkish = "Ana sunucudan sunucu listesi alınamadı"
 polish = "Nie można pobrać listy serwerów z serwera głównego"
 
 [[message]]
+key = "Common filters"
+[message.translations]
+simplified_chinese = "常用筛选"
+traditional_chinese = "常用篩選"
+japanese = "よく使うフィルター"
+korean = "자주 쓰는 필터"
+russian = "Частые фильтры"
+german = "Häufige Filter"
+spanish = "Filtros frecuentes"
+french = "Filtres courants"
+brazilian_portuguese = "Filtros comuns"
+portuguese = "Filtros comuns"
+turkish = "Sık kullanılan filtreler"
+polish = "Typowe filtry"
+
+[[message]]
 key = "Count players only"
 [message.translations]
-simplified_chinese = "屏蔽旁观位"
-traditional_chinese = "屏蔽旁觀位"
+simplified_chinese = "不计旁观者"
+traditional_chinese = "不計旁觀者"
 japanese = "プレイヤーのみカウント"
 korean = "관전자만 카운트"
 russian = "Только игроки"
@@ -1025,22 +1041,6 @@ turkish = "Favori"
 polish = "Ulubiony"
 
 [[message]]
-key = "Filter connecting players"
-[message.translations]
-simplified_chinese = "筛选正在连接的玩家"
-traditional_chinese = "篩選正在連接的玩家"
-japanese = "接続中のプレイヤーをフィルター"
-korean = "연결 중인 플레이어 필터링"
-russian = "Фильтр подключающихся игроков"
-german = "Verbindende Spieler filtern"
-spanish = "Filtrar jugadores conectándose"
-french = "Filtrer les joueurs en connexion"
-brazilian_portuguese = "Filtrar jogadores conectando"
-portuguese = "Filtrar jogadores a conectar"
-turkish = "Bağlanan oyuncuları filtrele"
-polish = "Filtruj łączących się graczy"
-
-[[message]]
 key = "Finished"
 [message.translations]
 simplified_chinese = "已完成"
@@ -1187,8 +1187,8 @@ polish = "Ma zapis"
 [[message]]
 key = "Indicate map finish"
 [message.translations]
-simplified_chinese = "标记已完成的地图"
-traditional_chinese = "標記已完成的地圖"
+simplified_chinese = "标记已完成"
+traditional_chinese = "標記已完成"
 japanese = "マップクリアを表示"
 korean = "맵 완주 표시"
 russian = "Отметить пройденную карту"
@@ -1425,6 +1425,22 @@ turkish = "Yerel sunucu bulunamadı (port %d-%d)"
 polish = "Nie znaleziono lokalnych serwerów (porty %d-%d)"
 
 [[message]]
+key = "Map progress"
+[message.translations]
+simplified_chinese = "地图进度"
+traditional_chinese = "地圖進度"
+japanese = "マップの進捗"
+korean = "맵 진행도"
+russian = "Прогресс карт"
+german = "Kartenfortschritt"
+spanish = "Progreso de mapas"
+french = "Progression des cartes"
+brazilian_portuguese = "Progresso dos mapas"
+portuguese = "Progresso dos mapas"
+turkish = "Harita ilerlemesi"
+polish = "Postęp map"
+
+[[message]]
 key = "No login required"
 [message.translations]
 simplified_chinese = "无需登录"
@@ -1633,10 +1649,26 @@ turkish = "Eski tarz"
 polish = "Oldschool"
 
 [[message]]
+key = "Player count"
+[message.translations]
+simplified_chinese = "人数统计"
+traditional_chinese = "人數統計"
+japanese = "人数カウント"
+korean = "인원 집계"
+russian = "Подсчёт игроков"
+german = "Spielerzählung"
+spanish = "Recuento de jugadores"
+french = "Comptage des joueurs"
+brazilian_portuguese = "Contagem de jogadores"
+portuguese = "Contagem de jogadores"
+turkish = "Oyuncu sayımı"
+polish = "Liczenie graczy"
+
+[[message]]
 key = "Player country:"
 [message.translations]
-simplified_chinese = "玩家国家/地区："
-traditional_chinese = "玩家國家/地區："
+simplified_chinese = "玩家国家"
+traditional_chinese = "玩家國家"
 japanese = "プレイヤーの国："
 korean = "플레이어 국가:"
 russian = "Страна игрока:"
@@ -1827,8 +1859,8 @@ polish = "Filtr serwera"
 [[message]]
 key = "Server not full"
 [message.translations]
-simplified_chinese = "服务器未满"
-traditional_chinese = "伺服器未滿"
+simplified_chinese = "未满员"
+traditional_chinese = "未滿員"
 japanese = "サーバーが満員ではない"
 korean = "서버가 가득 차지 않음"
 russian = "Сервер не заполнен"
@@ -1843,8 +1875,8 @@ polish = "Serwer nie jest pełny"
 [[message]]
 key = "Show friends only"
 [message.translations]
-simplified_chinese = "只显示好友"
-traditional_chinese = "只顯示好友"
+simplified_chinese = "仅好友"
+traditional_chinese = "僅好友"
 japanese = "フレンドのみ表示"
 korean = "친구만 표시"
 russian = "Показывать только друзей"
@@ -1871,6 +1903,54 @@ brazilian_portuguese = "Solo"
 portuguese = "Solo"
 turkish = "Solo"
 polish = "Solo"
+
+[[message]]
+key = "Sort by favorites"
+[message.translations]
+simplified_chinese = "按收藏排序"
+traditional_chinese = "按收藏排序"
+japanese = "お気に入り順に並べ替え"
+korean = "즐겨찾기순 정렬"
+russian = "Сортировать по избранному"
+german = "Nach Favoriten sortieren"
+spanish = "Ordenar por favoritos"
+french = "Trier par favoris"
+brazilian_portuguese = "Ordenar por favoritos"
+portuguese = "Ordenar por favoritos"
+turkish = "Favorilere göre sırala"
+polish = "Sortuj według ulubionych"
+
+[[message]]
+key = "Sort by number of friends"
+[message.translations]
+simplified_chinese = "按好友人数排序"
+traditional_chinese = "按好友人數排序"
+japanese = "フレンド数順に並べ替え"
+korean = "친구 수순 정렬"
+russian = "Сортировать по числу друзей"
+german = "Nach Anzahl der Freunde sortieren"
+spanish = "Ordenar por número de amigos"
+french = "Trier par nombre d’amis"
+brazilian_portuguese = "Ordenar por número de amigos"
+portuguese = "Ordenar por número de amigos"
+turkish = "Arkadaş sayısına göre sırala"
+polish = "Sortuj według liczby znajomych"
+
+[[message]]
+key = "Sort by number of QmClient players"
+[message.translations]
+simplified_chinese = "按 QmClient 玩家人数排序"
+traditional_chinese = "按 QmClient 玩家人數排序"
+japanese = "QmClientプレイヤー数順に並べ替え"
+korean = "QmClient 플레이어 수순 정렬"
+russian = "Сортировать по числу игроков QmClient"
+german = "Nach Anzahl der QmClient-Spieler sortieren"
+spanish = "Ordenar por número de jugadores de QmClient"
+french = "Trier par nombre de joueurs QmClient"
+brazilian_portuguese = "Ordenar por número de jogadores do QmClient"
+portuguese = "Ordenar por número de jogadores do QmClient"
+turkish = "QmClient oyuncu sayısına göre sırala"
+polish = "Sortuj według liczby graczy QmClient"
 
 [[message]]
 key = "Start and connect to local server"
@@ -1907,8 +1987,8 @@ polish = "Status"
 [[message]]
 key = "Strict gametype filter"
 [message.translations]
-simplified_chinese = "严格游戏模式筛选"
-traditional_chinese = "嚴格遊戲模式篩選"
+simplified_chinese = "严格匹配"
+traditional_chinese = "嚴格匹配"
 japanese = "厳格なゲームタイプフィルター"
 korean = "엄격한 게임 모드 필터"
 russian = "Строгий фильтр типа игры"
@@ -1971,8 +2051,8 @@ polish = "Nieukończone"
 [[message]]
 key = "Unfinished map"
 [message.translations]
-simplified_chinese = "未完成的地图"
-traditional_chinese = "未完成的地圖"
+simplified_chinese = "仅未完成"
+traditional_chinese = "僅未完成"
 japanese = "未完了のマップ"
 korean = "미완료 맵"
 russian = "Незавершённая карта"

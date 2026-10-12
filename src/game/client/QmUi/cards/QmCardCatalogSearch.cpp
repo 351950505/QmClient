@@ -131,7 +131,7 @@ namespace qm_card_catalog
 
 		static constexpr SCardSettingSearch s_aqm_better_scoreboard[] = {
 			{Localizable("Better scoreboard"), nullptr, "更好的计分板"},
-			{Localizable("Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers"), nullptr, "满人服务器改用固定行高计分板，滚轮翻看其余玩家"},
+			{Localizable("Scroll mode"), nullptr, "滚动模式 满人服务器改用固定行高计分板，滚轮翻看其余玩家"},
 			{Localizable("Leave empty to show everyone"), nullptr, "留空显示所有玩家"},
 			{Localizable("Scoreboard filter: only show players whose name or clan contains this text"), nullptr, "计分板筛选：匹配名字或战队"},
 			{Localizable("Scoreboard point check"), nullptr, "计分板积分检查"},
@@ -163,6 +163,7 @@ namespace qm_card_catalog
 			{nullptr, "qm_block_words_console_color", nullptr},
 			{nullptr, "qm_block_words_enabled", nullptr},
 			{nullptr, "qm_block_words_list", nullptr},
+			{nullptr, "qm_block_words_file", "文件词表 读取文件 外部词库"},
 			{nullptr, "qm_block_words_mode", nullptr},
 			{nullptr, "qm_block_words_multi_replace", nullptr},
 			{nullptr, "qm_block_words_replacement_char", nullptr},
@@ -313,7 +314,7 @@ namespace qm_card_catalog
 			{Localizable("Copy skin"), nullptr, "复制皮肤"},
 			{Localizable("Detection distance"), nullptr, "检测距离"},
 			{Localizable("Enable pie menu"), nullptr, "启用饼菜单"},
-			{Localizable("Example: name1|name2|name3"), nullptr, "示例：名字 1|名字 2|名字 3"},
+			{Localizable("Example: A|B|C,D|E (C: main, D: dummy)"), nullptr, "示例：A|B|C,D|E（C 为本体，D 为分身）"},
 			{Localizable("Follow server"), nullptr, "跨服跟随"},
 			{Localizable("Following: %s"), nullptr, "正在跟随：%s"},
 			{Localizable("Friend"), nullptr, "好友"},
@@ -768,7 +769,6 @@ namespace qm_card_catalog
 			{Localizable("Show team"), nullptr, "显示队伍"},
 			{Localizable("Use original style"), nullptr, "使用原始样式"},
 			{nullptr, "qm_hook_countdown", nullptr},
-			{nullptr, "qm_hook_countdown_flow_style", nullptr},
 			{nullptr, "qm_hud_island_bg_color", nullptr},
 			{nullptr, "qm_hud_island_bg_opacity", nullptr},
 			{nullptr, "qm_hud_island_show_team", nullptr},
@@ -1401,6 +1401,9 @@ namespace qm_card_catalog
 		};
 
 		static constexpr SCardSettingSearch s_aqm_streamer[] = {
+			{Localizable("Filter sensitive words"), nullptr, "过滤内置敏感词 屏蔽词 反规避"},
+			{nullptr, "qm_streamer_filter_words", nullptr},
+			{nullptr, "qm_streamer_words_file", "文件词表 读取文件 外部词库"},
 			{Localizable("Replace non-friend names with ID"), nullptr, "用 ID 替换非好友名称"},
 			{Localizable("Replace non-friend skins with default"), nullptr, "用默认皮肤替换非好友皮肤"},
 			{Localizable("Use default flags on scoreboard"), nullptr, "在计分板上使用默认旗帜"},
@@ -2778,6 +2781,7 @@ namespace qm_card_catalog
 			{Localizable("Auto switch to the tee that got unfrozen"), nullptr, "自动切换到解冻的 Tee"},
 			{Localizable("Auto team lock"), nullptr, "自动锁队"},
 			{Localizable("Auto unspec on unfreeze"), nullptr, "解冻自动取消旁观"},
+			{Localizable("Auto unspec both tees when either is hammered awake"), nullptr, "任一方被锤醒时两个 Tee 都取消旁观"},
 			{Localizable("Automatically close the current chat after waking from freeze"), nullptr, "从冻结状态中醒来自动关闭聊天框"},
 			{Localizable("Fade spectators in water"), nullptr, "虚化水中的旁观者"},
 			{Localizable("Lock delay"), nullptr, "锁队延迟"},
@@ -2788,6 +2792,7 @@ namespace qm_card_catalog
 			{nullptr, "qm_auto_team_lock", nullptr},
 			{nullptr, "qm_auto_team_lock_delay", nullptr},
 			{nullptr, "qm_auto_unspec_on_unfreeze", nullptr},
+			{nullptr, "qm_auto_unspec_both_on_unfreeze", nullptr},
 			{nullptr, "qm_freeze_wakeup_popup", nullptr},
 			{nullptr, "qm_paused_spectator_alpha", nullptr},
 			{nullptr, "qm_paused_spectator_fade", nullptr},

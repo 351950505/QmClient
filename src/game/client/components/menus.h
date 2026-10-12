@@ -21,10 +21,13 @@
 #include <generated/client_data.h>
 
 #include <game/client/QmUi/QmIslandNotice.h>
+#include <game/client/QmUi/QmPlayersMenu.h>
 #include <game/client/QmUi/QmScroll.h>
 #include <game/client/QmUi/QmUiPerf.h>
+#include <game/client/QmUi/QmVoteMenu.h>
 #include <game/client/QmUi/SettingsCardDeck.h>
 #include <game/client/QmUi/SettingsChoice.h>
+#include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/QmUi/UiNavigation.h>
 #include <game/client/QmUi/UiTheme.h>
@@ -35,6 +38,7 @@
 #include <game/client/components/menus_ingame_touch_controls.h>
 #include <game/client/components/menus_settings_controls.h>
 #include <game/client/components/menus_start.h>
+#include <game/client/components/qmclient/audio_pack_catalog.h>
 #include <game/client/components/qmclient/browser_friend_list.h>
 #include <game/client/components/qmclient/demo_cut.h>
 #include <game/client/components/qmclient/local_save_display.h>
@@ -59,6 +63,7 @@
 #include <array>
 #include <chrono>
 #include <deque>
+#include <initializer_list>
 #include <memory>
 #include <optional>
 #include <set>
@@ -230,6 +235,7 @@ private:
 	bool DoLine_AlphaColorPicker(CButtonContainer *pResetId, const SSettingsContentMetrics &Metrics, CUIRect *pMainRect, const char *pText, unsigned int *pColorValue, int *pOpacity, unsigned int DefaultColor, int DefaultOpacity);
 	ColorHSLA DoLine_ColorPicker(CButtonContainer *pResetId, float LineSize, float LabelSize, float BottomMargin, CUIRect *pMainRect, const char *pText, unsigned int *pColorValue, ColorRGBA DefaultColor, bool CheckBoxSpacing = true, int *pCheckBoxValue = nullptr, bool Alpha = false);
 	ColorHSLA DoButton_ColorPicker(const CUIRect *pRect, unsigned int *pHslaColor, bool Alpha);
+	ColorHSLA DoButton_ColorPickerLogic(const CUIRect *pRect, unsigned int *pHslaColor, bool Alpha);
 	bool DoColorGradientPalette(CUIRect *pView, unsigned *pBaseColor, char *pGradient, int GradientSize, CButtonContainer *pAddButton, CButtonContainer *pRemoveButton, unsigned *pColorValues, const SSettingsContentMetrics &Metrics, bool CheckBoxSpacing = false, bool BaseHasAlpha = false);
 	bool DoMessageGradientLine(CChat &Chat, CUIRect *pView, int Tab, const char *pLabelTextId, const char *pLabel, unsigned *pBaseColor, char *pGradient, int GradientSize, ColorRGBA DefaultColor, CButtonContainer *pResetButton, CButtonContainer *pAddButton, CButtonContainer *pRemoveButton, unsigned *pColorValues, EQmChatGradientRole Role, bool CheckBoxSpacing = true, int *pCheckBoxValue = nullptr, float LineHeight = ui_token::settings::ROW_HEIGHT, float LineSpacing = ui_token::settings::ROW_GAP, float BodySize = ui_token::font::BODY, float ButtonHeight = -1.0f);
 	bool DoColorGradientGeometry(CUIRect &Content, const SQmGradientGeometryBinding &Binding, SQmGradientGeometryState &State, const SSettingsContentMetrics &Metrics, float LabelWidth);
@@ -493,15 +499,7 @@ public:
 		char m_aSourceAsset[64] = {0};
 	};
 
-	struct SAudioPackSlot
-	{
-		const char *m_pDisplayName = nullptr;
-		const char *m_pSetName = nullptr;
-		const char *m_pRelativePath = nullptr;
-		int m_SetId = -1;
-		int m_VariantIndex = 0;
-		int m_VariantCount = 0;
-	};
+	using SAudioPackSlot = qm_audio_pack::SSlot;
 
 	struct SAudioPackCandidateEntry
 	{
@@ -1456,6 +1454,7 @@ private:
 		bool m_Open = false;
 		bool m_Initialized = false;
 		int m_SelectedSlotIndex = 0;
+		int m_Category = 0;
 		int m_SelectedCandidateIndex = -1;
 		CLineInputBuffered<64> m_FilterInput;
 		CLineInputBuffered<64> m_CandidateFilterInput;
@@ -1513,6 +1512,7 @@ private:
 
 	SAudioPackEditorState m_AudioPackEditorState;
 	SAssetsEditorState m_AssetsEditorState;
+	void RefreshAudioPackList();
 	void AudioPackEditorOpen(const char *pPackName);
 	void AudioPackEditorClose();
 	void AudioPackEditorSetStatus(const char *pMessage, bool IsError);
@@ -1708,6 +1708,8 @@ protected:
 	// 稳定行标识持有下拉状态，窗口缩放不改变当前选择或弹层 owner。
 	using SSettingsRadioState = SSettingsChoiceState;
 	std::unordered_map<const void *, SSettingsRadioState> m_SettingsRadioStates;
+	SQmVoteMenuState m_QmVoteMenu;
+	SQmPlayersMenuState m_QmPlayersMenu;
 	CUi::SDropDownState m_CallvoteMapSortDropDownState;
 	CLineInputBuffered<VOTE_REASON_LENGTH> m_CallvoteReasonInput;
 	CLineInputBuffered<64> m_FilterInput;
@@ -1835,6 +1837,7 @@ protected:
 	bool m_DemoExportDisplayExpanded = false;
 	bool m_DemoDisplayExpanded = false;
 	CButtonContainer m_DemoDisplayButton;
+	CButtonContainer m_DemoCameraButton;
 	CButtonContainer m_DemoExportDisplayButton;
 	COnlineReplayShortcutClaims m_OnlineReplayShortcutClaims;
 	CLineInputBuffered<IO_MAX_PATH_LENGTH> m_DemoSearchInput;
@@ -1858,7 +1861,6 @@ protected:
 	int m_DemoSelectionAnchorIndex = -1;
 	std::shared_ptr<CQmScreenshotWatermarkJob> m_pScreenshotWatermarkJob;
 	std::string m_ScreenshotWatermarkFolder;
-	bool m_DemoScreenshotPreviewOpen = false;
 	bool m_DemoScreenshotPreviewLoadFailed = false;
 	char m_aDemoScreenshotPreviewFolder[IO_MAX_PATH_LENGTH] = "";
 	SDemoSelectionEntry m_DemoScreenshotPreviewSelection{};
@@ -1908,10 +1910,9 @@ protected:
 	void PrepareDemoDeleteTargetsFromSelection();
 	void ResetDemoScreenshotPreview();
 	bool IsDemoScreenshotPreviewItem(const CDemoItem &Item) const;
-	void ToggleDemoScreenshotPreview(const CDemoItem &Item);
+	void OpenDemoScreenshotViewer(const CDemoItem &Item);
 	void SyncDemoScreenshotPreview();
 	bool LoadDemoScreenshotPreviewTexture(const CDemoItem &Item);
-	void RenderDemoScreenshotPreview(CUIRect PreviewRect, const CDemoItem &Item);
 	void RenderDemoScreenshotDetails(CUIRect Contents, const CDemoItem &Item, float FontSize);
 	void RenderDemoScreenshotWatermarkPreview(CUIRect PreviewRect, const CDemoItem &Item);
 	bool DoDemoScreenshotWatermarkButton(const CUIRect &Rect);
@@ -2130,6 +2131,7 @@ protected:
 	void RenderDemoPlayerSliceSavePopup(CUIRect MainView);
 	// 回放/导出共用的显示选项面板与其折叠开关。
 	void RenderDemoDisplaySettings(CUIRect View, bool Enabled = true);
+	void RenderDemoCameraPanel(CUIRect View, bool Enabled);
 	void RenderDemoDisplayToggle(const CUIRect &Rect, bool &Expanded, CButtonContainer &Button, bool Enabled = true);
 	bool m_DemoBrowserListInitialized = false;
 	void RenderDemoBrowser(CUIRect MainView);
@@ -2315,6 +2317,8 @@ protected:
 	void DrainIngameUiSnapshotTextRuntime();
 	void DrainIngameUiTextRuntime(bool AllowCurrentFrame = false);
 	void RenderServerControl(CUIRect MainView);
+	void RenderServerControlLegacy(CUIRect MainView);
+	void RenderVoteMapLibrary(CUIRect MainView);
 	void RenderUnfinishedMaps(CUIRect MainView);
 	bool RenderServerControlKick(CUIRect MainView, bool FilterSpectators, bool UpdateScroll);
 	bool RenderServerControlServer(CUIRect MainView, bool UpdateScroll);
@@ -2335,6 +2339,7 @@ protected:
 	void Connect(const char *pAddress, EConnectIntent Intent = EConnectIntent::Manual);
 	void PopupConfirmSwitchServer();
 	void RenderServerbrowserFilters(CUIRect View);
+	void RenderServerbrowserFilterForm(CUIRect &View);
 	void ResetServerbrowserFilters();
 	void RenderServerbrowserDDNetFilter(CUIRect View,
 		IFilterList &Filter,
@@ -2671,6 +2676,7 @@ public:
 	void DemolistPopulate();
 	void RefreshFilteredDemos();
 	void DemoSeekTick(IDemoPlayer::ETickOffset TickOffset);
+	bool DemoSeekToTick(int Tick);
 	bool m_Dummy;
 
 	const char *GetCurrentDemoFolder() const { return m_aCurrentDemoFolder; }
@@ -2843,6 +2849,9 @@ public:
 	CUIElement &SettingsTextElement(int Page, int Tab, const char *pTextId, const SMenuTextStyleKey &StyleKey);
 	void DoSettingsLabelStreamed(CUIElement &Element, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps = {}, int StrLen = -1, const CTextCursor *pReadCursor = nullptr, bool Render = true);
 	void DoSettingsLabel(int Page, int Tab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &LabelProps = {}, bool Render = true);
+	// 同组短开关共用测量与渲染；LAYOUT/INPUT 供卡片预布局复用相同的内容尺寸与命中区域。
+	bool DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Content, std::initializer_list<SSettingsToggleEntry> Entries, const SSettingsContentMetrics &Metrics, bool ProcessInput = true, ESettingsToggleGroupPass Pass = ESettingsToggleGroupPass::RENDER);
+	bool DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect &Button, const SSettingsToggleEntry &Entry, const SSettingsContentMetrics &Metrics, bool ProcessInput = true, ESettingsToggleGroupPass Pass = ESettingsToggleGroupPass::RENDER);
 	void DoSettingsMenuLabel(int Page, int Tab, int Subtab, const char *pTextId, const CUIRect *pRect, const char *pText, float Size, int Align, const SLabelProperties &Props = {}, int MaxWidth = -1);
 	int DoSettingsButton_Menu(int Page, int Tab, int Subtab, CButtonContainer *pBC, const char *pTextId, const char *pText, int Checked, const CUIRect *pRect, int Flags = BUTTONFLAG_LEFT, int Corners = IGraphics::CORNER_ALL, float Rounding = ui_token::radius::BASE, const ColorRGBA &Color = ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), float FontFactor = 0.0f, float BodySize = -1.0f, EQmIcon Icon = EQmIcon::COUNT, const char *pFallbackIcon = nullptr, const IGraphics::CTextureHandle *pIconTexture = nullptr);
 	int DoSettingsButton_Menu(int Page, int Tab, int Subtab, CButtonContainer *pBC, const char *pTextId, const char *pText, int Checked, const CUIRect *pRect, const SSettingsContentMetrics &Metrics, int Flags = BUTTONFLAG_LEFT, int Corners = IGraphics::CORNER_ALL, float Rounding = ui_token::radius::BASE, const ColorRGBA &Color = ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), float FontFactor = 0.0f, EQmIcon Icon = EQmIcon::COUNT, const char *pFallbackIcon = nullptr, const IGraphics::CTextureHandle *pIconTexture = nullptr);
@@ -2866,6 +2875,7 @@ public:
 	bool AdvanceSettingsMenuTextPlanCollection(int Budget, const char *pOperationOverride);
 	bool PrebuildSettingsTextPlanItem(const SMenuTextPlanItem &Item, int &RemainingBudget);
 	int CountMissingSettingsMenuTextPlanItems() const;
+	bool SettingsMenuTextPrebuildReady(const char *pOperationOverride) const;
 	void PrebuildSettingsMenuTextPool(int Budget, const char *pScopeOverride = nullptr, const char *pOperationOverride = nullptr);
 	int PrebuildSettingsTextPoolForLoading(int Budget, const char *pOperationOverride = nullptr);
 	void PrebuildIngameEscTextPoolBeforeOpen(int Budget);
@@ -3136,6 +3146,8 @@ private:
 	SSettingsCardDeckDisplayCycleState m_SettingsCardDeckDisplayState;
 	SSettingsShellLayoutFrame m_SettingsShellLayout;
 	SSettingsContentMetrics m_SettingsContentMetrics;
+	std::vector<SSettingsToggleSize> m_vSettingsToggleGroupSizes;
+	SSettingsDynamicToggleGrid m_SettingsToggleGroupGrid;
 	bool m_SettingsShellLayoutValid = false;
 
 	CCommunityIcons m_CommunityIcons;
@@ -3247,6 +3259,7 @@ private:
 	bool RenderQmVisualCheckbox(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue);
 	void RenderQmVisualLabel(const char *pTextId, CUIRect *pRect, const char *pText, float FontSize, int TextAlign = TEXTALIGN_ML, const SLabelProperties &LabelProps = {});
 	void RenderQmVisualStreamerContent(CUIRect &Content, float LineHeight, float LineSpacing);
+	void RenderQmWordFilterFileContent(CUIRect &Content, bool Streamer, float LineHeight, float LineSpacing, float BodySize);
 	void RenderQmVisualTranslateUiContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing);
 	void RenderQmVisualEntityOverlayContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmVisualCollisionHitboxContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
@@ -3281,6 +3294,7 @@ private:
 	void RenderQmAppearancePresetContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
 	void RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
 	void RenderQmTooltipContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
+	void RenderQmChatCompletionContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly);
 	void RenderQmFunctionImeContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmFunctionBetterScoreboardContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmFunctionBlockWordsContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
@@ -3288,7 +3302,7 @@ private:
 	CTranslateProbe m_TranslateProbe;
 	int m_TranslateProbeDiagnostics = 0;
 	void RenderQmFunctionTranslateContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
-	void RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly, int MaxGridColumns);
+	void RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, float ButtonHeight, float CardPadding, float CornerRadius, bool PrewarmOnly, int MaxGridColumns = 4);
 	void RenderQmFunctionFavoriteMapsContent(CUIRect &Content, float UiScale, float LineHeight, float BodySize, float LineSpacing, bool PrewarmOnly);
 	void RenderQmFunctionHJAssistContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);
 	void RenderQmHudBindStatusContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly);

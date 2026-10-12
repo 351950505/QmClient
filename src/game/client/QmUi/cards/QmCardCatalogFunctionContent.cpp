@@ -442,13 +442,21 @@ void CMenus::RenderQmFunctionFriendNotifyContent(CUIRect &Content, float LineHei
 
 	static int s_QmFriendAutoFollowDelayInputId;
 	static int s_QmFriendOnlineRefreshSecondsInputId;
-	RenderCheckbox(&g_Config.m_QmFriendOnlineNotify, "Notify when friends come online", "Notify when friends come online", &g_Config.m_QmFriendOnlineNotify);
-	RenderCheckbox(&g_Config.m_QmFriendOnlineAutoRefresh, "Auto refresh server list", "Auto refresh server list", &g_Config.m_QmFriendOnlineAutoRefresh);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmFriendOnlineNotify, "Notify when friends come online", Localize("Notify when friends come online")},
+			{&g_Config.m_QmFriendOnlineAutoRefresh, "Auto refresh server list", Localize("Auto refresh server list")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	RenderValue("qmclient-friend-auto-follow-delay", "Auto-follow delay", &s_QmFriendAutoFollowDelayInputId, &g_Config.m_QmFriendAutoFollowDelay, 0, 30, "s");
 	if(g_Config.m_QmFriendOnlineAutoRefresh)
 		RenderValue("qmclient-friend-notifications-refresh-interval", "Refresh interval", &s_QmFriendOnlineRefreshSecondsInputId, &g_Config.m_QmFriendOnlineRefreshSeconds, 5, 300, "s");
-	RenderCheckbox(&g_Config.m_QmFriendEnterAutoGreet, "Auto greet friends entering map", "Auto greet friends entering map", &g_Config.m_QmFriendEnterAutoGreet);
-	RenderCheckbox(&g_Config.m_QmFriendEnterBroadcast, "Large text announcement for friend joining", "Large text announcement for friend joining", &g_Config.m_QmFriendEnterBroadcast);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmFriendEnterAutoGreet, "Auto greet friends entering map", Localize("Auto greet friends entering map")},
+			{&g_Config.m_QmFriendEnterBroadcast, "Large text announcement for friend joining", Localize("Large text announcement for friend joining")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	if(g_Config.m_QmFriendEnterBroadcast)
 	{
 		static CLineInput s_FriendEnterBroadcastText(g_Config.m_QmFriendEnterBroadcastText, sizeof(g_Config.m_QmFriendEnterBroadcastText));
@@ -500,11 +508,23 @@ void CMenus::RenderQmFunctionMiniFeaturesContent(CUIRect &Content, float LineHei
 		}
 		Flow.Space(LineSpacing);
 	};
-	RenderCheckbox(&g_Config.m_QmFootParticles, "Local particle effects", &g_Config.m_QmFootParticles);
-	RenderCheckbox(&g_Config.m_QmClientMarkTrail, "Remote particle effects", &g_Config.m_QmClientMarkTrail);
-	RenderCheckbox(&g_Config.m_QmClientShowBadge, "Show Qm badge", &g_Config.m_QmClientShowBadge);
-	RenderCheckbox(&g_Config.m_QmAutoUpdate, "Automatic updates", &g_Config.m_QmAutoUpdate);
-	RenderCheckbox(&g_Config.m_QmShowOutdatedVersionWarning, "Show outdated version warning", &g_Config.m_QmShowOutdatedVersionWarning);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{{&g_Config.m_QmChatCommandCompletion, "Show command completion in chat", Localize("Show command completion in chat")},
+			{&g_Config.m_QmChatEmojiCompletion, "Chat emoji completion", Localize("Chat emoji completion")}},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmFootParticles, "Local particle effects", Localize("Local particle effects")},
+			{&g_Config.m_QmClientMarkTrail, "Remote particle effects", Localize("Remote particle effects")},
+			{&g_Config.m_QmClientShowBadge, "Show Qm badge", Localize("Show Qm badge")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmAutoUpdate, "Automatic updates", Localize("Automatic updates")},
+			{&g_Config.m_QmShowOutdatedVersionWarning, "Show outdated version warning", Localize("Show outdated version warning")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	// 计分板相关的 5 项（更好的计分板/积分检查/死亡后显示/滚轮滚动/过滤器）只在 qm:better_scoreboard 卡里渲染一次，
 	// 这里不再重复，避免同一条配置在两张卡里各出现一遍。
 	RenderCheckbox(&g_Config.m_QmHideJoinServerInfo, "Hide server information on join", &g_Config.m_QmHideJoinServerInfo);
@@ -512,13 +532,25 @@ void CMenus::RenderQmFunctionMiniFeaturesContent(CUIRect &Content, float LineHei
 	// 回退语义在加载期读取：开关变化由 CGameClient::OnRender 的兜底轮询统一触发热重载，
 	// 这里只负责渲染复选框，不在渲染遍里做加载副作用。
 	RenderCheckboxTipped(&g_Config.m_QmBlankAssetFallback, "Blank asset auto fallback", Localize("Automatically fall back to the default asset when a custom asset sprite is fully transparent; turn off to keep blank sprites invisible (e.g. to hide effects)"), &g_Config.m_QmBlankAssetFallback);
-	RenderCheckbox(&g_Config.m_QmMessageMerge, "Message merging", &g_Config.m_QmMessageMerge);
-	RenderCheckbox(&g_Config.m_QmShortServerNames, "Short server names", &g_Config.m_QmShortServerNames);
-	RenderCheckbox(&g_Config.m_QmRepeatEnabled, "Enable repeat", &g_Config.m_QmRepeatEnabled);
-	RenderCheckbox(&g_Config.m_QmRandomEmoteOnHit, "Random emoticon", &g_Config.m_QmRandomEmoteOnHit);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmMessageMerge, "Message merging", Localize("Message merging")},
+			{&g_Config.m_QmShortServerNames, "Short server names", Localize("Short server names")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmRepeatEnabled, "Enable repeat", Localize("Enable repeat")},
+			{&g_Config.m_QmRandomEmoteOnHit, "Random emoticon", Localize("Random emoticon")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	// 两个表情开关已迁入 qm:emoticons 卡（RenderQmFunctionEmoticonsContent），此处不再重复渲染。
-	RenderCheckbox(&g_Config.m_QmComboPopup, "Combo", &g_Config.m_QmComboPopup);
-	RenderCheckbox(&g_Config.m_QmSayNoPop, "Hide input emoticon", &g_Config.m_QmSayNoPop);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmComboPopup, "Combo", Localize("Combo")},
+			{&g_Config.m_QmSayNoPop, "Hide input emoticon", Localize("Hide input emoticon")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	// 关闭赞助提醒时不弹确认框，而是用同样式的灵动岛问一句，
 	// 避免把「关掉一个提醒」变成需要连点两次的操作。
 	if(Flow.Control("RenderQmFunctionMiniFeaturesContent-3", LineHeight, Row))

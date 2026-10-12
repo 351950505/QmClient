@@ -58,6 +58,19 @@ TEST(QmDemoUi, TransportControlsFitNarrowAndWidePlayerPanels)
 	}
 }
 
+TEST(QmDemoUi, CameraPanelKeepsTheBottomEdgeAndFitsTheShortPlayerViewport)
+{
+	const CUIRect Screen{40.0f, 20.0f, 400.0f, 300.0f};
+	const CUIRect Base = qm_demo_ui::PlayerRect(Screen, false);
+	const CUIRect Camera = qm_demo_ui::PlayerRect(Screen, false, true);
+	EXPECT_FLOAT_EQ(Camera.x, Base.x);
+	EXPECT_FLOAT_EQ(Camera.w, Base.w);
+	EXPECT_FLOAT_EQ(Camera.y + Camera.h, Base.y + Base.h);
+	EXPECT_GE(Camera.y, Screen.y);
+	const CUIRect Dragged = qm_demo_ui::DraggedPlayerRect(Screen, Camera, 1000.0f, 1000.0f);
+	EXPECT_LE(Dragged.y + Dragged.h, Screen.y + Screen.h);
+}
+
 TEST(QmDemoUi, CutControlsStaySeparateAndInsideThePlayer)
 {
 	for(const float ScreenWidth : {320.0f, 400.0f, 1000.0f})

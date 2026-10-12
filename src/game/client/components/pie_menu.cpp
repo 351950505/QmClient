@@ -331,21 +331,7 @@ void CPieMenu::UpdateSelection()
 
 void CPieMenu::RefreshRenameQueue()
 {
-	m_vRenameQueue.clear();
-
-	if(g_Config.m_QmPieMenuRenameQueue[0] == '\0')
-		return;
-
-	const char *pCursor = g_Config.m_QmPieMenuRenameQueue;
-	char aBuf[128];
-	while((pCursor = str_next_token(pCursor, "|", aBuf, sizeof(aBuf))))
-	{
-		char *pTrimmed = (char *)str_utf8_skip_whitespaces(aBuf);
-		str_utf8_trim_right(pTrimmed);
-		if(pTrimmed[0] == '\0')
-			continue;
-		m_vRenameQueue.emplace_back(pTrimmed);
-	}
+	m_vRenameQueue = qm_pie_menu::ParseRenameQueue(g_Config.m_QmPieMenuRenameQueue);
 }
 
 void CPieMenu::RefreshVisibleOptions()
@@ -645,7 +631,7 @@ void CPieMenu::RenderRenameSector(int Index, int SectorCount, float InnerRadius,
 	if(ContentAlpha < 0.02f)
 		return;
 
-	const char *pRenameName = m_vRenameQueue[Index].c_str();
+	const char *pRenameName = m_vRenameQueue[Index].m_Label.c_str();
 	float MidRadius = (InnerRadius + OuterRadius) / 2.0f;
 	float MidAngle = (StartAngle + EndAngle) / 2.0f * pi / 180.0f;
 	vec2 ItemPos = m_MenuCenter + vec2(cos(MidAngle), sin(MidAngle)) * MidRadius;
@@ -695,7 +681,7 @@ void CPieMenu::RenderCenterInfo(float Alpha)
 	if(m_SelectedRenameIndex >= 0 && m_SelectedRenameIndex < (int)m_vRenameQueue.size())
 	{
 		char aRenamePreview[128];
-		str_format(aRenamePreview, sizeof(aRenamePreview), Localize("Rename: %s"), m_vRenameQueue[m_SelectedRenameIndex].c_str());
+		str_format(aRenamePreview, sizeof(aRenamePreview), Localize("Rename: %s"), m_vRenameQueue[m_SelectedRenameIndex].m_Label.c_str());
 		char aPreview[128];
 		str_format(aPreview, sizeof(aPreview), "%s · %s", Localize("Self"), aRenamePreview);
 		CenteredText(aPreview, 18.0f, 24.0f);

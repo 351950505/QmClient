@@ -58,8 +58,6 @@ namespace qm_tclient_cards
 		CUi *m_pUi;
 	};
 
-	inline int s_TClientWarListFilterRevision = 0;
-
 	enum
 	{
 		TCLIENT_TAB_SETTINGS = 0,

@@ -38,6 +38,7 @@
 #include "components/qmclient/predicted_event_queue.h"
 #include "components/qmclient/qmclient_utils.h"
 #include "components/qmclient/screenshot_manager.h"
+#include "components/qmclient/streamer_word_filter.h"
 #include "components/qmclient/translate/translate_ui_settings.h"
 #include "components/race_demo.h"
 #include "components/scoreboard.h"
@@ -178,6 +179,10 @@ namespace
 	}
 
 	void ConDiscardLegacyHudIslandEdgeMargin(IConsole::IResult *, void *)
+	{
+	}
+
+	void ConDiscardLegacyHookCountdownFlowStyle(IConsole::IResult *, void *)
 	{
 	}
 
@@ -667,6 +672,7 @@ void CGameClient::OnConsoleInit()
 	AddComponent(&m_CustomCommunities, "custom_communities");
 	AddComponent(&m_PlayerPoints, "player_points");
 	AddComponent(&m_Emoticon.m_RenderProjectiles, "emoticon_projectiles");
+	AddComponent(&m_DemoCamera, "demo_camera");
 	AddComponent(&m_Hud, "hud");
 	AddComponent(&m_Spectator, "spectator");
 	AddComponent(&m_Emoticon, "emoticon");
@@ -681,6 +687,7 @@ void CGameClient::OnConsoleInit()
 	AddComponent(&m_ImportantAlert, "important_alert");
 	AddComponent(&m_DebugHud, "debug_hud");
 	AddComponent(&m_TouchControls, "touch_controls");
+	AddComponent(&m_QmMobileSpectator, "mobile_spectator");
 	AddComponent(&m_Scoreboard, "scoreboard");
 	AddComponent(&m_Statboard, "statboard");
 	AddComponent(&m_Motd, "motd");
@@ -715,6 +722,7 @@ void CGameClient::OnConsoleInit()
 						  &m_HudEditor,
 						  &m_TClient, // TClient repeat message
 						  &m_Controls,
+						  &m_QmMobileSpectator,
 						  &m_TouchControls,
 						  &m_Binds});
 
@@ -729,6 +737,8 @@ void CGameClient::OnConsoleInit()
 	// add basic console commands
 	IConsole *pConsole = m_pConsole;
 	pConsole->Register("qm_hud_island_edge_margin", "?i[value]", CFGFLAG_CLIENT, ConDiscardLegacyHudIslandEdgeMargin, nullptr, "Ignored legacy Dynamic Island edge margin");
+	// 兼容旧配置加载，但不再提供或保存已经移除的无限钩样式选择。
+	pConsole->Register("qm_hook_countdown_flow_style", "?i[value]", CFGFLAG_CLIENT, ConDiscardLegacyHookCountdownFlowStyle, nullptr, "");
 	pConsole->Register("team", "i[team-id]", CFGFLAG_CLIENT, ConTeam, this, "Switch team");
 	pConsole->Register("kill", "", CFGFLAG_CLIENT, ConKill, this, "Kill yourself to restart");
 	pConsole->Register("ready_change", "", CFGFLAG_CLIENT, ConReadyChange7, this, "Change ready state (0.7 only)");
@@ -1181,6 +1191,7 @@ void CGameClient::PrewarmSettingsRuntimeCachesDuringLoading(const char *pLoading
 
 void CGameClient::OnUpdate()
 {
+	m_LocalServer.Update();
 	// 返回客户端后先交接输入，再向组件分发这一帧的事件。
 	m_QmImeManager.SetClientOwnership(true);
 	// 字体配置变化通过统一窗口失效路径清理缓存。
@@ -2523,6 +2534,7 @@ void CGameClient::FormatStreamerName(int ClientId, char *pBuf, int BufSize) cons
 	{
 		pBuf[0] = '\0';
 	}
+	QmStreamerWordFilter::Filter(pBuf, g_Config.m_QmStreamerFilterWords != 0);
 }
 
 void CGameClient::RenderQmMonitoringHud(float GraphX, float GraphSpacing)
@@ -2553,6 +2565,7 @@ void CGameClient::FormatStreamerClan(int ClientId, char *pBuf, int BufSize) cons
 		str_copy(pBuf, m_aClients[ClientId].m_aClan, BufSize);
 	else
 		pBuf[0] = '\0';
+	QmStreamerWordFilter::Filter(pBuf, g_Config.m_QmStreamerFilterWords != 0);
 }
 
 namespace
@@ -2740,6 +2753,8 @@ void CGameClient::FormatStreamerVoteText(const char *pText, char *pBuf, int BufS
 void CGameClient::PrepareInputForSend(int *pData, int Size, bool Dummy)
 {
 	m_FastPractice.PrepareInputForSend(pData, Size, Dummy);
+	if(qm_mobile_spectator::Enabled() && Size >= (int)sizeof(CNetObj_PlayerInput))
+		qm_mobile_spectator::NeutralizeGameplayInput(*reinterpret_cast<CNetObj_PlayerInput *>(pData));
 }
 
 void CGameClient::OnRelease()
@@ -6370,6 +6385,8 @@ void CGameClient::CClientData::CSixup::Reset()
 
 void CGameClient::SendSwitchTeam(int Team)
 {
+	if(qm_mobile_spectator::Enabled() && Team != TEAM_SPECTATORS)
+		return;
 	if(Team == TEAM_SPECTATORS)
 		m_FastPractice.PrepareForSpectating();
 

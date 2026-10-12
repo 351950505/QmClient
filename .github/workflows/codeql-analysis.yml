@@ -86,7 +86,7 @@ jobs:
       if: steps.classify.outputs.should_run_cpp == 'true'
       run: |
        sudo apt-get update -y
-       sudo apt-get install pkg-config cmake ninja-build python3-fonttools python3-pil libfreetype6-dev libnotify-dev libsdl2-dev libsqlite3-dev libavcodec-dev libavformat-dev libavutil-dev libswresample-dev libswscale-dev libx264-dev libmariadb-dev libwebsockets-dev libvulkan-dev glslang-tools spirv-tools libglew-dev -y
+       sudo apt-get install pkg-config cmake ninja-build python3-fonttools python3-pil libfreetype6-dev libnotify-dev libasound2-dev libpulse-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev libdecor-0-dev libsqlite3-dev libavcodec-dev libavformat-dev libavutil-dev libswresample-dev libswscale-dev libx264-dev libmariadb-dev libwebsockets-dev libvulkan-dev glslang-tools spirv-tools libglew-dev -y
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -112,7 +112,8 @@ jobs:
       run: |
        mkdir release
        cd release
-       cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DANTIBOT=ON -DMYSQL=ON -DWEBSOCKETS=ON ..
+       # 分析保留发布配置的代码路径；此任务不产出发布包，无需再执行 LTO。
+       cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DIPO=OFF -DANTIBOT=ON -DMYSQL=ON -DWEBSOCKETS=ON ..
        cmake --build . --config RelWithDebInfo --target everything
 
     - name: Perform CodeQL Analysis

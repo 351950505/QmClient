@@ -114,6 +114,7 @@ namespace qm_card_registry
 		std::vector<SCardDefault> Cards = {
 			// === 栖梦侧栏模块 · qm:<key>（显式默认值齐全，来源 s_aQmModuleDefaults + 数据债补录）===
 			{"qm:console", "visual", ECardColumn::Left, 20, "Console settings", "控制台 终端 字号 配色 命令 参数 字符串 数字 链接 搜索 高亮 console terminal font color highlight qm_console_font_size qm_console_color_scheme qm_console_opacity qm_console_highlight_commands qm_console_background_color qm_console_text_color qm_console_command_color qm_console_parameter_color qm_console_string_color qm_console_number_color qm_console_link_color qm_console_search_color qm_console_search_selected_color", "Appearance and command highlighting of the local console"},
+			{"qm:chat_completion", "visual", ECardColumn::Left, 21, "Chat completion appearance", "聊天补全外观 liaotian buquan waiguan 聊天指令 命令 表情 配色 背景 透明度 文字 选中 chat command emoji completion appearance background opacity text selection color qm_chat_completion_bg_color qm_chat_completion_opacity qm_chat_completion_text_color qm_chat_completion_selected_text_color qm_chat_completion_selected_color", "Colors for chat command and emoji completion"},
 			{"qm:tooltip", "visual", ECardColumn::Left, 9, "Tooltips", "提示 气泡 说明 背景 文字 字号 颜色 回弹 tooltip help font color bounce qm_tooltip_background_color qm_tooltip_text_color qm_tooltip_font_size qm_tooltip_animation", "Appearance of help bubbles"},
 			{"qm:appearance_preset", "visual", ECardColumn::Full, 1, "Qm recommended appearance", "栖梦 推荐 预设 外观 字体 霞鹜文楷 lxgw wenkai font preset recommended appearance qm_custom_font qm_custom_font_cjk ui_color qm_ui_scale qm_ui_motion_level qm_gaussian_blur", "Preview and apply a fixed appearance preset"},
 			{"qm:info", "visual", ECardColumn::Full, 0, "QmClient", "qmclient info", "QmClient information and project links", "credits-qmclient", "deck:qmclient-contributors-community"},
@@ -127,14 +128,14 @@ namespace qm_card_registry
 			{"qm:weapon_animation", "visual", ECardColumn::Right, 1, "Weapon animation", "武器动画 wuqi donghua weapon animation 切换武器动画 qiehuan wuqi donghua weapon switch animation 装填动画 zhuangtian donghua reload animation 概率 gailv probability 滑入 huaru 旋转 xuanzhuan visual", "Play a slide-in rotation animation when switching weapons"},
 			{"qm:entity_overlay", "visual", ECardColumn::Right, 2, "Entity overlay", "实体层颜色 shiti ceng yanse 实体层 shiti entity overlay 死亡透明度 siwang 冻结透明度 dongjie 解冻透明度 jiedong 深度冻结 shendu dongjie 深度解冻 shendu jiedong 传送透明度 chuansong cp点透明度 cp checkpoint 开关透明度 kaiguan 叠层透明度 dieceng visual", "Adjust opacity of entity layers"},
 			{"qm:collision_hitbox", "visual", ECardColumn::Right, 5, "Collision hitbox", "碰撞箱模式 pengzhuangxiang moshi 碰撞体积可视化 pengzhuang tiji keshihua collision hitbox hitbox mode 显示碰撞 武器交互 透明度 visual", "Show collision and weapon interaction"},
-			{"qm:streamer", "visual", ECardColumn::Left, 10, "Streamer mode", "主播模式 zhubo moshi 直播 zhibo 隐私 yinsi 非好友昵称改id feihaoyou nicheng id 非好友皮肤默认 pifu moren 计分板默认国旗 guoqi visual", "Protect names and skins while streaming"},
+			{"qm:streamer", "visual", ECardColumn::Left, 10, "Streamer mode", "主播模式 zhubo moshi 直播 zhibo 隐私 yinsi 敏感词 minganci 屏蔽词 pingbici 反规避 fangui bi 非好友昵称改id feihaoyou nicheng id 非好友皮肤默认 pifu moren 计分板默认国旗 guoqi visual", "Protect names and skins while streaming"},
 			{"qm:translate_ui", "function", ECardColumn::Left, 15, "Translate UI", "fanyi ui 颜色 yanse color 按钮 anniu button 菜单 caidan menu rgba 自定义 zidingyi custom function", "Customize translate button and menu colors"},
 			{"qm:gores_actor", "function", ECardColumn::Left, 3, "Gores actor", "gores 演员 actor 掉水 diaoshui 自动发言 zidong fayan 表情 biaoqing 表情id emoticon 发送概率 gaolv function", "Auto chat when dying in water"},
 			{"qm:gores", "function", ECardColumn::Left, 4, "Gores", "gores kog king of gores 锤枪切换 chuichang qiehuan 自动切枪 zidong qieqiang 自动切锤 zidong qiechui gun hammer prevweapon fire 开火后切锤 kaihuo qiechui 拿到其他武器停用 快速输入 kuaisu shuru fast input 快速输入其他玩家 function", "Gores auto weapon switch"},
 			{"qm:solo_split", "function", ECardColumn::Left, 17, "Solo split", "单刷 danshua 单刷模式 danshua moshi 分队 fendui 分身 fenshen dummy 队伍 duiwu team 独立 duli 各自进队 gezi jindui 组队 zudui 自动锁队 zidong suodui lock 锁队 一键 yijian 单人 danren 刷图 shuatu solo 同步 tongbu 开局 kaiju function", "Split main and dummy into different teams for solo-run sync"},
 			{"qm:key_binds", "function", ECardColumn::Left, 5, "Key binds", "按键绑定 anjian bangding bind 快捷键 kuaijiejian 常用绑定 changyong bangding 武器辅助线 fuzhuxian 异常断开 yichang duankai timeout disconnect function", "Common key bindings"},
 			{"qm:better_scoreboard", "function", ECardColumn::Left, 6, "Better scoreboard", "更好的计分板 genghao jifenban better scoreboard 计分板查分 chafen 计分板积分检查 jifenban jifen jiancha scoreboard point check 显示死亡后计分板 死亡后显示计分板 siwang hou xianshi jifenban show scoreboard after death 滚动计分板 gundong jifenban fixed-size scoreboard rows mouse wheel 计分板筛选 jifenban shaixuan scoreboard filter 计分板Qm标识 qm biaoshi scoreboard badge function", "Scoreboard"},
-			{"qm:mini_features", "function", ECardColumn::Left, 7, "Mini features", "梦的小功能 meng xiaogongneng 粒子拖尾 lizi tuowei 远程粒子 yuancheng lizi 聊天框淡出 liaotian danchu 聊天指令补全 zhiling buquan 命令补全 mingling buquan command completion autocomplete qm_chat_command_completion 表情选择 biaoqing xuanze 动画优化 donghua youhua 复读 fudu 锤人换皮 chuiren huanpi 随机表情 suiji biaoqing 连击 lianji combo 说话不弹表情 shuo hua biaoqing 本地彩虹名字 caihong mingzi 更新 gengxin 版本 banben 过旧 guojiu 提示 tishi outdated version warning 新版UI xinban ui settings page shezhi yemian 候选栏 houxuanlan 进程优先级 jincheng youxianji 协作制图 xiezuo zhitu 多人制图 duoren zhitu tune zone 区域着色 quyu zhaose 地图着色 ditu zhaose function", "Configure Dream-only convenience features"},
+			{"qm:mini_features", "function", ECardColumn::Left, 7, "Mini features", "梦的小功能 meng xiaogongneng 粒子拖尾 lizi tuowei 远程粒子 yuancheng lizi 聊天框淡出 liaotian danchu 聊天指令补全 zhiling buquan 命令补全 mingling buquan command completion autocomplete qm_chat_command_completion 聊天表情补全 liaotian biaoqing buquan emoji completion qm_chat_emoji_completion 表情选择 biaoqing xuanze 动画优化 donghua youhua 复读 fudu 锤人换皮 chuiren huanpi 随机表情 suiji biaoqing 连击 lianji combo 说话不弹表情 shuo hua biaoqing 本地彩虹名字 caihong mingzi 更新 gengxin 版本 banben 过旧 guojiu 提示 tishi outdated version warning 新版UI xinban ui settings page shezhi yemian 候选栏 houxuanlan 进程优先级 jincheng youxianji 协作制图 xiezuo zhitu 多人制图 duoren zhitu tune zone 区域着色 quyu zhaose 地图着色 ditu zhaose function", "Configure Dream-only convenience features"},
 			{"qm:ime", "function", ECardColumn::Left, 19, "IME", "输入法 shurufa ime 候选栏 houxuanlan 新版输入法 xinban shurufa 自动管理 zidong guanli 背景 beijing 颜色 yanse 透明度 toumingdu 高斯模糊 gaosi mohu function", "Configure the IME candidate bar"},
 			{"qm:jump_hint", "function", ECardColumn::Left, 7, "Jump hint", "位置跳跃提示 tiaoyue tishi jump hint position edge jump color yanse 颜色 horizontal position shuiping weizhi vertical position chuizhi weizhi font size ziti function", "Customize the position jump hint"},
 			{"qm:weapon_trajectory", "function", ECardColumn::Left, 8, "Weapon trajectory", "武器辅助线 wuqi fuzhuxian weapon trajectory 弹道辅助线 dandao fuzhuxian 手枪辅助线 shouqiang fuzhuxian pistol guide line 预测忍者路径 yuce renzhe lujing predict ninja path 线宽 xian kuan 透明度 toumingdu 始终显示 shizhong xianshi 按键显示 anjian xianshi function", "Show grenade and laser trajectory preview"},
@@ -195,8 +196,8 @@ namespace qm_card_registry
 			// 贡献者页分两个子页签（credits-qmclient / credits-links）；DDNet/TClient 署名卡并入友链，全卡半宽。
 			{"deck:qmclient-contributors-community", "credits-qmclient", ECardColumn::Left, 1, "QmClient Community", "community links qmclient", "Find QmClient communities and project links"},
 			{"deck:qmclient-contributors-title", "credits-qmclient", ECardColumn::Left, 0, Localizable("Sponsor title"), "sponsor title code authentication nickname redeem chat platinum 赞助头衔 兑换 绑定 昵称 发言 柔光 铂金", Localizable("Redeem your code and customize your title")},
-			{"deck:qmclient-contributors-title-display", "credits-qmclient", ECardColumn::Right, 0, Localizable("Title display"), "title display nameplate above main dummy style color wave glow 头衔显示 名牌 上方 本体 分身 风格 颜色 波浪 辉光 qm_show_nameplate_title qm_nameplate_title_above_name qm_show_main_title qm_show_dummy_title qm_sponsor_chat_effects qm_title_style qm_title_style_enabled qm_title_instant_hints qm_title_advanced qm_title_color_mode qm_title_color qm_title_opacity qm_title_phase qm_title_effect qm_title_bloom qm_title_shimmer_speed qm_title_motion_mode title motion vertical wave pop wave 上下波动 放大凸起 qm_title_bob_amplitude qm_title_bob_wavelength qm_title_bob_speed qm_title_bob_pixel_snap", Localizable("Title visibility and appearance")},
-			{"deck:qmclient-contributors-sponsors", "credits-qmclient", ECardColumn::Right, 1, "Sponsor support", "sponsor support qmclient", "View the people supporting QmClient development"},
+			{"deck:qmclient-contributors-title-display", "appearance-name-plate", ECardColumn::Left, 2, Localizable("Title display"), "title display nameplate above main dummy style color wave glow 头衔显示 名牌 上方 本体 分身 风格 颜色 波浪 辉光 qm_show_nameplate_title qm_nameplate_title_above_name qm_show_main_title qm_show_dummy_title qm_sponsor_chat_effects qm_title_style qm_title_style_enabled qm_title_instant_hints qm_title_advanced qm_title_color_mode qm_title_color qm_title_opacity qm_title_phase qm_title_effect qm_title_bloom qm_title_shimmer_speed qm_title_motion_mode title motion vertical wave pop wave 上下波动 放大凸起 qm_title_bob_amplitude qm_title_bob_wavelength qm_title_bob_speed qm_title_bob_pixel_snap", Localizable("Title visibility and appearance")},
+			{"deck:qmclient-contributors-sponsors", "credits-qmclient", ECardColumn::Right, 0, "Sponsor support", "sponsor support qmclient", "View the people supporting QmClient development"},
 			{"deck:credits-friend-links", "credits-links", ECardColumn::Left, 0, "Friend links", "friend links ddnet workshop website qmclient homepage axiom teeworlds community", "Project and community websites"},
 			{"deck:qmclient-contributors-ddnet", "credits-links", ECardColumn::Right, 0, "DDNet", "ddnet contributors credits ddrace ddnet staff ddnet releases", "DDNet contributors and staff credits"},
 			{"deck:tclient-info-developers", "credits-links", ECardColumn::Left, 1, "TClient Developers", "tclient developers links discord website github support tater sollybunny pebox teero chillerdragon", "View the developers, contributors, and project links"},
@@ -488,6 +489,24 @@ namespace qm_card_registry
 		if(AlreadyCurrent)
 			return false;
 		return qm_card_order::MigrateExactLayout(Model, "credits-qmclient", vLegacy, vTarget, vAllowed);
+	}
+
+	bool RepairLegacyNameplateTitleLayout(qm_card_order::CModel &Model)
+	{
+		const char *pStableId = "deck:qmclient-contributors-title-display";
+		const int Index = Model.FindByStableId(pStableId);
+		if(Index < 0)
+			return false;
+		const auto &Entry = Model.Entry(Index);
+		if(Entry.m_pDefaultTab == nullptr ||
+			(str_comp(Entry.m_pDefaultTab, "credits-qmclient") != 0 && str_comp(Entry.m_pDefaultTab, "qmclient-contributors") != 0) ||
+			Entry.m_Column != 2 || (Entry.m_OrderInColumn != 0 && Entry.m_OrderInColumn != 1))
+			return false;
+		// 先完成旧贡献者页的默认排序，再迁移显示卡；用户自定位置保持不变。
+		RepairLegacyTitleLayout(Model);
+		const auto *pDefault = FindByStableId(pStableId);
+		Model.MoveToTab(pStableId, pDefault->m_pDefaultTab, 1, pDefault->m_DefaultOrder);
+		return true;
 	}
 
 	bool RepairLegacyTeeLayout(qm_card_order::CModel &Model)

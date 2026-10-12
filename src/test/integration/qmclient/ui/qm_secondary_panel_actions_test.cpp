@@ -263,7 +263,7 @@ TEST_F(QmSecondaryPanelActions, BackgroundScopeDrawsControlsWithoutConsumingClic
 	EXPECT_TRUE(m_Ui.ConsumeHotkey(CUi::HOTKEY_ESCAPE));
 }
 
-TEST_F(QmSecondaryPanelActions, PanelBackdropCoversTheWholeViewportAndCompactShellStaysInsideIt)
+TEST_F(QmSecondaryPanelActions, PanelBackdropCoversTheWholeViewportAndUpdateShellUsesAvailableHeight)
 {
 	auto &Graphics = *static_cast<qm_ui_test::CRealUiTestGraphics *>(m_Ui.Graphics());
 	const CUIRect Viewport = *m_Ui.Screen();
@@ -276,7 +276,7 @@ TEST_F(QmSecondaryPanelActions, PanelBackdropCoversTheWholeViewportAndCompactShe
 	EXPECT_FLOAT_EQ(Mask.w, Viewport.w);
 	EXPECT_FLOAT_EQ(Mask.h, Viewport.h);
 	EXPECT_LE(Panel.w, 600);
-	EXPECT_LE(Panel.h, 350);
+	EXPECT_GT(Panel.h, Viewport.h * 0.8f);
 	EXPECT_GE(Panel.x, Viewport.x);
 	EXPECT_GE(Panel.y, Viewport.y);
 	EXPECT_LE(Panel.x + Panel.w, Viewport.x + Viewport.w);
@@ -301,7 +301,7 @@ TEST_F(QmSecondaryPanelActions, SharedPanelMetricsPreserveTheExistingValues)
 	EXPECT_FLOAT_EQ(News.w, 820);
 	EXPECT_FLOAT_EQ(News.h, 536);
 	EXPECT_FLOAT_EQ(Update.w, 600);
-	EXPECT_FLOAT_EQ(Update.h, 350);
+	EXPECT_FLOAT_EQ(Update.h, 536);
 }
 
 TEST_F(QmSecondaryPanelActions, FullscreenMaskDoesNotExpandTheExistingPanelLayoutViewport)

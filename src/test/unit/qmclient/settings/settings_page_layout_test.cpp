@@ -159,9 +159,9 @@ TEST(SettingsPageLayout, DynamicIslandHeightMatchesTheRenderedRowsAndColorRow)
 	const float ExpandedHeight = ResolveQmHudDynamicIslandHeight(Metrics, false, false, 700.0f);
 	const CUIRect ColorRowView{0.0f, 0.0f, 700.0f, 0.0f};
 
-	// 卡片固定渲染 5 行：原版样式、显示队伍、钩子倒计时、流动样式、开关倒计时。
+	// 卡片预留 4 行：原版样式、显示队伍、钩子倒计时、开关倒计时。
 	// 展开时再多一行背景色和一行始终显示歌曲信息开关。
-	EXPECT_FLOAT_EQ(OriginalHeight, 5.0f * Metrics.m_RowStep);
+	EXPECT_FLOAT_EQ(OriginalHeight, 4.0f * Metrics.m_RowStep);
 	EXPECT_FLOAT_EQ(ExpandedHeight - OriginalHeight, ResolveSettingsColorRowLayout(ColorRowView, Metrics, false).m_ConsumedHeight + Metrics.m_RowStep);
 	// 开关倒计时启用后再多出「跟随 Tee」「灵动岛」两个位置开关（没有位置标题行）。
 	EXPECT_FLOAT_EQ(ResolveQmHudDynamicIslandHeight(Metrics, true, true, 700.0f) - OriginalHeight, 2.0f * Metrics.m_RowStep);
@@ -324,6 +324,71 @@ TEST(SettingsPageLayout, SecondaryPanelPropertiesRequestCenteredModalPresentatio
 	EXPECT_TRUE(Props.m_BlockUnderlyingPointerInput);
 	EXPECT_TRUE(Props.m_BlockUnderlyingScroll);
 	EXPECT_TRUE(Props.m_Animate);
+}
+
+TEST(SettingsPageLayout, ConfigEntriesAlignEditorAndResetAcrossDescriptionLengths)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(800.0f);
+	const CUIRect Area{20, 30, 700, 500};
+	const auto Short = ResolveSettingsConfigEntryLayout(Area, Metrics, false, 60, 12);
+	const auto Long = ResolveSettingsConfigEntryLayout(Area, Metrics, false, 60, 60);
+	EXPECT_FALSE(Short.m_Stacked);
+	EXPECT_FALSE(Long.m_Stacked);
+	EXPECT_FLOAT_EQ(Short.m_Editor.x, Long.m_Editor.x);
+	EXPECT_FLOAT_EQ(Short.m_Reset.x, Long.m_Reset.x);
+	EXPECT_FLOAT_EQ(Short.m_Editor.w, Long.m_Editor.w);
+	EXPECT_GT(Long.m_Height, Short.m_Height);
+	EXPECT_LE(Long.m_Description.y + Long.m_Description.h, Area.y + Long.m_Height);
+	EXPECT_LT(Long.m_Description.x + Long.m_Description.w, Long.m_Editor.x);
+	EXPECT_LT(Long.m_Editor.x + Long.m_Editor.w, Long.m_Reset.x);
+}
+
+TEST(SettingsPageLayout, NarrowConfigEntryPlacesControlsBelowTheDescription)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(800.0f);
+	const CUIRect Area{20, 30, 220, 500};
+	const auto Layout = ResolveSettingsConfigEntryLayout(Area, Metrics, false, 60, 48);
+	EXPECT_TRUE(Layout.m_Stacked);
+	EXPECT_FLOAT_EQ(Layout.m_Name.x, Layout.m_Editor.x);
+	EXPECT_GT(Layout.m_Editor.y, Layout.m_Description.y + Layout.m_Description.h);
+	EXPECT_FLOAT_EQ(Layout.m_Editor.y, Layout.m_Reset.y);
+	EXPECT_LE(Layout.m_Reset.x + Layout.m_Reset.w, Area.x + Area.w);
+	EXPECT_LE(Layout.m_Reset.y + Layout.m_Reset.h, Area.y + Layout.m_Height);
+}
+
+TEST(SettingsPageLayout, CompactConfigEntryRemovesDescriptionSpaceAndRestoresFullHeight)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(800.0f);
+	for(float Width : {220.0f, 700.0f})
+	{
+		SCOPED_TRACE(Width);
+		const CUIRect Area{0, 0, Width, 500};
+		const auto Full = ResolveSettingsConfigEntryLayout(Area, Metrics, false, 60, 48);
+		const auto Compact = ResolveSettingsConfigEntryLayout(Area, Metrics, true, 60, 48);
+		const auto Restored = ResolveSettingsConfigEntryLayout(Area, Metrics, false, 60, 48);
+		EXPECT_LT(Compact.m_Height, Full.m_Height);
+		EXPECT_FLOAT_EQ(Compact.m_Description.h, 0);
+		EXPECT_FLOAT_EQ(Compact.m_Reset.x, Full.m_Reset.x);
+		EXPECT_FLOAT_EQ(Restored.m_Height, Full.m_Height);
+	}
+}
+
+TEST(SettingsPageLayout, ConfigEntryKeepsControlsInsideTinyWidths)
+{
+	const auto Metrics = ResolveSettingsContentMetrics(800.0f);
+	for(float Width : {0.0f, 5.0f, 40.0f, 180.0f})
+	{
+		SCOPED_TRACE(Width);
+		const CUIRect Area{20, 30, Width, 500};
+		const auto Layout = ResolveSettingsConfigEntryLayout(Area, Metrics, false, 120, 48);
+		for(const CUIRect Rect : {Layout.m_Name, Layout.m_Description, Layout.m_Editor, Layout.m_Reset})
+		{
+			EXPECT_GE(Rect.w, 0);
+			EXPECT_GE(Rect.x, Area.x);
+			EXPECT_LE(Rect.x + Rect.w, Area.x + Area.w);
+			EXPECT_LE(Rect.y + Rect.h, Area.y + Layout.m_Height);
+		}
+	}
 }
 
 TEST(SettingsPageLayout, GpuControlsHideWithoutMultipleAdapters)

@@ -85,10 +85,10 @@ namespace qm_card_catalog
 			return QmCardRenderHook::BuildGeneralCard(Ctx, pStableId, Out);
 		if(str_comp(pStableId, "qm:bind_editor") == 0)
 			return BuildBindCard(Ctx, Out);
-		if(ContainsStableId(NameplateCardStableIds(), pStableId))
-			return QmCardRenderHook::BuildNameplateCard(Ctx, pStableId, Out);
 		if(ContainsStableId(TitleCardStableIds(), pStableId))
 			return QmCardRenderHook::BuildTitleCard(Ctx, pStableId, Out);
+		if(ContainsStableId(NameplateCardStableIds(), pStableId))
+			return QmCardRenderHook::BuildNameplateCard(Ctx, pStableId, Out);
 		if(ContainsStableId(TeeCardStableIds(), pStableId))
 			return QmCardRenderHook::BuildTeeCard(Ctx, pStableId, Out);
 		if(IsTClientCard(pStableId))
@@ -100,6 +100,8 @@ namespace qm_card_catalog
 			return false;
 		if(Id == qm_module::EQmModuleId::Voice)
 			return BuildFunctionCard(Ctx, Id, Out);
+		if(Id == qm_module::EQmModuleId::ChatCompletion)
+			return BuildChatCompletionCard(Ctx, Out);
 		if(str_comp(pStableId, "qm:steam") == 0)
 			return BuildSteamCard(Ctx, Id, Out);
 		if(ContainsStableId(VisualCardStableIds(), pStableId))

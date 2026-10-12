@@ -8,6 +8,77 @@ namespace
 {
 	using namespace qm_pie_menu;
 
+	TEST(PieMenuRename, MixedQueueKeepsPairedNamesInOneSector)
+	{
+		const auto vOptions = ParseRenameQueue("A|B|C,D|E");
+		ASSERT_EQ(vOptions.size(), 4u);
+		EXPECT_EQ(vOptions[0].m_Label, "A");
+		EXPECT_EQ(vOptions[1].m_Label, "B");
+		EXPECT_EQ(vOptions[2].m_Label, "C,D");
+		EXPECT_EQ(vOptions[3].m_Label, "E");
+		const auto apNames = vOptions[2].Names(false);
+		EXPECT_STREQ(apNames[0], "C");
+		EXPECT_STREQ(apNames[1], "D");
+	}
+
+	TEST(PieMenuRename, PairedNamesKeepMainAndDummyOrderWhileControllingDummy)
+	{
+		const auto vOptions = ParseRenameQueue("C,D");
+		ASSERT_EQ(vOptions.size(), 1u);
+		const auto apNames = vOptions[0].Names(true);
+		EXPECT_STREQ(apNames[0], "C");
+		EXPECT_STREQ(apNames[1], "D");
+	}
+
+	TEST(PieMenuRename, SingleNameOnlyChangesTheControlledCharacter)
+	{
+		const auto vOptions = ParseRenameQueue("A|B");
+		ASSERT_EQ(vOptions.size(), 2u);
+		const auto apMainNames = vOptions[0].Names(false);
+		EXPECT_STREQ(apMainNames[0], "A");
+		EXPECT_EQ(apMainNames[1], nullptr);
+		const auto apDummyNames = vOptions[1].Names(true);
+		EXPECT_EQ(apDummyNames[0], nullptr);
+		EXPECT_STREQ(apDummyNames[1], "B");
+	}
+
+	TEST(PieMenuRename, WhitespaceIsTrimmedWithoutChangingSpacesInsideNames)
+	{
+		const auto vOptions = ParseRenameQueue(" | A B |　本体 名字　, 分身 名字　 | E ");
+		ASSERT_EQ(vOptions.size(), 3u);
+		EXPECT_EQ(vOptions[0].m_Name, "A B");
+		EXPECT_EQ(vOptions[1].m_Name, "本体 名字");
+		EXPECT_EQ(vOptions[1].m_DummyName, "分身 名字");
+		EXPECT_EQ(vOptions[2].m_Name, "E");
+	}
+
+	TEST(PieMenuRename, IncompletePairsAreSkippedAndLaterEntriesRemainUsable)
+	{
+		const auto vOptions = ParseRenameQueue("A|C,|,D| , |B,E|F");
+		ASSERT_EQ(vOptions.size(), 3u);
+		EXPECT_EQ(vOptions[0].m_Name, "A");
+		EXPECT_EQ(vOptions[1].m_Name, "B");
+		EXPECT_EQ(vOptions[1].m_DummyName, "E");
+		EXPECT_EQ(vOptions[2].m_Name, "F");
+	}
+
+	TEST(PieMenuRename, EmptyQueueDoesNotOfferRenameActions)
+	{
+		EXPECT_TRUE(ParseRenameQueue(nullptr).empty());
+		EXPECT_TRUE(ParseRenameQueue("").empty());
+		EXPECT_TRUE(ParseRenameQueue("|　|| ").empty());
+	}
+
+	TEST(PieMenuRename, LongEntryDoesNotCreateExtraSectorsOrLoseItsDummyName)
+	{
+		const std::string Name(140, 'A');
+		const auto vOptions = ParseRenameQueue((Name + ",分身|E").c_str());
+		ASSERT_EQ(vOptions.size(), 2u);
+		EXPECT_EQ(vOptions[0].m_Name, Name);
+		EXPECT_EQ(vOptions[0].m_DummyName, "分身");
+		EXPECT_EQ(vOptions[1].m_Name, "E");
+	}
+
 	TEST(PieMenuOptions, HiddenOptionsKeepVisibleActionsAndSectorSelectionAligned)
 	{
 		std::array<bool, OPTION_COUNT> Enabled;

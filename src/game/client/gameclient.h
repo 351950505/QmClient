@@ -77,10 +77,12 @@
 #include "components/qmclient/chat_emoji.h"
 #include "components/qmclient/collision_hitbox.h"
 #include "components/qmclient/data_version.h"
+#include "components/qmclient/demo_camera.h"
 #include "components/qmclient/dummy_hammer_input.h"
 #include "components/qmclient/hammer_hit_detection.h"
 #include "components/qmclient/hud_notifications/hud_notifications.h"
 #include "components/qmclient/input_overlay.h"
+#include "components/qmclient/mobile_spectator.h"
 #include "components/qmclient/monitoring/monitoring.h"
 #include "components/qmclient/music_app_watcher.h"
 #include "components/qmclient/music_lyrics/music_lyrics_integration.h"
@@ -237,6 +239,7 @@ public:
 	// all components
 	CInfoMessages m_InfoMessages;
 	CCamera m_Camera;
+	CQmDemoCamera m_DemoCamera;
 	CChat m_Chat;
 	CCensor m_Censor;
 	CMotd m_Motd;
@@ -304,6 +307,7 @@ public:
 	CQmAxiomScores m_QmAxiomScores;
 	CQmChatEmoji m_QmChatEmoji;
 	CQmMonitoring m_QmMonitoring;
+	CQmMobileSpectator m_QmMobileSpectator;
 	CQmHudNotifications m_QmHudNotifications;
 	CQmWaterHammerIndicator m_QmWaterHammerIndicator;
 	CQmWeaponTrajectory m_QmWeaponTrajectory;

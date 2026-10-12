@@ -28,20 +28,6 @@ namespace
 	}
 }
 
-CStatusItem::CStatusItem(std::function<void()> Render, std::function<float()> Width, const char *pLetters, const char *pName, const char *pDisplayName, const char *pDesc, bool ShowLabel)
-{
-	m_RenderItem = std::move(Render);
-	m_GetWidth = std::move(Width);
-	str_copy(m_aLetters, pLetters);
-	str_copy(m_aName, pName);
-	if(str_comp(pDisplayName, "") != 0)
-		str_copy(m_aDisplayName, pDisplayName);
-	else
-		str_copy(m_aDisplayName, pName);
-	str_copy(m_aDesc, pDesc);
-	m_ShowLabel = ShowLabel;
-}
-
 int CStatusBar::GetDigitsIndex(const int Value, const int Max)
 {
 	int NormalizedValue = Value;
@@ -184,6 +170,7 @@ int CStatusBar::CalculateRaceTime()
 }
 void CStatusBar::RaceTimeRender()
 {
+	const ColorRGBA TextColor = TextRender()->GetTextColor();
 	const int RaceTime = m_CurrentRaceTime;
 	char aTimeBuf[64];
 	str_time((int64_t)RaceTime * 100, TIME_DAYS, aTimeBuf, sizeof(aTimeBuf));
@@ -191,10 +178,10 @@ void CStatusBar::RaceTimeRender()
 	if(GameClient()->m_Snap.m_pGameInfoObj->m_TimeLimit && RaceTime <= 60 && (GameClient()->m_Snap.m_pGameInfoObj->m_WarmupTimer <= 0))
 	{
 		const float Alpha = RaceTime <= 10 && (2 * time() / time_freq()) % 2 ? 0.5f : 1.0f;
-		TextRender()->TextColor(1.0f, 0.25f, 0.25f, Alpha);
+		TextRender()->TextColor(1.0f, 0.25f, 0.25f, Alpha * TextColor.a);
 	}
 	TextRender()->Text(m_CursorX, m_CursorY, m_FontSize, aTimeBuf);
-	TextRender()->TextColor(color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmStatusBarTextColor)));
+	TextRender()->TextColor(TextColor);
 }
 
 float CStatusBar::FPSWidth()
@@ -476,22 +463,7 @@ float CStatusBar::LabelWidth(const char *pLabel)
 
 void CStatusBar::ApplyStatusBarScheme(const char *pScheme)
 {
-	m_StatusBarItems.clear();
-	for(int i = 0; pScheme[i] != '\0'; ++i)
-	{
-		char SchemeLetter = pScheme[i];
-		for(CStatusItem &ItemType : m_vStatusItemTypes)
-		{
-			for(char ItemLetter : ItemType.m_aLetters)
-			{
-				if(ItemLetter == SchemeLetter)
-				{
-					m_StatusBarItems.push_back(&ItemType);
-					break;
-				}
-			}
-		}
-	}
+	m_StatusBarItems = QmParseStatusBarScheme(pScheme, m_vpStatusItemTypes);
 	str_copy(m_aAppliedStatusBarScheme, pScheme, sizeof(m_aAppliedStatusBarScheme));
 }
 

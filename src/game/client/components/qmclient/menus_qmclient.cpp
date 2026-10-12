@@ -78,7 +78,7 @@
 #include <game/localization.h>
 #include <game/version.h>
 
-#include <SDL_audio.h>
+#include <SDL3/SDL_audio.h>
 
 #include <algorithm>
 #include <array>
@@ -172,6 +172,7 @@ namespace
 		{qm_module::EQmModuleId::AppearancePreset, qm_module::EQmModuleColumn::Full, 1, "appearance_preset"},
 		{qm_module::EQmModuleId::Tooltip, qm_module::EQmModuleColumn::Left, 9, "tooltip"},
 		{qm_module::EQmModuleId::Console, qm_module::EQmModuleColumn::Left, 20, "console"},
+		{qm_module::EQmModuleId::ChatCompletion, qm_module::EQmModuleColumn::Left, 21, "chat_completion"},
 		{qm_module::EQmModuleId::SpectatorMode, qm_module::EQmModuleColumn::Right, 24, "spectator_mode"}}};
 }
 
@@ -1771,7 +1772,7 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	if(Update.QmClientUpdateStatus() == EQmClientUpdateStatus::AVAILABLE && !Update.CanDownloadQmClientUpdate())
 	{
 		const char *pPackage = QmUpdatePortableBuild ? Localize("No downloadable portable package for this version") :
-						       Localize("No compatible Windows update package for this version");
+							       Localize("No compatible Windows update package for this version");
 		CUIRect Availability;
 		Content.HSplitBottom(QmWrappedLineCount(TextRender(), BodySize, pPackage, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Content, &Availability);
 		Ui()->DoLabel(&Availability, pPackage, BodySize, TEXTALIGN_TL, {.m_MaxWidth = Availability.w});

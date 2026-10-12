@@ -10,6 +10,7 @@ import zipfile
 import subprocess
 
 REMOVED_BUNDLED_RESOURCES = {
+	"SDL2.dll",
 	"data/qmclient/font_catalog.json",
 	"data/qmclient/chat_emojis/agree.png",
 	"data/qmclient/chat_emojis/angry.png",

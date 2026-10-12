@@ -6,6 +6,7 @@
 #include "SettingsCardInfo.h"
 #include "SettingsIconFeedback.h"
 #include "SettingsPageLayout.h"
+#include "UiButtons.h"
 #include "UiContext.h"
 #include "UiSurface.h"
 #include "UiSurfaceText.h"
@@ -94,7 +95,7 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	const float UiScale = Ctx.m_UiScale > 0.0f ? Ctx.m_UiScale : 1.0f;
 	SSettingsCardVisualState DrawState = State;
 	SSettingsCardFrame DrawFrame = ResolveSettingsCardDrawFrame(Frame, State.m_DrawOffsetX, State.m_DrawOffsetY);
-	CUIRect InfoButton;
+	CUIRect InfoButton{};
 	if(Spec.m_pInfo != nullptr && Spec.m_pInfo[0] != '\0')
 	{
 		InfoButton = ResolveSettingsCardInfoRect(DrawFrame);
@@ -197,4 +198,120 @@ SSettingsCardFrame SettingsCard(const IUiContext &Ctx, const SSettingsCardFrame 
 	if(ClipContent)
 		Ctx.m_pUi->ClipDisable();
 	return Frame;
+}
+
+// 作为 CMenus 的共享表单入口，沿用文字池、配置提示和临时接管策略。
+bool CMenus::DoSettingsToggleGroup(int Page, int Tab, int Subtab, CUIRect &Content, std::initializer_list<SSettingsToggleEntry> Entries, const SSettingsContentMetrics &Metrics, bool ProcessInput, ESettingsToggleGroupPass Pass)
+{
+	if(Entries.size() == 0)
+		return false;
+	const float Gap = Metrics.m_LineSpacing;
+	const float PaddingX = std::max(Metrics.m_LineSpacing, Metrics.m_BodySize * 0.5f);
+	const float PaddingY = Metrics.m_LineSpacing * 0.5f;
+	m_vSettingsToggleGroupSizes.resize(Entries.size());
+	size_t Index = 0;
+	for(const auto &Entry : Entries)
+	{
+		auto &Size = m_vSettingsToggleGroupSizes[Index++];
+		const float IndicatorWidth = Entry.m_ShowCheckmark ? Metrics.m_BodySize + Gap : 0.0f;
+		Size = ResolveSettingsToggleButtonSize(TextRender()->TextWidth(Metrics.m_BodySize, Entry.m_pLabel), Metrics.m_BodySize, Metrics.m_LineHeight, PaddingX, PaddingY, IndicatorWidth);
+	}
+	auto &Grid = m_SettingsToggleGroupGrid;
+	ResolveSettingsToggleGrid(Content.w, m_vSettingsToggleGroupSizes, Gap, Grid);
+	Index = 0;
+	for(const auto &Entry : Entries)
+	{
+		const CUIRect Button{0, 0, Grid.m_aColumnWidths[Index % Grid.m_Columns], Metrics.m_LineHeight};
+		const float IndicatorWidth = Entry.m_ShowCheckmark ? Metrics.m_BodySize + Gap : 0.0f;
+		const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY, IndicatorWidth);
+		const float LabelHeight = TextRender()->TextBoundingBox(Metrics.m_BodySize, Entry.m_pLabel, -1, std::max(1.0f, Label.w)).m_H;
+		m_vSettingsToggleGroupSizes[Index++].m_Height = ResolveSettingsToggleButtonSize(0, LabelHeight, Metrics.m_LineHeight, PaddingX, PaddingY).m_Height;
+	}
+	Grid.SetItemHeights(m_vSettingsToggleGroupSizes);
+	CUIRect Area;
+	CSettingsContentLayoutFlow Flow(Content);
+	// 分组作为一个稳定布局块发布；输入和绘制消费同一份卡片坐标。
+	const char *pGroupId = Entries.begin()->m_pTextId;
+	const bool HasArea = Flow.Control(pGroupId, Grid.Height(), Area);
+	Flow.Space(Metrics.m_LineSpacing);
+	if(!HasArea)
+		return false;
+	ProcessInput = ProcessInput && Flow.Input();
+	if(Pass == ESettingsToggleGroupPass::LAYOUT)
+		return false;
+
+	bool Changed = false;
+	Index = 0;
+	for(const auto &Entry : Entries)
+	{
+		const CUIRect Cell = Grid.Cell(Area, static_cast<int>(Index++));
+		Changed = DoSettingsToggleButton(Page, Tab, Subtab, Cell, Entry, Metrics, ProcessInput, Pass) || Changed;
+	}
+	return Changed;
+}
+
+bool CMenus::DoSettingsToggleButton(int Page, int Tab, int Subtab, const CUIRect &Button, const SSettingsToggleEntry &Entry, const SSettingsContentMetrics &Metrics, bool ProcessInput, ESettingsToggleGroupPass Pass)
+{
+	if(Pass == ESettingsToggleGroupPass::LAYOUT)
+		return false;
+	const float PaddingX = std::max(Metrics.m_LineSpacing, Metrics.m_BodySize * 0.5f);
+	const float PaddingY = Metrics.m_LineSpacing * 0.5f;
+	const float IndicatorWidth = Entry.m_ShowCheckmark ? Metrics.m_BodySize + Metrics.m_LineSpacing : 0.0f;
+	const CUIRect Label = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY, IndicatorWidth);
+	const IUiContext Context = SettingsUiContext("settings-toggle-button", Metrics.m_UiScale);
+	const bool CanProcessInput = ProcessInput && !m_MenuTextPlanCollecting && !Ui()->RenderOnly();
+	const void *pId = Entry.m_pId != nullptr ? Entry.m_pId : Entry.m_pValue;
+	const char *pOverrideTooltip = TemporaryOverrideTooltip(Entry.m_pValue);
+	bool Changed = false;
+	if(!m_MenuTextPlanCollecting && !Ui()->RenderOnly())
+	{
+		Ui()->DoConfigTooltip(pId, &Button, Entry.m_pValue);
+		const bool Clicked = CanProcessInput && Ui()->DoButtonLogic(pId, 0, &Button, pOverrideTooltip == nullptr ? BUTTONFLAG_LEFT : BUTTONFLAG_NONE);
+		Changed = ApplySettingsToggleEntry(Entry, Clicked, CanProcessInput, pOverrideTooltip != nullptr);
+	}
+	if(Pass == ESettingsToggleGroupPass::INPUT)
+		return Changed;
+	CUIRect FlowRect = Button;
+	if(!CSettingsContentLayoutFlow(FlowRect).Drawing())
+		return Changed;
+	ui_widget::SButtonSurfaceOptions Options;
+	Options.m_Enabled = pOverrideTooltip == nullptr;
+	Options.m_Selected = SettingsToggleEntryValue(Entry);
+	Options.m_Radius *= Metrics.m_UiScale;
+	// 与 F1 筛选相同，以选中底色表达启用状态，不再另画滑动开关。
+	Options.m_Color = Options.m_Selected ? color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)).WithAlpha(1.0f) : ResolveConfiguredControlSurface();
+	ColorRGBA Fill = *Options.m_Color;
+	if(!Options.m_Enabled)
+		Fill.a *= 0.65f;
+	if(!m_MenuTextPlanCollecting)
+		Fill = ui_widget::DrawButtonSurface(Context, CanProcessInput ? pId : nullptr, Button, Options);
+	const CUiScopedSurfaceText SurfaceText(TextRender(), Fill);
+	if(Entry.m_ShowCheckmark && Options.m_Selected && !m_MenuTextPlanCollecting)
+	{
+		CUIRect Indicator = ResolveSettingsToggleButtonLabel(Button, PaddingX, PaddingY);
+		Indicator.w = std::min(Metrics.m_BodySize, Indicator.w);
+		const EFontPreset PreviousFont = TextRender()->GetFontPreset();
+		TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+		char aCheck[8] = {};
+		str_utf8_encode(aCheck, CQmIconRegistry::Codepoint(EQmIcon::CHECK));
+		Ui()->DoLabel(&Indicator, aCheck, Metrics.m_BodySize, TEXTALIGN_MC);
+		TextRender()->SetFontPreset(PreviousFont);
+	}
+	SLabelProperties Props;
+	Props.m_MaxWidth = Label.w;
+	Props.m_EnableWidthCheck = false;
+	Props.m_MinimumFontSize = Metrics.m_BodySize;
+	if(pOverrideTooltip != nullptr)
+		Props.SetColor(ui_token::color::TEXT_DISABLED);
+	DoSettingsMenuLabel(Page, Tab, Subtab, Entry.m_pTextId, &Label, Entry.m_pLabel, Metrics.m_BodySize, TEXTALIGN_MC, Props);
+	if(!m_MenuTextPlanCollecting && !Ui()->RenderOnly() && Context.m_pTooltips != nullptr)
+	{
+		if(pOverrideTooltip != nullptr)
+			Context.m_pTooltips->DoToolTip(pId, &Button, pOverrideTooltip);
+		else if(Entry.m_pTooltip != nullptr)
+			Context.m_pTooltips->DoToolTip(pId, &Button, Entry.m_pTooltip);
+		else
+			Context.m_pTooltips->DoSettingsToolTipForConfig(pId, &Button, Entry.m_pValue, &Label);
+	}
+	return Changed;
 }

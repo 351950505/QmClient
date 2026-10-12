@@ -139,6 +139,7 @@ namespace qm_module
 		case EQmModuleId::AppearancePreset: return "qm:appearance_preset";
 		case EQmModuleId::Tooltip: return "qm:tooltip";
 		case EQmModuleId::Console: return "qm:console";
+		case EQmModuleId::ChatCompletion: return "qm:chat_completion";
 		}
 		return nullptr;
 	}

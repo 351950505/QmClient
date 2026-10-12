@@ -117,13 +117,11 @@ jobs:
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc  # v2.9.1
 
-      - name: Cache CMake build
+      - name: Cache SDL3 download
         uses: actions/cache@v5
         with:
-          path: |
-            build/_deps
-          key: cmake-${{ runner.os }}-${{ runner.arch }}-${{ env.BUILD_TYPE }}-${{ hashFiles('CMakeLists.txt', 'cmake/**/*.cmake') }}
-          restore-keys: cmake-${{ runner.os }}-${{ runner.arch }}-${{ env.BUILD_TYPE }}-
+          path: build/downloads/sdl3
+          key: sdl3-source-${{ hashFiles('cmake/FindSDL3.cmake') }}
 
       - name: Cache Homebrew packages
         if: runner.os == 'macOS'
@@ -132,10 +130,6 @@ jobs:
           path: ~/Library/Caches/Homebrew
           key: homebrew-${{ runner.os }}-${{ hashFiles('.github/workflows/build.yml') }}
           restore-keys: homebrew-${{ runner.os }}-
-
-      - name: Reinstall ccache (macOS)
-        if: runner.os == 'macOS'
-        run: brew reinstall ccache
 
       - name: Setup ccache (Linux/macOS)
         if: runner.os != 'Windows'
@@ -171,7 +165,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             cmake ninja-build pkg-config python3 python3-pip python3-pil \
-            libfreetype6-dev libnotify-dev libsdl2-dev libsqlite3-dev \
+            libfreetype6-dev libnotify-dev libasound2-dev libpulse-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev libdecor-0-dev libsqlite3-dev \
             libdbus-1-dev \
             libgl1-mesa-dev \
             libvulkan-dev glslang-tools spirv-tools \
@@ -187,7 +181,7 @@ jobs:
           for tap in aws/tap azure/bicep; do
             brew untap "$tap" 2>/dev/null || true
           done
-          for pkg in cmake ninja pkg-config python freetype sdl2 libpng libogg opus opusfile sqlite wavpack ffmpeg; do
+          for pkg in cmake ninja pkg-config python freetype libpng libogg opus opusfile sqlite wavpack ffmpeg; do
             if brew list --formula "$pkg" &>/dev/null; then
               brew link --overwrite "$pkg" 2>/dev/null || true
             else
@@ -255,6 +249,25 @@ jobs:
           else
             cmake --build build --target game-client --parallel
           fi
+
+      - name: Verify native Metal client startup and screenshot
+        if: runner.os == 'macOS'
+        timeout-minutes: 5
+        shell: bash
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python3 -m unittest qmclient_scripts.tests.test_process_harness
+          python3 qmclient_scripts/integration/startup_presentation_smoke.py build metal_window_presentation
+
+      - name: Upload Metal startup diagnostics
+        if: failure() && runner.os == 'macOS'
+        uses: actions/upload-artifact@v6
+        with:
+          name: metal-startup-diagnostics
+          path: tmp/startup_capture_font_fix
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Run tests
         if: ${{ env.RELEASE_TAG != '' || !inputs.skip_tests }}
@@ -419,7 +432,7 @@ jobs:
       ANDROID_APP_NAME: QmClient
       ANDROID_PACKAGE_NAME: com.qmclient.client
       ANDROID_BUILD_DIR: build-android-release
-      ANDROID_NDK_VERSION: "26.1.10909125"
+      ANDROID_NDK_VERSION: "27.3.13750724"
       CARGO_NDK_VERSION: "4.1.2"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       SCCACHE_GHA_ENABLED: "true"
@@ -561,8 +574,8 @@ jobs:
       - name: Build Android APK/AAB
         shell: bash
         run: |
-          chmod +x scripts/android/cmake_android.sh
-          scripts/android/cmake_android.sh all "${ANDROID_APP_NAME}" "${ANDROID_PACKAGE_NAME}" Release "${ANDROID_BUILD_DIR}"
+          chmod +x qmclient_scripts/android/cmake_android.sh
+          qmclient_scripts/android/cmake_android.sh all "${ANDROID_APP_NAME}" "${ANDROID_PACKAGE_NAME}" Release "${ANDROID_BUILD_DIR}"
 
       - name: Collect Android package
         run: |

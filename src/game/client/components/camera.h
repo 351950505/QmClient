@@ -229,6 +229,7 @@ public:
 
 	void SetView(ivec2 Pos, bool Relative = false);
 	void SetViewWorld(vec2 Pos);
+	void SetDemoView(vec2 Center, float Zoom);
 	void GotoSwitch(int Number, int Offset = -1);
 	void GotoTele(int Number, int Offset = -1);
 	void SpectatorTeleportToHoveredTele();

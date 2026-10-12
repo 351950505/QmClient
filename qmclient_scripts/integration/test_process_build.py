@@ -84,6 +84,24 @@ class ProcessBuildTest(unittest.TestCase):
 		self.assertEqual(len(self.calls), 1)
 		self.assertEqual((self.requested / "DDNet.exe").read_bytes(), b"fresh-build")
 
+	def test_repeated_preparation_reuses_configuration_but_rebuilds_source(self):
+		self.assertEqual(self.prepare(), self.expected)
+		self.calls.clear()
+		(self.expected / "DDNet.exe").write_bytes(b"old-build")
+		self.assertEqual(self.prepare(), self.expected)
+		self.assertEqual(len(self.calls), 1)
+		self.assertIn("--build", self.calls[0])
+		self.assertEqual((self.expected / "DDNet.exe").read_bytes(), b"fresh-build")
+
+	def test_changed_feature_option_reconfigures_reused_test_build(self):
+		self.write_cache(self.requested, VULKAN="ON")
+		self.prepare()
+		self.calls.clear()
+		self.write_cache(self.requested, VULKAN="OFF")
+		self.assertEqual(self.prepare(), self.expected)
+		self.assertEqual(len(self.calls), 2)
+		self.assertEqual(process_build.read_cmake_cache(self.expected)["VULKAN"], "OFF")
+
 	def test_portable_build_uses_isolated_copy_instead_of_its_profile(self):
 		self.write_cache(self.requested, QMCLIENT_PORTABLE="ON")
 		self.assertEqual(self.prepare(), self.expected)

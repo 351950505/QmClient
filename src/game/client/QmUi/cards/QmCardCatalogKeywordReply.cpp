@@ -5,9 +5,9 @@
 #include <engine/shared/localization.h>
 #include <engine/textrender.h>
 
+#include <game/client/QmUi/SettingsChoiceGrid.h>
 #include <game/client/QmUi/SettingsContentLayout.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
-#include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/qmclient/keyword_reply_rules.h>
@@ -384,7 +384,7 @@ void CMenus::RenderQmFunctionKeywordReplyContent(CUIRect &Content, float UiScale
 	const float OptionWidth = s_OptionWidths.Resolve(apOptions, std::size(apOptions), BodySize, TextRender()->GlyphAtlasRevision(),
 		[this](const char *pText, float Size) { return TextRender()->TextWidth(Size, pText); });
 	const float MinOptionWidth = OptionWidth + LineHeight * 2.0f;
-	const SSettingsToggleGrid Options = ResolveSettingsToggleGrid(Content.w, MinOptionWidth, LineHeight, LineSpacing, 2, 2);
+	const SSettingsChoiceGrid Options = ResolveSettingsToggleGrid(Content.w, MinOptionWidth, LineHeight, LineSpacing, 2, 2);
 	for(size_t Index = 0; Index < s_vKeywordRuleRows.size();)
 	{
 		auto &pRule = s_vKeywordRuleRows[Index];

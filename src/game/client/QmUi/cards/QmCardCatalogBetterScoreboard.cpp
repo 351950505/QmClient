@@ -6,7 +6,7 @@
 #include <game/localization.h>
 
 // 更好的计分板卡片内容。计分板相关配置集中在独立卡片中，避免与梦的小功能卡片耦合。
-void CMenus::RenderQmFunctionBetterScoreboardContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float LabelWidth, bool PrewarmOnly)
+void CMenus::RenderQmFunctionBetterScoreboardContent(CUIRect &Content, float LineHeight, float BodySize, float LineSpacing, float, bool PrewarmOnly)
 {
 	CSettingsContentLayoutFlow Flow(Content);
 	CUIRect Row;
@@ -23,10 +23,14 @@ void CMenus::RenderQmFunctionBetterScoreboardContent(CUIRect &Content, float Lin
 		Flow.Space(LineSpacing);
 	};
 
-	RenderCheckbox(&g_Config.m_QmBetterScoreboard, "Better scoreboard", Localize("Better scoreboard"), &g_Config.m_QmBetterScoreboard);
-	RenderCheckbox(&g_Config.m_QmScoreboardPoints, "Scoreboard point check", Localize("Scoreboard point check"), &g_Config.m_QmScoreboardPoints);
-	RenderCheckbox(&g_Config.m_QmScoreboardOnDeath, "Show scoreboard after death", Localize("Show scoreboard after death"), &g_Config.m_QmScoreboardOnDeath);
-	RenderCheckboxTipped(&g_Config.m_QmScoreboardScroll, "Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers", Localize("Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers"), Localize("Use the scoreboard cursor mode to scroll the list"), &g_Config.m_QmScoreboardScroll);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmBetterScoreboard, "Better scoreboard", Localize("Better scoreboard")},
+			{&g_Config.m_QmScoreboardPoints, "Scoreboard point check", Localize("Scoreboard point check")},
+			{&g_Config.m_QmScoreboardOnDeath, "Show scoreboard after death", Localize("Show scoreboard after death")},
+			{&g_Config.m_QmScoreboardScroll, "Scroll mode", Localize("Scroll mode"), nullptr, 0, Localize("Use the scoreboard cursor mode to scroll the list")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	if(Flow.Control("qmclient-scoreboard-filter", LineHeight, Row))
 	{
 		// 计分板过滤器直接绑定配置缓冲，保持原有输入即时生效和控制台同步语义。

@@ -336,6 +336,8 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 
 	CMenus *pMenus = Ctx.m_pMenus;
 	const SSettingsContentMetrics Metrics = Ctx.m_Metrics;
+	const int Page = DisplayCard ? CMenus::SETTINGS_APPEARANCE : CMenus::SETTINGS_CONTRIBUTORS;
+	const int Tab = DisplayCard ? CMenus::APPEARANCE_TAB_NAME_PLATE : -1;
 	const float UiScale = Metrics.m_UiScale;
 	const float BodySize = Metrics.m_BodySize;
 	const float LineHeight = Metrics.m_LineHeight;
@@ -410,7 +412,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 				Hint(&Draft.m_Title, Row, Localize("Up to 6 Chinese or 12 ASCII characters"));
 			});
 			RowAction("title-bind-name", [&](CUIRect Row) {
-				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &Draft.m_BindName, "qm-title-bind-name", Localize("Only show with this nickname"), Draft.m_BindName, &Row) && Enabled && Auth.TitleAuthenticated())
+				if(pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, &Draft.m_BindName, "qm-title-bind-name", Localize("Only show with this nickname"), Draft.m_BindName, &Row) && Enabled && Auth.TitleAuthenticated())
 					Draft.m_BindName ^= 1;
 				Hint(&Draft.m_BindName, Row, Localize("Limit the title to the exact nickname below."));
 			});
@@ -420,7 +422,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 			RowAction("title-chat-style", [&](CUIRect Row) {
 				CUIRect ChatStyleLabel, ChatStyleControl;
 				SplitSettingsControlRow(Row, Metrics, &ChatStyleLabel, &ChatStyleControl, ESettingsControlWidth::LONG_CHOICE);
-				pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-sponsor-chat-style", &ChatStyleLabel, Localize("Chat message style"), BodySize, TEXTALIGN_ML);
+				pMenus->DoSettingsMenuLabel(Page, Tab, -1, "qm-sponsor-chat-style", &ChatStyleLabel, Localize("Chat message style"), BodySize, TEXTALIGN_ML);
 				static CUi::SDropDownState s_ChatStyleState;
 				static CScrollRegion s_ChatStyleScroll;
 				static std::array<const char *, 3> s_apChatStyleNames;
@@ -469,7 +471,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 				CUIRect ToggleRow;
 				const bool HasRow = Flow.Control(pTextId, LineHeight, ToggleRow);
 				Flow.Space(LineSpacing);
-				if(HasRow && pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, pValue, pTextId, pLabel, *pValue, &ToggleRow, SingleLineProps) && !ReadOnly)
+				if(HasRow && pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, pValue, pTextId, pLabel, *pValue, &ToggleRow, SingleLineProps) && !ReadOnly)
 					*pValue ^= 1;
 			};
 			VisibilityToggle(&g_Config.m_QmShowNameplateTitle, "qm-title-show-nameplate", Localize("Show titles on nameplates"));
@@ -478,7 +480,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 			VisibilityToggle(&g_Config.m_QmShowDummyTitle, "qm-title-show-dummy", Localize("Show dummy title locally"));
 
 			RowAction("title-local-chat-effects", [&](CUIRect Row) {
-				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmSponsorChatEffects, "qm-sponsor-chat-effects", Localize("Show sponsor chat effects locally"), g_Config.m_QmSponsorChatEffects, &Row) && !ReadOnly)
+				if(pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, &g_Config.m_QmSponsorChatEffects, "qm-sponsor-chat-effects", Localize("Show sponsor chat effects locally"), g_Config.m_QmSponsorChatEffects, &Row) && !ReadOnly)
 					g_Config.m_QmSponsorChatEffects ^= 1;
 				Hint(&g_Config.m_QmSponsorChatEffects, Row, Localize("Turning this off only changes your display."));
 			});
@@ -595,7 +597,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 				RowAction("title-motion", [&](CUIRect Row) {
 					CUIRect MotionLabel, MotionControl;
 					SplitSettingsControlRow(Row, Metrics, &MotionLabel, &MotionControl, ESettingsControlWidth::SHORT_CHOICE);
-					pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-motion-mode", &MotionLabel, Localize("Title motion"), BodySize, TEXTALIGN_ML);
+					pMenus->DoSettingsMenuLabel(Page, Tab, -1, "qm-title-motion-mode", &MotionLabel, Localize("Title motion"), BodySize, TEXTALIGN_ML);
 					static CUi::SDropDownState s_TitleMotionState;
 					static CScrollRegion s_TitleMotionScroll;
 					const std::array<const char *, 2> apMotionNames = {Localize("Vertical wave"), Localize("Pop wave")};
@@ -608,19 +610,19 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 					}
 				});
 				RowAction("title-wave-amount", [&](CUIRect Row) {
-					if(pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-bob-amplitude", &g_Config.m_QmTitleBobAmplitude, &g_Config.m_QmTitleBobAmplitude, &Row, Localize("Wave amount"), 0, 3, &CUi::ms_LinearScrollbarScale, 0, ""))
+					if(pMenus->DoSettingsScrollbarOption(Page, Tab, "qm-title-bob-amplitude", &g_Config.m_QmTitleBobAmplitude, &g_Config.m_QmTitleBobAmplitude, &Row, Localize("Wave amount"), 0, 3, &CUi::ms_LinearScrollbarScale, 0, ""))
 						pMenus->GameClient()->m_Chat.RebuildChat();
 					Hint(&g_Config.m_QmTitleBobAmplitude, Row, Localize("Strength of the vertical or pop wave. Zero keeps the title still."));
 				});
 			}
 
 			RowAction("title-hints", [&](CUIRect Row) {
-				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmTitleInstantHints, "qm-title-instant-hints", Localize("Instant compact hints"), g_Config.m_QmTitleInstantHints, &Row) && !ReadOnly)
+				if(pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, &g_Config.m_QmTitleInstantHints, "qm-title-instant-hints", Localize("Instant compact hints"), g_Config.m_QmTitleInstantHints, &Row) && !ReadOnly)
 					g_Config.m_QmTitleInstantHints ^= 1;
 				// 高级模式只控制这些入口是否展开，不重置已经保存的参数。
 			});
 			RowAction("title-advanced", [&](CUIRect Row) {
-				if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmTitleAdvanced, "qm-title-advanced", Localize("Advanced mode"), TitleAdvanced, &Row) && !ReadOnly)
+				if(pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, &g_Config.m_QmTitleAdvanced, "qm-title-advanced", Localize("Advanced mode"), TitleAdvanced, &Row) && !ReadOnly)
 					g_Config.m_QmTitleAdvanced ^= 1;
 			});
 
@@ -638,7 +640,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 
 				RowAction("title-color-mode", [&](CUIRect Row) {
 					SplitSettingsControlRow(Row, Metrics, &Label, &Control, ESettingsControlWidth::LONG_CHOICE);
-					pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-color-mode", &Label, Localize("Title color"), BodySize, TEXTALIGN_ML);
+					pMenus->DoSettingsMenuLabel(Page, Tab, -1, "qm-title-color-mode", &Label, Localize("Title color"), BodySize, TEXTALIGN_ML);
 					Hint(&g_Config.m_QmTitleColorMode, Row, Localize("Single color and Rainbow override the color of animated styles; the style keeps its motion"));
 					s_TitleColorModeState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleColorModeScroll;
 					const int ColorMode = pMenus->DoSettingsDropDown(&Control, g_Config.m_QmTitleColorMode, s_TitleColorModeNames.data(), s_TitleColorModeNames.size(), s_TitleColorModeState, {}, &g_Config.m_QmTitleColorMode, nullptr, &Row);
@@ -659,16 +661,16 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 						s_LastTitleColor = g_Config.m_QmTitleColor;
 				});
 				RowAction("title-opacity", [&](CUIRect Row) {
-					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-opacity", &g_Config.m_QmTitleOpacity, &g_Config.m_QmTitleOpacity, &Row, Localize("Title opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(Page, Tab, "qm-title-opacity", &g_Config.m_QmTitleOpacity, &g_Config.m_QmTitleOpacity, &Row, Localize("Title opacity"), 0, 100, &CUi::ms_LinearScrollbarScale, 0, "%");
 					Hint(&g_Config.m_QmTitleOpacity, Row, Localize("Applies to single-color and rainbow overrides."));
 				});
 				RowAction("title-phase", [&](CUIRect Row) {
-					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-phase", &g_Config.m_QmTitlePhase, &g_Config.m_QmTitlePhase, &Row, Localize("Light band"), 0, 200);
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(Page, Tab, "qm-title-phase", &g_Config.m_QmTitlePhase, &g_Config.m_QmTitlePhase, &Row, Localize("Light band"), 0, 200);
 					Hint(&g_Config.m_QmTitlePhase, Row, Localize("Zero uses the style default. Higher values make color bands narrower."));
 				});
 				RowAction("title-effect", [&](CUIRect Row) {
 					SplitSettingsControlRow(Row, Metrics, &Label, &Control, ESettingsControlWidth::LONG_CHOICE);
-					pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-effect", &Label, Localize("Text effect"), BodySize, TEXTALIGN_ML);
+					pMenus->DoSettingsMenuLabel(Page, Tab, -1, "qm-title-effect", &Label, Localize("Text effect"), BodySize, TEXTALIGN_ML);
 					s_TitleEffectState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleEffectScroll;
 					const int Effect = pMenus->DoSettingsDropDown(&Control, g_Config.m_QmTitleEffect, s_TitleEffectNames.data(), s_TitleEffectNames.size(), s_TitleEffectState, {}, &g_Config.m_QmTitleEffect, nullptr, &Row);
 					if(!ReadOnly && Effect != g_Config.m_QmTitleEffect)
@@ -679,7 +681,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 				});
 				RowAction("title-bloom", [&](CUIRect Row) {
 					SplitSettingsControlRow(Row, Metrics, &Label, &Control, ESettingsControlWidth::LONG_CHOICE);
-					pMenus->DoSettingsMenuLabel(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, "qm-title-bloom", &Label, Localize("Classic title glow"), BodySize, TEXTALIGN_ML);
+					pMenus->DoSettingsMenuLabel(Page, Tab, -1, "qm-title-bloom", &Label, Localize("Classic title glow"), BodySize, TEXTALIGN_ML);
 					s_TitleBloomState.m_SelectionPopupContext.m_pScrollRegion = &s_TitleBloomScroll;
 					const int Bloom = pMenus->DoSettingsDropDown(&Control, g_Config.m_QmTitleBloom, s_TitleBloomNames.data(), s_TitleBloomNames.size(), s_TitleBloomState, {}, &g_Config.m_QmTitleBloom, nullptr, &Row);
 					if(!ReadOnly && Bloom != g_Config.m_QmTitleBloom)
@@ -689,18 +691,18 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 					}
 				});
 				RowAction("title-shimmer", [&](CUIRect Row) {
-					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-shimmer-speed", &g_Config.m_QmTitleShimmerSpeed, &g_Config.m_QmTitleShimmerSpeed, &Row, Localize("Shimmer speed"), 0, 400);
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(Page, Tab, "qm-title-shimmer-speed", &g_Config.m_QmTitleShimmerSpeed, &g_Config.m_QmTitleShimmerSpeed, &Row, Localize("Shimmer speed"), 0, 400);
 					Hint(&g_Config.m_QmTitleShimmerSpeed, Row, Localize("Highlight movement in Polished mode. Zero turns it off."));
 				});
 				RowAction("title-wave-spacing", [&](CUIRect Row) {
-					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-bob-wavelength", &g_Config.m_QmTitleBobWavelength, &g_Config.m_QmTitleBobWavelength, &Row, Localize("Wave spacing"), 16, 1024, &CUi::ms_LinearScrollbarScale, 0, "px");
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(Page, Tab, "qm-title-bob-wavelength", &g_Config.m_QmTitleBobWavelength, &g_Config.m_QmTitleBobWavelength, &Row, Localize("Wave spacing"), 16, 1024, &CUi::ms_LinearScrollbarScale, 0, "px");
 				});
 				RowAction("title-wave-speed", [&](CUIRect Row) {
-					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(CMenus::SETTINGS_CONTRIBUTORS, -1, "qm-title-bob-speed", &g_Config.m_QmTitleBobSpeed, &g_Config.m_QmTitleBobSpeed, &Row, Localize("Wave speed"), 0, 2000);
+					AppearanceChanged |= pMenus->DoSettingsScrollbarOption(Page, Tab, "qm-title-bob-speed", &g_Config.m_QmTitleBobSpeed, &g_Config.m_QmTitleBobSpeed, &Row, Localize("Wave speed"), 0, 2000);
 					Hint(&g_Config.m_QmTitleBobSpeed, Row, Localize("Higher values make the wave move faster. Zero stops the movement."));
 				});
 				RowAction("title-wave-snap", [&](CUIRect Row) {
-					if(pMenus->DoSettingsButton_CheckBox(CMenus::SETTINGS_CONTRIBUTORS, -1, -1, &g_Config.m_QmTitleBobPixelSnap, "qm-title-bob-pixel-snap", Localize("Snap wave to pixels"), g_Config.m_QmTitleBobPixelSnap, &Row) && !ReadOnly)
+					if(pMenus->DoSettingsButton_CheckBox(Page, Tab, -1, &g_Config.m_QmTitleBobPixelSnap, "qm-title-bob-pixel-snap", Localize("Snap wave to pixels"), g_Config.m_QmTitleBobPixelSnap, &Row) && !ReadOnly)
 					{
 						g_Config.m_QmTitleBobPixelSnap ^= 1;
 						AppearanceChanged = true;

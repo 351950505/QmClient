@@ -6,12 +6,18 @@
 #include <engine/console.h>
 #include <engine/input.h>
 #include <engine/keys.h>
+#include <engine/shared/qm_ime_policy.h>
 
-#include <SDL_events.h>
-#include <SDL_joystick.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_joystick.h>
 
+#include <deque>
 #include <string>
 #include <vector>
+
+#if defined(CONF_FAMILY_WINDOWS)
+struct tagMSG;
+#endif
 
 class IEngineGraphics;
 class IClient;
@@ -58,10 +64,10 @@ public:
 	};
 
 private:
-	IEngineGraphics *m_pGraphics;
-	IConsole *m_pConsole;
-	IConfigManager *m_pConfigManager;
-	IClient *m_pClient;
+	IEngineGraphics *m_pGraphics = nullptr;
+	IConsole *m_pConsole = nullptr;
+	IConfigManager *m_pConfigManager = nullptr;
+	IClient *m_pClient = nullptr;
 
 	IEngineGraphics *Graphics() const { return m_pGraphics; }
 	IConsole *Console() const { return m_pConsole; }
@@ -77,19 +83,15 @@ private:
 	float GetJoystickDeadzone();
 
 	bool m_InputGrabbed;
+	bool m_JoystickInitialized = false;
+	SDL_Window *Window() const;
 
 	bool m_MouseFocus;
 
 	// IME support
 	std::string m_CompositionString;
 	int m_CompositionCursor;
-	std::vector<std::string> m_vCandidates;
-	int m_CandidateSelectedIndex;
-	int m_CandidatePageStart;
-	int m_CandidatePageSize;
-	int m_CandidateTotalCount;
-	// TEXTINPUT 提交后抑制过期 CHANGECANDIDATE，避免选词后弹窗回闪
-	bool m_ImeSuppressStaleCandidateReload = false;
+	CQmImeCandidateState m_ImeCandidates;
 
 	// events
 	std::vector<CEvent> m_vInputEvents;
@@ -125,7 +127,20 @@ private:
 
 	char m_aDropFile[IO_MAX_PATH_LENGTH];
 
-	void ProcessSystemMessage(SDL_SysWMmsg *pMsg);
+#if defined(CONF_FAMILY_WINDOWS)
+	struct SWindowsMessage
+	{
+		void *m_pWindow;
+		uint32_t m_Message;
+		uintptr_t m_WParam;
+		intptr_t m_LParam;
+	};
+	std::deque<SWindowsMessage> m_QueuedWindowsMessages;
+	uint32_t m_WindowsMessageEvent = 0;
+	std::optional<SQmImeCandidateList> ReadWindowsImeCandidates(void *pWindow, unsigned CandidateListFlags);
+	void ProcessSystemMessage(tagMSG *pMsg);
+	static bool SDLCALL WindowsMessageHook(void *pUser, tagMSG *pMsg);
+#endif
 
 public:
 	CInput();
@@ -178,12 +193,12 @@ public:
 	bool HasComposition() const override { return !m_CompositionString.empty(); }
 	int GetCompositionCursor() const override { return m_CompositionCursor; }
 	int GetCompositionLength() const override { return m_CompositionString.length(); }
-	const char *GetCandidate(int Index) const override { return in_range<size_t>(Index, 0, m_vCandidates.size()) ? m_vCandidates[Index].c_str() : ""; }
-	int GetCandidateCount() const override { return m_vCandidates.size(); }
-	int GetCandidateSelectedIndex() const override { return m_CandidateSelectedIndex; }
-	int GetCandidatePageStart() const override { return m_CandidatePageStart; }
-	int GetCandidatePageSize() const override { return m_CandidatePageSize; }
-	int GetCandidateTotalCount() const override { return m_CandidateTotalCount; }
+	const char *GetCandidate(int Index) const override { return in_range<size_t>(Index, 0, m_ImeCandidates.Candidates().m_vCandidates.size()) ? m_ImeCandidates.Candidates().m_vCandidates[Index].c_str() : ""; }
+	int GetCandidateCount() const override { return m_ImeCandidates.Candidates().m_vCandidates.size(); }
+	int GetCandidateSelectedIndex() const override { return m_ImeCandidates.Candidates().m_SelectedIndex; }
+	int GetCandidatePageStart() const override { return m_ImeCandidates.Candidates().m_PageStart; }
+	int GetCandidatePageSize() const override { return m_ImeCandidates.Candidates().m_PageSize; }
+	int GetCandidateTotalCount() const override { return m_ImeCandidates.Candidates().m_TotalCount; }
 	void SetCompositionWindowPosition(float X, float Y, float H) override;
 
 	bool GetDropFile(char *aBuf, int Len) override;

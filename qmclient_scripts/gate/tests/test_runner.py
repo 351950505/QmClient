@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import os
 from pathlib import Path
 import sys
 import unittest
@@ -8,6 +9,30 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib import runner
+
+
+class GateRunnerResourceTest(unittest.TestCase):
+	def test_local_default_respects_six_job_budget(self):
+		with mock.patch.dict(os.environ, {}, clear=True), mock.patch.object(os, "cpu_count", return_value=32):
+			self.assertEqual(runner.resolve_parallel_jobs(), "6")
+
+	def test_small_machine_does_not_exceed_available_cpus(self):
+		with mock.patch.dict(os.environ, {}, clear=True), mock.patch.object(os, "cpu_count", return_value=2):
+			self.assertEqual(runner.resolve_parallel_jobs(), "2")
+
+	def test_ci_uses_available_cpus(self):
+		with mock.patch.dict(os.environ, {"CI": "true"}, clear=True), mock.patch.object(os, "cpu_count", return_value=16):
+			self.assertEqual(runner.resolve_parallel_jobs(), "16")
+
+	def test_explicit_share_overrides_local_or_ci_default(self):
+		with mock.patch.dict(os.environ, {"CI": "true", "QM_GATE_BUILD_JOBS": "3"}, clear=True), mock.patch.object(os, "cpu_count", return_value=16):
+			self.assertEqual(runner.resolve_parallel_jobs(), "3")
+
+	def test_invalid_share_is_rejected(self):
+		for value in ("", "0", "-1", "abc"):
+			with self.subTest(value=value), mock.patch.dict(os.environ, {"QM_GATE_BUILD_JOBS": value}, clear=True):
+				with self.assertRaisesRegex(ValueError, "QM_GATE_BUILD_JOBS"):
+					runner.resolve_parallel_jobs()
 
 
 class GateRunnerConsoleTest(unittest.TestCase):

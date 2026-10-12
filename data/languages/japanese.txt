@@ -7,6 +7,9 @@
  seconds (never)
 == 秒 (消えない)
 
+ · %d finishers · average %d:%02d:%02d
+==  · クリア %d 人 · 平均 %d:%02d:%02d
+
 "%s" is not compatible with pnglite and cannot be loaded by old DDNet versions:
 == "%s" は pnglite と互換性がなく、古いバージョンの DDNet では読み込めません
 
@@ -18,6 +21,9 @@
 
 %c Team %d
 == %c チーム %d
+
+%d / %d maps
+== %d / %d マップ
 
 %d items selected
 == %d 個のアイテムが選択されました
@@ -45,6 +51,9 @@
 
 %d teams
 == %d チーム
+
+%d words loaded
+== %d 個の単語を読み込み済み
 
 %d. %s | main: %s | dummy: %s
 == %d. %s | メイン：%s | ダミー：%s
@@ -296,6 +305,9 @@ A demo with this name already exists
 A folder with this name already exists
 == この名前のフォルダーは既に存在します
 
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
+== 手動指定したソースファイルは選択した候補より優先されます。このバリアントのみ置き換えられます。
+
 a player
 == プレイヤー
 
@@ -488,6 +500,9 @@ Add Group
 Add Item
 == アイテムを追加
 
+Add keyframe
+== キーフレームを追加
+
 Add latency for antiping (0 to disable)
 == アンチピンのためのレイテンシを追加（0 で無効）
 
@@ -623,6 +638,9 @@ Aim
 Aim bind
 == エイムバインド
 
+Air jump
+== 空中ジャンプ
+
 Alive notification color
 == 生存通知の色
 
@@ -647,8 +665,14 @@ All
 All combined
 == すべて結合
 
+All maps
+== すべてのマップ
+
 All players
 == すべてのプレイヤー
+
+All sounds
+== すべてのサウンド
 
 All stars
 == すべての星
@@ -817,6 +841,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == ヘルプ吹き出しの外観
+
+Append saved word list chunk
+== 保存済み単語リストの断片を追加
 
 Append to log file instead of overwriting
 == 上書きではなくログファイルに追記
@@ -1001,9 +1028,6 @@ Audio packets
 Audio packs
 == オーディオパック
 
-Audio slots
-== オーディオスロット
-
 AUS
 == オーストラリア
 
@@ -1129,6 +1153,9 @@ Auto translate sent messages
 
 Auto unmute when speaking
 == 発話時に自動ミュート解除
+
+Auto unspec both tees when either is hammered awake
+== どちらかがハンマーで解凍されたら両方の Tee の観戦を解除
 
 Auto unspec on unfreeze
 == 凍結解除時に自動で観戦解除
@@ -1430,6 +1457,9 @@ Background image in menu
 Background music volume
 == 背景音楽の音量
 
+Background opacity
+== 背景の不透明度
+
 Background stroke color
 == 背景ストロークの色
 
@@ -1718,6 +1748,9 @@ Camera follow cursor factor
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == カメラ移動の遷移量。0=即時、100=低速でスムーズ
 
+Camera path
+== カメラパス
+
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == カーソル高速移動時のカメラ減速。高い値はカメラ移動の遅延を引き起こす可能性があります
 
@@ -1766,8 +1799,20 @@ Candidate files
 Cannot join the target player's team
 == 対象プレイヤーのチームには参加できません
 
+Cannot open word list file. Previous words remain active.
+== 単語リストファイルを開けません。以前の単語を引き続き使用します。
+
+Cannot read complete word list file. Previous words remain active.
+== 単語リストファイルを完全に読み込めません。以前の単語を引き続き使用します。
+
 Cannot swap: the other player is not in your team
 == 交換できません：相手があなたのチームにいません
+
+Capture the flag
+== キャプチャー・ザ・フラッグ (CTF)
+
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
+== フラッグ戦のイベント通知音です。通常の DDNet レースではなく CTF サーバーで使用されます。
 
 Card height animation
 == 設定カードの高さアニメーション
@@ -1865,6 +1910,27 @@ Chat command
 Chat command (e.g. showall 1)
 == チャットコマンド（例：showall 1）
 
+Chat completion appearance
+== チャット補完の外観
+
+Chat completion background color
+== チャット補完の背景色
+
+Chat completion background opacity
+== チャット補完の背景不透明度
+
+Chat completion selected text color
+== チャット補完の選択文字色
+
+Chat completion selection background color
+== チャット補完の選択背景色
+
+Chat completion text color
+== チャット補完の文字色
+
+Chat emoji completion
+== チャットの絵文字補完
+
 Chat export cancelled
 == チャットのエクスポートをキャンセルしました
 
@@ -1895,6 +1961,9 @@ Chat gradient vertical position percentage
 Chat log retention days
 == チャットログ保持日数
 
+Chat mention / vote alert
+== チャットメンション / 投票アラート
+
 Chat message
 == チャットメッセージ
 
@@ -1921,6 +1990,9 @@ Chat width
 
 Chat word filtering
 == チャット単語フィルタリング
+
+Chat word list file
+== チャット用の単語リストファイル
 
 Cheats are disabled on this server
 == このサーバーではチートが無効です
@@ -2231,6 +2303,12 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == 何も当たらなかったフックラインの色
 
+Color picker saturation/value area shape: 0=square, 1=wheel
+== カラーピッカーの彩度/明度領域の形状: 0=四角、1=色相環
+
+Color picker saved swatches (format: name|#hex entries separated by semicolons)
+== 保存した色見本（形式: 名前|#16進数、項目はセミコロンで区切る）
+
 Color tee outlines by team for spectating
 == 観戦時に見分けられるようチームごとにTeeの輪郭を色分け
 
@@ -2239,6 +2317,9 @@ Colorize ping on scoreboard
 
 Colors
 == 色
+
+Colors for chat command and emoji completion
+== チャットのコマンド・絵文字補完の配色
 
 Colors in chat
 == チャット内の色
@@ -2281,6 +2362,9 @@ Commands
 
 Commands run in the console
 == コンソールで実行されるコマンド
+
+Common filters
+== よく使うフィルター
 
 Common key bindings
 == 一般的なキーバインド
@@ -3050,6 +3134,9 @@ DDNet Client needs to be restarted to complete update!
 DDNet contributors and staff credits
 == DDNet のコントリビューターとスタッフ
 
+DDNet map library
+== DDNet マップライブラリ
+
 DDNet Memory
 == DDNet メモリ
 
@@ -3290,6 +3377,9 @@ Delete this preset
 Demo
 == デモ
 
+Demo cut saved, but its camera path could not be saved
+== 切り出したデモは保存されましたが、カメラパスを保存できませんでした
+
 Demo directory
 == デモの保存先
 
@@ -3382,6 +3472,9 @@ Diamond gradient
 
 died
 == 死亡
+
+Difficulty
+== 難易度
 
 Difficulty stars
 == 難易度の星
@@ -3890,6 +3983,9 @@ Edit
 Edit audio pack
 == オーディオパックを編集
 
+Edit camera
+== カメラを編集
+
 Edit color
 == 配色を編集
 
@@ -3925,6 +4021,9 @@ Elastic back
 
 Elevated
 == 昇格
+
+Emoji completion
+== 絵文字補完
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == エモートとバインディングホイールのアニメーション時間（ms、0=アニメーションなし、1000=1 秒）
@@ -4009,6 +4108,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == カメラドリフト効果を有効化（移動速度に応じてカメラがわずかに引きずられる）
+
+Enable camera path
+== カメラパスを有効化
 
 Enable chat mention sound
 == チャットでの言及音を有効にする
@@ -4307,6 +4409,9 @@ Enable Tee trail
 Enable tee trails
 == Tee の軌跡を有効化
 
+Enable the finished indicator and wait for player data
+== クリア表示を有効にし、プレイヤーデータの取得をお待ちください
+
 Enable thinking mode
 == 思考モードを有効にする
 
@@ -4378,9 +4483,6 @@ Endless hook has been activated
 
 Endless hook has been deactivated
 == エンドレスフックが無効化されました
-
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== 無限フックのリングの流れスタイル (0=単色, 1=虹色, 2=静止)
 
 Endpoint
 == エンドポイント
@@ -4502,8 +4604,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == 例: /map adr3 で Adrenaline 3 の投票を開始できます。マップ名が 'a' で始まり、'd'、'r'、'3' をこの順に含む必要があります
 
-Example: name1|name2|name3
-== 例：名前 1|名前 2|名前 3
+Example: A|B|C,D|E (C: main, D: dummy)
+== 例：A|B|C,D|E（C：メイン、D：ダミー）
 
 Exclude
 == 除外
@@ -4535,6 +4637,9 @@ Exit and install
 Exit replay view
 == リプレイ視聴を終了
 
+Exit spectating on both tees when either is hammered awake by another player
+== どちらかが他のプレイヤーのハンマーで解凍されたら両方の Tee の観戦を解除
+
 Expand console
 == コンソールを展開
 
@@ -4564,9 +4669,6 @@ Export name contains invalid characters.
 
 Export selected
 == 選択項目をエクスポート
-
-Export selected file
-== 選択したファイルをエクスポート
 
 Export to clipboard
 == クリップボードにエクスポート
@@ -4643,6 +4745,9 @@ Failed to fetch the replay list
 Failed to load
 == ロードに失敗しました
 
+Failed to load camera path
+== カメラパスを読み込めません
+
 Failed to load main asset: %s
 == メインアセットのロードに失敗しました: %s
 
@@ -4660,6 +4765,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == 動画の録画に失敗しました。詳細はローカルコンソールを確認してください。
+
+Failed to save camera path
+== カメラパスを保存できません
 
 Failed to save demo
 == デモの保存に失敗しました
@@ -4793,6 +4901,9 @@ Filter out servers without friends
 Filter out spectators from player count
 == プレイヤー数から観戦者を除外
 
+Filter sensitive words
+== 内蔵リストで要注意語をフィルタリング
+
 Filtered word console color
 == ブロックワードコンソール色
 
@@ -4841,11 +4952,23 @@ First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 == 人数の多いサーバーでは行の高さを固定にし、ホイールでスクロールして表示します
 
+Flag captured
+== フラッグ奪取完了
+
+Flag dropped
+== フラッグドロップ
+
+Flag grab: enemy side
+== フラッグ奪取：敵陣側
+
+Flag grab: player side
+== フラッグ奪取：味方側
+
+Flag returned
+== フラッグ返還
+
 Flip:
 == 反転：
-
-Flow style
-== フロースタイル
 
 Folder
 == フォルダ
@@ -4976,6 +5099,9 @@ Freeze border color
 Freeze Collision Border Color
 == フリーズ衝突境界線の色
 
+Freeze heart / health pickup
+== フリーズハート / 体力回復アイテム
+
 Freeze laser collision volume
 == フリーズレーザーの衝突範囲
 
@@ -5062,6 +5188,9 @@ Friends
 
 Friends only
 == フレンドのみ
+
+Frozen fire attempt
+== 凍結中の発射試行
 
 Frozen prediction margin
 == 凍結中の予測マージン
@@ -5306,6 +5435,9 @@ Go forward one tick
 Go forward the specified duration
 == 指定時間だけ進む
 
+Go to keyframe
+== キーフレームへ移動
+
 Gores
 == ゴア
 
@@ -5402,6 +5534,18 @@ Greeting text
 Grenade
 == グレネード
 
+Grenade explosion
+== グレネード爆発
+
+Grenade launch
+== グレネード発射
+
+Grenade pickup
+== グレネード取得
+
+Ground jump
+== 地上ジャンプ
+
 Group name
 == グループ名
 
@@ -5411,8 +5555,14 @@ GUI cursor assets
 Guide line color
 == ガイドラインの色
 
+Gun fire
+== ピストル発射
+
 Hammer
 == ハンマー
+
+Hammer hit
+== ハンマーヒット
 
 Hammer interaction
 == ハンマーの相互作用
@@ -5422,6 +5572,9 @@ Hammer Mode
 
 Hammer skin steal
 == ハンマースキンスティール
+
+Hammer swing
+== ハンマースイング
 
 Hammer: %s
 == ハンマー：%s
@@ -5660,6 +5813,9 @@ Highlighted message
 Highlighted message color
 == ハイライトされたメッセージの色
 
+Hit feedback
+== ヒット確認音
+
 Hitbox Mode Freeze Border Color
 == 衝突ボックスモード Freeze 境界色
 
@@ -5681,6 +5837,9 @@ Hitbox Mode Weapon Interaction Color
 HJ assist
 == HJ アシスト
 
+Hold
+== 保持
+
 Hold gun higher like TW 0.6.1 and earlier
 == TW 0.6.1 以前のように銃を高く構える
 
@@ -5689,6 +5848,12 @@ Hold left click for free camera
 
 Hook
 == フック
+
+Hook attaches to ground
+== フックが地形に命中
+
+Hook attaches to player
+== フックがプレイヤーに命中
 
 Hook collision line
 == フック衝突線
@@ -5708,11 +5873,17 @@ Hook Collisions
 Hook collisions
 == フック衝突
 
+Hook hits unhookable surface
+== フックがフック不可壁に衝突
+
 Hook interaction
 == フックの相互作用
 
 Hook line tip
 == フックライン先端
+
+Hook loop
+== フックのループ音
 
 Hook Strength
 == フック強度
@@ -5905,6 +6076,12 @@ Import from clipboard
 
 Improved anti ping
 == 改善されたアンチピング
+
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+== DDNet では、フリーズハートでプレイヤーが凍結したときに再生されます。他のモードでは体力回復アイテムの取得に使われる場合があります。
+
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
+== DDNet では、武器が没収されたときに再生されます。他のモードではアーマー取得に使われる場合があります。
 
 In memory of me
 == 私を偲んで
@@ -6161,6 +6338,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == 設定ファイルのパスが無効または重複しています。
 
+Invalid quoted word. Use one word per line.
+== 引用符付き単語の形式が無効です。1 行に 1 語を記入してください。
+
 Invalid save number. Use a number from the save list.
 == セーブ番号が無効です。一覧の番号を指定してください。
 
@@ -6205,6 +6385,9 @@ Item
 
 Item type
 == アイテムタイプ
+
+Its use depends on the server or game mode.
+== 用途はサーバーやゲームモードによって異なります。
 
 j = Latency jitter
 == j = レイテンシジッター
@@ -6353,6 +6536,9 @@ Keyboard focus ring color
 Keyboard size
 == キーボードサイズ
 
+Keyframe %d/%d: %s
+== キーフレーム %d/%d：%s
+
 Keyword reply
 == キーワード返信
 
@@ -6428,6 +6614,9 @@ Label type
 LAN
 == LAN
 
+Landing
+== 着地
+
 Language
 == 言語
 
@@ -6449,6 +6638,9 @@ Large text for friend join (use %s for friend name)
 Laser
 == レーザー
 
+Laser / shotgun bounce
+== レーザー / ショットガン反射
+
 Laser / shotgun interaction
 == レーザー / ショットガンの相互作用
 
@@ -6457,6 +6649,9 @@ Laser colors
 
 Laser effect enhancement
 == レーザーエフェクト強調
+
+Laser fire
+== レーザー発射
 
 Laser glow intensity (0-100)
 == レーザーのグロー強度 (0-100)
@@ -6983,6 +7178,9 @@ Map browser: show favorite maps only
 Map danger border
 == マップ危険境界
 
+Map data unavailable; server votes remain available
+== マップ情報を取得できません。サーバーの投票項目は利用できます
+
 Map download send window
 == マップダウンロード送信ウィンドウ
 
@@ -7000,6 +7198,9 @@ Map play history
 
 Map Preview TODO
 == マッププレビュー TODO
+
+Map progress
+== マップの進捗
 
 Map progress bar
 == マップ進行バー
@@ -7060,6 +7261,9 @@ Map upload network error.
 
 Map uploaded successfully.
 == マップをアップロードしました。
+
+Mapper
+== 作者
 
 Maps
 == マップ
@@ -7255,6 +7459,9 @@ Menu main panel background color
 
 Menu main panel opacity
 == メニューメインパネルの不透明度
+
+Menu music
+== メニュー音楽
 
 Menu opacity (0-100)
 == メニュー不透明度（Menu opacity 0-100）
@@ -7457,6 +7664,9 @@ Move player to spectators
 Move right
 == 右に移動
 
+Move the free camera, then add a keyframe at the current demo time.
+== 自由カメラを動かし、現在のデモ時刻にキーフレームを追加します。
+
 Move to category
 == カテゴリに移動
 
@@ -7477,6 +7687,9 @@ Multi-View
 
 Multiple exact Axiom players found
 == 完全一致する Axiom プレイヤーが複数見つかりました
+
+Music
+== 音楽
 
 Music player volume
 == 音楽プレーヤーの音量
@@ -7558,6 +7771,9 @@ Mute:
 
 Muted
 == ミュート済み
+
+Muted players
+== ミュート中のプレイヤー
 
 my_%s
 == 私の_%s
@@ -7790,6 +8006,9 @@ New random timeout code
 New version available
 == 新しいバージョンが利用可能です
 
+Newest first
+== リリースが新しい順
+
 News
 == ニュース
 
@@ -7808,8 +8027,20 @@ Next weapon
 Nickname
 == ニックネーム
 
+Ninja attack
+== 忍者刀ダッシュ攻撃
+
+Ninja hit
+== 忍者刀ヒット
+
+Ninja pickup
+== 忍者刀取得
+
 No
 == いいえ
+
+No ammunition
+== 弾切れ
 
 No animation
 == アニメーションなし
@@ -7829,17 +8060,20 @@ No assets found.
 No audio issues detected
 == オーディオの問題は検出されませんでした
 
-No audio slots found.
-== オーディオスロットが見つかりません。
-
 No buttons match your filter criteria
 == フィルター条件に一致するボタンがありません
 
 No callable peer found
 == 通話可能なピアが見つかりません
 
+No camera keyframes
+== カメラのキーフレームがありません
+
 No candidate file selected.
 == 候補ファイルが選択されていません。
+
+No candidate files match this search.
+== 検索に一致する候補ファイルがありません。
 
 No changes since last save
 == 最後の保存から変更なし
@@ -7895,9 +8129,6 @@ No functions bound
 No input device available
 == 利用可能な入力デバイスがありません
 
-No items to write
-== 書き込む項目がありません
-
 No local saves file found (ddnet-saves.txt)
 == ローカルセーブファイルが見つかりません（ddnet-saves.txt）
 
@@ -7915,6 +8146,9 @@ No map selected
 
 No maps found on this server!
 == このサーバーに条件を満たすマップが見つかりません！
+
+No maps match these filters
+== 条件に一致するマップはありません
 
 No matching assets.
 == 一致するアセットがありません。
@@ -7948,6 +8182,9 @@ No player nearby
 
 No player with this name found.
 == この名前のプレイヤーは見つかりませんでした。
+
+No players match these filters
+== 条件に一致するプレイヤーはいません
 
 No presets yet
 == まだプリセットがありません
@@ -8005,6 +8242,9 @@ No servers match your filter criteria
 
 No skins match your filter criteria
 == フィルター条件に一致するスキンがありません
+
+No sounds match this search.
+== 検索に一致するサウンドがありません。
 
 No space for button
 == ボタンのスペースがありません
@@ -8354,11 +8594,17 @@ Original message language
 Other
 == その他
 
+Other game modes
+== その他のゲームモード
+
 Other modes
 == その他のモード
 
 Other players' hook line width
 == 他のプレイヤーのフックラインの幅
+
+Other sounds
+== その他のサウンド
 
 Others
 == 他人
@@ -8609,6 +8855,9 @@ Pick the source that matches your music app and keep it playing; the lyrics foll
 Pickup range
 == ピックアップ範囲
 
+Pickups
+== ピックアップ
+
 Pie menu
 == パイメニュー
 
@@ -8624,8 +8873,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == 円形メニューの開閉エフェクト
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== パイメニュー名前変更リスト（| で区切る、例：璇夢1|璇夢2）
+Pie menu rename list (| separates entries; main,dummy renames both)
+== パイメニュー名前変更リスト（| で項目を区切る。メイン名,ダミー名で両方を変更）
 
 Ping
 == Ping
@@ -8687,6 +8936,78 @@ Play/pause the current demo
 Playback volume
 == 再生音量
 
+Played for chat highlights and vote alerts when their notification sound is enabled.
+== 通知音が有効な場合、チャットのハイライトや投票アラート時に再生されます。
+
+Played for incoming player chat messages when their notification sound is enabled.
+== 通知音が有効な場合、プレイヤーからのチャットメッセージ受信時に再生されます。
+
+Played for incoming server chat messages when their notification sound is enabled.
+== 通知音が有効な場合、サーバーからのチャットメッセージ受信時に再生されます。
+
+Played when a grenade explodes.
+== グレネードが爆発したときに再生されます。
+
+Played when a laser or DDNet shotgun beam bounces.
+== レーザーまたは DDNet ショットガンのビームが反射したときに再生されます。
+
+Played when a ninja dash hits another player.
+== 忍者刀ダッシュが他のプレイヤーに命中したときに再生されます。
+
+Played when a player dies, including suicide.
+== 自殺を含め、プレイヤーが死亡したときに再生されます。
+
+Played when a player spawns or respawns.
+== プレイヤーがスポーンまたはリスポーンしたときに再生されます。
+
+Played when firing this weapon.
+== この武器を発射したときに再生されます。
+
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+== 地上からジャンプしたときに再生されます。左右の足音ファイルはこの同じサウンドグループに属します。
+
+Played when moving fast on the ground and pressing the opposite direction.
+== 地上で高速移動中に逆方向を入力してブレーキをかけたときに再生されます。
+
+Played when picking up a grenade weapon.
+== グレネード武器を取得したときに再生されます。
+
+Played when picking up a shotgun or laser weapon.
+== ショットガンまたはレーザー武器を取得したときに再生されます。
+
+Played when pressing fire while frozen.
+== 凍結中に発射キーを押したときに再生されます。
+
+Played when starting a ninja dash attack.
+== 忍者刀のダッシュ攻撃を開始したときに再生されます。
+
+Played when swinging the hammer, even without hitting a player.
+== プレイヤーに当たらない空振りを含め、ハンマーを振ったときに再生されます。
+
+Played when switching the active weapon.
+== 使用中の武器を切り替えたときに再生されます。
+
+Played when the hammer hits another player.
+== ハンマーが他のプレイヤーに命中したときに再生されます。
+
+Played when the hook attaches to a hookable surface.
+== フックがフック可能な表面に刺さったときに再生されます。
+
+Played when the hook attaches to another player.
+== フックが他のプレイヤーに刺さったときに再生されます。
+
+Played when the hook hits an unhookable surface.
+== フックがフック不可の表面に当たったときに再生されます。
+
+Played when using the second jump in the air.
+== 空中で二段ジャンプを使ったときに再生されます。
+
+Played when weapon teleportation moves the player in DDNet.
+== DDNet で武器テレポート効果によってプレイヤーが移動したときに再生されます。
+
+Played while offline when menu music is enabled.
+== メニュー音楽が有効な場合、オフライン中に再生されます。
+
 Player
 == プレイヤー
 
@@ -8696,8 +9017,14 @@ Player already invited
 Player body color
 == プレイヤーのボディカラー
 
+Player chat message
+== プレイヤーチャット
+
 Player clan
 == プレイヤーのクラン
+
+Player count
+== 人数カウント
 
 Player country (ISO 3166-1 numeric code)
 == プレイヤーの国（ISO 3166-1 数値コード）
@@ -8707,6 +9034,9 @@ Player country filter in server browser (ISO 3166-1 numeric)
 
 Player country:
 == プレイヤーの国：
+
+Player death
+== プレイヤー死亡
 
 Player decoration color
 == プレイヤーのデコレーションカラー
@@ -8794,6 +9124,12 @@ Player skin marking
 
 Player skin used for volleyball appearance
 == バレーボール外観に使用するプレイヤースキン
+
+Player spawn
+== プレイヤースポーン
+
+Player state
+== プレイヤー状態
 
 Player stats
 == プレイヤーステータス
@@ -9071,6 +9407,9 @@ Preview laser bodies, outlines, and impacts
 Preview loading…
 == プレビューを読み込み中…
 
+Preview path
+== パスをプレビュー
+
 Preview player and dummy appearance
 == Preview player and dummy appearance
 
@@ -9309,7 +9648,7 @@ Query current map info
 == 現在のマップ情報を照会
 
 Query isolated serverlist consumer state
-== Query isolated serverlist consumer state
+== 隔離サーバーリスト利用側の状態を照会
 
 Query map info for %s
 == %s のマップ情報を照会
@@ -9545,6 +9884,9 @@ Realtime channel reconnect backoff cap (ms)
 Reason
 == 理由
 
+Reason (optional)
+== 理由（任意）
+
 Reason:
 == 理由：
 
@@ -9624,7 +9966,7 @@ Refresh interval
 == 更新間隔
 
 Refresh isolated serverlist consumer
-== Refresh isolated serverlist consumer
+== 隔離サーバーリスト利用側を更新
 
 Refresh Rate
 == リフレッシュレート
@@ -9641,6 +9983,9 @@ Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
 == 公開リスト用にマスターサーバーにサーバーを登録、カンマ区切りのプロトコルを受け入れます。例: 'ipv4,ipv6'
 
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
+== 登録済みサウンドですが、この DDNet サーバー内では直接のトリガーが見つかりませんでした。他のサーバーで使用される場合があります。
+
 Regular
 == 標準
 
@@ -9650,14 +9995,14 @@ Regular background color
 Regular expression
 == 正規表現
 
-Relative path
-== 相対パス
-
 Relative X position of the draggable back button
 == ドラッグ可能な戻るボタンの相対 X 位置
 
 Relative Y position of the draggable back button
 == ドラッグ可能な戻るボタンの相対 Y 位置
+
+Release date
+== リリース日
 
 Release notes
 == リリースノート
@@ -9685,6 +10030,9 @@ Reload the map while preserving the state of tees and teams
 
 Reload the maplist
 == マップリストをリロードする
+
+Reload word list files
+== 単語リストファイルを再読み込み
 
 Reloaded images.
 == 画像を再読み込みしました。
@@ -9944,6 +10292,9 @@ Replace non-friend names with ID
 Replace non-friend skins with default
 == 非フレンドスキンをデフォルトに置換
 
+Replace selected variant
+== 選択したバリアントを置換
+
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 == 設定、キー割り当て、一覧の cfg ファイルを置き換えて再起動しますか？現在の設定は先にバックアップされます。
 
@@ -10079,6 +10430,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == すべての、または1つのチューニング変数をデフォルトにリセット
 
+Reset chat completion appearance
+== チャット補完の外観をリセット
+
 Reset chat on escape
 == Escape キーでチャットをリセット
 
@@ -10189,6 +10543,9 @@ Restoring save %d: main '%s', dummy '%s'.
 
 Retry
 == 再試行
+
+Retry details
+== 詳細を再取得
 
 Retry remote stats
 == リモート統計を再試行
@@ -10592,6 +10949,9 @@ Screenshots
 Screenshots directory
 == スクリーンショットディレクトリ
 
+Scroll mode
+== スクロールモード
+
 Scroll mode: Off
 == スクロールモード: オフ
 
@@ -10619,8 +10979,14 @@ Search maps and downloadedmaps, including subfolders
 Search maps for Rank 1 replays ...
 == Rank 1 リプレイのあるマップを検索 ...
 
+Search maps or mappers
+== マップ名・作者を検索
+
 Search online fonts…
 == オンラインフォントを検索…
+
+Search players or clans
+== プレイヤー・クランを検索
 
 Search settings by title, feature, or keyword
 == Search settings by title, feature, or keyword
@@ -10667,6 +11033,12 @@ See you at the next checkpoint.
 Select a configuration package to preview its contents.
 == 設定パッケージを選択すると内容を確認できます。
 
+Select a map
+== マップを選択
+
+Select a player to manage
+== 管理するプレイヤーを選択
+
 Select a preset, then apply it to player or dummy
 == プリセットを選択し、プレイヤーまたはダミーに適用
 
@@ -10697,9 +11069,6 @@ Selected %d
 Selected button not visible
 == 選択したボタンが表示されていません
 
-Selected candidate
-== 選択された候補
-
 Selected candidate %d/%d under cursor.
 == カーソル下の候補 %d/%d が選択されました。
 
@@ -10709,6 +11078,9 @@ Selected item color
 Selected part: %d
 == 選択中のパーツ：%d
 
+Selected text color
+== 選択文字色
+
 Selected timertype is not supported by your client
 == 選択したタイマータイプはお使いのクライアントでサポートされていません
 
@@ -10717,6 +11089,9 @@ Selecting download source...
 
 Selection
 == 選択
+
+Selection background color
+== 選択背景色
 
 Self
 == 自身
@@ -10808,6 +11183,9 @@ Server browser filter string
 Server browser sort column
 == サーバーブラウザのソート列
 
+Server control
+== サーバー管理
+
 Server could not be started
 == サーバーを起動できませんでした
 
@@ -10844,6 +11222,9 @@ Server list is more than five minutes old
 Server list refresh failed; showing the previous list
 == サーバー一覧の更新に失敗したため、前の一覧を表示しています
 
+Server message
+== サーバーメッセージ
+
 Server name
 == サーバー名
 
@@ -10873,6 +11254,9 @@ Server URL
 
 Server-assigned style
 == サーバー指定のスタイル
+
+Server-dependent
+== サーバー依存
 
 Set all to Rifle
 == すべてをライフルに設定
@@ -10985,11 +11369,20 @@ Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
 == きらめきの速度
 
+Short pain voice
+== 短い被ダメージボイス
+
 Short server names
 == 短いサーバー名
 
 Shotgun
 == ショットガン
+
+Shotgun / laser pickup
+== ショットガン / レーザー取得
+
+Shotgun fire
+== ショットガン発射
 
 Shotgun Laser Inner Color
 == ショットガンレーザー内部色
@@ -11224,6 +11617,9 @@ Show dummy title locally
 
 Show dummy velocity in movement info HUD
 == 移動情報 HUD にダミー速度を表示
+
+Show emoji completion in chat
+== チャットで絵文字補完を表示
 
 Show enemy color in chat
 == チャットで敵の色を表示
@@ -11642,6 +12038,9 @@ Show own nametag (for demo recording)
 Show own player's hook collision line
 == 自分のフック衝突線を表示
 
+Show path
+== パスを表示
+
 Show pause/play indicator when changing
 == 変更時に一時停止/再生インジケーターを表示
 
@@ -12059,6 +12458,9 @@ Size of key press icons
 Size of strength/weakness icon and number
 == 強さ/弱さアイコンと数字のサイズ
 
+Skidding
+== ブレーキ滑り
+
 Skin
 == スキン
 
@@ -12200,6 +12602,9 @@ Smaller tees
 Smart
 == スマート
 
+Smooth
+== 滑らか
+
 Smooth and accurate blur with the highest GPU cost.
 == 滑らかで正確なぼかしですが、GPU負荷が最も高くなります。
 
@@ -12308,6 +12713,15 @@ Some map sounds could not be loaded. Check the local console for details.
 Something hookable
 == フック可能なブロック
 
+Sort by favorites
+== お気に入り順に並べ替え
+
+Sort by number of friends
+== フレンド数順に並べ替え
+
+Sort by number of QmClient players
+== QmClientプレイヤー数順に並べ替え
+
 Sort column in ghost list
 == ゴーストリストのソート列
 
@@ -12331,6 +12745,9 @@ Sound buffer size (large may cause delay)
 
 Sound error
 == サウンドエラー
+
+Sound variants
+== サウンドバリアント
 
 Sound volume
 == サウンド音量
@@ -12503,9 +12920,6 @@ Start skin queue from a random position when entering a map
 Statboard
 == 統計ボード
 
-Static
-== 静止
-
 Stats
 == 統計
 
@@ -12590,6 +13004,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 Stop practice
 == 練習を停止
 
+Stop preview
+== プレビューを停止
+
 Stop preview (P)
 == プレビューを停止 (P)
 
@@ -12616,6 +13033,9 @@ Stop the current demo
 
 Streamer mode
 == ストリーマーモード
+
+Streamer word list file
+== 配信者モードの単語リストファイル
 
 Strength icons assets
 == 強さアイコンアセット
@@ -12982,6 +13402,9 @@ Tee collision (Tee to Tee)
 
 Tee color
 == Tee の色
+
+Tee cry
+== Tee の泣き声
 
 Tee death probe
 == Tee のデス判定
@@ -13949,6 +14372,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == スクリーンショットファイルを開けませんでした
 
+Unable to record camera keyframe
+== カメラのキーフレームを記録できません
+
 Unable to rename the demo
 == デモの名前を変更できません
 
@@ -14122,6 +14548,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == 更新に失敗しました。もう一度お試しください
+
+Update keyframe
+== キーフレームを更新
 
 Update notice
 == お知らせを更新
@@ -14332,6 +14761,9 @@ Used by active shared text and numeric input fields
 
 Uses the active action with the current aiming position.
 == 現在の照準位置でアクティブアクションを使用します。
+
+UTF-8 text, one word per line (max 2 MiB).
+== UTF-8 テキスト、1 行に 1 語（最大 2 MiB）。
 
 v = Velocity
 == v = 速度
@@ -14693,6 +15125,12 @@ Weapon range color
 Weapon reload animation probability
 == 武器リロードアニメーションの確率
 
+Weapon removal / armor pickup
+== 武器没収 / アーマー取得
+
+Weapon switch
+== 武器切り替え
+
 Weapon switch animation
 == 武器切り替えアニメーション
 
@@ -14722,6 +15160,9 @@ Weapon switch easing
 
 Weapon switch rotation
 == 武器切り替え回転
+
+Weapon teleport
+== 武器テレポート
 
 Weapon Trajectory
 == 武器軌道
@@ -14902,6 +15343,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == 単語フィルター操作: 0=一致する単語を置換、1=メッセージ全体を非表示
+
+Word list entries cannot contain control characters.
+== 単語に制御文字は使用できません。
+
+Word list exceeds 100000 unique entries.
+== 単語リストが 100000 語の上限を超えています。
+
+Word list file
+== 単語リストファイル
+
+Word list file exceeds 2 MiB.
+== 単語リストファイルが 2 MiB を超えています。
+
+Word list must be UTF-8 text without NUL characters.
+== 単語リストは NUL 文字を含まない UTF-8 テキストである必要があります。
 
 Write local console contents to a text file
 == ローカルコンソールの内容をテキストファイルに書き出す

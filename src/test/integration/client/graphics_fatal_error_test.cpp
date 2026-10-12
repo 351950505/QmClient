@@ -60,7 +60,7 @@ namespace
 		uint64_t StagingMemoryUsage() const override { return 0; }
 		const TTwGraphicsGpuList &GetGpus() const override { return m_Gpus; }
 		void GetVideoModes(CVideoMode *, int, int *, float, int, int, int) override {}
-		void GetCurrentVideoMode(CVideoMode &, float, int, int, int) override {}
+		bool GetCurrentVideoMode(CVideoMode &, float, int, int, int) override { return false; }
 		int GetNumScreens() const override { return 0; }
 		const char *GetScreenName(int) const override { return ""; }
 		void Minimize() override {}
@@ -69,6 +69,7 @@ namespace
 		void SetWindowParams(int, bool) override {}
 		bool SetWindowScreen(int, bool, ivec2 *) override { return false; }
 		bool UpdateDisplayMode(int, ivec2 *) override { return false; }
+		uint32_t GetWindowId() const override { return 0; }
 		int GetWindowScreen() override { return 0; }
 		int WindowActive() override { return 0; }
 		int WindowOpen() override { return 0; }

@@ -108,10 +108,11 @@ struct SQmHammerWakeupDecisionInput
 	bool m_aInFreeze[2] = {false, false};
 	bool m_aExternalHammerWakeup[2] = {false, false};
 	int m_ActiveConnection = 0;
-	bool m_ActiveSpectating = false;
+	bool m_aSpectating[2] = {false, false};
 	bool m_ChatActive = false;
 	bool m_ShowPopup = false;
 	bool m_AutoUnspec = false;
+	bool m_AutoUnspecBoth = false;
 	bool m_AutoSwitch = false;
 	bool m_AutoCloseChat = false;
 };
@@ -119,11 +120,21 @@ struct SQmHammerWakeupDecisionInput
 struct SQmHammerWakeupDecision
 {
 	bool m_aShowPopup[2] = {false, false};
-	bool m_UnspecActiveConnection = false;
+	bool m_aUnspec[2] = {false, false};
 	bool m_CloseChat = false;
 	int m_SwitchToConnection = -1;
 };
 
 SQmHammerWakeupDecision QmDecideHammerWakeupActions(const SQmHammerWakeupDecisionInput &Input);
+
+class CQmHammerWakeupActionTracker
+{
+public:
+	void Reset();
+	SQmHammerWakeupDecision Decide(const SQmHammerWakeupDecisionInput &Input, int SnapshotTick);
+
+private:
+	int m_aLastUnspecSnapshotTick[2] = {-1, -1};
+};
 
 #endif

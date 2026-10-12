@@ -7,6 +7,9 @@
  seconds (never)
 == 秒 (不消失)
 
+ · %d finishers · average %d:%02d:%02d
+==  · %d 人完成 · 平均 %d:%02d:%02d
+
 "%s" is not compatible with pnglite and cannot be loaded by old DDNet versions:
 == "%s" 與 pnglite 不兼容，無法被舊版本 DDNet 加載
 
@@ -18,6 +21,9 @@
 
 %c Team %d
 == %c 隊伍 %d
+
+%d / %d maps
+== %d / %d 張地圖
 
 %d items selected
 == 已選擇 %d 項
@@ -45,6 +51,9 @@
 
 %d teams
 == %d 個隊伍
+
+%d words loaded
+== 已載入 %d 個詞條
 
 %d. %s | main: %s | dummy: %s
 == %d. %s | 本體：%s | 分身：%s
@@ -296,6 +305,9 @@ A demo with this name already exists
 A folder with this name already exists
 == 已有同名資料夾
 
+A manual source file takes priority over the selected candidate. Only this variant is replaced.
+== 手動指定的來源檔案優先於選取的候選檔案。僅替換目前音效變體。
+
 a player
 == 一名玩家
 
@@ -488,6 +500,9 @@ Add Group
 Add Item
 == 添加項
 
+Add keyframe
+== 新增關鍵影格
+
 Add latency for antiping (0 to disable)
 == 為抗延遲添加延遲（0 為禁用）
 
@@ -623,6 +638,9 @@ Aim
 Aim bind
 == 操作軸綁定
 
+Air jump
+== 空中二段跳
+
 Alive notification color
 == 存活提醒顏色
 
@@ -647,8 +665,14 @@ All
 All combined
 == 全部文件
 
+All maps
+== 全部地圖
+
 All players
 == 所有人
+
+All sounds
+== 全部音效
 
 All stars
 == 全部星級
@@ -817,6 +841,9 @@ Appearance and command highlighting of the local console
 
 Appearance of help bubbles
 == 提示氣泡外觀
+
+Append saved word list chunk
+== 附加已儲存的詞表片段
 
 Append to log file instead of overwriting
 == 追加到日誌文件而不是每次覆蓋
@@ -1001,9 +1028,6 @@ Audio packets
 Audio packs
 == 音頻包
 
-Audio slots
-== 音頻槽位
-
 AUS
 == 澳洲
 
@@ -1129,6 +1153,9 @@ Auto translate sent messages
 
 Auto unmute when speaking
 == 自動檢測說話時開麥
+
+Auto unspec both tees when either is hammered awake
+== 任一方被錘醒時兩個 Tee 都取消旁觀
 
 Auto unspec on unfreeze
 == 解凍自動取消旁觀
@@ -1430,6 +1457,9 @@ Background image in menu
 Background music volume
 == 背景音樂音量
 
+Background opacity
+== 背景透明度
+
 Background stroke color
 == 背景描邊顏色
 
@@ -1718,6 +1748,9 @@ Camera follow cursor factor
 Camera movement transition amount, 0=instant, 100=slow and smooth
 == 相機移動的過渡量，0=即時，100=緩慢且平滑
 
+Camera path
+== 相機路徑
+
 Camera slowdown during fast cursor movement. High values may cause delayed camera movement
 == 光標快速移動期間相機減速的量。高值可能會導致相機移動延遲
 
@@ -1766,8 +1799,20 @@ Candidate files
 Cannot join the target player's team
 == 無法加入目標玩家的隊伍
 
+Cannot open word list file. Previous words remain active.
+== 無法開啟詞表檔案，繼續使用上次成功載入的詞條。
+
+Cannot read complete word list file. Previous words remain active.
+== 無法完整讀取詞表檔案，繼續使用上次成功載入的詞條。
+
 Cannot swap: the other player is not in your team
 == 無法交換：對方不在你的隊伍中
+
+Capture the flag
+== 奪旗模式 (CTF)
+
+Capture-the-flag event cue, used by CTF servers rather than ordinary DDNet racing.
+== 奪旗模式事件提示音，由 CTF 伺服器使用，非常規 DDNet 競速音效。
 
 Card height animation
 == 設定卡片高度過渡動畫
@@ -1865,6 +1910,27 @@ Chat command
 Chat command (e.g. showall 1)
 == 聊天指令（例如：showall 1）
 
+Chat completion appearance
+== 聊天補全外觀
+
+Chat completion background color
+== 聊天補全背景色
+
+Chat completion background opacity
+== 聊天補全背景透明度
+
+Chat completion selected text color
+== 聊天補全選取文字顏色
+
+Chat completion selection background color
+== 聊天補全選取背景色
+
+Chat completion text color
+== 聊天補全文字顏色
+
+Chat emoji completion
+== 聊天表情補全
+
 Chat export cancelled
 == 已取消聊天匯出
 
@@ -1895,6 +1961,9 @@ Chat gradient vertical position percentage
 Chat log retention days
 == 聊天記錄保留天數
 
+Chat mention / vote alert
+== 聊天提及 / 投票提醒
+
 Chat message
 == 聊天消息
 
@@ -1921,6 +1990,9 @@ Chat width
 
 Chat word filtering
 == 聊天屏蔽詞過濾
+
+Chat word list file
+== 聊天屏蔽詞檔案
 
 Cheats are disabled on this server
 == 本伺服器已關閉作弊功能
@@ -2231,6 +2303,12 @@ Color of hook line hitting tee
 Color of hook line not hitting anything
 == 未擊中任何物體的鉤線顏色
 
+Color picker saturation/value area shape: 0=square, 1=wheel
+== 取色器飽和度/明度區域形態：0=方圖，1=色環
+
+Color picker saved swatches (format: name|#hex entries separated by semicolons)
+== 取色器已儲存色樣（格式：名稱|#十六進位顏色，各項目以分號分隔）
+
 Color tee outlines by team for spectating
 == 按隊伍為 Tee 描邊著色，便於旁觀區分
 
@@ -2239,6 +2317,9 @@ Colorize ping on scoreboard
 
 Colors
 == 顏色
+
+Colors for chat command and emoji completion
+== 聊天指令和表情補全的配色
 
 Colors in chat
 == 在聊天欄中的顏色
@@ -2281,6 +2362,9 @@ Commands
 
 Commands run in the console
 == 在控制台中執行的命令
+
+Common filters
+== 常用篩選
 
 Common key bindings
 == 常見的按鍵綁定
@@ -2793,7 +2877,7 @@ Could not stage configuration restore.
 == 無法準備配置還原檔案。
 
 Count players only
-== 屏蔽旁觀位
+== 不計旁觀者
 
 Countries
 == 國家
@@ -3050,6 +3134,9 @@ DDNet Client needs to be restarted to complete update!
 DDNet contributors and staff credits
 == DDNet 貢獻者與團隊名單
 
+DDNet map library
+== DDNet 地圖庫
+
 DDNet Memory
 == DDNet 內存
 
@@ -3290,6 +3377,9 @@ Delete this preset
 Demo
 == 回放
 
+Demo cut saved, but its camera path could not be saved
+== 裁剪回放已儲存，但相機路徑儲存失敗
+
 Demo directory
 == 回放儲存目錄
 
@@ -3382,6 +3472,9 @@ Diamond gradient
 
 died
 == 死亡
+
+Difficulty
+== 難度
 
 Difficulty stars
 == 難度星級
@@ -3890,6 +3983,9 @@ Edit
 Edit audio pack
 == 編輯音頻包
 
+Edit camera
+== 編輯鏡頭
+
 Edit color
 == 編輯配色
 
@@ -3925,6 +4021,9 @@ Elastic back
 
 Elevated
 == 提升的
+
+Emoji completion
+== 表情補全
 
 Emote and binding wheel animation duration (ms, 0=No animation, 1000=1 sec)
 == 表情輪和綁定輪動畫時長（毫秒，0=無動畫，1000=1 秒）
@@ -4009,6 +4108,9 @@ Enable camera drift
 
 Enable camera drift effect, slightly drags camera based on speed
 == 啟用相機漂移效果，讓鏡頭根據移動速度產生輕微拖拽
+
+Enable camera path
+== 啟用相機路徑
 
 Enable chat mention sound
 == 啟用聊天被提及消息提示音
@@ -4307,6 +4409,9 @@ Enable Tee trail
 Enable tee trails
 == 啟用 Tee 拖尾
 
+Enable the finished indicator and wait for player data
+== 啟用完成狀態指示，並等待玩家資料載入
+
 Enable thinking mode
 == 啟用思考模式
 
@@ -4378,9 +4483,6 @@ Endless hook has been activated
 
 Endless hook has been deactivated
 == 無限鉤已關閉
-
-Endless hook ring flow style: 0=single color, 1=rainbow, 2=static
-== 無限鉤圓環流動樣式（0=單色，1=彩虹，2=靜止）
 
 Endpoint
 == 端點
@@ -4502,8 +4604,8 @@ Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)
 Example: /map adr3 to call vote for Adrenaline 3. This means that the map name must start with 'a' and contain the characters 'd', 'r' and '3' in that order
 == 範例：/map adr3 可以發起 Adrenaline 3 的換圖投票。這表示地圖名必須以 'a' 開頭，並依序包含 'd'、'r'、'3'
 
-Example: name1|name2|name3
-== 示例：名字 1|名字 2|名字 3
+Example: A|B|C,D|E (C: main, D: dummy)
+== 範例：A|B|C,D|E（C 為本體，D 為分身）
 
 Exclude
 == 排除
@@ -4535,6 +4637,9 @@ Exit and install
 Exit replay view
 == 退出回放檢視
 
+Exit spectating on both tees when either is hammered awake by another player
+== 任一方被其他玩家錘醒時，自動讓兩個 Tee 退出旁觀
+
 Expand console
 == 展開控制台
 
@@ -4564,9 +4669,6 @@ Export name contains invalid characters.
 
 Export selected
 == 導出選中項
-
-Export selected file
-== 導出已選文件
 
 Export to clipboard
 == 導出到剪貼板
@@ -4643,6 +4745,9 @@ Failed to fetch the replay list
 Failed to load
 == 載入失敗
 
+Failed to load camera path
+== 無法載入相機路徑
+
 Failed to load main asset: %s
 == 載入主素材失敗：%s
 
@@ -4660,6 +4765,9 @@ Failed to read saves file
 
 Failed to record video. See local console for details.
 == 影片錄製失敗，詳情請查看本機主控台。
+
+Failed to save camera path
+== 無法儲存相機路徑
 
 Failed to save demo
 == 回放儲存失敗
@@ -4767,7 +4875,7 @@ Filter chat messages by regular expression
 == 按正則表達式過濾聊天消息
 
 Filter connecting players
-== 篩選正在連接的玩家
+== 不計連接中
 
 Filter empty servers in browser
 == 過濾掉瀏覽器中的空伺服器
@@ -4792,6 +4900,9 @@ Filter out servers without friends
 
 Filter out spectators from player count
 == 從玩家號碼中過濾掉觀眾
+
+Filter sensitive words
+== 過濾內建敏感詞
 
 Filtered word console color
 == 被屏蔽詞控制台顏色
@@ -4841,11 +4952,23 @@ First page in console
 Fixed-size scoreboard rows with mouse wheel scrolling for crowded servers
 == 滿人伺服器改用固定行高計分板，滾輪翻看其餘玩家
 
+Flag captured
+== 成功奪旗
+
+Flag dropped
+== 旗幟掉落
+
+Flag grab: enemy side
+== 敵方奪旗提示
+
+Flag grab: player side
+== 我方奪旗提示
+
+Flag returned
+== 旗幟歸還
+
 Flip:
 == 翻轉：
-
-Flow style
-== 流動樣式
 
 Folder
 == 文件夾
@@ -4976,6 +5099,9 @@ Freeze border color
 Freeze Collision Border Color
 == 凍結碰撞邊框顏色
 
+Freeze heart / health pickup
+== 凍結愛心 / 拾取生命值
+
 Freeze laser collision volume
 == 凍結激光碰撞體積
 
@@ -5062,6 +5188,9 @@ Friends
 
 Friends only
 == 僅限好友
+
+Frozen fire attempt
+== 凍結時嘗試開火
 
 Frozen prediction margin
 == 凍結時預測量
@@ -5306,6 +5435,9 @@ Go forward one tick
 Go forward the specified duration
 == 快進指定時長
 
+Go to keyframe
+== 定位關鍵影格
+
 Gores
 == Gores 模式
 
@@ -5402,6 +5534,18 @@ Greeting text
 Grenade
 == 榴彈槍
 
+Grenade explosion
+== 榴彈爆炸
+
+Grenade launch
+== 榴彈發射
+
+Grenade pickup
+== 拾取榴彈槍
+
+Ground jump
+== 地面起跳
+
 Group name
 == 分組名稱
 
@@ -5411,8 +5555,14 @@ GUI cursor assets
 Guide line color
 == 輔助線顏色
 
+Gun fire
+== 手槍射擊
+
 Hammer
 == 錘子
+
+Hammer hit
+== 錘子命中
 
 Hammer interaction
 == 鎚子互動
@@ -5422,6 +5572,9 @@ Hammer Mode
 
 Hammer skin steal
 == 錘中偷皮
+
+Hammer swing
+== 揮動錘子
 
 Hammer: %s
 == 錘：%s
@@ -5660,6 +5813,9 @@ Highlighted message
 Highlighted message color
 == 提及訊息顏色
 
+Hit feedback
+== 命中回饋
+
 Hitbox Mode Freeze Border Color
 == 碰撞箱模式凍結邊框顏色
 
@@ -5681,6 +5837,9 @@ Hitbox Mode Weapon Interaction Color
 HJ assist
 == HJ 大佬輔助
 
+Hold
+== 保持
+
 Hold gun higher like TW 0.6.1 and earlier
 == 像 TW 0.6.1 及更早版本一樣，tee 將槍握得更高一點
 
@@ -5689,6 +5848,12 @@ Hold left click for free camera
 
 Hook
 == 鉤索
+
+Hook attaches to ground
+== 鉤中地形
+
+Hook attaches to player
+== 鉤中玩家
 
 Hook collision line
 == 鉤子輔助線
@@ -5708,11 +5873,17 @@ Hook Collisions
 Hook collisions
 == 鉤子輔助線
 
+Hook hits unhookable surface
+== 鉤到不可鉤表面
+
 Hook interaction
 == 鉤子互動
 
 Hook line tip
 == 輔助線提示
+
+Hook loop
+== 鉤子循環音
 
 Hook Strength
 == 鉤索強度
@@ -5906,6 +6077,12 @@ Import from clipboard
 Improved anti ping
 == 改進反 Ping
 
+In DDNet, played when a freeze heart freezes the player. Other modes may use it for health pickups.
+== 在 DDNet 中，玩家觸碰凍結愛心被凍結時播放。其他模式可能用於拾取生命值。
+
+In DDNet, played when weapons are removed. Other modes may use it for armor pickups.
+== 在 DDNet 中，移除玩家武器時播放。其他模式可能用於拾取護甲。
+
 In memory of me
 == 謹以此端，回憶我
 
@@ -5952,7 +6129,7 @@ Incoming language
 == 接收語言
 
 Indicate map finish
-== 標記已完成的地圖
+== 標記已完成
 
 Indicator alive color
 == 指示器存活顏色
@@ -6161,6 +6338,9 @@ Invalid option
 Invalid or duplicate configuration path.
 == 配置路徑無效或重複。
 
+Invalid quoted word. Use one word per line.
+== 帶引號的詞條格式錯誤，請每行填寫一個詞。
+
 Invalid save number. Use a number from the save list.
 == 存檔序號無效，請使用清單中的序號。
 
@@ -6205,6 +6385,9 @@ Item
 
 Item type
 == 物品類型
+
+Its use depends on the server or game mode.
+== 具體用途取決於伺服器或遊戲模式。
 
 j = Latency jitter
 == j = 延遲抖動
@@ -6353,6 +6536,9 @@ Keyboard focus ring color
 Keyboard size
 == 鍵盤大小
 
+Keyframe %d/%d: %s
+== 關鍵影格 %d/%d：%s
+
 Keyword reply
 == 關鍵字回覆
 
@@ -6428,6 +6614,9 @@ Label type
 LAN
 == 局域網
 
+Landing
+== 落地
+
 Language
 == 語言
 
@@ -6449,6 +6638,9 @@ Large text for friend join (use %s for friend name)
 Laser
 == 激光
 
+Laser / shotgun bounce
+== 雷射 / 霰彈光束反彈
+
 Laser / shotgun interaction
 == 激光 / 霰彈槍互動
 
@@ -6457,6 +6649,9 @@ Laser colors
 
 Laser effect enhancement
 == 激光效果增強
+
+Laser fire
+== 雷射發射
 
 Laser glow intensity (0-100)
 == 激光輝光強度 (0-100)
@@ -6983,6 +7178,9 @@ Map browser: show favorite maps only
 Map danger border
 == 地圖危險邊界
 
+Map data unavailable; server votes remain available
+== 地圖資料暫不可用，仍可使用伺服器投票
+
 Map download send window
 == 地圖下載發送窗口
 
@@ -7000,6 +7198,9 @@ Map play history
 
 Map Preview TODO
 == 地圖預覽待做
+
+Map progress
+== 地圖進度
 
 Map progress bar
 == 地圖進度條
@@ -7060,6 +7261,9 @@ Map upload network error.
 
 Map uploaded successfully.
 == 地圖上傳成功。
+
+Mapper
+== 作者
 
 Maps
 == 地圖
@@ -7255,6 +7459,9 @@ Menu main panel background color
 
 Menu main panel opacity
 == 菜單主面板透明度
+
+Menu music
+== 主選單音樂
 
 Menu opacity (0-100)
 == 菜單不透明度 (Menu opacity 0-100)
@@ -7457,6 +7664,9 @@ Move player to spectators
 Move right
 == 向右移動
 
+Move the free camera, then add a keyframe at the current demo time.
+== 移動自由相機，在目前回放時間新增關鍵影格。
+
 Move to category
 == 移動到分類
 
@@ -7477,6 +7687,9 @@ Multi-View
 
 Multiple exact Axiom players found
 == 找到多個完全相符的 Axiom 玩家
+
+Music
+== 音樂
 
 Music player volume
 == 音樂播放器音量
@@ -7558,6 +7771,9 @@ Mute:
 
 Muted
 == 已靜音
+
+Muted players
+== 已封鎖玩家
 
 my_%s
 == 我的_%s
@@ -7790,6 +8006,9 @@ New random timeout code
 New version available
 == 有新版本可用
 
+Newest first
+== 最新發佈優先
+
 News
 == 新聞
 
@@ -7808,8 +8027,20 @@ Next weapon
 Nickname
 == 暱稱
 
+Ninja attack
+== 忍者刀衝刺
+
+Ninja hit
+== 忍者刀命中
+
+Ninja pickup
+== 拾取忍者刀
+
 No
 == 否
+
+No ammunition
+== 彈藥耗盡
 
 No animation
 == 無動畫
@@ -7829,17 +8060,20 @@ No assets found.
 No audio issues detected
 == 未發現音頻異常
 
-No audio slots found.
-== 未找到音頻槽位。
-
 No buttons match your filter criteria
 == 沒有按鍵符合你的篩選條件
 
 No callable peer found
 == 當前未發現可通話對端
 
+No camera keyframes
+== 尚無相機關鍵影格
+
 No candidate file selected.
 == 未選擇候選文件。
+
+No candidate files match this search.
+== 沒有符合目前搜尋的候選檔案。
 
 No changes since last save
 == 自上次保存後沒有更改
@@ -7895,9 +8129,6 @@ No functions bound
 No input device available
 == 系統沒有可用輸入設備
 
-No items to write
-== 沒有可寫入的項目
-
 No local saves file found (ddnet-saves.txt)
 == 未找到本地存檔文件（ddnet-saves.txt）
 
@@ -7915,6 +8146,9 @@ No map selected
 
 No maps found on this server!
 == 這個伺服器上沒有找到符合條件的地圖！
+
+No maps match these filters
+== 沒有符合篩選條件的地圖
 
 No matching assets.
 == 沒有匹配的材質。
@@ -7948,6 +8182,9 @@ No player nearby
 
 No player with this name found.
 == 沒有找到這個名字的玩家
+
+No players match these filters
+== 沒有符合篩選條件的玩家
 
 No presets yet
 == 暫無預設
@@ -8005,6 +8242,9 @@ No servers match your filter criteria
 
 No skins match your filter criteria
 == 沒有皮膚滿足設置的篩選條件
+
+No sounds match this search.
+== 沒有符合目前搜尋的音效。
 
 No space for button
 == 空間不足
@@ -8354,11 +8594,17 @@ Original message language
 Other
 == 其他
 
+Other game modes
+== 其他遊戲模式
+
 Other modes
 == 其他模式
 
 Other players' hook line width
 == 其他玩家的鉤子輔助線寬度
+
+Other sounds
+== 其他音效
 
 Others
 == 他人
@@ -8609,6 +8855,9 @@ Pick the source that matches your music app and keep it playing; the lyrics foll
 Pickup range
 == 拾取物範圍
 
+Pickups
+== 拾取物
+
 Pie menu
 == 餅菜單
 
@@ -8624,8 +8873,8 @@ Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 == 圓盤選單開合效果
 
-Pie menu rename list (separate with |, e.g., name1|name2)
-== 餅菜單改名名單（使用 | 分隔，如：璇夢 1|璇夢 2）
+Pie menu rename list (| separates entries; main,dummy renames both)
+== 餅選單改名名單（| 分隔選項；C,D 同時改名，C 為本體，D 為分身）
 
 Ping
 == Ping
@@ -8687,6 +8936,78 @@ Play/pause the current demo
 Playback volume
 == 播放音量
 
+Played for chat highlights and vote alerts when their notification sound is enabled.
+== 開啟提示音後，在收到聊天醒目提及或投票提醒時播放。
+
+Played for incoming player chat messages when their notification sound is enabled.
+== 開啟提示音後，在收到其他玩家的聊天訊息時播放。
+
+Played for incoming server chat messages when their notification sound is enabled.
+== 開啟提示音後，在收到伺服器系統訊息時播放。
+
+Played when a grenade explodes.
+== 榴彈爆炸時播放。
+
+Played when a laser or DDNet shotgun beam bounces.
+== 雷射或 DDNet 霰彈光束發生反彈時播放。
+
+Played when a ninja dash hits another player.
+== 忍者刀衝刺命中其他玩家時播放。
+
+Played when a player dies, including suicide.
+== 玩家死亡時播放，包括自殺。
+
+Played when a player spawns or respawns.
+== 玩家出生或重生時播放。
+
+Played when firing this weapon.
+== 使用該武器開火時播放。
+
+Played when jumping from the ground. Left and right foot files belong to this same sound group.
+== 從地面起跳時播放。左右腳音訊檔案同屬該音效組。
+
+Played when moving fast on the ground and pressing the opposite direction.
+== 在地面高速移動並按下反方向鍵急停滑行時播放。
+
+Played when picking up a grenade weapon.
+== 拾取榴彈槍時播放。
+
+Played when picking up a shotgun or laser weapon.
+== 拾取霰彈槍或雷射槍時播放。
+
+Played when pressing fire while frozen.
+== 玩家處於凍結狀態並按下開火鍵時播放。
+
+Played when starting a ninja dash attack.
+== 發動忍者刀衝刺攻擊時播放。
+
+Played when swinging the hammer, even without hitting a player.
+== 揮動錘子時播放（即使未命中玩家也會觸發）。
+
+Played when switching the active weapon.
+== 切換目前手持武器時播放。
+
+Played when the hammer hits another player.
+== 錘子命中其他玩家時播放。
+
+Played when the hook attaches to a hookable surface.
+== 鉤子抓住可鉤表面時播放。
+
+Played when the hook attaches to another player.
+== 鉤子抓住其他玩家時播放。
+
+Played when the hook hits an unhookable surface.
+== 鉤子碰到不可鉤表面時播放。
+
+Played when using the second jump in the air.
+== 在空中使用二段跳時播放。
+
+Played when weapon teleportation moves the player in DDNet.
+== 在 DDNet 中武器傳送效果移動玩家時播放。
+
+Played while offline when menu music is enabled.
+== 開啟主選單音樂後，在離線主選單介面播放。
+
 Player
 == 玩家
 
@@ -8696,8 +9017,14 @@ Player already invited
 Player body color
 == 玩家身體顏色
 
+Player chat message
+== 玩家聊天訊息
+
 Player clan
 == 玩家戰隊
+
+Player count
+== 人數統計
 
 Player country (ISO 3166-1 numeric code)
 == 玩家國家（ISO 3166-1 數字碼）
@@ -8706,7 +9033,10 @@ Player country filter in server browser (ISO 3166-1 numeric)
 == 在伺服器瀏覽器中過濾的玩家國家/地區（ISO 3166-1 數字）
 
 Player country:
-== 玩家國家/地區：
+== 玩家國家
+
+Player death
+== 玩家死亡
 
 Player decoration color
 == 玩家裝飾顏色
@@ -8794,6 +9124,12 @@ Player skin marking
 
 Player skin used for volleyball appearance
 == 排球外觀使用的玩家皮膚
+
+Player spawn
+== 玩家出生
+
+Player state
+== 玩家狀態
 
 Player stats
 == 玩家統計
@@ -9071,6 +9407,9 @@ Preview laser bodies, outlines, and impacts
 Preview loading…
 == 預覽載入中…
 
+Preview path
+== 預覽路徑
+
 Preview player and dummy appearance
 == Preview player and dummy appearance
 
@@ -9309,7 +9648,7 @@ Query current map info
 == 查詢當前地圖信息
 
 Query isolated serverlist consumer state
-== Query isolated serverlist consumer state
+== 查詢隔離伺服器列表消費者狀態
 
 Query map info for %s
 == 查詢地圖 %s 的信息
@@ -9545,6 +9884,9 @@ Realtime channel reconnect backoff cap (ms)
 Reason
 == 原因
 
+Reason (optional)
+== 理由（選填）
+
 Reason:
 == 理由：
 
@@ -9624,7 +9966,7 @@ Refresh interval
 == 刷新間隔
 
 Refresh isolated serverlist consumer
-== Refresh isolated serverlist consumer
+== 重新整理隔離伺服器列表消費者
 
 Refresh Rate
 == 刷新率
@@ -9641,6 +9983,9 @@ Region
 Register server with master server for public list, accepts comma-separated protocols e.g. 'ipv4,ipv6'
 == 向主伺服器註冊伺服器以進行公開列表，還可以接受要註冊的以逗號分隔的協議列表，例如“ipv4，ipv6”
 
+Registered sound; no direct trigger was found in this DDNet server. Other servers may use it.
+== 已註冊音效；在目前 DDNet 伺服器中未發現直接觸發點，其他伺服器可能會使用。
+
 Regular
 == 標準
 
@@ -9650,14 +9995,14 @@ Regular background color
 Regular expression
 == 正則表達式
 
-Relative path
-== 相對路徑
-
 Relative X position of the draggable back button
 == Relative X position of the draggable back button
 
 Relative Y position of the draggable back button
 == Relative Y position of the draggable back button
+
+Release date
+== 發佈日期
 
 Release notes
 == 更新說明
@@ -9685,6 +10030,9 @@ Reload the map while preserving the state of tees and teams
 
 Reload the maplist
 == 重新加載地圖列表
+
+Reload word list files
+== 重新載入詞表檔案
 
 Reloaded images.
 == 已重新加載圖像。
@@ -9944,6 +10292,9 @@ Replace non-friend names with ID
 Replace non-friend skins with default
 == 用默認皮膚替換非好友皮膚
 
+Replace selected variant
+== 替換所選變體
+
 Replace settings, binds and the listed cfg files, then restart? The current configuration will be backed up first.
 == 取代設定、按鍵綁定和所列 cfg 檔案並重新啟動？將先備份目前配置。
 
@@ -10079,6 +10430,9 @@ Reset all drawings on the background
 Reset all or one tuning variable to default
 == 將全部或單個調參變量重置為默認值
 
+Reset chat completion appearance
+== 恢復聊天補全預設外觀
+
 Reset chat on escape
 == 按退出鍵時重置聊天
 
@@ -10189,6 +10543,9 @@ Restoring save %d: main '%s', dummy '%s'.
 
 Retry
 == 重試
+
+Retry details
+== 重試詳情
 
 Retry remote stats
 == 重試遠程統計
@@ -10592,6 +10949,9 @@ Screenshots
 Screenshots directory
 == 截圖目錄
 
+Scroll mode
+== 捲動模式
+
 Scroll mode: Off
 == 滾動模式：關
 
@@ -10619,8 +10979,14 @@ Search maps and downloadedmaps, including subfolders
 Search maps for Rank 1 replays ...
 == 搜尋有 Rank 1 回放的地圖……
 
+Search maps or mappers
+== 搜尋地圖或作者
+
 Search online fonts…
 == 搜尋線上字型…
+
+Search players or clans
+== 搜尋玩家或戰隊
 
 Search settings by title, feature, or keyword
 == Search settings by title, feature, or keyword
@@ -10667,6 +11033,12 @@ See you at the next checkpoint.
 Select a configuration package to preview its contents.
 == 選擇配置包以預覽內容。
 
+Select a map
+== 選擇一張地圖
+
+Select a player to manage
+== 選擇玩家以查看及管理
+
 Select a preset, then apply it to player or dummy
 == 先選擇預設，再套用至本體或分身
 
@@ -10697,9 +11069,6 @@ Selected %d
 Selected button not visible
 == 選中的按鍵不可見
 
-Selected candidate
-== 已選候選文件
-
 Selected candidate %d/%d under cursor.
 == 已選中光標下的候選項 %d/%d。
 
@@ -10709,6 +11078,9 @@ Selected item color
 Selected part: %d
 == 所選部件：%d
 
+Selected text color
+== 選取文字顏色
+
 Selected timertype is not supported by your client
 == 你當前客戶端不支持所選計時器類型
 
@@ -10717,6 +11089,9 @@ Selecting download source...
 
 Selection
 == 已選項
+
+Selection background color
+== 選取背景色
 
 Self
 == 自身
@@ -10808,6 +11183,9 @@ Server browser filter string
 Server browser sort column
 == 伺服器瀏覽器中的排序列
 
+Server control
+== 伺服器控制
+
 Server could not be started
 == 無法啟動伺服器
 
@@ -10844,11 +11222,14 @@ Server list is more than five minutes old
 Server list refresh failed; showing the previous list
 == 伺服器列表重新整理失敗，正在顯示上次列表
 
+Server message
+== 伺服器訊息
+
 Server name
 == 伺服器名稱
 
 Server not full
-== 伺服器未滿
+== 未滿員
 
 Server password
 == 伺服器密碼
@@ -10873,6 +11254,9 @@ Server URL
 
 Server-assigned style
 == 伺服器分配風格
+
+Server-dependent
+== 取決於伺服器
 
 Set all to Rifle
 == 統一為激光槍顏色
@@ -10985,11 +11369,20 @@ Share of the server browser name/map split given to the name column (per mille)
 Shimmer speed
 == 流光速度
 
+Short pain voice
+== 短促受傷叫聲
+
 Short server names
 == 短伺服器名稱
 
 Shotgun
 == 霰彈槍
+
+Shotgun / laser pickup
+== 拾取霰彈槍 / 雷射槍
+
+Shotgun fire
+== 霰彈槍射擊
 
 Shotgun Laser Inner Color
 == 霰彈槍彈道實心顏色
@@ -11225,6 +11618,9 @@ Show dummy title locally
 Show dummy velocity in movement info HUD
 == 在運動信息 HUD 中顯示分身速度
 
+Show emoji completion in chat
+== 在聊天中顯示表情補全
+
 Show enemy color in chat
 == 在聊天中顯示敵對顏色
 
@@ -11286,7 +11682,7 @@ Show friend tag (♥) on nametag
 == 在名牌上顯示好友標記 (♥ )
 
 Show friends only
-== 只顯示好友
+== 僅好友
 
 Show frozen Tee HUD
 == 顯示凍結 Tee HUD
@@ -11641,6 +12037,9 @@ Show own nametag (for demo recording)
 
 Show own player's hook collision line
 == 顯示自己的鉤子輔助線
+
+Show path
+== 顯示路徑
 
 Show pause/play indicator when changing
 == 在更改時顯示暫停/播放指示器
@@ -12059,6 +12458,9 @@ Size of key press icons
 Size of strength/weakness icon and number
 == 強/弱狀態圖標和數字的大小
 
+Skidding
+== 急停滑行
+
 Skin
 == 皮膚
 
@@ -12200,6 +12602,9 @@ Smaller tees
 Smart
 == 智能
 
+Smooth
+== 平滑
+
 Smooth and accurate blur with the highest GPU cost.
 == 平滑且準確的模糊效果，但 GPU 開銷最高。
 
@@ -12308,6 +12713,15 @@ Some map sounds could not be loaded. Check the local console for details.
 Something hookable
 == 可鉤物體
 
+Sort by favorites
+== 按收藏排序
+
+Sort by number of friends
+== 按好友人數排序
+
+Sort by number of QmClient players
+== 按 QmClient 玩家人數排序
+
 Sort column in ghost list
 == 幽靈列表中的排序列
 
@@ -12331,6 +12745,9 @@ Sound buffer size (large may cause delay)
 
 Sound error
 == 音頻錯誤
+
+Sound variants
+== 音效變體
 
 Sound volume
 == 音量
@@ -12503,9 +12920,6 @@ Start skin queue from a random position when entering a map
 Statboard
 == 統計板
 
-Static
-== 靜止
-
 Stats
 == 統計
 
@@ -12590,6 +13004,9 @@ Stop key input on switch (0=off, 1=dummy, 2=player)
 Stop practice
 == 停止練習
 
+Stop preview
+== 停止預覽
+
 Stop preview (P)
 == 停止預覽 (P)
 
@@ -12617,6 +13034,9 @@ Stop the current demo
 Streamer mode
 == 直播模式
 
+Streamer word list file
+== 主播模式詞表檔案
+
 Strength icons assets
 == 強弱圖標資源
 
@@ -12630,7 +13050,7 @@ Strict game type filter
 == 嚴格遊戲模式篩選
 
 Strict gametype filter
-== 嚴格遊戲模式篩選
+== 嚴格匹配
 
 Strict mode
 == 嚴格模式
@@ -12982,6 +13402,9 @@ Tee collision (Tee to Tee)
 
 Tee color
 == Tee 顏色
+
+Tee cry
+== Tee 哭聲
 
 Tee death probe
 == Tee 死亡探針
@@ -13949,6 +14372,9 @@ Unable to load savegame: SaveId corrupted
 Unable to open the screenshot file
 == 無法打開截圖文件
 
+Unable to record camera keyframe
+== 無法記錄相機關鍵影格
+
 Unable to rename the demo
 == 無法重命名這個回放
 
@@ -14001,7 +14427,7 @@ Unfinished
 == 未完成
 
 Unfinished map
-== 未完成的地圖
+== 僅未完成
 
 Unfinished map count: %d
 == 未完成圖數量：%d
@@ -14122,6 +14548,9 @@ Update a rcon key with prehashed data
 
 Update failed. Please try again
 == 更新失敗，請重試
+
+Update keyframe
+== 更新關鍵影格
 
 Update notice
 == 更新提示
@@ -14332,6 +14761,9 @@ Used by active shared text and numeric input fields
 
 Uses the active action with the current aiming position.
 == 使用當前動作配合目前的瞄準位置。
+
+UTF-8 text, one word per line (max 2 MiB).
+== UTF-8 文字，每行一個詞（最大 2 MiB）。
 
 v = Velocity
 == v = 速度
@@ -14693,6 +15125,12 @@ Weapon range color
 Weapon reload animation probability
 == 武器裝填動畫機率
 
+Weapon removal / armor pickup
+== 移除武器 / 拾取護甲
+
+Weapon switch
+== 切換武器
+
 Weapon switch animation
 == 武器切換動畫
 
@@ -14722,6 +15160,9 @@ Weapon switch easing
 
 Weapon switch rotation
 == 武器切換旋轉
+
+Weapon teleport
+== 武器傳送
 
 Weapon Trajectory
 == 武器輔助線
@@ -14902,6 +15343,21 @@ Word Filter
 
 Word filter action: 0=replace matching words, 1=hide entire message
 == 屏蔽詞操作：0=替換匹配詞，1=隱藏整條訊息
+
+Word list entries cannot contain control characters.
+== 詞條不能包含控制字元。
+
+Word list exceeds 100000 unique entries.
+== 詞表超過 100000 個不重複詞條。
+
+Word list file
+== 詞表檔案
+
+Word list file exceeds 2 MiB.
+== 詞表檔案超過 2 MiB。
+
+Word list must be UTF-8 text without NUL characters.
+== 詞表必須是 UTF-8 文字，且不含 NUL 字元。
 
 Write local console contents to a text file
 == 將本地控制台內容寫入文本文件

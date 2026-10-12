@@ -115,6 +115,8 @@ public:
 			return;
 		const int Characters = static_cast<int>(str_utf8_offset_bytes_to_chars(pText, str_length(pText)));
 		const auto Range = RangeForEntry(EntryId, Characters);
+		if(!Range.has_value())
+			return;
 		const size_t Start = str_utf8_offset_chars_to_bytes(pText, Range->m_Start);
 		const size_t End = str_utf8_offset_chars_to_bytes(pText, Range->m_End);
 		if(EntryId != OrderedPositions().first.m_EntryId)

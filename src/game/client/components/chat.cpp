@@ -6,6 +6,7 @@
 #include <base/log.h>
 #include <base/log_color.h>
 
+#include <engine/config.h>
 #include <engine/editor.h>
 #include <engine/external/regex.h>
 #include <engine/graphics.h>
@@ -35,6 +36,7 @@
 #include <game/client/components/qmclient/qm_chat_avatar.h>
 #include <game/client/components/qmclient/qm_title_color.h>
 #include <game/client/components/qmclient/qm_title_style.h>
+#include <game/client/components/qmclient/streamer_word_filter.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/components/skins.h>
 #include <game/client/components/sounds.h>
@@ -47,6 +49,7 @@
 #include <iterator>
 #include <limits>
 #include <string>
+#include <unordered_set>
 
 char CChat::ms_aDisplayText[MAX_LINE_LENGTH] = "";
 
@@ -134,9 +137,8 @@ static void ParseBlockWordsList(const char *pList, std::vector<std::string> &Out
 	if(!pList || pList[0] == '\0')
 		return;
 
-	char aBuf[1024];
-	str_copy(aBuf, pList, sizeof(aBuf));
-	char *pCursor = aBuf;
+	std::string Buffer(pList);
+	char *pCursor = Buffer.data();
 
 	while(*pCursor)
 	{
@@ -180,6 +182,7 @@ namespace
 	{
 		std::string m_List;
 		int m_Mode = -1;
+		uint64_t m_FileRevision = 0;
 		std::vector<std::string> m_Words;
 		std::vector<Regex> m_Regexes;
 	};
@@ -241,15 +244,20 @@ namespace
 	}
 } // namespace
 
-static void UpdateBlockWordsCache(CBlockWordsCache &Cache)
+static void UpdateBlockWordsCache(CBlockWordsCache &Cache, const QmWordFilterList::CFileList &File)
 {
-	if(Cache.m_List == g_Config.m_QmBlockWordsList && Cache.m_Mode == g_Config.m_QmBlockWordsMode)
+	if(Cache.m_List == g_Config.m_QmBlockWordsList && Cache.m_Mode == g_Config.m_QmBlockWordsMode && Cache.m_FileRevision == File.Revision())
 		return;
 
 	Cache.m_List = g_Config.m_QmBlockWordsList;
 	Cache.m_Mode = g_Config.m_QmBlockWordsMode;
+	Cache.m_FileRevision = File.Revision();
 
 	ParseBlockWordsList(Cache.m_List.c_str(), Cache.m_Words);
+	std::unordered_set<std::string> Seen(Cache.m_Words.begin(), Cache.m_Words.end());
+	for(const std::string &Word : File.Words())
+		if(Seen.insert(Word).second)
+			Cache.m_Words.push_back(Word);
 	Cache.m_Regexes.clear();
 
 	if(Cache.m_Mode == BLOCK_WORDS_MODE_REGEX || Cache.m_Mode == BLOCK_WORDS_MODE_BOTH)
@@ -334,13 +342,13 @@ static bool ReplaceRegexWords(std::string &Text, std::vector<Regex> &Regexes, ch
 	return AnyReplaced;
 }
 
-static bool ApplyBlockWords(std::string &Text, std::vector<std::string> *pMatched)
+static bool ApplyBlockWords(std::string &Text, std::vector<std::string> *pMatched, const QmWordFilterList::CFileList &File)
 {
-	if(!g_Config.m_QmBlockWordsEnabled || g_Config.m_QmBlockWordsList[0] == '\0')
+	if(!g_Config.m_QmBlockWordsEnabled || (g_Config.m_QmBlockWordsList[0] == '\0' && File.Words().empty()))
 		return false;
 
 	static CBlockWordsCache s_Cache;
-	UpdateBlockWordsCache(s_Cache);
+	UpdateBlockWordsCache(s_Cache, File);
 	if(s_Cache.m_Words.empty())
 		return false;
 
@@ -538,6 +546,22 @@ bool CChat::HandleCommandHudInput(const IInput::CEvent &Event)
 		m_CommandHud.Hide();
 		return false;
 	}
+	if(Event.m_Flags & IInput::FLAG_PRESS)
+	{
+		if(Event.m_Key == KEY_UP || Event.m_Key == KEY_DOWN)
+			return m_CommandHud.MoveSelection(Event.m_Key == KEY_UP ? -1 : 1, m_Input.GetString(), m_Input.GetCursorOffset());
+		if(Event.m_Key == KEY_RETURN || Event.m_Key == KEY_KP_ENTER)
+		{
+			std::string Completion;
+			size_t Cursor = 0;
+			if(m_CommandHud.CompleteSelected(m_Input.GetString(), m_Input.GetCursorOffset(), Completion, Cursor))
+			{
+				ApplyCommandHudCompletion(Completion, Cursor);
+				return true;
+			}
+			return false;
+		}
+	}
 	const vec2 MousePos = GetChatMousePos();
 	if((Event.m_Flags & IInput::FLAG_PRESS) && (Event.m_Key == KEY_MOUSE_WHEEL_UP || Event.m_Key == KEY_MOUSE_WHEEL_DOWN))
 		return m_CommandHud.Scroll(MousePos.x, MousePos.y, Event.m_Key == KEY_MOUSE_WHEEL_UP ? -1 : 1, m_Input.GetString(), m_Input.GetCursorOffset());
@@ -559,29 +583,44 @@ bool CChat::HandleCommandHudInput(const IInput::CEvent &Event)
 		std::string Completion;
 		size_t Cursor = 0;
 		if(m_CommandHud.Release(MousePos.x, MousePos.y, m_Input.GetString(), m_Input.GetCursorOffset(), Completion, Cursor))
-		{
-			m_Input.Set(Completion.c_str());
-			m_Input.SetCursorOffset(Cursor);
-			m_Input.SelectNothing();
-			m_CompletionChosen = -1;
-			m_CompletionUsed = false;
-			m_EmojiCompletionListLength = 0;
-			m_aEmojiCompletionColon[0] = '\0';
-		}
+			ApplyCommandHudCompletion(Completion, Cursor);
 		return WasPressed;
 	}
 	return false;
 }
 
-void CChat::RenderCommandHud(float X, float Bottom, float Width, float FontSize, const CUIRect &ChatRect, const CUIRect &TargetRect)
+void CChat::ApplyCommandHudCompletion(const std::string &Completion, size_t Cursor)
 {
-	if(m_CommandHud.BeginUpdate(m_Input.GetString(), m_Input.GetCursorOffset(), g_Config.m_QmChatCommandCompletion != 0, m_ServerCommandsRevision))
+	m_Input.Set(Completion.c_str());
+	m_Input.SetCursorOffset(Cursor);
+	m_Input.SelectNothing();
+	m_CompletionChosen = -1;
+	m_CompletionUsed = false;
+	m_EmojiCompletionListLength = 0;
+	m_aEmojiCompletionColon[0] = '\0';
+}
+
+void CChat::UpdateCommandHudCandidates()
+{
+	if(m_CommandHud.BeginUpdate(m_Input.GetString(), m_Input.GetCursorOffset(), g_Config.m_QmChatCommandCompletion != 0, m_ServerCommandsRevision, g_Config.m_QmChatEmojiCompletion != 0))
 	{
-		for(const auto &Command : m_vServerCommands)
-			m_CommandHud.AddServerCommand(Command.m_aName, Command.m_aParams, Localize(Command.m_aHelpText));
+		if(m_CommandHud.Source() == CQmChatCommandHud::ESource::SERVER)
+		{
+			for(const auto &Command : m_vServerCommands)
+				m_CommandHud.AddServerCommand(Command.m_aName, Command.m_aParams, Localize(Command.m_aHelpText));
+		}
+		else if(m_CommandHud.Source() == CQmChatCommandHud::ESource::EMOJI)
+		{
+			for(const auto &Emoji : QM_CHAT_EMOJI_DEFINITIONS)
+				m_CommandHud.AddEmoji(Emoji.m_pText);
+		}
 		m_CommandHud.EndUpdate();
 	}
+}
 
+void CChat::RenderCommandHud(float X, float Bottom, float Width, float FontSize, const CUIRect &ChatRect, const CUIRect &TargetRect)
+{
+	UpdateCommandHudCandidates();
 	const float Scale = ChatRect.w > 0.0f ? TargetRect.w / ChatRect.w : 1.0f;
 	const float OffsetX = TargetRect.x - ChatRect.x * Scale;
 	const float OffsetY = TargetRect.y - ChatRect.y * Scale;
@@ -591,7 +630,6 @@ void CChat::RenderCommandHud(float X, float Bottom, float Width, float FontSize,
 	const float ScreenMargin = 4.0f / maximum(Scale, 0.01f);
 	Bottom = minimum(Bottom, ScreenBottom - ScreenMargin);
 	m_CommandHud.SetLayout(X, Bottom, Width, maximum(0.0f, Bottom - ScreenTop - ScreenMargin), FontSize, ScreenLeft + ScreenMargin, ScreenRight - ScreenMargin);
-	QmRenderChatCommandHud(m_CommandHud, Ui(), TextRender(), GetChatMousePos());
 }
 
 void CChat::RebuildChat()
@@ -981,8 +1019,40 @@ void CChat::Echo(const char *pString, bool ForceVisible)
 	EchoLine(pString, ForceVisible);
 }
 
+void CChat::SaveBlockWords(IConfigManager *pConfig, void *)
+{
+	static_assert(sizeof(g_Config.m_QmBlockWordsList) == QmWordFilterList::INLINE_CAPACITY);
+	for(const std::string &Line : QmWordFilterList::SerializeInline(g_Config.m_QmBlockWordsList))
+		pConfig->WriteLine(Line.c_str());
+}
+
+void CChat::ConAppendBlockWords(IConsole::IResult *pResult, void *pUserData)
+{
+	if(!QmWordFilterList::AppendInlineHexChunk(g_Config.m_QmBlockWordsList, sizeof(g_Config.m_QmBlockWordsList), pResult->GetString(0)))
+		static_cast<CChat *>(pUserData)->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "blocklist", "Cannot append word list: invalid UTF-8 or capacity exceeded");
+}
+
+void CChat::ConReloadWordFiles(IConsole::IResult *, void *pUserData)
+{
+	auto *pThis = static_cast<CChat *>(pUserData);
+	pThis->ReloadWordFilterFile(false);
+	pThis->ReloadWordFilterFile(true);
+}
+
+void CChat::ReloadWordFilterFile(bool Streamer, bool Force)
+{
+	auto &File = Streamer ? m_StreamerWordsFile : m_BlockWordsFile;
+	const uint64_t PreviousRevision = File.Revision();
+	File.Refresh(Storage(), Streamer ? g_Config.m_QmStreamerWordsFile : g_Config.m_QmBlockWordsFile, Force);
+	if(Streamer && (Force || File.Revision() != PreviousRevision))
+		QmStreamerWordFilter::SetAdditionalWords(File.Words());
+}
+
 void CChat::OnConsoleInit()
 {
+	ConfigManager()->RegisterCallback(SaveBlockWords, this);
+	Console()->Register("qm_block_words_list_append", "s[hex]", CFGFLAG_CLIENT, ConAppendBlockWords, this, "Append saved word list chunk");
+	Console()->Register("qm_reload_word_files", "", CFGFLAG_CLIENT, ConReloadWordFiles, this, "Reload word list files");
 	Console()->Register("say", "r[message]", CFGFLAG_CLIENT, ConSay, this, "Say in chat");
 	Console()->Register("say_team", "r[message]", CFGFLAG_CLIENT, ConSayTeam, this, "Say in team chat");
 	Console()->Register("chat", "s['team'|'all'] ?r[message]", CFGFLAG_CLIENT, ConChat, this, "Enable chat with all/team mode");
@@ -994,6 +1064,8 @@ void CChat::OnConsoleInit()
 void CChat::OnInit()
 {
 	Reset();
+	ReloadWordFilterFile(false);
+	ReloadWordFilterFile(true);
 	Console()->Chain("cl_chat_old", ConchainChatOld, this);
 	Console()->Chain("cl_chat_size", ConchainChatFontSize, this);
 	Console()->Chain("cl_chat_width", ConchainChatWidth, this);
@@ -1022,11 +1094,16 @@ bool CChat::OnInput(const IInput::CEvent &Event)
 	const bool LanguageMenuOpen = m_LanguageMenuOpen || Ui()->IsPopupOpen(&m_LanguagePopupContext);
 	const bool ChatLineMenuOpen = Ui()->IsPopupOpen(&m_ChatLinePopupContext);
 	const bool AnyChatPopupOpen = LanguageMenuOpen || ChatLineMenuOpen;
-	const bool CommandHudEnabled = m_CommandHud.Source() == CQmChatCommandHud::ESource::SERVER && g_Config.m_QmChatCommandCompletion;
+	const bool CommandHudEnabled = g_Config.m_QmChatCommandCompletion || g_Config.m_QmChatEmojiCompletion;
 	if(AnyChatPopupOpen || Input()->HasComposition() || GameClient()->m_Menus.IsActive() || GameClient()->m_HudEditor.IsActive() || !CommandHudEnabled)
 		m_CommandHud.Hide();
-	else if(HandleCommandHudInput(Event))
-		return true;
+	else
+	{
+		// 同一批输入可能包含前缀和方向键，候选不能依赖上一帧渲染。
+		UpdateCommandHudCandidates();
+		if(HandleCommandHudInput(Event))
+			return true;
+	}
 	const bool IsWheelEvent = Event.m_Key == KEY_MOUSE_WHEEL_UP || Event.m_Key == KEY_MOUSE_WHEEL_DOWN;
 	if(!AnyChatPopupOpen && (Event.m_Flags & IInput::FLAG_PRESS) && IsWheelEvent)
 	{
@@ -1711,6 +1788,7 @@ void CChat::SaveChatLogLine(int ClientId, int Team, const char *pLine)
 
 	char aText[MAX_LINE_LENGTH];
 	str_copy(aText, pLine);
+	QmStreamerWordFilter::Filter(aText, g_Config.m_QmStreamerFilterWords != 0);
 	str_sanitize_cc(aText);
 
 	char aFilename[IO_MAX_PATH_LENGTH];
@@ -2025,12 +2103,14 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		IsLocalBlockWordsClient = ClientId == GameClient()->m_Snap.m_LocalClientId;
 	const bool CanHideBlockWordsMessage = ShouldHideBlockWordsMessage(BlockWordsAction, true, ClientId, IsLocalBlockWordsClient, Team);
-	if(g_Config.m_QmBlockWordsEnabled && g_Config.m_QmBlockWordsList[0] != '\0' &&
+	ReloadWordFilterFile(false, false);
+	ReloadWordFilterFile(true, false);
+	if(g_Config.m_QmBlockWordsEnabled && (g_Config.m_QmBlockWordsList[0] != '\0' || !m_BlockWordsFile.Words().empty()) &&
 		(BlockWordsAction == EBlockWordsAction::REPLACE || CanHideBlockWordsMessage))
 	{
 		std::string Text = pLine;
 		std::vector<std::string> *pMatched = g_Config.m_QmBlockWordsShowConsole ? &BlockedWords : nullptr;
-		if(ApplyBlockWords(Text, pMatched))
+		if(ApplyBlockWords(Text, pMatched, m_BlockWordsFile))
 		{
 			FlushPendingConsoleLine(true);
 			if(g_Config.m_QmBlockWordsShowConsole && !BlockedWords.empty())
@@ -2058,6 +2138,18 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 		}
 	}
 	pLine = pFilteredLine;
+	// 自定义规则先处理原文；提及与重复合并不受新增的显示遮蔽影响。
+	char aMergeText[MAX_LINE_LENGTH];
+	str_copy(aMergeText, pLine);
+	str_utf8_trim_right(aMergeText);
+	const char *pHighlightLine = pLine;
+	char aStreamerLine[MAX_LINE_LENGTH];
+	if(g_Config.m_QmStreamerFilterWords)
+	{
+		str_copy(aStreamerLine, pLine);
+		QmStreamerWordFilter::Filter(aStreamerLine, true);
+		pLine = aStreamerLine;
+	}
 	const EQmChatEmoji ChatEmoji = QmChatEmojiFromText(pLine);
 	char aChatBubbleText[256];
 	str_copy(aChatBubbleText, pLine);
@@ -2112,7 +2204,7 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 		{
 			for(int LocalId : GameClient()->m_aLocalIds)
 			{
-				Highlighted |= LocalId >= 0 && LineShouldHighlight(pLine, GameClient()->m_aClients[LocalId].m_aName);
+				Highlighted |= LocalId >= 0 && LineShouldHighlight(pHighlightLine, GameClient()->m_aClients[LocalId].m_aName);
 			}
 		}
 	}
@@ -2120,7 +2212,7 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 	{
 		// on demo playback use local id from snap directly,
 		// since m_aLocalIds isn't valid there
-		Highlighted |= GameClient()->m_Snap.m_LocalClientId >= 0 && LineShouldHighlight(pLine, GameClient()->m_aClients[GameClient()->m_Snap.m_LocalClientId].m_aName);
+		Highlighted |= GameClient()->m_Snap.m_LocalClientId >= 0 && LineShouldHighlight(pHighlightLine, GameClient()->m_aClients[GameClient()->m_Snap.m_LocalClientId].m_aName);
 	}
 
 	// 以收到消息时的认证身份为准，之后不按可能复用的玩家编号改变历史消息。
@@ -2136,7 +2228,7 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 		PreviousLine.m_ForceVisible == ForceVisible &&
 		PreviousLine.m_ConsoleSuppressed == BlockWordsConsolePrinted &&
 		PreviousLine.m_ChatEmoji == ChatEmoji &&
-		CanMergePlayerMessages(PreviousLine.m_ClientId, PreviousLine.m_TeamNumber, PreviousLine.m_aText, PreviousLine.m_Time, ClientId, Team, pLine, Now))
+		CanMergePlayerMessages(PreviousLine.m_ClientId, PreviousLine.m_TeamNumber, PreviousLine.m_aMergeText, PreviousLine.m_Time, ClientId, Team, aMergeText, Now, Highlighted))
 	{
 		PreviousLine.m_TimesRepeated++;
 		PreviousLine.m_SponsorChatStyle = QmSponsorChatMergedStyle(PreviousLine.m_SponsorChatStyle, SponsorChatStyle);
@@ -2202,6 +2294,7 @@ void CChat::AddLine(int ClientId, int Team, const char *pLine, bool ForceVisible
 	CurrentLine.m_Highlighted = Highlighted;
 
 	str_copy(CurrentLine.m_aText, pLine);
+	str_copy(CurrentLine.m_aMergeText, aMergeText);
 	CurrentLine.m_ChatEmoji = ChatEmoji;
 	CurrentLine.m_ServerMessageClass = ResolveLineServerMessageClass(ClientId, CurrentLine.m_aText, KnownServerMessageClass);
 
@@ -2565,6 +2658,15 @@ bool CChat::OnPrepareLines(float y)
 		if(!ColoredParts.Colors().empty() && ColoredParts.Colors()[0].m_Index == 0)
 			Line.m_CustomColor = ColoredParts.Colors()[0].m_Color;
 		pText = ColoredParts.Text();
+		const bool HideTranslatedText = pText != Line.m_aText;
+		char aStreamerText[MAX_LINE_LENGTH];
+		bool FilteredAfterColors = false;
+		if(g_Config.m_QmStreamerFilterWords)
+		{
+			str_copy(aStreamerText, pText);
+			FilteredAfterColors = QmStreamerWordFilter::Filter(aStreamerText, true);
+			pText = aStreamerText;
+		}
 		Line.m_RenderSponsorChatStyle = QmSponsorChatMessageStyle(
 			g_Config.m_QmSponsorChatEffects ? Line.m_SponsorChatStyle : EQmSponsorChatStyle::NONE,
 			Line.m_Highlighted, Line.m_Team, Line.m_Whisper,
@@ -2572,6 +2674,7 @@ bool CChat::OnPrepareLines(float y)
 
 		const char *pTranslatedError = nullptr;
 		const char *pTranslatedText = nullptr;
+		std::string StreamerTranslatedText;
 		const char *pTranslatedLanguage = nullptr;
 		if(!Line.m_LocalOriginal.empty() && pText == Line.m_aText)
 		{
@@ -2581,7 +2684,7 @@ bool CChat::OnPrepareLines(float y)
 		else if(Line.m_pTranslateResponse != nullptr && Line.m_pTranslateResponse->m_Text[0])
 		{
 			// If hidden and there is translated text
-			if(pText != Line.m_aText)
+			if(HideTranslatedText)
 			{
 				pTranslatedError = Localize("Translated text hidden due to streamer mode");
 			}
@@ -2592,6 +2695,12 @@ bool CChat::OnPrepareLines(float y)
 			else
 			{
 				pTranslatedText = Line.m_pTranslateResponse->m_Text;
+				if(g_Config.m_QmStreamerFilterWords)
+				{
+					StreamerTranslatedText = pTranslatedText;
+					QmStreamerWordFilter::Filter(StreamerTranslatedText, true);
+					pTranslatedText = StreamerTranslatedText.c_str();
+				}
 				if(Line.m_pTranslateResponse->m_Language[0] != '\0')
 					pTranslatedLanguage = Line.m_pTranslateResponse->m_Language;
 			}
@@ -2888,7 +2997,7 @@ bool CChat::OnPrepareLines(float y)
 			const bool Platinum = Line.m_RenderSponsorChatStyle == EQmSponsorChatStyle::PLATINUM;
 			if(UseGradient && Platinum)
 				QmSponsorChatAddPlatinumSplits(Cursor, pMessage, Color.a);
-			if(UseColoredParts)
+			if(UseColoredParts && !FilteredAfterColors)
 				ColoredParts.AddSplitsToCursor(Cursor);
 			const bool SpatialGradient = UseGradient && !Platinum && Line.m_CustomColor == std::nullopt && ColoredParts.Colors().empty();
 			const auto Gradient = QmChatGradientStyle(g_Config, GradientRole, Color);
@@ -2994,6 +3103,29 @@ bool CChat::OnPrepareLines(float y)
 void CChat::OnRender()
 {
 	m_TranslateButton.m_RectValid = false;
+	ReloadWordFilterFile(false, false);
+	ReloadWordFilterFile(true, false);
+	if(m_LastStreamerFilterWords != g_Config.m_QmStreamerFilterWords || m_LastStreamerFilterRevision != QmStreamerWordFilter::Revision())
+	{
+		m_LastStreamerFilterWords = g_Config.m_QmStreamerFilterWords;
+		m_LastStreamerFilterRevision = QmStreamerWordFilter::Revision();
+		if(g_Config.m_QmStreamerFilterWords)
+		{
+			for(auto &Line : m_aLines)
+			{
+				if(!Line.m_Initialized)
+					continue;
+				QmStreamerWordFilter::Filter(Line.m_aText, true);
+				QmStreamerWordFilter::Filter(Line.m_aName, true);
+				for(auto &Author : Line.m_vMergedAuthors)
+				{
+					QmStreamerWordFilter::Filter(Author.m_aName, true);
+					QmStreamerWordFilter::Filter(Author.m_aPlayerName, true);
+				}
+			}
+		}
+		RebuildChat();
+	}
 	FlushPendingConsoleLine(false);
 	if(Client()->State() != IClient::STATE_ONLINE && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 	{
@@ -3152,7 +3284,7 @@ void CChat::OnRender()
 				}
 			}
 		}
-		else
+		else if(!g_Config.m_QmChatEmojiCompletion)
 		{
 			// 表情补全提示：唯一匹配时显示剩余字符；多候选时以逗号分隔展示所有可能码
 			const int HintColonLength = QmChatEmojiColonUtf8Length(m_Input.GetString());
@@ -3210,12 +3342,6 @@ void CChat::OnRender()
 		{
 			const vec2 CaretPosition = m_Input.GetCaretPosition();
 			RenderCommandHud(CaretPosition.x, CaretPosition.y - 4.0f * CQmChatCommandHud::UI_SCALE, minimum(InputLineWidth, ChatRect.w - x), ScaledFontSize, ChatRect, HudEditorScope.m_Applied ? HudEditorScope.m_TargetRect : ChatRect);
-			const auto &CommandLayout = m_CommandHud.Layout();
-			if(CommandLayout.m_VisibleRows > 0)
-			{
-				ExtendBounds(CommandLayout.m_X, CommandLayout.m_Y, CommandLayout.m_W, CommandLayout.m_H);
-				y = minimum(y, CommandLayout.m_Y - 2.0f);
-			}
 		}
 		else
 			m_CommandHud.Hide();
@@ -3234,6 +3360,7 @@ void CChat::OnRender()
 	// 回放/导出走独立显示选项；其余情况沿用 cl_showchat / cl_video_showchat。
 	if(!qm_demo_display::Resolve(g_Config, Client()->State() == IClient::STATE_DEMOPLAYBACK, VideoRendering).m_Chat)
 	{
+		QmRenderChatCommandHud(m_CommandHud, Ui(), TextRender(), GetChatMousePos(), &GameClient()->m_QmChatEmoji);
 		GameClient()->m_HudEditor.EndTransform(HudEditorScope);
 		return;
 	}
@@ -3261,6 +3388,8 @@ void CChat::OnRender()
 	}
 
 	const float HistoryBottom = y;
+	const vec2 CommandHudMousePos = GetChatMousePos();
+	const bool InsideCommandHud = m_CommandHud.Contains(CommandHudMousePos.x, CommandHudMousePos.y);
 	const float HistoryHeight = maximum(0.0f, HistoryBottom - HeightLimit);
 	const int TotalVisibleLines = CountVisibleLinesFrom(0);
 	const int VisibleLineCapacity = maximum(1, (int)std::floor(HistoryHeight / maximum(RowHeight, 1.0f)));
@@ -3290,7 +3419,7 @@ void CChat::OnRender()
 			MousePos.y >= ScrollbarHandleY &&
 			MousePos.y <= ScrollbarHandleY + ScrollbarHandleH;
 
-		if(Input()->KeyPress(KEY_MOUSE_1) && InsideRail)
+		if(Input()->KeyPress(KEY_MOUSE_1) && InsideRail && !InsideCommandHud && !m_CommandHud.IsPressed())
 		{
 			m_ScrollbarDragging = true;
 			m_ScrollbarDragOffset = InsideHandle ? std::clamp(MousePos.y - ScrollbarHandleY, 0.0f, ScrollbarHandleH) : ScrollbarHandleH * 0.5f;
@@ -3337,8 +3466,6 @@ void CChat::OnRender()
 		MousePos.x <= ScrollbarRect.x + ScrollbarRect.w &&
 		MousePos.y >= ScrollbarRect.y &&
 		MousePos.y <= ScrollbarRect.y + ScrollbarRect.h;
-	const vec2 CommandHudMousePos = GetChatMousePos();
-	const bool InsideCommandHud = m_CommandHud.Contains(CommandHudMousePos.x, CommandHudMousePos.y);
 	const bool ChatCopyActive = m_Mode != MODE_NONE && !LanguageMenuOpen && !ChatLineMenuOpen && !InsideInputBlock && !InsideTranslateButton && !InsideScrollbar && !InsideCommandHud && !m_CommandHud.IsPressed() && !m_ScrollbarDragging;
 	const bool CopyClickReleased = m_MouseIsPress && !MouseDown && IsCopyClickDrag(m_MousePress, MousePos);
 	// 菜单打开时也允许右键：在其它消息行重新定位菜单，在空白处关闭菜单；
@@ -3592,6 +3719,8 @@ void CChat::OnRender()
 	if(VisibleBounds.Valid())
 		GameClient()->m_HudEditor.UpdateVisibleRect(EHudEditorElement::Chat, VisibleBounds.Rect());
 
+	// 与输入法候选栏相同，浮层覆盖聊天记录，不参与记录布局。
+	QmRenderChatCommandHud(m_CommandHud, Ui(), TextRender(), GetChatMousePos(), &GameClient()->m_QmChatEmoji);
 	GameClient()->m_HudEditor.EndTransform(HudEditorScope);
 
 	// 渲染聊天相关弹窗。

@@ -9,6 +9,8 @@
 #include <cmath>
 #include <cstddef>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace qm_pie_menu
 {
@@ -73,6 +75,59 @@ namespace qm_pie_menu
 	};
 
 	constexpr size_t OPTION_COUNT = static_cast<size_t>(EOption::NUM_OPTIONS);
+
+	struct SRenameOption
+	{
+		std::string m_Label;
+		std::string m_Name;
+		std::string m_DummyName;
+
+		std::array<const char *, 2> Names(bool UseDummy) const
+		{
+			// 双名项固定对应连接身份，单名项继续跟随当前控制的角色。
+			if(!m_DummyName.empty())
+				return {m_Name.c_str(), m_DummyName.c_str()};
+			if(UseDummy)
+				return {nullptr, m_Name.c_str()};
+			return {m_Name.c_str(), nullptr};
+		}
+	};
+
+	inline std::vector<SRenameOption> ParseRenameQueue(const char *pQueue)
+	{
+		std::vector<SRenameOption> vOptions;
+		if(pQueue == nullptr)
+			return vOptions;
+
+		const auto TrimName = [](std::string Name) {
+			str_utf8_trim_right(Name.data());
+			Name.resize(str_length(Name.c_str()));
+			Name.erase(0, str_utf8_skip_whitespaces(Name.c_str()) - Name.c_str());
+			return Name;
+		};
+		const std::string Queue(pQueue);
+		for(size_t Start = 0; Start < Queue.size();)
+		{
+			const size_t End = Queue.find('|', Start);
+			SRenameOption Option;
+			Option.m_Label = TrimName(Queue.substr(Start, End == std::string::npos ? End : End - Start));
+			Start = End == std::string::npos ? Queue.size() : End + 1;
+			if(Option.m_Label.empty())
+				continue;
+
+			const size_t Comma = Option.m_Label.find(',');
+			Option.m_Name = TrimName(Option.m_Label.substr(0, Comma));
+			if(Comma != std::string::npos)
+			{
+				Option.m_DummyName = TrimName(Option.m_Label.substr(Comma + 1));
+				// 不完整的双名项不执行，避免把任一角色的名字清空。
+				if(Option.m_Name.empty() || Option.m_DummyName.empty())
+					continue;
+			}
+			vOptions.push_back(std::move(Option));
+		}
+		return vOptions;
+	}
 
 	inline int BuildVisibleOptions(const std::array<bool, OPTION_COUNT> &Enabled, std::array<EOption, OPTION_COUNT> &Out)
 	{

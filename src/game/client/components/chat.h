@@ -25,6 +25,7 @@
 #include <game/client/components/qmclient/sponsor_chat_render.h>
 #include <game/client/components/qmclient/translate/translate_jobs.h>
 #include <game/client/components/qmclient/translate/translate_ui_popup.h>
+#include <game/client/components/qmclient/word_filter_list.h>
 #include <game/client/lineinput.h>
 #include <game/client/render.h>
 #include <game/client/ui.h>
@@ -112,7 +113,7 @@ public:
 	static void BeginLinePresentation(SPresentationState &Presentation, int64_t Now, bool GentleRefresh);
 	static void UpdateLinePresentation(SPresentationState &Presentation, int64_t LineTime, int64_t Now, float DeltaSeconds, bool ShowLargeArea, bool ForceVisible, int64_t LargeAreaOpenTick, float RecallDelaySeconds, bool ExtraAnimations = true);
 	static float SmoothPresentationY(float CurrentY, float TargetY, float DeltaSeconds);
-	static bool CanMergePlayerMessages(int PreviousClientId, int PreviousTeam, const char *pPreviousText, int64_t PreviousTime, int ClientId, int Team, const char *pText, int64_t Now);
+	static bool CanMergePlayerMessages(int PreviousClientId, int PreviousTeam, const char *pPreviousText, int64_t PreviousTime, int ClientId, int Team, const char *pText, int64_t Now, bool Highlighted = false);
 	// echo 合并的窗口判定：上一次同文本 echo 发生在 LastTime，当前时间为 Now，
 	// 窗口为 WindowMs 毫秒（0 表示关闭合并）。时间倒流或超出窗口都返回 false。
 	static bool EchoRepeatWithinWindow(int64_t Now, int64_t LastTime, int WindowMs);
@@ -178,6 +179,8 @@ private:
 		char m_aName[MAX_CLIENTS * (MAX_NAME_LENGTH + 1)];
 		char m_aQmTitle[64] = "";
 		char m_aText[MAX_LINE_LENGTH];
+		// 合并比较保留内置显示过滤前的文本，避免不同原文都变成星号后合并。
+		char m_aMergeText[MAX_LINE_LENGTH] = "";
 		EQmChatEmoji m_ChatEmoji = EQmChatEmoji::NONE;
 		bool m_ChatEmojiImageLayout = false;
 		CUIRect m_ChatEmojiRect = {};
@@ -228,6 +231,10 @@ private:
 	bool m_PrevShowChat;
 	std::array<int, 4> m_aPrevTitleVisibility = {};
 	bool m_PrevSponsorChatEffects = true;
+	int m_LastStreamerFilterWords = -1;
+	uint64_t m_LastStreamerFilterRevision = 0;
+	QmWordFilterList::CFileList m_BlockWordsFile;
+	QmWordFilterList::CFileList m_StreamerWordsFile;
 	uint64_t m_PreparedGlyphAtlasRevision = 0;
 	std::array<int, 5> m_aPreparedChatTextSettings = {-1, -1, -1, -1, -1};
 	CQmSponsorChatRenderer m_SponsorChatRenderer;
@@ -343,6 +350,9 @@ private:
 	static void ConShowChat(IConsole::IResult *pResult, void *pUserData);
 	static void ConEcho(IConsole::IResult *pResult, void *pUserData);
 	static void ConClearChat(IConsole::IResult *pResult, void *pUserData);
+	static void ConAppendBlockWords(IConsole::IResult *pResult, void *pUserData);
+	static void ConReloadWordFiles(IConsole::IResult *pResult, void *pUserData);
+	static void SaveBlockWords(class IConfigManager *pConfig, void *pUserData);
 
 	static void ConchainChatOld(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainChatFontSize(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
@@ -356,6 +366,8 @@ private:
 	// 斜杠指令用法提示：/xxx 下方显示的一行小字说明
 	bool BuildCommandUsagePreview(const char *pInput, char *pBuf, size_t BufSize) const;
 	bool HandleCommandHudInput(const IInput::CEvent &Event);
+	void UpdateCommandHudCandidates();
+	void ApplyCommandHudCompletion(const std::string &Completion, size_t Cursor);
 	void RenderCommandHud(float X, float Bottom, float Width, float FontSize, const CUIRect &ChatRect, const CUIRect &TargetRect);
 
 	int CountInitializedLines() const;
@@ -565,6 +577,8 @@ public:
 	void OnInit() override;
 	void OnShutdown() override;
 
+	void ReloadWordFilterFile(bool Streamer, bool Force = true);
+	const QmWordFilterList::CFileList &WordFilterFile(bool Streamer) const { return Streamer ? m_StreamerWordsFile : m_BlockWordsFile; }
 	void RebuildChat();
 	void ClearLines();
 
@@ -679,9 +693,9 @@ static inline float ChatPresentationTicksToSeconds(int64_t Ticks)
 	return Ticks <= 0 ? 0.0f : Ticks / (float)time_freq();
 }
 
-inline bool CChat::CanMergePlayerMessages(int PreviousClientId, int PreviousTeam, const char *pPreviousText, int64_t PreviousTime, int ClientId, int Team, const char *pText, int64_t Now)
+inline bool CChat::CanMergePlayerMessages(int PreviousClientId, int PreviousTeam, const char *pPreviousText, int64_t PreviousTime, int ClientId, int Team, const char *pText, int64_t Now, bool Highlighted)
 {
-	if(PreviousClientId < 0 || ClientId < 0 || PreviousTeam >= TEAM_WHISPER_SEND || Team >= TEAM_WHISPER_SEND)
+	if(Highlighted || PreviousClientId < 0 || ClientId < 0 || PreviousTeam >= TEAM_WHISPER_SEND || Team >= TEAM_WHISPER_SEND)
 		return false;
 	if(PreviousTeam != Team)
 		return false;

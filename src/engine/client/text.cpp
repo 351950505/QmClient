@@ -1479,14 +1479,14 @@ public:
 		return m_aTextures[TextureIndex];
 	}
 
-	// 仅诊断开启且确有文本工作时记录；字号库存由冷路径维护，不遍历整个字形表。
+	// 仅诊断开启且新增名字字形时记录；其他模块的容器创建由文本统计统一汇总。
 	void QmLogNameplateGlyphCacheFrame(int ContainerCreates, const IClient *pClient)
 	{
 		const int NewGlyphs = m_QmNameplateFrameGlyphNew;
 		const double NameplateRasterizeMs = m_QmNameplateFrameRasterizeMs;
 		m_QmNameplateFrameGlyphNew = 0;
 		m_QmNameplateFrameRasterizeMs = 0.0;
-		if(!QmPerfEnabled() || (NewGlyphs == 0 && ContainerCreates == 0) || m_QmNameplateGlyphCount == 0)
+		if(!QmPerfEnabled() || NewGlyphs == 0 || m_QmNameplateGlyphCount == 0)
 			return;
 		char aSizes[512] = "";
 		for(int Size = MIN_FONT_SIZE; Size <= MAX_FONT_SIZE; ++Size)

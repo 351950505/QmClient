@@ -196,22 +196,6 @@ void CMenus::RenderQmHudDynamicIslandContent(CUIRect &Content, float LineHeight,
 	// 钩子倒计时是独立开关：钩住玩家时在钩链中点显示倒计时环。
 	DeclaredCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmHookCountdown, "Enable hook countdown", Localize("Enable hook countdown"), &g_Config.m_QmHookCountdown);
 
-	// 无限钩流动光圈配色：单色流动 / 彩虹渐变 / 静止满环，点击循环切换。
-	static CButtonContainer s_HookCountdownFlowStyleButton;
-	{
-		CUIRect FlowRow, FlowLabel, FlowButton;
-		if(Flow.Control("qmclient-hook-countdown-flow-style", LineHeight, FlowRow))
-		{
-			SplitSettingsControlRow(FlowRow, CurrentSettingsContentMetrics(), &FlowLabel, &FlowButton, ESettingsControlWidth::SHORT_CHOICE);
-			RenderQmHudLabel("qmclient-hook-countdown-flow-style", &FlowLabel, Localize("Flow style"), CurrentSettingsContentMetrics().m_BodySize);
-			const char *const apFlowStyles[] = {Localize("Single color"), Localize("Rainbow"), Localize("Static")};
-			const int Style = std::clamp(g_Config.m_QmHookCountdownFlowStyle, static_cast<int>(EQmHookCountdownFlowStyle::SINGLE_COLOR), static_cast<int>(EQmHookCountdownFlowStyle::STATIC));
-			if(DoSettingsButton_Menu(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_HUD, QMCLIENT_SETTINGS_TAB_HUD, &s_HookCountdownFlowStyleButton, "qmclient-hook-countdown-flow-style-button", apFlowStyles[Style], 0, &FlowButton))
-				g_Config.m_QmHookCountdownFlowStyle = (Style + 1) % 3;
-		}
-		Flow.Space(LineSpacing);
-	}
-
 	// 开关倒计时：总开关决定是否显示，两个位置开关决定显示在跟随 Tee 的圆环上还是灵动岛里，可同时勾选。
 	const bool CountdownChanged = DeclaredCheckbox(Content, LineHeight, LineSpacing, &g_Config.m_QmSwitchCountdown, "Enable switch countdown", Localize("Enable switch countdown"), &g_Config.m_QmSwitchCountdown);
 	if(g_Config.m_QmSwitchCountdown)

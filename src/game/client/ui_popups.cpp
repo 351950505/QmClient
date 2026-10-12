@@ -718,7 +718,7 @@ void CUi::SConfirmPopupContext::YesNoButtons()
 	str_copy(m_aNegativeButtonLabel, Localize("No"));
 }
 
-void CUi::ShowPopupConfirm(float X, float Y, SConfirmPopupContext *pContext)
+void CUi::ShowPopupConfirm(float X, float Y, SConfirmPopupContext *pContext, bool CenterInViewport)
 {
 	const float TextWidth = minimum(std::ceil(TextRender()->TextWidth(SConfirmPopupContext::POPUP_FONT_SIZE, pContext->m_aMessage, -1, -1.0f) + 0.5f), SConfirmPopupContext::POPUP_MAX_WIDTH);
 	float TextHeight = 0.0f;
@@ -729,7 +729,8 @@ void CUi::ShowPopupConfirm(float X, float Y, SConfirmPopupContext *pContext)
 	pContext->m_pUI = this;
 	pContext->m_Result = SConfirmPopupContext::UNSET;
 	SPopupMenuProperties Props;
-	Props.m_CenterInViewport = true;
+	// 资源下载确认可锚定点击位置，居中确认仍沿用原有遮罩。
+	Props.m_CenterInViewport = CenterInViewport;
 	Props.m_BlockUnderlyingPointerInput = true;
 	Props.m_BlockUnderlyingScroll = true;
 	Props.m_Animate = true;

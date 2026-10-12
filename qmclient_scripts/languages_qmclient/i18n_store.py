@@ -86,7 +86,7 @@ def module_name_for_source(source: Path | None) -> str:
         return "tclient"
     if "/menus_browser." in normalized:
         return "server_browser"
-    if "/menus_demo." in normalized:
+    if "/menus_demo." in normalized or "/QmDemoCameraPanel." in normalized:
         return "demo"
     if (
         "/menus_ingame_touch_controls." in normalized

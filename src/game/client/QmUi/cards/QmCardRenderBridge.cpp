@@ -305,3 +305,8 @@ void qm_card_catalog::QmCardRenderHook::RenderQmTooltipContent(CMenus *pMenus, C
 {
 	pMenus->RenderQmTooltipContent(Content, Metrics, ResolvePrewarmOnly(pMenus->Ui(), PrewarmOnly));
 }
+
+void qm_card_catalog::QmCardRenderHook::RenderQmChatCompletionContent(CMenus *pMenus, CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly)
+{
+	pMenus->RenderQmChatCompletionContent(Content, Metrics, PrewarmOnly);
+}

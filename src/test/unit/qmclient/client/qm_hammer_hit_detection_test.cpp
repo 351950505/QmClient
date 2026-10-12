@@ -332,14 +332,15 @@ TEST(QmHammerWakeupDecision, ActiveExternalWakeupTriggersOnlyActiveUiActions)
 	Input.m_aInFreeze[0] = false;
 	Input.m_aExternalHammerWakeup[0] = true;
 	Input.m_ActiveConnection = 0;
-	Input.m_ActiveSpectating = true;
+	Input.m_aSpectating[0] = true;
 	Input.m_ChatActive = true;
 	Input.m_ShowPopup = true;
 	Input.m_AutoUnspec = true;
 	Input.m_AutoCloseChat = true;
 	const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
 	EXPECT_TRUE(Decision.m_aShowPopup[0]);
-	EXPECT_TRUE(Decision.m_UnspecActiveConnection);
+	EXPECT_TRUE(Decision.m_aUnspec[0]);
+	EXPECT_FALSE(Decision.m_aUnspec[1]);
 	EXPECT_TRUE(Decision.m_CloseChat);
 	EXPECT_EQ(Decision.m_SwitchToConnection, -1);
 }
@@ -374,7 +375,7 @@ TEST(QmHammerWakeupDecision, NaturalCounterpartAndSimultaneousUnfreezeDoNotTrigg
 	Input.m_aInFreeze[0] = false;
 	Input.m_aInFreeze[1] = false;
 	Input.m_ActiveConnection = 0;
-	Input.m_ActiveSpectating = true;
+	Input.m_aSpectating[0] = true;
 	Input.m_ChatActive = true;
 	Input.m_ShowPopup = true;
 	Input.m_AutoUnspec = true;
@@ -382,7 +383,7 @@ TEST(QmHammerWakeupDecision, NaturalCounterpartAndSimultaneousUnfreezeDoNotTrigg
 	Input.m_AutoCloseChat = true;
 	const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
 	EXPECT_FALSE(Decision.m_aShowPopup[0]);
-	EXPECT_FALSE(Decision.m_UnspecActiveConnection);
+	EXPECT_FALSE(Decision.m_aUnspec[0]);
 	EXPECT_FALSE(Decision.m_CloseChat);
 	EXPECT_EQ(Decision.m_SwitchToConnection, -1);
 }
@@ -392,15 +393,227 @@ TEST(QmHammerWakeupDecision, ExternalFlagWithoutFreezeTransitionDoesNotTrigger)
 	SQmHammerWakeupDecisionInput Input;
 	Input.m_aExternalHammerWakeup[0] = true;
 	Input.m_ActiveConnection = 0;
-	Input.m_ActiveSpectating = true;
+	Input.m_aSpectating[0] = true;
 	Input.m_ChatActive = true;
 	Input.m_ShowPopup = true;
 	Input.m_AutoUnspec = true;
 	Input.m_AutoCloseChat = true;
 	const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
 	EXPECT_FALSE(Decision.m_aShowPopup[0]);
-	EXPECT_FALSE(Decision.m_UnspecActiveConnection);
+	EXPECT_FALSE(Decision.m_aUnspec[0]);
 	EXPECT_FALSE(Decision.m_CloseChat);
+}
+
+TEST(QmHammerWakeupDecision, EitherExternalWakeupUnspecsBothRegardlessOfActiveConnection)
+{
+	for(int Active = 0; Active < 2; ++Active)
+	{
+		for(int Woken = 0; Woken < 2; ++Woken)
+		{
+			SCOPED_TRACE(::testing::Message() << "active=" << Active << " woken=" << Woken);
+			SQmHammerWakeupDecisionInput Input;
+			Input.m_ActiveConnection = Active;
+			Input.m_aWasInFreeze[Woken] = true;
+			Input.m_aExternalHammerWakeup[Woken] = true;
+			Input.m_aSpectating[0] = true;
+			Input.m_aSpectating[1] = true;
+			Input.m_AutoUnspecBoth = true;
+			Input.m_ChatActive = true;
+			Input.m_AutoCloseChat = true;
+			const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
+			EXPECT_TRUE(Decision.m_aUnspec[0]);
+			EXPECT_TRUE(Decision.m_aUnspec[1]);
+			EXPECT_EQ(Decision.m_CloseChat, Active == Woken);
+			EXPECT_EQ(Decision.m_SwitchToConnection, -1);
+		}
+	}
+}
+
+TEST(QmHammerWakeupDecision, BothUnspecLeavesPlayingConnectionsUntouched)
+{
+	for(int Spectating = 0; Spectating < 2; ++Spectating)
+	{
+		SCOPED_TRACE(Spectating);
+		SQmHammerWakeupDecisionInput Input;
+		Input.m_aWasInFreeze[0] = true;
+		Input.m_aExternalHammerWakeup[0] = true;
+		Input.m_aSpectating[Spectating] = true;
+		Input.m_AutoUnspecBoth = true;
+		const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
+		EXPECT_TRUE(Decision.m_aUnspec[Spectating]);
+		EXPECT_FALSE(Decision.m_aUnspec[Spectating ^ 1]);
+	}
+}
+
+TEST(QmHammerWakeupDecision, BothUnspecIsDisabledByDefault)
+{
+	SQmHammerWakeupDecisionInput Input;
+	Input.m_aWasInFreeze[0] = true;
+	Input.m_aExternalHammerWakeup[0] = true;
+	Input.m_aSpectating[0] = true;
+	Input.m_aSpectating[1] = true;
+	const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
+	EXPECT_FALSE(Decision.m_aUnspec[0]);
+	EXPECT_FALSE(Decision.m_aUnspec[1]);
+}
+
+TEST(QmHammerWakeupDecision, OriginalUnspecStillOnlyHandlesActiveExternalWakeup)
+{
+	for(int Active = 0; Active < 2; ++Active)
+	{
+		for(int Woken = 0; Woken < 2; ++Woken)
+		{
+			SCOPED_TRACE(::testing::Message() << "active=" << Active << " woken=" << Woken);
+			SQmHammerWakeupDecisionInput Input;
+			Input.m_ActiveConnection = Active;
+			Input.m_aWasInFreeze[Woken] = true;
+			Input.m_aExternalHammerWakeup[Woken] = true;
+			Input.m_aSpectating[0] = true;
+			Input.m_aSpectating[1] = true;
+			Input.m_AutoUnspec = true;
+			const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
+			EXPECT_EQ(Decision.m_aUnspec[Active], Active == Woken);
+			EXPECT_FALSE(Decision.m_aUnspec[Active ^ 1]);
+		}
+	}
+}
+
+TEST(QmHammerWakeupDecision, SimultaneousExternalWakeupsMergeBothUnspecOptions)
+{
+	SQmHammerWakeupDecisionInput Input;
+	Input.m_aWasInFreeze[0] = true;
+	Input.m_aWasInFreeze[1] = true;
+	Input.m_aExternalHammerWakeup[0] = true;
+	Input.m_aExternalHammerWakeup[1] = true;
+	Input.m_aSpectating[0] = true;
+	Input.m_aSpectating[1] = true;
+	Input.m_AutoUnspec = true;
+	Input.m_AutoUnspecBoth = true;
+	const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
+	EXPECT_TRUE(Decision.m_aUnspec[0]);
+	EXPECT_TRUE(Decision.m_aUnspec[1]);
+}
+
+TEST(QmHammerWakeupDecision, BothUnspecIgnoresUnfreezeWithoutExternalHammer)
+{
+	SQmHammerWakeupDecisionInput Input;
+	Input.m_aWasInFreeze[0] = true;
+	Input.m_aWasInFreeze[1] = true;
+	Input.m_aSpectating[0] = true;
+	Input.m_aSpectating[1] = true;
+	Input.m_AutoUnspecBoth = true;
+	const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
+	EXPECT_FALSE(Decision.m_aUnspec[0]);
+	EXPECT_FALSE(Decision.m_aUnspec[1]);
+}
+
+TEST(QmHammerWakeupDecision, BothUnspecRequiresActualFreezeTransition)
+{
+	for(int Woken = 0; Woken < 2; ++Woken)
+	{
+		for(int WasFrozen = 0; WasFrozen < 2; ++WasFrozen)
+		{
+			SCOPED_TRACE(::testing::Message() << "woken=" << Woken << " wasFrozen=" << WasFrozen);
+			SQmHammerWakeupDecisionInput Input;
+			Input.m_aWasInFreeze[Woken] = WasFrozen != 0;
+			Input.m_aInFreeze[Woken] = WasFrozen != 0;
+			Input.m_aExternalHammerWakeup[Woken] = true;
+			Input.m_aSpectating[0] = true;
+			Input.m_aSpectating[1] = true;
+			Input.m_AutoUnspecBoth = true;
+			const SQmHammerWakeupDecision Decision = QmDecideHammerWakeupActions(Input);
+			EXPECT_FALSE(Decision.m_aUnspec[0]);
+			EXPECT_FALSE(Decision.m_aUnspec[1]);
+		}
+	}
+}
+
+TEST(QmHammerWakeupActionTracker, SwappingControlDoesNotRepeatUnspecForSameSnapshot)
+{
+	CQmHammerWakeupActionTracker Tracker;
+	SQmHammerWakeupDecisionInput Input;
+	Input.m_aWasInFreeze[0] = true;
+	Input.m_aWasInFreeze[1] = true;
+	Input.m_aInFreeze[0] = true;
+	Input.m_aExternalHammerWakeup[1] = true;
+	Input.m_aSpectating[0] = true;
+	Input.m_aSpectating[1] = true;
+	Input.m_AutoUnspec = true;
+	Input.m_AutoUnspecBoth = true;
+	Input.m_AutoSwitch = true;
+	const SQmHammerWakeupDecision First = Tracker.Decide(Input, 100);
+	EXPECT_TRUE(First.m_aUnspec[0]);
+	EXPECT_TRUE(First.m_aUnspec[1]);
+	ASSERT_EQ(First.m_SwitchToConnection, 1);
+
+	Input.m_ActiveConnection = First.m_SwitchToConnection;
+	Input.m_ChatActive = true;
+	Input.m_AutoCloseChat = true;
+	const SQmHammerWakeupDecision Reloaded = Tracker.Decide(Input, 100);
+	EXPECT_FALSE(Reloaded.m_aUnspec[0]);
+	EXPECT_FALSE(Reloaded.m_aUnspec[1]);
+	EXPECT_TRUE(Reloaded.m_CloseChat);
+}
+
+TEST(QmHammerWakeupActionTracker, LaterWakeupCanUnspecAgainButOlderSnapshotCannot)
+{
+	CQmHammerWakeupActionTracker Tracker;
+	SQmHammerWakeupDecisionInput Input;
+	Input.m_aWasInFreeze[0] = true;
+	Input.m_aExternalHammerWakeup[0] = true;
+	Input.m_aSpectating[0] = true;
+	Input.m_aSpectating[1] = true;
+	Input.m_AutoUnspecBoth = true;
+	EXPECT_TRUE(Tracker.Decide(Input, 100).m_aUnspec[0]);
+	const SQmHammerWakeupDecision Older = Tracker.Decide(Input, 99);
+	EXPECT_FALSE(Older.m_aUnspec[0]);
+	EXPECT_FALSE(Older.m_aUnspec[1]);
+	const SQmHammerWakeupDecision Later = Tracker.Decide(Input, 110);
+	EXPECT_TRUE(Later.m_aUnspec[0]);
+	EXPECT_TRUE(Later.m_aUnspec[1]);
+}
+
+TEST(QmHammerWakeupActionTracker, EachSpectatingConnectionClaimsItsOwnUnspec)
+{
+	CQmHammerWakeupActionTracker Tracker;
+	SQmHammerWakeupDecisionInput Input;
+	Input.m_aWasInFreeze[0] = true;
+	Input.m_aExternalHammerWakeup[0] = true;
+	Input.m_aSpectating[0] = true;
+	Input.m_AutoUnspecBoth = true;
+	const SQmHammerWakeupDecision First = Tracker.Decide(Input, 100);
+	EXPECT_TRUE(First.m_aUnspec[0]);
+	EXPECT_FALSE(First.m_aUnspec[1]);
+	Input.m_aSpectating[1] = true;
+	const SQmHammerWakeupDecision OtherObservation = Tracker.Decide(Input, 100);
+	EXPECT_FALSE(OtherObservation.m_aUnspec[0]);
+	EXPECT_TRUE(OtherObservation.m_aUnspec[1]);
+}
+
+TEST(QmHammerWakeupActionTracker, ResetAllowsSameSnapshotTickInNewSession)
+{
+	CQmHammerWakeupActionTracker Tracker;
+	SQmHammerWakeupDecisionInput Input;
+	Input.m_aWasInFreeze[0] = true;
+	Input.m_aExternalHammerWakeup[0] = true;
+	Input.m_aSpectating[0] = true;
+	Input.m_AutoUnspecBoth = true;
+	EXPECT_TRUE(Tracker.Decide(Input, 100).m_aUnspec[0]);
+	EXPECT_FALSE(Tracker.Decide(Input, 100).m_aUnspec[0]);
+	Tracker.Reset();
+	EXPECT_TRUE(Tracker.Decide(Input, 100).m_aUnspec[0]);
+}
+
+TEST(QmHammerWakeupActionTracker, InvalidTickDoesNotConsumeWakeup)
+{
+	CQmHammerWakeupActionTracker Tracker;
+	SQmHammerWakeupDecisionInput Input;
+	Input.m_aWasInFreeze[0] = true;
+	Input.m_aExternalHammerWakeup[0] = true;
+	Input.m_aSpectating[0] = true;
+	Input.m_AutoUnspecBoth = true;
+	EXPECT_FALSE(Tracker.Decide(Input, -1).m_aUnspec[0]);
+	EXPECT_TRUE(Tracker.Decide(Input, 0).m_aUnspec[0]);
 }
 
 TEST(QmNewUiMenuGameplayPredictionContract, HammerHitPredictionMatchingUsesOwnerDistanceAndOneToOneConsumption)

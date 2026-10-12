@@ -6,6 +6,7 @@
 #include <engine/console.h>
 
 #include <game/client/component.h>
+#include <game/client/components/qmclient/bindwheel_state.h>
 
 #include <vector>
 
@@ -23,8 +24,7 @@ class CBindWheel : public CComponent
 	float m_AnimationTime = 0.0f;
 	float m_aAnimationTimeItems[BINDWHEEL_MAX_BINDS] = {0};
 
-	bool m_Active = false;
-	bool m_WasActive = false;
+	CQmBindWheelState m_State;
 
 	int m_SelectedBind;
 
@@ -70,7 +70,7 @@ public:
 	void ExecuteHoveredBind();
 	void ExecuteBind(int Bind);
 
-	bool IsActive() const { return m_Active; }
+	bool IsActive() const { return m_State.IsActive(); }
 };
 
 #endif

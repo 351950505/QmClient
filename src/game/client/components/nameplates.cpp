@@ -381,6 +381,7 @@ public:
 	char m_aName[std::max<size_t>(MAX_NAME_LENGTH, protocol7::MAX_NAME_ARRAY_SIZE)];
 	bool m_ShowFriendMark;
 	char m_aQmTitle[64] = "";
+	char m_aQmTitleStyle[48] = "";
 	bool m_DeveloperRainbow;
 	bool m_ShowClientId;
 	int m_ClientId;
@@ -411,6 +412,34 @@ public:
 	int m_HookStrongWeakId;
 	float m_FontSizeHookStrongWeak;
 };
+
+static void SetNameplateTitle(CGameClient &This, CNamePlateData &Data, int ClientId)
+{
+	str_copy(Data.m_aQmTitle, Data.m_ShowName && This.m_QmClient.ShouldShowPlayerTitle(ClientId) ? This.m_QmClient.PlayerTitle(ClientId) : "");
+	str_copy(Data.m_aQmTitleStyle, Data.m_aQmTitle[0] != '\0' ? This.m_QmClient.PlayerTitleStyle(ClientId) : "");
+	Data.m_DeveloperRainbow = Data.m_aQmTitle[0] != '\0' && This.IsQmDeveloperRainbow(ClientId);
+}
+
+static ColorRGBA NameplateTextColor(const CGameClient &This, int ClientId)
+{
+	ColorRGBA Color(1.0f, 1.0f, 1.0f);
+	if(!g_Config.m_ClNamePlatesTeamcolors || ClientId < 0 || ClientId >= MAX_CLIENTS)
+		return Color;
+	if(This.IsTeamPlay())
+	{
+		if(This.m_aClients[ClientId].m_Team == TEAM_RED)
+			Color = ColorRGBA(1.0f, 0.5f, 0.5f);
+		else if(This.m_aClients[ClientId].m_Team == TEAM_BLUE)
+			Color = ColorRGBA(0.7f, 0.7f, 1.0f);
+	}
+	else
+	{
+		const int Team = This.m_Teams.Team(ClientId);
+		if(Team)
+			Color = This.GetDDTeamColor(Team, 0.75f);
+	}
+	return Color;
+}
 
 // Part Types
 
@@ -813,7 +842,7 @@ protected:
 			return false;
 		}
 		const float FontSize = Data.m_FontSize * ms_FontSizeScale;
-		const char *pStyle = This.m_QmClient.PlayerTitleStyle(Data.m_ClientId);
+		const char *pStyle = Data.m_aQmTitleStyle;
 		const SQmTitleColorStyle ColorStyle = ResolveQmTitleColorStyle(g_Config.m_QmTitleColorMode, g_Config.m_QmTitleColor, g_Config.m_QmTitleOpacity, Data.m_DeveloperRainbow);
 		const SQmTitleRenderStyle RenderStyle = QmTitleResolveRenderStyle(pStyle);
 		const bool Changed = m_FontSize != FontSize || m_TitleColorStyle != ColorStyle || str_comp(m_aText, Data.m_aQmTitle) != 0 ||
@@ -842,7 +871,7 @@ protected:
 	void UpdateText(CGameClient &This, const CNamePlateData &Data) override
 	{
 		m_FontSize = Data.m_FontSize * ms_FontSizeScale;
-		str_copy(m_aStyle, This.m_QmClient.PlayerTitleStyle(Data.m_ClientId));
+		str_copy(m_aStyle, Data.m_aQmTitleStyle);
 		str_copy(m_aText, Data.m_aQmTitle);
 		// 称号渲染统一走 qm_title_render：解析出的风格同时决定逐字符色段、字符内渐变与浮动偏移。
 		// 配色被本地档位接管时（单色/彩虹）风格只保留浮动与掠光，颜色由下面两个分支给出。
@@ -2057,7 +2086,6 @@ void CNamePlates::RenderNamePlateGame(vec2 Position, const CNetObj_PlayerInfo *p
 
 	CNamePlateData Data;
 
-	const auto &ClientData = GameClient()->m_aClients[ClientId];
 	const bool OtherTeam = GameClient()->IsOtherTeam(ClientId);
 	const bool IsAnyLocalClient = GameClient()->IsLocalClientId(ClientId);
 
@@ -2071,8 +2099,7 @@ void CNamePlates::RenderNamePlateGame(vec2 Position, const CNetObj_PlayerInfo *p
 	const int NameplateScope = NameplateRenderValue(ConfigManager(), &g_Config.m_QmNameplateShowScope);
 	Data.m_ShowName = ShouldShowQmNameplateName(NameplateScope, pPlayerInfo->m_Local, GameClient()->IsLocalClientId(ClientId));
 	GameClient()->FormatStreamerName(ClientId, Data.m_aName, sizeof(Data.m_aName));
-	str_copy(Data.m_aQmTitle, Data.m_ShowName && GameClient()->m_QmClient.ShouldShowPlayerTitle(ClientId) ? GameClient()->m_QmClient.PlayerTitle(ClientId) : "");
-	Data.m_DeveloperRainbow = Data.m_aQmTitle[0] != '\0' && GameClient()->IsQmDeveloperRainbow(ClientId);
+	SetNameplateTitle(*GameClient(), Data, ClientId);
 	const bool DemoPlayback = Client()->State() == IClient::STATE_DEMOPLAYBACK;
 	const bool Spectating = !DemoPlayback && GameClient()->m_Snap.m_SpecInfo.m_Active;
 	const bool SpectateTarget = GameClient()->m_Snap.m_SpecInfo.m_Active && GameClient()->m_Snap.m_SpecInfo.m_SpectatorId == ClientId;
@@ -2145,23 +2172,7 @@ void CNamePlates::RenderNamePlateGame(vec2 Position, const CNetObj_PlayerInfo *p
 		Alpha = std::min(Alpha, 0.5f);
 	Data.m_CoordXAlignColor.a *= Alpha;
 
-	Data.m_Color = ColorRGBA(1.0f, 1.0f, 1.0f);
-	if(g_Config.m_ClNamePlatesTeamcolors)
-	{
-		if(GameClient()->IsTeamPlay())
-		{
-			if(ClientData.m_Team == TEAM_RED)
-				Data.m_Color = ColorRGBA(1.0f, 0.5f, 0.5f);
-			else if(ClientData.m_Team == TEAM_BLUE)
-				Data.m_Color = ColorRGBA(0.7f, 0.7f, 1.0f);
-		}
-		else
-		{
-			const int Team = GameClient()->m_Teams.Team(ClientId);
-			if(Team)
-				Data.m_Color = GameClient()->GetDDTeamColor(Team, 0.75f);
-		}
-	}
+	Data.m_Color = NameplateTextColor(*GameClient(), ClientId);
 	Data.m_Color.a = Alpha;
 
 	// 按键与强弱钩统一读取回放选项，预览和视频导出保持一致。
@@ -2262,8 +2273,7 @@ void CNamePlates::RenderNamePlateGame(vec2 Position, const CNetObj_PlayerInfo *p
 		CNamePlateData FrameData = Data;
 		FrameData.m_ShowName = true;
 		FrameData.m_ShowFriendMark = FrameData.m_ShowName && g_Config.m_ClNamePlatesFriendMark && GameClient()->m_aClients[ClientId].m_Friend;
-		str_copy(FrameData.m_aQmTitle, FrameData.m_ShowName && GameClient()->m_QmClient.ShouldShowPlayerTitle(ClientId) ? GameClient()->m_QmClient.PlayerTitle(ClientId) : "");
-		FrameData.m_DeveloperRainbow = FrameData.m_aQmTitle[0] != '\0' && GameClient()->IsQmDeveloperRainbow(ClientId);
+		SetNameplateTitle(*GameClient(), FrameData, ClientId);
 		FrameData.m_ShowClientId = FrameData.m_ShowName && (g_Config.m_Debug || g_Config.m_ClNamePlatesIds) && !HideIdentity;
 		FrameData.m_ShowClan = FrameData.m_ShowName && g_Config.m_ClNamePlatesClan && !HideIdentity;
 		const bool FrameShowLocalAlignedCoordX = CoordModuleAllowsCoords && CoordXAlignHintEnabled && LocalCoordXAligned;
@@ -2300,16 +2310,19 @@ static void BuildNamePlatePreviewData(CGameClient &This, int DummyIdx, CNamePlat
 	const float FontSizeHookStrongWeak = 18.0f + 20.0f * g_Config.m_ClNamePlatesStrongSize / 100.0f;
 
 	Data.m_InGame = false;
-	Data.m_Color = g_Config.m_ClNamePlatesTeamcolors ? This.GetDDTeamColor(13, 0.75f) : This.TextRender()->DefaultTextColor();
+	const int LocalClientId = This.m_aLocalIds[DummyIdx];
+	const bool InGame = This.Client()->State() == IClient::STATE_ONLINE || This.Client()->State() == IClient::STATE_DEMOPLAYBACK;
+	const bool HasLocalClient = InGame &&
+				    LocalClientId >= 0 && LocalClientId < MAX_CLIENTS && This.m_aClients[LocalClientId].m_Active;
+	Data.m_Color = NameplateTextColor(This, HasLocalClient ? LocalClientId : -1);
 	Data.m_Color.a = 1.0f;
-	const bool IsOwnPreview = DummyIdx == 0;
-	// 设置页预览：DummyIdx==0 视作当前操控角色，其余视作本机分身，两者都算本机。
+	const bool IsOwnPreview = DummyIdx == g_Config.m_ClDummy;
+	// 主号与分身都属于本机，显示范围中的「自己」跟随当前操控连接。
 	const bool NameplateScopeAllowsPreview = ForceNameplateScopeAll || ShouldShowQmNameplateName(g_Config.m_QmNameplateShowScope, IsOwnPreview, true);
-	const bool CoordModuleAllowsPreview = IsOwnPreview ? g_Config.m_QmNameplateCoordsOwn : g_Config.m_QmNameplateCoords;
+	const bool CoordModuleAllowsPreview = g_Config.m_QmNameplateCoordsOwn != 0;
 
 	Data.m_ShowName = NameplateScopeAllowsPreview;
-	Data.m_aQmTitle[0] = '\0';
-	Data.m_DeveloperRainbow = false;
+	SetNameplateTitle(This, Data, HasLocalClient ? LocalClientId : -1);
 	// 设置页预览必须展示当前选择的效果，不能受游戏中 Playing/Spectate/Demo scope 限制。
 	Data.m_UseTextEffects = g_Config.m_QmNameplateTextEffects != 0;
 	const char *pName = DummyIdx == 0 ? This.Client()->PlayerName() : This.Client()->DummyName();
@@ -2317,7 +2330,15 @@ static void BuildNamePlatePreviewData(CGameClient &This, int DummyIdx, CNamePlat
 	str_utf8_trim_right(Data.m_aName);
 	Data.m_FontSize = FontSize;
 
-	Data.m_ShowFriendMark = Data.m_ShowName && g_Config.m_ClNamePlatesFriendMark;
+	if(!InGame && Data.m_ShowName && This.m_QmClient.TitleAuthenticated() &&
+		(DummyIdx == 0 ? g_Config.m_QmShowMainTitle : g_Config.m_QmShowDummyTitle) &&
+		(This.m_QmClient.TitleBoundName()[0] == '\0' || str_comp(This.m_QmClient.TitleBoundName(), pName) == 0))
+	{
+		// 离线时使用已保存的称号资料；在线时只展示游戏内已经收到的称号。
+		str_copy(Data.m_aQmTitle, This.m_QmClient.TitleText());
+		str_copy(Data.m_aQmTitleStyle, This.m_QmClient.TitleProfileStyle());
+	}
+	Data.m_ShowFriendMark = Data.m_ShowName && g_Config.m_ClNamePlatesFriendMark && HasLocalClient && This.m_aClients[LocalClientId].m_Friend;
 
 	Data.m_ShowClientId = Data.m_ShowName && (g_Config.m_Debug || g_Config.m_ClNamePlatesIds);
 	Data.m_ClientId = DummyIdx;

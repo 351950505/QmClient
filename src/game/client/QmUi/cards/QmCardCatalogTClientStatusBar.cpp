@@ -55,7 +55,7 @@
 #include <game/client/ui_scrollregion.h>
 #include <game/localization.h>
 
-#include <SDL_audio.h>
+#include <SDL3/SDL_audio.h>
 
 #include <algorithm>
 #include <array>
@@ -93,7 +93,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientStatusBarCard(const qm_car
 	static int s_SelectedItem = -1;
 	static int s_TypeSelectedOld = -1;
 	static CLineInput s_StatusScheme(g_Config.m_QmStatusBarScheme, sizeof(g_Config.m_QmStatusBarScheme));
-	const int StatusBarCodeCount = (int)GameClient()->m_StatusBar.m_vStatusItemTypes.size();
+	const int StatusBarCodeCount = (int)GameClient()->m_StatusBar.m_vpStatusItemTypes.size();
 	const int StatusBarItemCount = (int)GameClient()->m_StatusBar.m_StatusBarItems.size();
 	const float StatusBarPreviewHeight = LineSize + MarginSmall * 2.0f;
 
@@ -127,17 +127,17 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientStatusBarCard(const qm_car
 		static std::vector<std::string> s_vCodeStorage;
 		static std::vector<const char *> s_vCodes;
 		static char s_aCodeLanguage[sizeof(g_Config.m_ClLanguagefile)] = {};
-		if(s_vCodeStorage.size() != GameClient()->m_StatusBar.m_vStatusItemTypes.size() || str_comp(s_aCodeLanguage, g_Config.m_ClLanguagefile) != 0)
+		if(s_vCodeStorage.size() != GameClient()->m_StatusBar.m_vpStatusItemTypes.size() || str_comp(s_aCodeLanguage, g_Config.m_ClLanguagefile) != 0)
 		{
 			s_vCodeStorage.clear();
 			s_vCodes.clear();
-			s_vCodeStorage.reserve(GameClient()->m_StatusBar.m_vStatusItemTypes.size());
-			s_vCodes.reserve(GameClient()->m_StatusBar.m_vStatusItemTypes.size());
-			for(const CStatusItem &Item : GameClient()->m_StatusBar.m_vStatusItemTypes)
+			s_vCodeStorage.reserve(GameClient()->m_StatusBar.m_vpStatusItemTypes.size());
+			s_vCodes.reserve(GameClient()->m_StatusBar.m_vpStatusItemTypes.size());
+			for(const CStatusItem *pItem : GameClient()->m_StatusBar.m_vpStatusItemTypes)
 			{
 				char aCode[256];
-				const char *pLetters = str_comp(Item.m_aName, "Space") == 0 ? "_ or ' '" : Item.m_aLetters;
-				str_format(aCode, sizeof(aCode), "%s = %s", pLetters, Localize(GetStatusBarEditorLabel(&Item)));
+				const char *pLetters = str_comp(pItem->m_aName, "Space") == 0 ? "_ or ' '" : pItem->m_aLetters;
+				str_format(aCode, sizeof(aCode), "%s = %s", pLetters, Localize(GetStatusBarEditorLabel(pItem)));
 				s_vCodeStorage.emplace_back(aCode);
 			}
 			for(const std::string &Code : s_vCodeStorage)
@@ -253,7 +253,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientStatusBarCard(const qm_car
 	const auto RenderPreview = [this, &TClientStatusSchemeTextInputCtx, &GetStatusBarEditorLabel, &RenderStatusBarCodes, &RenderStatusBarPreview, &MeasureItems, Page, ReadOnly, StatusBarPreviewHeight](CUIRect &Content) {
 		CPerfTimer EditorTimer;
 		CSettingsContentLayoutFlow Flow(Content);
-		const int StatusItemTypeCount = (int)GameClient()->m_StatusBar.m_vStatusItemTypes.size();
+		const int StatusItemTypeCount = (int)GameClient()->m_StatusBar.m_vpStatusItemTypes.size();
 		if(Flow.Input() && !Ui()->RenderOnly())
 		{
 			if(s_TypeSelectedOld >= StatusItemTypeCount)
@@ -265,7 +265,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientStatusBarCard(const qm_car
 		if(s_SelectedItem >= 0 && s_SelectedItem < (int)GameClient()->m_StatusBar.m_StatusBarItems.size() && s_TypeSelectedOld >= 0 && s_TypeSelectedOld < StatusItemTypeCount)
 		{
 			if(Flow.Control("tclient-statusbar-item-description", LineSize, ItemLabel))
-				Ui()->DoLabel(&ItemLabel, Localize(GameClient()->m_StatusBar.m_vStatusItemTypes[s_TypeSelectedOld].m_aDesc), FontSize, TEXTALIGN_ML);
+				Ui()->DoLabel(&ItemLabel, Localize(GameClient()->m_StatusBar.m_vpStatusItemTypes[s_TypeSelectedOld]->m_aDesc), FontSize, TEXTALIGN_ML);
 			Flow.Space(MarginSmall);
 		}
 		const bool HasPreview = Flow.Control("tclient-statusbar-drag-preview", StatusBarPreviewHeight, StatusBar);
@@ -308,15 +308,15 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientStatusBarCard(const qm_car
 			static std::vector<std::string> s_DropDownNameStorage;
 			static std::vector<const char *> s_DropDownNames;
 			static char s_aDropDownLanguage[sizeof(g_Config.m_ClLanguagefile)] = {};
-			if(s_DropDownNameStorage.size() != GameClient()->m_StatusBar.m_vStatusItemTypes.size() || str_comp(s_aDropDownLanguage, g_Config.m_ClLanguagefile) != 0)
+			if(s_DropDownNameStorage.size() != GameClient()->m_StatusBar.m_vpStatusItemTypes.size() || str_comp(s_aDropDownLanguage, g_Config.m_ClLanguagefile) != 0)
 			{
 				s_DropDownNameStorage.clear();
 				s_DropDownNames.clear();
-				s_DropDownNameStorage.reserve(GameClient()->m_StatusBar.m_vStatusItemTypes.size());
-				s_DropDownNames.reserve(GameClient()->m_StatusBar.m_vStatusItemTypes.size());
-				for(const CStatusItem &StatusItemType : GameClient()->m_StatusBar.m_vStatusItemTypes)
+				s_DropDownNameStorage.reserve(GameClient()->m_StatusBar.m_vpStatusItemTypes.size());
+				s_DropDownNames.reserve(GameClient()->m_StatusBar.m_vpStatusItemTypes.size());
+				for(const CStatusItem *pStatusItemType : GameClient()->m_StatusBar.m_vpStatusItemTypes)
 				{
-					s_DropDownNameStorage.emplace_back(Localize(GetStatusBarEditorLabel(&StatusItemType)));
+					s_DropDownNameStorage.emplace_back(Localize(GetStatusBarEditorLabel(pStatusItemType)));
 				}
 				for(const std::string &Name : s_DropDownNameStorage)
 					s_DropDownNames.push_back(Name.c_str());
@@ -334,7 +334,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientStatusBarCard(const qm_car
 					s_TypeSelectedOld = TypeSelectedNew;
 					if(s_SelectedItem >= 0 && s_TypeSelectedOld >= 0 && s_TypeSelectedOld < StatusItemTypeCount)
 					{
-						GameClient()->m_StatusBar.m_StatusBarItems[s_SelectedItem] = &GameClient()->m_StatusBar.m_vStatusItemTypes[s_TypeSelectedOld];
+						GameClient()->m_StatusBar.m_StatusBarItems[s_SelectedItem] = GameClient()->m_StatusBar.m_vpStatusItemTypes[s_TypeSelectedOld];
 						GameClient()->m_StatusBar.UpdateStatusBarScheme(g_Config.m_QmStatusBarScheme);
 					}
 				}
@@ -342,7 +342,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientStatusBarCard(const qm_car
 			const size_t NumItems = GameClient()->m_StatusBar.m_StatusBarItems.size();
 			if(DoSettingsButton_Menu(SETTINGS_TCLIENT, TCLIENT_TAB_STATUSBAR, TCLIENT_TAB_STATUSBAR, &s_AddButton, "tclient-statusbar-add-item", Localize("Add Item"), 0, &AddButton) && !ReadOnly && !Ui()->RenderOnly() && s_TypeSelectedOld >= 0 && s_TypeSelectedOld < StatusItemTypeCount && NumItems < 128)
 			{
-				GameClient()->m_StatusBar.m_StatusBarItems.push_back(&GameClient()->m_StatusBar.m_vStatusItemTypes[s_TypeSelectedOld]);
+				GameClient()->m_StatusBar.m_StatusBarItems.push_back(GameClient()->m_StatusBar.m_vpStatusItemTypes[s_TypeSelectedOld]);
 				GameClient()->m_StatusBar.UpdateStatusBarScheme(g_Config.m_QmStatusBarScheme);
 				s_SelectedItem = (int)GameClient()->m_StatusBar.m_StatusBarItems.size() - 1;
 			}
@@ -442,7 +442,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientStatusBarCard(const qm_car
 						{
 							s_SelectedItem = i;
 							for(int TypeIndex = 0; TypeIndex < StatusItemTypeCount; ++TypeIndex)
-								if(str_comp(GameClient()->m_StatusBar.m_vStatusItemTypes[TypeIndex].m_aName, pStatusItem->m_aName) == 0)
+								if(str_comp(GameClient()->m_StatusBar.m_vpStatusItemTypes[TypeIndex]->m_aName, pStatusItem->m_aName) == 0)
 									s_TypeSelectedOld = TypeIndex;
 						}
 						else
@@ -464,7 +464,7 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientStatusBarCard(const qm_car
 			RenderStatusBarCodes(Codes);
 		LogTClientPerfStageEx("tclient_statusbar", "editor", ETClientSettingsPerfStage::STATIC_LAYER, EditorTimer.ElapsedMs());
 	};
-	const uint64_t StatusLayoutRevision = ((uint64_t)GameClient()->m_StatusBar.m_vStatusItemTypes.size() << 32) ^
+	const uint64_t StatusLayoutRevision = ((uint64_t)GameClient()->m_StatusBar.m_vpStatusItemTypes.size() << 32) ^
 					      (uint64_t)GameClient()->m_StatusBar.m_StatusBarItems.size() ^
 					      ((uint64_t)(s_SelectedItem + 2) << 16) ^ (uint64_t)(s_TypeSelectedOld + 2);
 	const uint64_t CardRevision = StatusLayoutRevision;

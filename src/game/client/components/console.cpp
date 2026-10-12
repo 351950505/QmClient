@@ -27,6 +27,7 @@
 #include <game/client/components/qmclient/console_syntax.h>
 #include <game/client/components/qmclient/console_text.h>
 #include <game/client/components/qmclient/qm_chat_export.h>
+#include <game/client/components/qmclient/streamer_word_filter.h>
 #include <game/client/gameclient.h>
 #include <game/client/ui.h>
 #include <game/localization.h>
@@ -646,18 +647,50 @@ void CGameConsole::CInstance::PumpBacklogPending()
 	}
 
 	// Update text attributes and count number of added lines
+	bool StreamerTextChanged = false;
 	m_pGameConsole->Ui()->MapScreen();
 	for(CBacklogEntry *pEntry = m_Backlog.First(); pEntry; pEntry = m_Backlog.Next(pEntry))
 	{
+		const int PreviousLineCount = pEntry->m_LineCount;
+		// 在主线程处理输出副本；同一词表版本内每条记录只做一次匹配。
+		if(g_Config.m_QmStreamerFilterWords && pEntry->m_StreamerWordsRevision != QmStreamerWordFilter::Revision())
+		{
+			pEntry->m_StreamerWordsRevision = QmStreamerWordFilter::Revision();
+			const bool TextChanged = QmStreamerWordFilter::Filter(pEntry->m_aText, true);
+			if(TextChanged)
+			{
+				StreamerTextChanged = true;
+				pEntry->m_Length = str_length(pEntry->m_aText);
+				pEntry->m_LineCount = -1;
+				// 命中后字节位置已变化，不沿用原消息的颜色区间。
+				m_ColorSpansByExportId.erase(pEntry->m_ExportId);
+				InvalidateTotalBacklogLines();
+			}
+			const auto MetadataIt = m_ChatMetadataByExportId.find(pEntry->m_ExportId);
+			if(MetadataIt != m_ChatMetadataByExportId.end())
+			{
+				auto pMetadata = std::make_shared<QmChatExport::SMetadata>(*MetadataIt->second);
+				bool MetadataChanged = QmStreamerWordFilter::Filter(pMetadata->m_Sender, true);
+				MetadataChanged |= QmStreamerWordFilter::Filter(pMetadata->m_Message, true);
+				if(MetadataChanged)
+					MetadataIt->second = std::move(pMetadata);
+			}
+		}
 		if(pEntry->m_LineCount == -1)
 		{
 			UpdateEntryTextAttributes(pEntry);
 			if(MatchesLogFilter(pEntry))
 			{
-				m_NewLineCounter += pEntry->m_LineCount;
+				m_NewLineCounter += pEntry->m_LineCount - maximum(PreviousLineCount, 0);
 				InvalidateTotalBacklogLines();
 			}
 		}
+	}
+	if(StreamerTextChanged)
+	{
+		// 遮蔽会改变字符位置，旧选区与搜索结果必须按显示文本重建。
+		m_Selection.Clear();
+		UpdateSearch();
 	}
 }
 
@@ -1122,6 +1155,7 @@ void CGameConsole::CInstance::PrintLine(const char *pLine, int Len, ColorRGBA Pr
 	pEntry->m_ExportId = m_NextExportId++;
 	pEntry->m_ExportSelected = false;
 	pEntry->m_CommandEcho = CommandEcho;
+	pEntry->m_StreamerWordsRevision = 0;
 	if(NumColorSpans > 0)
 		m_PendingColorSpansByExportId[pEntry->m_ExportId].assign(pColorSpans, pColorSpans + NumColorSpans);
 	if(pChatMetadata)
@@ -2922,7 +2956,8 @@ void CGameConsole::ConchainConsoleOutputLevel(IConsole::IResult *pResult, void *
 
 void CGameConsole::RequireUsername(bool UsernameReq)
 {
-	if((m_RemoteConsole.m_UsernameReq = UsernameReq))
+	m_RemoteConsole.m_UsernameReq = UsernameReq;
+	if(UsernameReq)
 	{
 		m_RemoteConsole.m_aUser[0] = '\0';
 		m_RemoteConsole.m_UserGot = false;

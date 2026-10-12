@@ -18,6 +18,7 @@
 #include <game/client/components/chat.h>
 #include <game/client/components/menu_background.h>
 #include <game/client/components/menus.h>
+#include <game/client/components/qmclient/mobile_spectator_controls.h>
 #include <game/client/gameclient.h>
 #include <game/localization.h>
 
@@ -273,6 +274,21 @@ namespace qm_card_catalog
 				DoDirectory(s_VideoDirectoryInput, "general-video-directory", Localize("Video directory"), "videos");
 				DoDirectory(s_ScreenshotDirectoryInput, "general-screenshot-directory", Localize("Screenshot directory"), "screenshots");
 				Flow.Text("general-directory-help", Localize("Leave empty to use the default directory. Relative paths use the config directory."), 0.0f, GeneralMetrics.m_BodySize, GeneralMetrics.m_SectionGap, [pMenus](const char *pText, float Width, float Size) { return pMenus->TextRender()->TextBoundingBox(Size, pText, -1, Width).m_H + Size * 0.25f; }, [pMenus, GeneralMetrics](const CUIRect &Row, const char *pText) { SLabelProperties Props; Props.m_MaxWidth = Row.w; pMenus->Ui()->DoLabel(&Row, pText, GeneralMetrics.m_BodySize, TEXTALIGN_ML, Props); }, GeneralMetrics.m_LineHeight);
+				if(qm_mobile_spectator::Enabled())
+				{
+					CUIRect MediaRow;
+					if(Flow.Control("general-mobile-media", GeneralMetrics.m_ButtonHeight, MediaRow))
+					{
+						CUIRect Demos, Videos;
+						MediaRow.VSplitMid(&Demos, &Videos, GeneralMetrics.m_LineSpacing);
+						static CButtonContainer s_Demos, s_Videos;
+						if(pMenus->DoButton_Menu(&s_Demos, Localize("Demos directory"), 0, &Demos))
+							pMenus->GameClient()->m_QmMobileSpectator.ShowMediaFiles(false);
+						if(pMenus->DoButton_Menu(&s_Videos, Localize("Videos directory"), 0, &Videos))
+							pMenus->GameClient()->m_QmMobileSpectator.ShowMediaFiles(true);
+					}
+					Flow.Space(GeneralMetrics.m_SectionGap);
+				}
 				SQmCardBuildContext WatermarkCtx;
 				WatermarkCtx.m_pMenus = pMenus;
 				WatermarkCtx.m_UiContext = GeneralCardCtx;

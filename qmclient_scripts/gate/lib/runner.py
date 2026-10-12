@@ -18,12 +18,16 @@ _CONSOLE_OUTPUT_LIMIT = 12000
 
 
 def resolve_parallel_jobs() -> str:
-    """自适应并行度：CI 环境用全部核心，本地限制在合理上限。"""
+    """本地默认使用仓库的 6 job 预算；并行任务可显式分配更小的份额。"""
     cpu = os.cpu_count() or 4
-    # CI runner 通常核心少（2-4），直接用全部；本地高性能机器限制上限避免 OOM
+    requested = os.environ.get("QM_GATE_BUILD_JOBS")
+    if requested is not None:
+        if not requested.isdecimal() or int(requested) <= 0:
+            raise ValueError("QM_GATE_BUILD_JOBS must be a positive integer")
+        return str(min(cpu, int(requested)))
     if os.environ.get("CI"):
         return str(cpu)
-    return str(min(cpu, 14))
+    return str(min(cpu, 6))
 
 
 def is_windows_env() -> bool:

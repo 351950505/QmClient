@@ -15,7 +15,62 @@ namespace
 {
 	class QmPopupBlurScope : public qm_ui_test::CRealUiFixture
 	{
+	protected:
+		qm_ui_test::CTestUiClient m_Client;
+		IClient *UiClient() override { return &m_Client; }
 	};
+}
+
+TEST_F(QmPopupBlurScope, AnchoredConfirmationUsesRequestedPositionAndCanReopen)
+{
+	CUi::SConfirmPopupContext Context;
+	Context.YesNoButtons();
+	str_copy(Context.m_aMessage, "Download this asset?");
+	m_Ui.ShowPopupConfirm(40, 50, &Context, false);
+	const CUIRect *pPopup = m_Ui.GetPopupMenuRect(&Context);
+	ASSERT_NE(pPopup, nullptr);
+	EXPECT_FLOAT_EQ(pPopup->x, 40);
+	EXPECT_FLOAT_EQ(pPopup->y, 50);
+	EXPECT_EQ(Context.m_Result, CUi::SConfirmPopupContext::UNSET);
+	EXPECT_TRUE(m_Ui.CloseTopPopupMenu());
+	EXPECT_FALSE(m_Ui.IsPopupOpen(&Context));
+	m_Ui.ShowPopupConfirm(100, 150, &Context, false);
+	pPopup = m_Ui.GetPopupMenuRect(&Context);
+	ASSERT_NE(pPopup, nullptr);
+	EXPECT_FLOAT_EQ(pPopup->x, 100);
+	EXPECT_FLOAT_EQ(pPopup->y, 150);
+	EXPECT_EQ(Context.m_Result, CUi::SConfirmPopupContext::UNSET);
+	m_Ui.ClosePopupMenus();
+}
+
+TEST_F(QmPopupBlurScope, AnchoredConfirmationRepositionsAtViewportEdges)
+{
+	CUi::SConfirmPopupContext Context;
+	Context.YesNoButtons();
+	str_copy(Context.m_aMessage, "Download this asset?");
+	const CUIRect Screen = *m_Ui.Screen();
+	m_Ui.ShowPopupConfirm(Screen.w - 1, Screen.h - 1, &Context, false);
+	const CUIRect *pPopup = m_Ui.GetPopupMenuRect(&Context);
+	ASSERT_NE(pPopup, nullptr);
+	EXPECT_GE(pPopup->x, Screen.x);
+	EXPECT_GE(pPopup->y, Screen.y);
+	EXPECT_LE(pPopup->x + pPopup->w, Screen.x + Screen.w);
+	EXPECT_LE(pPopup->y + pPopup->h, Screen.y + Screen.h);
+	m_Ui.ClosePopupMenus();
+}
+
+TEST_F(QmPopupBlurScope, DefaultConfirmationRetainsCenteredPlacement)
+{
+	CUi::SConfirmPopupContext Context;
+	Context.YesNoButtons();
+	str_copy(Context.m_aMessage, "Delete this asset?");
+	m_Ui.ShowPopupConfirm(40, 50, &Context);
+	const CUIRect *pPopup = m_Ui.GetPopupMenuRect(&Context);
+	ASSERT_NE(pPopup, nullptr);
+	const CUIRect Screen = *m_Ui.Screen();
+	EXPECT_FLOAT_EQ(pPopup->x + pPopup->w * 0.5f, Screen.x + Screen.w * 0.5f);
+	EXPECT_FLOAT_EQ(pPopup->y + pPopup->h * 0.5f, Screen.y + Screen.h * 0.5f);
+	m_Ui.ClosePopupMenus();
 }
 
 TEST_F(QmPopupBlurScope, StandaloneScopeEnablesBlurAndRestoresState)
@@ -84,6 +139,12 @@ namespace
 		bool m_HasSdf = true;
 		std::vector<std::pair<CUIRect, ColorRGBA>> m_vRectangles;
 		std::vector<CFreeformItem> m_vBorderMesh;
+		std::vector<std::pair<CUIRect, ColorRGBA>> m_vAntialiasEdges;
+		// 设备负责外缘羽化；这里记录该边界，不把它当作整面矩形填充。
+		void DrawRoundedRectAntialias(float X, float Y, float W, float H, float, int, const ColorRGBA &Color) override
+		{
+			m_vAntialiasEdges.emplace_back(CUIRect{X, Y, W, H}, Color);
+		}
 		void DrawRect(float X, float Y, float W, float H, ColorRGBA Color, int, float) override
 		{
 			++m_Surfaces;
@@ -405,11 +466,14 @@ TEST_F(QmUiBlurGraphics, FallbackBorderNeverFillsTranslucentInputInterior)
 			SCOPED_TRACE(Alpha);
 			m_Graphics.m_vRectangles.clear();
 			m_Graphics.m_vBorderMesh.clear();
+			m_Graphics.m_vAntialiasEdges.clear();
 			const ColorRGBA Fill(0.1f, 0.1f, 0.1f, Alpha), Accent(1, 0, 0, 0.8f);
 			ASSERT_TRUE(DrawRoundedSurface(&m_Ui, m_Rect, Fill, Accent, 8, 2, Corners));
 			ASSERT_EQ(m_Graphics.m_vRectangles.size(), 1u);
 			EXPECT_EQ(m_Graphics.m_vRectangles.front().second, Fill);
 			ASSERT_FALSE(m_Graphics.m_vBorderMesh.empty());
+			ASSERT_EQ(m_Graphics.m_vAntialiasEdges.size(), 1u);
+			EXPECT_EQ(m_Graphics.m_vAntialiasEdges.front().second, Accent);
 			const vec2 Center = m_Rect.Center();
 			for(const auto &Quad : m_Graphics.m_vBorderMesh)
 			{

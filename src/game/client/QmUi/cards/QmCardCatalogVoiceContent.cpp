@@ -8,6 +8,7 @@
 #include <base/system.h>
 
 #include <engine/client.h>
+#include <engine/client/audio_sdl3.h>
 #include <engine/engine.h>
 #include <engine/graphics.h>
 #include <engine/keys.h>
@@ -36,8 +37,6 @@
 #include <game/client/qm_icon.h>
 #include <game/client/ui_listbox.h>
 #include <game/localization.h>
-
-#include <SDL_audio.h>
 
 #include <algorithm>
 #include <array>
@@ -435,14 +434,8 @@ void CMenus::RenderQmHudVoiceContent(CUIRect &Content, const SSettingsContentMet
 					s_VoiceInputDeviceConfigValues.clear();
 					s_VoiceInputDeviceDropDownNames.clear();
 					std::vector<std::string> vDetectedDeviceNames;
-					const int NumInputs = SDL_GetNumAudioDevices(1);
-					for(int i = 0; i < NumInputs; i++)
-					{
-						const char *pName = SDL_GetAudioDeviceName(i, 1);
-						if(!pName || pName[0] == '\0')
-							continue;
-						vDetectedDeviceNames.emplace_back(pName);
-					}
+					for(const auto &Device : SdlAudioDevices(true))
+						vDetectedDeviceNames.emplace_back(Device.m_Name);
 
 					VoiceUtils::BuildVoiceDeviceDropdownEntries(
 						vDetectedDeviceNames,
@@ -510,14 +503,8 @@ void CMenus::RenderQmHudVoiceContent(CUIRect &Content, const SSettingsContentMet
 					s_VoiceOutputDeviceConfigValues.clear();
 					s_VoiceOutputDeviceDropDownNames.clear();
 					std::vector<std::string> vDetectedDeviceNames;
-					const int NumOutputs = SDL_GetNumAudioDevices(0);
-					for(int i = 0; i < NumOutputs; i++)
-					{
-						const char *pName = SDL_GetAudioDeviceName(i, 0);
-						if(!pName || pName[0] == '\0')
-							continue;
-						vDetectedDeviceNames.emplace_back(pName);
-					}
+					for(const auto &Device : SdlAudioDevices(false))
+						vDetectedDeviceNames.emplace_back(Device.m_Name);
 
 					VoiceUtils::BuildVoiceDeviceDropdownEntries(
 						vDetectedDeviceNames,

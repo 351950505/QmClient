@@ -135,11 +135,16 @@ void CMenus::RenderQmFunctionHJAssistContent(CUIRect &Content, float LineHeight,
 			RenderQmFunctionCheckbox(pValue, pText, Localize(pText), pValue, &Row, PrewarmOnly);
 		Flow.Space(LineSpacing);
 	};
-	RenderCheckbox(Localizable("Auto unspec on unfreeze"), &g_Config.m_QmAutoUnspecOnUnfreeze);
-	RenderCheckbox(Localizable("Auto switch to the tee that got unfrozen"), &g_Config.m_QmAutoSwitchOnUnfreeze);
-	RenderCheckbox(Localizable("Automatically close the current chat after waking from freeze"), &g_Config.m_QmAutoCloseChatOnUnfreeze);
-	RenderCheckbox(Localizable("Show wake-up popup on the other tee"), &g_Config.m_QmFreezeWakeupPopup);
-	RenderCheckbox(Localizable("Auto team lock"), &g_Config.m_QmAutoTeamLock);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{
+			{&g_Config.m_QmAutoUnspecOnUnfreeze, Localizable("Auto unspec on unfreeze"), Localize("Auto unspec on unfreeze")},
+			{&g_Config.m_QmAutoUnspecBothOnUnfreeze, Localizable("Auto unspec both tees when either is hammered awake"), Localize("Auto unspec both tees when either is hammered awake")},
+			{&g_Config.m_QmAutoSwitchOnUnfreeze, Localizable("Auto switch to the tee that got unfrozen"), Localize("Auto switch to the tee that got unfrozen")},
+			{&g_Config.m_QmAutoCloseChatOnUnfreeze, Localizable("Automatically close the current chat after waking from freeze"), Localize("Automatically close the current chat after waking from freeze")},
+			{&g_Config.m_QmFreezeWakeupPopup, Localizable("Show wake-up popup on the other tee"), Localize("Show wake-up popup on the other tee")},
+			{&g_Config.m_QmAutoTeamLock, Localizable("Auto team lock"), Localize("Auto team lock")},
+		},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	if(g_Config.m_QmAutoTeamLock)
 	{
 		if(Flow.Control("hj-assist-1", LineHeight, Row))
@@ -151,7 +156,9 @@ void CMenus::RenderQmFunctionHJAssistContent(CUIRect &Content, float LineHeight,
 		}
 		Flow.Space(LineSpacing);
 	}
-	RenderCheckbox(Localizable("Fade spectators in water"), &g_Config.m_QmPausedSpectatorFade);
+	DoSettingsToggleGroup(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, Content,
+		{{&g_Config.m_QmPausedSpectatorFade, "Fade spectators in water", Localize("Fade spectators in water")}},
+		CurrentSettingsContentMetrics(), !PrewarmOnly);
 	if(g_Config.m_QmPausedSpectatorFade)
 	{
 		if(Flow.Control("hj-assist-2", LineHeight, Row))
@@ -232,11 +239,6 @@ namespace qm_card_catalog
 		case EQmModuleId::MiniFeatures:
 		{
 			const auto RenderMiniFeatures = [pMenus, LineHeight, BodySize, LineSpacing, LabelWidth](CUIRect &Content, const bool PrewarmOnly) {
-				CSettingsContentLayoutFlow Flow(Content);
-				CUIRect Row;
-				if(Flow.Control("command-completion", LineHeight, Row))
-					QmCardRenderHook::RenderQmFunctionCheckboxRow(pMenus, Row, LineHeight, 0, &g_Config.m_QmChatCommandCompletion, "Show command completion in chat", Localize("Show command completion in chat"), &g_Config.m_QmChatCommandCompletion, PrewarmOnly);
-				Flow.Space(LineSpacing);
 				QmCardRenderHook::RenderQmFunctionMiniFeaturesContent(pMenus, Content, LineHeight, BodySize, LineSpacing, LabelWidth, PrewarmOnly);
 			};
 			Add(Id, "qm:mini_features", "Dream Features", "Only what you can't imagine, nothing Dream can't do",

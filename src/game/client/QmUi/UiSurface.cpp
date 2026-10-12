@@ -16,12 +16,25 @@ namespace
 	{
 		if(Border.a <= 0.0f || Plan.m_BorderWidth <= 0.0f)
 			return;
+		if(Plan.m_UseSdf)
+		{
+			IGraphics::SRoundedRectSdfParams Params;
+			Params.m_Rect = vec4(Plan.m_Rect.x, Plan.m_Rect.y, Plan.m_Rect.w, Plan.m_Rect.h);
+			Params.m_FillColor = vec4(0, 0, 0, 0);
+			Params.m_BorderColor = vec4(Border.r, Border.g, Border.b, Border.a);
+			Params.m_CornerRadii = Plan.m_CornerRadii;
+			Params.m_Params = vec4(Plan.m_BorderWidth, Plan.m_PixelSize, Plan.m_PixelSize * 2.0f, 0.0f);
+			pGraphics->RenderRoundedRectSdf(Params);
+			return;
+		}
 		const auto aMesh = ResolveRoundedSurfaceBorderMesh(Plan, Corners);
 		pGraphics->TextureClear();
 		pGraphics->QuadsBegin();
 		pGraphics->SetColor(Border);
 		pGraphics->QuadsDrawFreeform(aMesh.data(), aMesh.size());
 		pGraphics->QuadsEnd();
+		// 仅给环带外缘补羽化，保持透明填充内部不被边框覆盖。
+		pGraphics->DrawRoundedRectAntialias(Plan.m_Rect.x, Plan.m_Rect.y, Plan.m_Rect.w, Plan.m_Rect.h, Plan.m_Radius, Corners, Border);
 	}
 }
 

@@ -33,11 +33,16 @@ class VerifyWindowsPackageTest(unittest.TestCase):
 			for name in sorted(names - {missing}):
 				archive.writestr(f"QmClient/{name}", b"binary")
 			archive.writestr("QmClient/data/fonts/中文字体.ttf", b"font")
-			archive.writestr("QmClient/SDL2.dll", b"runtime")
+			archive.writestr("QmClient/freetype.dll", b"runtime")
 			if steam_appid:
 				archive.writestr("QmClient/steam_appid.txt", b"412220")
 			for name in extra:
 				archive.writestr(name, b"extra")
+
+	def test_obsolete_sdl2_runtime_is_rejected(self) -> None:
+		self.write_package(extra=("QmClient/SDL2.dll",))
+		with self.assertRaisesRegex(ValueError, "removed bundled resources"):
+			MODULE.verify(self.package, self.runtime, self.tools, False)
 
 	def test_normal_archive_contains_declared_runtime_and_complete_tool_selection(self) -> None:
 		self.write_package()

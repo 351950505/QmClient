@@ -9,8 +9,8 @@
 
 #include <game/client/QmUi/QmPieMenuRender.h>
 #include <game/client/QmUi/QmPieMenuSettingsControls.h>
+#include <game/client/QmUi/SettingsChoiceGrid.h>
 #include <game/client/QmUi/SettingsContentLayout.h>
-#include <game/client/QmUi/SettingsToggleGrid.h>
 #include <game/client/QmUi/UiForms.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/pie_menu_logic.h>
@@ -115,8 +115,8 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 		DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_FUNCTION, QMCLIENT_SETTINGS_TAB_FUNCTION, "qmclient-pie-menu-rename-queue", &LabelColumn, Localize("Rename queue"), BodySize, TEXTALIGN_ML, {}, (int)LabelColumn.w);
 		static CLineInput s_PieMenuRenameQueue(g_Config.m_QmPieMenuRenameQueue, sizeof(g_Config.m_QmPieMenuRenameQueue));
 		if(CanCommit)
-			s_PieMenuRenameQueue.SetEmptyText(Localize("Example: name1|name2|name3"));
-		ui_widget::InputField(TextInputCtx, &s_PieMenuRenameQueue, ControlColumn, Localize("Example: name1|name2|name3"), BodySize);
+			s_PieMenuRenameQueue.SetEmptyText(Localize("Example: A|B|C,D|E (C: main, D: dummy)"));
+		ui_widget::InputField(TextInputCtx, &s_PieMenuRenameQueue, ControlColumn, Localize("Example: A|B|C,D|E (C: main, D: dummy)"), BodySize);
 	}
 	Flow.Space(LineSpacing * 2.0f);
 
@@ -159,7 +159,7 @@ void CMenus::RenderQmFunctionPieMenuContent(CUIRect &Content, float UiScale, flo
 	const float TextWidth = s_ColorWidths.Resolve(apNames.data(), apNames.size(), BodySize, TextRender()->GlyphAtlasRevision(),
 		[this](const char *pText, float Size) { return TextRender()->TextWidth(Size, pText); });
 	const float MinimumCellWidth = std::max(72.0f * UiScale, TextWidth + LineSpacing * 2.0f);
-	SSettingsToggleGrid Grid = ResolveSettingsToggleGrid(Content.w, MinimumCellWidth, 0.0f, LineSpacing * 2.0f, static_cast<int>(aColorEntries.size()), MaxGridColumns);
+	SSettingsChoiceGrid Grid = ResolveSettingsToggleGrid(Content.w, MinimumCellWidth, 0.0f, LineSpacing * 2.0f, static_cast<int>(aColorEntries.size()), MaxGridColumns);
 	std::vector<SSettingsContentRowDeclaration> vLabels;
 	vLabels.reserve(aColorEntries.size());
 	for(const auto &Entry : aColorEntries)

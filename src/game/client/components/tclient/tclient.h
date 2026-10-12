@@ -19,6 +19,7 @@
 #include <game/client/components/qmclient/friend_enter_tracker.h>
 #include <game/client/components/qmclient/friend_online_tracker.h>
 #include <game/client/components/qmclient/gores_drown_tracker.h>
+#include <game/client/components/qmclient/hammer_hit_detection.h>
 #include <game/client/components/qmclient/local_saves.h>
 #include <game/client/components/qmclient/map_progress.h>
 #include <game/client/components/qmclient/modes.h>
@@ -217,6 +218,7 @@ class CTClient : public CComponent
 	SFreezeWakeupPopup m_aFreezeWakeupPopups[FREEZE_WAKEUP_POPUP_MAX];
 	STextPopupCache m_aTextPopupCaches[TEXT_POPUP_TEXTURE_MAX];
 	char m_aTextPopupFont[256] = "";
+	CQmHammerWakeupActionTracker m_HammerWakeupActionTracker;
 	void CheckHammerWakeupActions();
 	void CheckComboPopup();
 	void AddFreezeWakeupPopup(int WokenDummy);
@@ -449,12 +451,18 @@ class CTClient : public CComponent
 	void CheckFriendEnterGreet();
 
 	bool m_QmAspectApplyPending = false;
+	int m_VoteCallerId = -1;
 
 public:
 	CTClient();
 	int Sizeof() const override { return sizeof(*this); }
 	void OnInit() override;
-	void OnReset() override { CancelSoloSplit(); }
+	void OnReset() override
+	{
+		CancelSoloSplit();
+		m_VoteCallerId = -1;
+	}
+	void SetVoteCallerId(int ClientId) { m_VoteCallerId = ClientId; }
 	void CancelSoloSplit() { m_SoloSplit.Reset(); }
 	void OnShutdown() override;
 	void OnWindowResize() override;

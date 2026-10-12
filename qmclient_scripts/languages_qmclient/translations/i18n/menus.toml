@@ -6257,8 +6257,8 @@ polish = "Plik z ogłoszeniami, jedno na linię"
 [[message]]
 key = "Filter connecting players"
 [message.translations]
-simplified_chinese = "筛选正在连接的玩家"
-traditional_chinese = "篩選正在連接的玩家"
+simplified_chinese = "不计连接中"
+traditional_chinese = "不計連接中"
 japanese = "接続中のプレイヤーをフィルター"
 korean = "연결 중인 플레이어 필터링"
 russian = "Фильтр подключающихся игроков"

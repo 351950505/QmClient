@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
 from pathlib import Path
 import re
 import sys
@@ -133,7 +134,8 @@ def check_window_presentation(env: StartupEnvironment, config: list[str]) -> Non
 	if len(shows) != 1:
 		raise AssertionError(f"startup window was shown {len(shows)} times")
 	match = re.search(r"flags=(\d+)", shows[0])
-	if match is None or int(match.group(1)) & 4 == 0 or int(match.group(1)) & (8 | 64):
+	# SDL3 没有 SDL_WINDOW_SHOWN；可见窗口由 HIDDEN/MINIMIZED 均未设置表示。
+	if match is None or int(match.group(1)) & (8 | 64):
 		raise AssertionError(f"startup window was hidden or minimized: {shows[0]}")
 
 
@@ -143,6 +145,50 @@ def smoke_window_presentation(env: StartupEnvironment) -> None:
 
 def smoke_vulkan_window_presentation(env: StartupEnvironment) -> None:
 	check_window_presentation(env, ["qm_graphics_mode 1", "gfx_backend Vulkan"])
+	assert env.client is not None
+	if not any("gfx: GPU version: Vulkan " in line for line in env.client._lines):
+		raise AssertionError("client fell back from Vulkan before producing the screenshot")
+
+
+def smoke_metal_window_presentation(env: StartupEnvironment) -> None:
+	if sys.platform != "darwin":
+		print("SKIP: native Metal requires macOS")
+		return
+	check_window_presentation(env, ["qm_graphics_mode 1", "gfx_backend Metal"])
+	assert env.client is not None
+	if not any("gfx/metal:" in line and "layer configured:" in line for line in env.client._lines):
+		raise AssertionError("client did not initialize the native Metal layer")
+	if any("Failed to initialize Metal" in line for line in env.client._lines):
+		raise AssertionError("client fell back from Metal before producing the screenshot")
+
+
+def smoke_windowed_fullscreen_styles(env: StartupEnvironment) -> None:
+	if sys.platform != "win32":
+		print("SKIP: windowed fullscreen is a Windows mode")
+		return
+	client = env.start(["gfx_fullscreen 3"])
+	env.finish_startup()
+	api = ctypes.WinDLL("user32", use_last_error=True)
+	callback_type = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p)
+	api.EnumWindows.argtypes = [callback_type, ctypes.c_void_p]
+	api.GetWindowThreadProcessId.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ulong)]
+	api.GetWindowLongW.argtypes = [ctypes.c_void_p, ctypes.c_int]
+	api.GetWindowLongW.restype = ctypes.c_long
+	api.IsWindowVisible.argtypes = [ctypes.c_void_p]
+	styles = []
+
+	@callback_type
+	def visit(hwnd, _):
+		pid = ctypes.c_ulong()
+		api.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+		if pid.value == client._process.pid and api.IsWindowVisible(hwnd):
+			styles.append(api.GetWindowLongW(hwnd, -16))  # GWL_STYLE
+		return 1
+
+	api.EnumWindows(visit, None)
+	if not any(style & 0x00C00000 == 0x00C00000 and not style & 0x00040000 for style in styles):
+		raise AssertionError(f"windowed fullscreen must keep its title border and disable resizing: {styles}")
+	env.quit()
 
 
 SMOKE_TESTS = {
@@ -152,6 +198,8 @@ SMOKE_TESTS = {
 	"cjk_category_independent": smoke_cjk_category_independent,
 	"window_presentation": smoke_window_presentation,
 	"vulkan_window_presentation": smoke_vulkan_window_presentation,
+	"metal_window_presentation": smoke_metal_window_presentation,
+	"windowed_fullscreen_styles": smoke_windowed_fullscreen_styles,
 }
 
 

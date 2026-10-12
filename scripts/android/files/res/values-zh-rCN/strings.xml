@@ -11,4 +11,12 @@
 	<string name="server_notification_channel_description">本地 DDNet 服务器控制用通知。</string>
 	<string name="server_error_external_files_inaccessible">启动 DDNet 服务器出错：无法访问外部文件目录。</string>
 	<string name="server_error_exit_code">DDNet 服务器异常退出，错误代码为 \'%1$d\'。</string>
+	<string name="qm_media_demos">Demo 文件</string>
+	<string name="qm_media_videos">视频文件</string>
+	<string name="qm_media_export">保存到手机</string>
+	<string name="qm_media_share">分享文件</string>
+	<string name="qm_media_empty">此文件夹中没有已完成的录制文件。</string>
+	<string name="qm_media_copying">正在复制文件…</string>
+	<string name="qm_media_exported">文件已保存到所选位置。</string>
+	<string name="qm_media_failed">无法访问或复制文件，请检查保存位置和剩余空间后重试。</string>
 </resources>

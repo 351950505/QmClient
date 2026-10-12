@@ -3224,7 +3224,6 @@ void CHud::UpdateHookCountdownTracker()
 		Input.m_HookTick = QmHookCountdownInterpolatedTick(Previous.m_HookTick, Character.m_HookTick, Intra, SameGrab);
 		Input.m_HookDurationSeconds = GameClient()->m_aTuning[Connection].m_HookDuration;
 		Input.m_EndlessHook = Local.m_IsPredictedLocal ? Local.m_Predicted.m_EndlessHook : Local.m_EndlessHook;
-		Input.m_FlowStyle = g_Config.m_QmHookCountdownFlowStyle;
 	}
 	m_HookCountdownRing.Update(Input, Client()->RenderFrameTime());
 }
@@ -3241,7 +3240,7 @@ void CHud::RenderFollowHookCountdown()
 	float ScreenX0, ScreenY0, ScreenX1, ScreenY1;
 	Graphics()->GetScreen(&ScreenX0, &ScreenY0, &ScreenX1, &ScreenY1);
 	const float ScreenPixelSize = QmHudMediaIslandScreenPixelSize(ScreenX0, ScreenY0, ScreenX1, ScreenY1, Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
-	const float Radius = qm_hook_countdown_ui::OUTER_RADIUS * Visual.m_Scale + ScreenPixelSize * 2.5f;
+	const float Radius = (Visual.m_EndlessHook ? qm_hook_countdown_ui::INFINITY_OUTER_RADIUS : qm_hook_countdown_ui::OUTER_RADIUS) * Visual.m_Scale + ScreenPixelSize * 2.5f;
 	if(in_range(Visual.m_Position.x, ScreenX0 - Radius, ScreenX1 + Radius) &&
 		in_range(Visual.m_Position.y, ScreenY0 - Radius, ScreenY1 + Radius))
 		qm_hook_countdown_ui::Render(Graphics(), Visual, ScreenPixelSize);
