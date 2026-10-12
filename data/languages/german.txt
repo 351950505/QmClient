@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == Alle
 
+All categories
+== Alle Kategorien
+
 All combined
 == Alle kombiniert
 
@@ -11314,6 +11317,9 @@ Set voice input device
 
 Set voice output device
 == Sprachausgabegerät festlegen
+
+Set whether a friend is pinned
+== Festlegen, ob ein Freund angeheftet ist
 
 Set your checkpoints based on another player
 == Deine Checkpoints basierend auf einem anderen Spieler setzen

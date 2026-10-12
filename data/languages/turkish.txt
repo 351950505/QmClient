@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == Tümü
 
+All categories
+== Tüm kategoriler
+
 All combined
 == Tümü birleştirilmiş
 
@@ -11314,6 +11317,9 @@ Set voice input device
 
 Set voice output device
 == Ses çıkış cihazını ayarla
+
+Set whether a friend is pinned
+== Bir arkadaşın sabitlenip sabitlenmediğini ayarla
 
 Set your checkpoints based on another player
 == Kontrol noktalarını başka bir oyuncuya göre ayarla

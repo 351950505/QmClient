@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == 전체
 
+All categories
+== 전체
+
 All combined
 == 모두 결합
 
@@ -11314,6 +11317,9 @@ Set voice input device
 
 Set voice output device
 == 음성 출력 장치 설정
+
+Set whether a friend is pinned
+== 친구 고정 여부 설정
 
 Set your checkpoints based on another player
 == 다른 플레이어를 기준으로 체크포인트 설정

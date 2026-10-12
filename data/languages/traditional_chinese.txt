@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == 全體
 
+All categories
+== 全部
+
 All combined
 == 全部文件
 
@@ -11314,6 +11317,9 @@ Set voice input device
 
 Set voice output device
 == 設置語音輸出設備
+
+Set whether a friend is pinned
+== 設定好友是否置頂
 
 Set your checkpoints based on another player
 == 根據其他玩家設置你的檢查點

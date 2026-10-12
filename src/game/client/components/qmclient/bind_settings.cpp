@@ -170,7 +170,15 @@ void CMenus::RenderSettingsQmClientBindCard(CUIRect &Content, const bool Prewarm
 				if(Index + 1 < s_apModifierLabels.size())
 					ModifierRow.VSplitLeft(LineSpacing, nullptr, &ModifierRow);
 				const bool Checked = (State.m_ModifierMask & ModifierBit(s_aModifierIds[Index])) != 0;
-				if(DoButton_Menu(&State.m_aModifierButtons[Index], s_apModifierLabels[Index], Checked, &Button) && !ReadOnly)
+				ui_widget::SButtonSurfaceOptions Options;
+				Options.m_Selected = Checked;
+				// 修饰键保留配置色相，提高底色不透明度并突出已启用的组合键。
+				const ColorRGBA Base = Checked ? Ui()->QmControlTheme().m_Selected : ResolveConfiguredControlSurface();
+				Options.m_Color = Base.WithAlpha(std::max(Base.a, Checked ? 0.88f : 0.72f));
+				const ColorRGBA Fill = ui_widget::DrawButtonSurface(ui_widget::ControlContext(Ui()), &State.m_aModifierButtons[Index], Button, Options);
+				CUiScopedSurfaceText SurfaceText(TextRender(), Fill);
+				Ui()->DoLabel(&Button, s_apModifierLabels[Index], BodySize, TEXTALIGN_MC);
+				if(!ReadOnly && Ui()->DoButtonLogic(&State.m_aModifierButtons[Index], Checked, &Button, BUTTONFLAG_LEFT))
 				{
 					State.m_ModifierMask ^= ModifierBit(s_aModifierIds[Index]);
 					if(State.m_HasSelected)

@@ -14276,6 +14276,22 @@ turkish = "Ses varyantları"
 polish = "Warianty dźwięku"
 
 [[message]]
+key = "All categories"
+[message.translations]
+simplified_chinese = "全部"
+traditional_chinese = "全部"
+japanese = "すべて"
+korean = "전체"
+russian = "Все категории"
+german = "Alle Kategorien"
+spanish = "Todas las categorías"
+french = "Toutes les catégories"
+brazilian_portuguese = "Todas as categorias"
+portuguese = "Todas as categorias"
+turkish = "Tüm kategoriler"
+polish = "Wszystkie kategorie"
+
+[[message]]
 key = "Set whether a friend is pinned"
 [message.translations]
 simplified_chinese = "设置好友是否置顶"

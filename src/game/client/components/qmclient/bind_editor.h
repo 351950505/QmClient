@@ -28,6 +28,28 @@ namespace qm_bind_editor
 		std::string m_Help;
 	};
 
+	enum class ECommandCategory
+	{
+		ALL,
+		MOVEMENT,
+		CAMERA,
+		DUMMY,
+		WEAPON,
+		CHAT,
+		VOTING,
+		MISCELLANEOUS,
+		CONSOLE,
+		NUM_CATEGORIES,
+	};
+
+	struct SCommandOption
+	{
+		std::string m_Label;
+		SRegisteredCommand m_Command;
+		bool m_Preset = false;
+		ECommandCategory m_Category = ECommandCategory::CONSOLE;
+	};
+
 	struct SParameter
 	{
 		char m_Type;
@@ -36,6 +58,8 @@ namespace qm_bind_editor
 	};
 
 	std::vector<SRegisteredCommand> RegisteredCommands(IConsole &Console);
+	std::vector<SCommandOption> CommandOptions(IConsole &Console);
+	std::vector<size_t> FilterCommandOptions(const std::vector<SCommandOption> &vOptions, ECommandCategory Category, std::string_view Filter, const char *(*pLocalize)(const char *) = nullptr);
 	std::vector<SParameter> ParseParameters(std::string_view Format);
 	bool ComposeCommand(std::string_view Name, const std::vector<SParameter> &vParameters, const std::vector<std::optional<std::string>> &vArguments, std::string &Result);
 	SCommands SplitCommands(std::string_view Text);

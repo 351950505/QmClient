@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == Все
 
+All categories
+== Все категории
+
 All combined
 == Все вместе
 
@@ -11314,6 +11317,9 @@ Set voice input device
 
 Set voice output device
 == Установить устройство вывода голоса
+
+Set whether a friend is pinned
+== Установить, закреплён ли друг
 
 Set your checkpoints based on another player
 == Установить ваши чекпоинты на основе другого игрока

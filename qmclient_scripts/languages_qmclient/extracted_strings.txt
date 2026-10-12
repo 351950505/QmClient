@@ -219,6 +219,7 @@ Alive notification text
 Alive notification vertical position (percentage of screen height)
 Alive: %.1fs/%.1fs
 All
+All categories
 All combined
 All maps
 All players
@@ -3770,6 +3771,7 @@ Set timeout protection code s
 Set up Kugou lyrics
 Set voice input device
 Set voice output device
+Set whether a friend is pinned
 Set your checkpoints based on another player
 Sets one of the two rescue modes (auto or manual). Prints current mode if no arguments provided
 Sets your tee's eye emote

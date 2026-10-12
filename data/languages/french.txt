@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == Tous
 
+All categories
+== Toutes les catégories
+
 All combined
 == Tout combiné
 
@@ -11314,6 +11317,9 @@ Set voice input device
 
 Set voice output device
 == Définir le périphérique de sortie vocale
+
+Set whether a friend is pinned
+== Définir si un ami est épinglé
 
 Set your checkpoints based on another player
 == Définir vos checkpoints en fonction d'un autre joueur
