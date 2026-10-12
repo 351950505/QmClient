@@ -1452,7 +1452,7 @@ bool CCommandProcessorFragment_OpenGL2::InitBorderTileProgram(CGLSLTileProgram *
 	if(Textured)
 		pProgram->m_LocTextureSampler = pProgram->GetUniformLoc("gTextureSampler");
 	const bool UniformsAvailable = pProgram->m_LocPos >= 0 && pProgram->m_LocColor >= 0 &&
-		pProgram->m_LocOffset >= 0 && pProgram->m_LocScale >= 0 && (!Textured || pProgram->m_LocTextureSampler >= 0);
+				       pProgram->m_LocOffset >= 0 && pProgram->m_LocScale >= 0 && (!Textured || pProgram->m_LocTextureSampler >= 0);
 	if(!UniformsAvailable)
 		log_warn("gfx/opengl/shader", "Tile border shader is missing required uniforms (textured=%d).", Textured);
 	return UniformsAvailable;
