@@ -2,6 +2,7 @@
 #include <engine/keys.h>
 
 #include <game/client/QmUi/SecondaryPanel.h>
+#include <game/client/QmUi/UiSurface.h>
 
 #include <test/support/qm_real_ui_fixture.h>
 #include <test/support/qm_ui_test_client.h>
@@ -80,8 +81,20 @@ namespace
 		bool m_CaptureSucceeds = true, m_BlurSucceeds = true;
 		int m_Captures = 0, m_Blurs = 0, m_Created = 0;
 		int m_Surfaces = 0;
-		void DrawRect(float, float, float, float, ColorRGBA, int, float) override { ++m_Surfaces; }
-		bool HasRoundedRectSdf() override { return true; }
+		bool m_HasSdf = true;
+		std::vector<std::pair<CUIRect, ColorRGBA>> m_vRectangles;
+		std::vector<CFreeformItem> m_vBorderMesh;
+		void DrawRect(float X, float Y, float W, float H, ColorRGBA Color, int, float) override
+		{
+			++m_Surfaces;
+			m_vRectangles.emplace_back(CUIRect{X, Y, W, H}, Color);
+		}
+		bool HasRoundedRectSdf() override { return m_HasSdf; }
+		void TextureSet(CTextureHandle) override {}
+		void QuadsBegin() override {}
+		void SetColor(ColorRGBA) override {}
+		void QuadsDrawFreeform(const CFreeformItem *pItems, int Count) override { m_vBorderMesh.insert(m_vBorderMesh.end(), pItems, pItems + Count); }
+		void QuadsEnd() override {}
 		void RenderRoundedRectSdf(const SRoundedRectSdfParams &) override { ++m_Surfaces; }
 		std::vector<SRenderTargetDrawParams> m_vDraws;
 		bool IsBackbufferCaptureSupported() const override { return m_CaptureSupported; }
@@ -284,7 +297,7 @@ TEST_F(QmUiBlurGraphics, SecondaryPanelDefaultAnimationCanRenderExitAfterLogical
 	auto Props = ui_widget::SecondaryPanelProperties();
 	// 关闭遮罩以只观察弹层背板，保留默认居中与动画策略。
 	Props.m_BlockUnderlyingPointerInput = false;
-	g_Config.m_QmUiPopupBlur = 0;
+	g_Config.m_QmGaussianBlur = 0;
 	m_Ui.DoPopupMenu(&Id, 0, 0, 160, 100, nullptr, KeepCenteredPopupOpen, Props);
 	ASSERT_TRUE(m_Ui.IsPopupOpen(&Id));
 	// 输入阶段逻辑关闭立即生效，背板继续由公共栈绘制到退场结束。
@@ -350,7 +363,7 @@ TEST_F(QmPopupBlurScope, BackgroundRenderBlocksControlsAndHotkeysWithoutClipping
 
 TEST_F(QmUiBlurGraphics, PopupStackRefreshesPageSnapshotAndReusesItAcrossDropdowns)
 {
-	g_Config.m_QmUiPopupBlur = 1;
+	g_Config.m_QmGaussianBlur = 1;
 	ASSERT_TRUE(m_Ui.PrepareGaussianBlur());
 	EXPECT_EQ(m_Graphics.m_Captures, 1);
 	SPopupMenuId First, Second;
@@ -367,10 +380,10 @@ TEST_F(QmUiBlurGraphics, PopupStackRefreshesPageSnapshotAndReusesItAcrossDropdow
 	EXPECT_GE(m_Graphics.m_vDraws.size(), 2u);
 }
 
-TEST_F(QmUiBlurGraphics, DisabledPopupBlurDoesNotRefreshOrDrawCachedMenuBlur)
+TEST_F(QmUiBlurGraphics, DisabledBackdropBlurDoesNotRefreshOrDrawCachedMenuBlur)
 {
-	g_Config.m_QmUiPopupBlur = 0;
 	ASSERT_TRUE(m_Ui.PrepareGaussianBlur());
+	g_Config.m_QmGaussianBlur = 0;
 	SPopupMenuId Id;
 	SPopupMenuProperties Props;
 	Props.m_Animate = false;
@@ -379,4 +392,50 @@ TEST_F(QmUiBlurGraphics, DisabledPopupBlurDoesNotRefreshOrDrawCachedMenuBlur)
 	EXPECT_EQ(m_Graphics.m_Captures, 1);
 	EXPECT_EQ(m_Graphics.m_Blurs, 1);
 	EXPECT_TRUE(m_Graphics.m_vDraws.empty());
+}
+
+TEST_F(QmUiBlurGraphics, FallbackBorderNeverFillsTranslucentInputInterior)
+{
+	m_Graphics.m_HasSdf = false;
+	for(int Corners : std::array<int, 3>{0, IGraphics::CORNER_TL, IGraphics::CORNER_ALL})
+	{
+		for(float Alpha : {0.0f, 0.3f, 1.0f})
+		{
+			SCOPED_TRACE(Corners);
+			SCOPED_TRACE(Alpha);
+			m_Graphics.m_vRectangles.clear();
+			m_Graphics.m_vBorderMesh.clear();
+			const ColorRGBA Fill(0.1f, 0.1f, 0.1f, Alpha), Accent(1, 0, 0, 0.8f);
+			ASSERT_TRUE(DrawRoundedSurface(&m_Ui, m_Rect, Fill, Accent, 8, 2, Corners));
+			ASSERT_EQ(m_Graphics.m_vRectangles.size(), 1u);
+			EXPECT_EQ(m_Graphics.m_vRectangles.front().second, Fill);
+			ASSERT_FALSE(m_Graphics.m_vBorderMesh.empty());
+			const vec2 Center = m_Rect.Center();
+			for(const auto &Quad : m_Graphics.m_vBorderMesh)
+			{
+				const float Left = std::min({Quad.m_X0, Quad.m_X1, Quad.m_X2, Quad.m_X3});
+				const float Right = std::max({Quad.m_X0, Quad.m_X1, Quad.m_X2, Quad.m_X3});
+				const float Top = std::min({Quad.m_Y0, Quad.m_Y1, Quad.m_Y2, Quad.m_Y3});
+				const float Bottom = std::max({Quad.m_Y0, Quad.m_Y1, Quad.m_Y2, Quad.m_Y3});
+				EXPECT_FALSE(Center.x > Left && Center.x < Right && Center.y > Top && Center.y < Bottom);
+			}
+		}
+	}
+}
+
+TEST_F(QmUiBlurGraphics, PopupBlurRecoversWhenMasterSwitchIsEnabledAgain)
+{
+	g_Config.m_QmGaussianBlur = 0;
+	SPopupMenuId Id;
+	SPopupMenuProperties Props;
+	Props.m_Animate = false;
+	m_Ui.DoPopupMenu(&Id, 20, 30, 160, 100, nullptr, KeepCenteredPopupOpen, Props);
+	m_Ui.RenderPopupMenus();
+	EXPECT_EQ(m_Graphics.m_Captures, 0);
+	EXPECT_TRUE(m_Graphics.m_vDraws.empty());
+	g_Config.m_QmGaussianBlur = 1;
+	m_Client.AdvanceFrame();
+	m_Ui.RenderPopupMenus();
+	EXPECT_EQ(m_Graphics.m_Captures, 1);
+	EXPECT_FALSE(m_Graphics.m_vDraws.empty());
 }

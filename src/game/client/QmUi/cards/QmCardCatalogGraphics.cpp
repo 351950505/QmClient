@@ -282,7 +282,7 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 #endif
 	const auto GpuControl = ResolveSettingsGpuControl(GpuList.m_vGpus.size(), GpuList.m_CanSelect, HasSystemGpuSettings);
 	const int GpuRowCount = GpuControl.RowCount();
-	const int GraphicsBackendRowCount = (FoundBackendCount > 1 ? 1 : 0) + GpuRowCount;
+	const int GraphicsBackendRowCount = (FoundBackendCount > 1 ? 1 : 0) + GpuRowCount + 3;
 	const qm_card_registry::SCardDefault *pDisplayDefault = qm_card_registry::FindByStableId("deck:graphics-display");
 	const qm_card_registry::SCardDefault *pVisualDefault = qm_card_registry::FindByStableId("deck:graphics-visual");
 	const qm_card_registry::SCardDefault *pIconsDefault = qm_card_registry::FindByStableId("deck:graphics-icons");
@@ -302,7 +302,8 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 	const int GraphicsDisplayRowCount = 5 + (Graphics()->GetNumScreens() > 1 ? 1 : 0) + GraphicsBackendRowCount;
 	uint64_t GraphicsDisplayMeasureRevision = (static_cast<uint64_t>(std::max(0, GraphicsDisplayRowCount)) << 32) ^ static_cast<uint64_t>(std::max(0, OldWindowMode));
 	GraphicsDisplayMeasureRevision = GraphicsDisplayMeasureRevision * 1099511628211ULL ^ static_cast<uint64_t>(GpuList.m_CanSelect);
-	GraphicsDisplayMeasureRevision = GraphicsDisplayMeasureRevision * 1099511628211ULL ^ str_quickhash(GpuList.m_AutoGpu.m_aName);
+	GraphicsDisplayMeasureRevision = GraphicsDisplayMeasureRevision * 1099511628211ULL ^ str_quickhash(Graphics()->GetRendererString());
+	GraphicsDisplayMeasureRevision = GraphicsDisplayMeasureRevision * 1099511628211ULL ^ str_quickhash(Graphics()->GetVersionString());
 	for(const auto &Gpu : GpuList.m_vGpus)
 		GraphicsDisplayMeasureRevision = GraphicsDisplayMeasureRevision * 1099511628211ULL ^ str_quickhash(Gpu.m_aName);
 	const bool GraphicsVisualTextCustomVisible = g_Config.m_QmUiTextColorMode == 3;
@@ -635,6 +636,22 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 					});
 				});
 			}
+			const auto InfoLabel = [this, &Flow, GraphicsMetrics, BodySize](const char *pId, const char *pLabel, const char *pValue) {
+				char aText[1024];
+				str_format(aText, sizeof(aText), "%s: %s", pLabel, pValue != nullptr && pValue[0] != '\0' ? pValue : Localize("Unknown"));
+				Flow.Text(pId, aText, 0.0f, BodySize, GraphicsMetrics.m_LineSpacing, [this](const char *pText, float Width, float Size) { return TextRender()->TextBoundingBox(Size, pText, -1, Width).m_H + Size * 0.25f; }, [this, BodySize](const CUIRect &Row, const char *pText) {
+						SLabelProperties Props;
+						Props.m_MaxWidth = Row.w;
+						Props.m_EnableWidthCheck = false;
+						Ui()->DoLabel(&Row, pText, BodySize, TEXTALIGN_ML, Props); }, GraphicsMetrics.m_LineHeight);
+			};
+			int Major = 0, Minor = 0, Patch = 0;
+			const char *pBackend = "";
+			Graphics()->GetDetectedContextVersion(Major, Minor, Patch, pBackend);
+			const auto RuntimeInfo = ResolveSettingsGraphicsRuntimeInfo(Graphics()->GetVersionString(), pBackend, Major, Minor, Patch);
+			InfoLabel("graphics-current-gpu", Localize("Current GPU"), Graphics()->GetRendererString());
+			InfoLabel("graphics-current-driver", Localize("Current driver"), RuntimeInfo.m_Driver.c_str());
+			InfoLabel("graphics-current-backend", Localize("Current graphics backend"), RuntimeInfo.m_Backend.c_str());
 			if(ResolveSettingsGpuControl(Graphics()->GetGpus().m_vGpus.size(), Graphics()->GetGpus().m_CanSelect, HasSystemGpuSettings).m_ShowSelector)
 			{
 				RowAction("graphics-gpu", GraphicsMetrics.m_LineHeight, [&](CUIRect Row) {
@@ -666,21 +683,9 @@ uint64_t CMenus::BuildGraphicsSettingsCards(const qm_card_catalog::SQmCardBuildC
 					});
 				});
 			}
-			else if(ResolveSettingsGpuControl(Graphics()->GetGpus().m_vGpus.size(), Graphics()->GetGpus().m_CanSelect, HasSystemGpuSettings).m_ShowSystemSettings)
+			if(ResolveSettingsGpuControl(Graphics()->GetGpus().m_vGpus.size(), Graphics()->GetGpus().m_CanSelect, HasSystemGpuSettings).m_ShowSystemSettings)
 			{
-				const auto &GpuInfo = Graphics()->GetGpus();
-				const auto InfoLabel = [this, &Flow, GraphicsMetrics, BodySize](const char *pId, const char *pText) {
-					Flow.Text(pId, pText, 0.0f, BodySize, GraphicsMetrics.m_LineSpacing, [this](const char *pValue, float Width, float Size) { return TextRender()->TextBoundingBox(Size, pValue, -1, Width).m_H + Size * 0.25f; }, [this, BodySize](const CUIRect &Row, const char *pPublishedText) {
-							SLabelProperties Props;
-							Props.m_MaxWidth = Row.w;
-							Props.m_EnableWidthCheck = false;
-							Ui()->DoLabel(&Row, pPublishedText, BodySize, TEXTALIGN_ML, Props); }, GraphicsMetrics.m_LineHeight);
-				};
-				char aCurrentGpu[512];
-				str_format(aCurrentGpu, sizeof(aCurrentGpu), "%s: %s", Localize("Current GPU"), GpuInfo.m_AutoGpu.m_aName[0] ? GpuInfo.m_AutoGpu.m_aName : Localize("Unknown"));
-				InfoLabel("graphics-current-gpu", aCurrentGpu);
 #if defined(CONF_FAMILY_WINDOWS)
-				InfoLabel("graphics-system-gpu-help", Localize("Choose a GPU for this app in system graphics settings, then restart the client."));
 				RowAction("graphics-system-gpu-settings", GraphicsMetrics.m_ButtonHeight, [&](CUIRect SystemSettingsRow) {
 					static CButtonContainer s_SystemGraphicsSettings;
 
@@ -836,8 +841,10 @@ static CButtonContainer s_ScoreboardColorResetId;
 			});
 
 			RowAction("graphics-backdrop-blur", GraphicsMetrics.m_LineHeight, [&](CUIRect Button) {
-
-			if(DoSettingsButton_CheckBox(SETTINGS_GRAPHICS, -1, &g_Config.m_QmGaussianBlur, "enable-backdrop-blur", Localize("Enable backdrop blur"), g_Config.m_QmGaussianBlur, &Button))
+			const bool BlurSupported = Graphics()->IsBackbufferCaptureSupported() && Graphics()->IsRenderTargetGaussianBlurSupported();
+			char aBlurLabel[192];
+			str_format(aBlurLabel, sizeof(aBlurLabel), "%s%s%s%s", Localize("Enable backdrop blur"), BlurSupported ? "" : " (", BlurSupported ? "" : Localize("Unavailable"), BlurSupported ? "" : ")");
+			if(DoSettingsButton_CheckBox(SETTINGS_GRAPHICS, -1, &g_Config.m_QmGaussianBlur, "enable-backdrop-blur", aBlurLabel, g_Config.m_QmGaussianBlur, &Button))
 				g_Config.m_QmGaussianBlur ^= 1;
 
 
@@ -1019,12 +1026,6 @@ static CButtonContainer s_CardBorderColorResetId;
 				if(DoSettingsButton_CheckBox(SETTINGS_GRAPHICS, -1, &g_Config.m_QmExtraAnimations, "presentation-animations", Localize("Presentation animations"), g_Config.m_QmExtraAnimations, &PresentationAnimations))
 					g_Config.m_QmExtraAnimations ^= 1;
 				GameClient()->m_Tooltips.DoToolTip(&g_Config.m_QmExtraAnimations, &PresentationAnimations, Localize("Animate chat box, emote selector, scoreboard, and spectate selection"));
-			});
-
-			RowAction("graphics-PopupBlurRow", GraphicsMetrics.m_LineHeight, [&](CUIRect PopupBlurRow) {
-				if(DoSettingsButton_CheckBox(SETTINGS_GRAPHICS, -1, &g_Config.m_QmUiPopupBlur, "settings-popup-blur", Localize("Popup & dropdown blur"), g_Config.m_QmUiPopupBlur, &PopupBlurRow))
-					g_Config.m_QmUiPopupBlur ^= 1;
-				GameClient()->m_Tooltips.DoToolTip(&g_Config.m_QmUiPopupBlur, &PopupBlurRow, Localize("Apply frosted glass blur behind secondary popups and dropdowns"));
 			});
 		});
 	};

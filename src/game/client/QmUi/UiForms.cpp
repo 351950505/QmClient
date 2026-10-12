@@ -702,11 +702,14 @@ namespace ui_widget
 		return Clicked;
 	}
 
-	void DrawScrollbarHandle(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, bool Enabled, const ColorRGBA *pColorInner)
+	void DrawScrollbarHandle(const IUiContext &Ctx, const void *pId, const CUIRect &Rect, bool Enabled, const ColorRGBA *pColorInner, const ColorRGBA *pHandleColorOverride)
 	{
 		if(Ctx.m_pUi == nullptr || Ctx.m_pUi->MeasurementOnly())
 			return;
-		const SUiSliderStyle Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->HotItem() == pId, !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->CheckActiveItem(pId), Enabled);
+		SUiSliderStyle Style = ResolveUiSliderStyle(ThemeFor(Ctx), CUiScopedSurfaceText::CurrentSurface(), !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->HotItem() == pId, !Ctx.m_pUi->RenderOnly() && Ctx.m_pUi->CheckActiveItem(pId), Enabled);
+		// 宿主显式指定的滑块色优先于对比度兜底，供弹窗与设置页保持同一强调色。
+		if(pHandleColorOverride != nullptr)
+			Style.m_Handle = *pHandleColorOverride;
 		// 滑块是前景反馈，背景透明度仅作用于轨道；保留强调色自身 alpha 和禁用态。
 		DrawControlSurface(Ctx, Rect, Style.m_Handle, Style.m_Border, ui_token::radius::PILL, ui_token::feedback::ICON_BORDER_WIDTH);
 		if(pColorInner != nullptr)

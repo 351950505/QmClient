@@ -848,9 +848,6 @@ Apply a writable preset and edit first
 Apply Changes
 == Применить изменения
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== Размывать фон подокон и выпадающих списков
-
 Apply input early before next tick for prediction
 == Применять ввод заранее до следующего тика для предсказания
 
@@ -1970,9 +1967,6 @@ Chinese font:
 CHN
 == Китай
 
-Choose a GPU for this app in system graphics settings, then restart the client.
-== Выберите GPU для этого приложения в системных настройках графики, затем перезапустите клиент.
-
 Choose colors for weapons and entity lasers
 == Choose colors for weapons and entity lasers
 
@@ -2858,11 +2852,17 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == Текущий отрезок недействителен или уже добавлен
 
+Current driver
+== Текущий драйвер
+
 Current file
 == Текущий файл
 
 Current GPU
 == Текущий GPU
+
+Current graphics backend
+== Текущий графический бэкенд
 
 Current rescue mode: %s
 == Текущий режим спасения: %s
@@ -2872,6 +2872,9 @@ Current status
 
 Current version: %s
 == Текущая версия: %s
+
+Current version: %s (up to date)
+== Текущая версия: %s (актуальная)
 
 Current: Ranks
 == Текущее: Ранги
@@ -4087,9 +4090,6 @@ Enable fat skin
 
 Enable freeze call sound
 == Включить звук вызова заморозки
-
-Enable frosted glass blur behind secondary popups and dropdowns
-== Включить размытие фона подокон и списков
 
 Enable FTAPI auto-translate
 == Включить автоперевод FTAPI
@@ -6512,12 +6512,6 @@ Latency compensation
 Latency Jitter
 == Джиттер задержки
 
-Later
-== Позже
-
-Latest release: %s
-== Последний выпуск: %s
-
 Latin font
 == Латинский шрифт
 
@@ -7066,6 +7060,9 @@ Map upload network error.
 
 Map uploaded successfully.
 == Карта успешно загружена.
+
+Maps
+== Карты
 
 Maps finished
 == Пройдено карт
@@ -8897,14 +8894,8 @@ Polished
 Pop wave
 == Волна увеличения
 
-Popup & dropdown blur
-== Размытие окон и списков
-
 Popup animation
 == Анимация всплытия
-
-Popup blur
-== Размытие всплывающих панелей
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == Порт для подключения клиента к серверу (0 = случайный, >=1024 задаёт ручной порт)
@@ -9317,6 +9308,9 @@ Quads are used for background decoration
 Query current map info
 == Запросить информацию о текущей карте
 
+Query isolated serverlist consumer state
+== Query isolated serverlist consumer state
+
 Query map info for %s
 == Запросить информацию о карте %s
 
@@ -9628,6 +9622,9 @@ Refresh
 
 Refresh interval
 == Интервал обновления
+
+Refresh isolated serverlist consumer
+== Refresh isolated serverlist consumer
 
 Refresh Rate
 == Частота обновления
@@ -14236,9 +14233,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == Использовать список врагов для управления индикаторами игроков
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== Использовать конвейер гауссова размытия при включённом расширенном рендеринге
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == Использовать режим высокой пропускной способности (удваивает пропускную способность сервера, только LAN)

@@ -1285,7 +1285,7 @@ TEST_F(QmBackgroundControlsIntegration, AnimatedPopupAppliesTransitionToItsContr
 	SPopupMenuProperties Props;
 	Props.m_Animate = true;
 	Props.m_BlockUnderlyingPointerInput = false;
-	g_Config.m_QmUiPopupBlur = 0;
+	g_Config.m_QmGaussianBlur = 0;
 	g_Config.m_QmUiDropdownOpacity = 40;
 	m_Ui.SetBackgroundAlphaScale(0.2f);
 	m_Ui.DoPopupMenu(&Id, 20, 20, 240, 100, &Probe, [](void *pContext, CUIRect View, bool) {

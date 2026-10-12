@@ -848,9 +848,6 @@ Apply a writable preset and edit first
 Apply Changes
 == Änderungen übernehmen
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== Hintergrund von Unterfenstern und Auswahllisten weichzeichnen
-
 Apply input early before next tick for prediction
 == Eingabe vor dem nächsten Tick zur Vorhersage frühzeitig anwenden
 
@@ -1970,9 +1967,6 @@ Chinese font:
 CHN
 == CHN
 
-Choose a GPU for this app in system graphics settings, then restart the client.
-== Wähle in den Systemgrafikeinstellungen eine GPU für diese App und starte dann den Client neu.
-
 Choose colors for weapons and entity lasers
 == Choose colors for weapons and entity lasers
 
@@ -2858,11 +2852,17 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == Aktueller Schnitt ist ungültig oder bereits hinzugefügt
 
+Current driver
+== Aktueller Treiber
+
 Current file
 == Aktuelle Datei
 
 Current GPU
 == Aktuelle GPU
+
+Current graphics backend
+== Aktuelles Grafik-Backend
 
 Current rescue mode: %s
 == Aktueller Rettungsmodus: %s
@@ -2872,6 +2872,9 @@ Current status
 
 Current version: %s
 == Aktuelle Version: %s
+
+Current version: %s (up to date)
+== Aktuelle Version: %s (aktuell)
 
 Current: Ranks
 == Aktuell: Ränge
@@ -4087,9 +4090,6 @@ Enable fat skin
 
 Enable freeze call sound
 == Freeze-Ruf-Sound aktivieren
-
-Enable frosted glass blur behind secondary popups and dropdowns
-== Hintergrundunschärfe für Unterfenster und Auswahllisten aktivieren
 
 Enable FTAPI auto-translate
 == FTAPI-Auto-Übersetzung aktivieren
@@ -6512,12 +6512,6 @@ Latency compensation
 Latency Jitter
 == Latenz-Jitter
 
-Later
-== Später
-
-Latest release: %s
-== Neueste Veröffentlichung: %s
-
 Latin font
 == Lateinische Schrift
 
@@ -7066,6 +7060,9 @@ Map upload network error.
 
 Map uploaded successfully.
 == Karte erfolgreich hochgeladen.
+
+Maps
+== Karten
 
 Maps finished
 == Abgeschlossene Karten
@@ -8897,14 +8894,8 @@ Polished
 Pop wave
 == Vergrößerungswelle
 
-Popup & dropdown blur
-== Unschärfe für Popups und Auswahllisten
-
 Popup animation
 == Popup-Animation
-
-Popup blur
-== Unschärfe von Einblendungen
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == Port für Client-Server-Verbindung (0=zufällig, >=1024 legt manuellen Port fest)
@@ -9317,6 +9308,9 @@ Quads are used for background decoration
 Query current map info
 == Aktuelle Karteninfo abfragen
 
+Query isolated serverlist consumer state
+== Query isolated serverlist consumer state
+
 Query map info for %s
 == Karteninfo für %s abfragen
 
@@ -9628,6 +9622,9 @@ Refresh
 
 Refresh interval
 == Aktualisierungsintervall
+
+Refresh isolated serverlist consumer
+== Refresh isolated serverlist consumer
 
 Refresh Rate
 == Bildwiederholfrequenz
@@ -14236,9 +14233,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == Feindliste zur Steuerung von Spielerindikatoren verwenden
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== Gaußschen Unschärfe-Pipeline bei aktiviertem erweitertem Rendering verwenden
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == High-Bandwidth-Modus verwenden (verdoppelt Serverbandbreite, nur LAN)

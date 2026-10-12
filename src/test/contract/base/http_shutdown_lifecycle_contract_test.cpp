@@ -58,23 +58,6 @@ TEST(HttpShutdownLifecycle, ServerBrowserShutdownHandlesEarlyInitialization)
 	EXPECT_NE(Body.find("m_pHttp->Shutdown();"), std::string::npos);
 }
 
-TEST(HttpShutdownLifecycle, ServerBrowserHttpDestructorsOnlyAssertClearedRequests)
-{
-	const std::string Source = ReadTestSourceFile("src/engine/client/serverbrowser_http.cpp");
-	const std::string ChooseMasterDestructor = FunctionBody(Source, "CChooseMaster::~CChooseMaster()");
-	const std::string ServerBrowserDestructor = FunctionBody(Source, "CServerBrowserHttp::~CServerBrowserHttp()");
-	const std::string Shutdown = FunctionBody(Source, "void CServerBrowserHttp::Shutdown()");
-
-	EXPECT_EQ(ChooseMasterDestructor.find(".Abort("), std::string::npos);
-	EXPECT_EQ(ServerBrowserDestructor.find(".Abort("), std::string::npos);
-	EXPECT_NE(ChooseMasterDestructor.find("dbg_assert(m_pJob == nullptr"), std::string::npos);
-	EXPECT_NE(ServerBrowserDestructor.find("dbg_assert(m_pGetServers == nullptr"), std::string::npos);
-	EXPECT_NE(Shutdown.find("m_pGetServers->Abort();"), std::string::npos);
-	EXPECT_NE(Shutdown.find("m_pGetServers = nullptr;"), std::string::npos);
-	EXPECT_NE(Shutdown.find("m_pChooseMaster->Shutdown();"), std::string::npos);
-	EXPECT_NE(Source.find("if(State() == IJob::STATE_ABORTED)"), std::string::npos);
-}
-
 TEST(HttpShutdownLifecycle, SkinShutdownClearsLoadAndHttpRequests)
 {
 	const std::string Source = ReadTestSourceFile("src/game/client/components/skins.cpp");

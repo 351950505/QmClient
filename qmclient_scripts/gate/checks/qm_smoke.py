@@ -18,6 +18,7 @@ def run(results: ResultCollector, included: list[str], dry_run: bool = False, bu
 	tests = (
 		("冒烟", REPO_ROOT / "qmclient_scripts" / "integration" / "qmclient_smoke.py", "QmClient process smoke tests"),
 		("端到端", REPO_ROOT / "qmclient_scripts" / "integration" / "e2e_qmclient.py", "QmClient process end-to-end tests"),
+		("服务器列表端到端", REPO_ROOT / "qmclient_scripts" / "integration" / "e2e_serverlist.py", "QmClient server-list recovery end-to-end tests"),
 	)
 	outputs: list[str] = []
 	for label, script, title in tests:

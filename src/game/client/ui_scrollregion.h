@@ -41,6 +41,9 @@ struct CScrollRegionParams
 	ColorRGBA m_SliderColorGrabbed;
 	// 主题滑块不读取旧颜色字段，单独传递父面板的显隐系数。
 	float m_SliderAlpha;
+	// 有动画的主题滑块路径默认取控制主题强调色；弹窗等宿主可显式指定（如二级面板主题的强调色），
+	// 避免宿主表面与强调色对比不足时被前景兜底改写颜色。
+	const ColorRGBA *m_pSliderThemeColor;
 	bool m_HideScrollbar;
 	bool m_ScrollHorizontal;
 	const void *m_pWheelOwnerId;
@@ -103,6 +106,7 @@ inline CScrollRegionParams::CScrollRegionParams()
 	m_SliderColorHover = ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f);
 	m_SliderColorGrabbed = ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f);
 	m_SliderAlpha = 1.0f;
+	m_pSliderThemeColor = nullptr;
 	m_HideScrollbar = false;
 	m_ScrollHorizontal = false;
 	m_pWheelOwnerId = nullptr;

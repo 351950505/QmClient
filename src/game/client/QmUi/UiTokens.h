@@ -139,7 +139,6 @@ namespace ui_token::secondary_panel
 	inline constexpr float NEWS_WIDTH = 820.0f;
 	inline constexpr float NEWS_ACTION_HEIGHT = 26.0f;
 	inline constexpr float UPDATE_WIDTH = 600.0f;
-	inline constexpr float UPDATE_HEIGHT = 350.0f;
 	inline constexpr float UPDATE_ACTION_LINE_FACTOR = 2.4f;
 } // namespace ui_token::secondary_panel
 

@@ -3000,17 +3000,6 @@ private:
 		float m_FinalOffsetY = 0.0f;
 	};
 
-	struct SSettingsQmScrollFrame
-	{
-		vec2 m_Offset = vec2(0.0f, 0.0f);
-		CUIRect m_ViewRect;
-		CUIRect m_ClipRect;
-		SQmScrollContainerStyle m_Style;
-		SQmScrollContainerFrame m_Frame;
-		float m_PreviousOffsetY = 0.0f;
-		bool m_Enabled = false;
-	};
-
 	struct SQmSettingsCardStyle
 	{
 		float m_Padding = 14.0f;
@@ -3041,8 +3030,6 @@ private:
 
 	SSettingsScrollRegionFrame BeginSettingsScrollRegion(CScrollRegion &ScrollRegion, CUIRect *pView, const CScrollRegionParams &Params, float PreviousOffsetY);
 	void FinishSettingsScrollRegion(CScrollRegion &ScrollRegion, SSettingsScrollRegionFrame &Frame, const CUIRect *pEndRect = nullptr, int Page = -1, bool TrackScrollActive = true);
-	SSettingsQmScrollFrame BeginSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, CUIRect *pView, float ContentHeight, const SQmSettingsCardStyle &CardStyle, float UiScale, float PreviousOffsetY, bool Enabled);
-	void FinishSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, SSettingsQmScrollFrame &Frame, const CUIRect &EndRect, float *pContentHeight, float *pPreviousOffsetY, bool TrackScrollActive = true);
 	SQmSettingsCardStyle QmSettingsCardStyle(float UiScale) const;
 	CScrollRegionParams QmSettingsScrollRegionParams(float UiScale) const;
 	float SettingsPageUiScale(float ContentWidth) const;

@@ -316,63 +316,6 @@ void CMenus::BuildQmClientSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &v
 	g_Config.m_UiSettingsPage = PreviousSettingsPage;
 }
 
-CMenus::SSettingsQmScrollFrame CMenus::BeginSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, CUIRect *pView, float ContentHeight, const SQmSettingsCardStyle &CardStyle, float UiScale, float PreviousOffsetY, bool Enabled)
-{
-	SSettingsQmScrollFrame Frame;
-	Frame.m_ViewRect = *pView;
-	Frame.m_ClipRect = *pView;
-	Frame.m_PreviousOffsetY = PreviousOffsetY;
-	Frame.m_Enabled = Enabled;
-	const SQmResolvedScrollPolicy ScrollPolicy = QmResolveScrollPolicy({EQmScrollProfile::SETTINGS_OUTER}, UiScale, g_Config.m_UiSmoothScrollTime / 1000.0f);
-	Frame.m_Style = ScrollPolicy.m_Style;
-	(void)CardStyle;
-	if(!Enabled)
-		return Frame;
-
-	const SQmScrollConfig ScrollConfig = QmSettingsScrollConfig(UiScale, g_Config.m_UiSmoothScrollTime / 1000.0f);
-
-	SQmScrollContainerInput ScrollInput;
-	ScrollInput.m_Hovered = Ui()->MouseHovered(pView);
-	ScrollInput.m_MouseValid = true;
-	ScrollInput.m_MouseX = Ui()->MouseX();
-	ScrollInput.m_MouseY = Ui()->MouseY();
-	ScrollInput.m_MouseDown = Ui()->MouseButton(0);
-	ScrollInput.m_MousePressed = Ui()->MouseButtonClicked(0);
-
-	const SQmScrollContainerFrame ProbeFrame = ScrollContainer.PreviewFrame(ScrollState, *pView, ContentHeight, Frame.m_Style);
-	CUIRect WheelHotRect = ProbeFrame.m_ClipRect;
-	if(ProbeFrame.m_ScrollbarVisible)
-		WheelHotRect.w += Frame.m_Style.m_ScrollbarWidth;
-	ScrollInput.m_Hovered = Ui()->MouseHovered(&WheelHotRect);
-	ScrollInput.m_ModifierPressed = Input()->ModifierIsPressed();
-	ScrollInput.m_AltPressed = Input()->AltIsPressed();
-
-	if(ProbeFrame.m_ScrollbarVisible)
-	{
-		const void *pScrollbarId = &ScrollContainer;
-		ScrollInput.m_ThumbHovered = Ui()->MouseHovered(&ProbeFrame.m_ScrollbarThumbRect);
-		ScrollInput.m_TrackHovered = Ui()->MouseHovered(&ProbeFrame.m_ScrollbarTrackRect) && !ScrollInput.m_ThumbHovered;
-		if(ScrollInput.m_ThumbHovered || ScrollInput.m_TrackHovered)
-			Ui()->SetHotItem(pScrollbarId);
-		if((Ui()->HotItem() == pScrollbarId || ScrollInput.m_ThumbHovered || ScrollInput.m_TrackHovered) && ScrollInput.m_MousePressed)
-			Ui()->SetActiveItem(pScrollbarId);
-		if(Ui()->CheckActiveItem(pScrollbarId))
-		{
-			ScrollInput.m_ThumbHovered = ScrollInput.m_ThumbHovered || ScrollContainer.ScrollbarDragActive(ScrollState);
-			ScrollInput.m_TrackHovered = ScrollInput.m_TrackHovered && !ScrollContainer.ScrollbarDragActive(ScrollState);
-			if(!ScrollInput.m_MouseDown)
-				Ui()->SetActiveItem(nullptr);
-		}
-	}
-
-	Frame.m_Frame = ScrollContainer.Update(ScrollState, *pView, ContentHeight, GameClient()->UiRuntimeV2()->FrameDt(), ScrollInput, Frame.m_Style, ScrollConfig);
-	Frame.m_ClipRect = Frame.m_Frame.m_ClipRect;
-	Frame.m_Offset.y = -Frame.m_Frame.m_Offset;
-	*pView = Frame.m_ClipRect;
-	Ui()->ClipEnable(&Frame.m_ClipRect);
-	return Frame;
-}
-
 void CMenus::RenderQmSettingsSliderWithValueInput(const void *pId, const CUIRect &ControlColumn, int *pValue, int MinValue, int MaxValue, const char *pSuffix, bool PrewarmOnly, unsigned Flags)
 {
 	const int OriginalValue = *pValue;
@@ -470,41 +413,6 @@ bool CMenus::RenderQmVisualCheckbox(CUIRect &Content, float LineHeight, float Li
 void CMenus::RenderQmVisualLabel(const char *pTextId, CUIRect *pRect, const char *pText, float FontSize, int TextAlign, const SLabelProperties &LabelProps)
 {
 	DoSettingsMenuLabel(SETTINGS_QMCLIENT, QMCLIENT_SETTINGS_TAB_VISUAL, QMCLIENT_SETTINGS_TAB_VISUAL, pTextId, pRect, pText, FontSize, TextAlign, LabelProps, (int)pRect->w);
-}
-
-void CMenus::FinishSettingsQmScrollContainer(CQmScrollState &ScrollState, CQmScrollContainer &ScrollContainer, SSettingsQmScrollFrame &Frame, const CUIRect &EndRect, float *pContentHeight, float *pPreviousOffsetY, bool TrackScrollActive)
-{
-	if(!Frame.m_Enabled)
-		return;
-
-	Ui()->ClipDisable();
-	*pContentHeight = maximum(0.0f, std::ceil(EndRect.y + EndRect.h - (Frame.m_ClipRect.y + Frame.m_Offset.y)));
-	Frame.m_Frame = ScrollContainer.PreviewFrame(ScrollState, Frame.m_ViewRect, *pContentHeight, Frame.m_Style);
-	CUIRect WheelHotRect = Frame.m_Frame.m_ClipRect;
-	if(Frame.m_Frame.m_ScrollbarVisible)
-		WheelHotRect.w += Frame.m_Style.m_ScrollbarWidth;
-	const void *pWheelOwnerId = &ScrollContainer;
-	const bool WheelEligible = Frame.m_Frame.m_ScrollbarVisible && !Ui()->UnderlyingScrollBlocked() && Ui()->MouseHovered(&WheelHotRect);
-	Ui()->RegisterWheelOwner(pWheelOwnerId, EUiWheelOwnerPriority::PAGE, WheelHotRect, WheelEligible);
-	float WheelDelta = 0.0f;
-	if(Ui()->TryConsumeWheel(pWheelOwnerId, &WheelDelta))
-	{
-		const SQmScrollConfig ScrollConfig = QmSettingsScrollConfig(1.0f, g_Config.m_UiSmoothScrollTime / 1000.0f);
-		ScrollContainer.ScrollByWheel(ScrollState, WheelDelta, Frame.m_ViewRect.h, *pContentHeight, ScrollConfig);
-		Frame.m_Frame = ScrollContainer.PreviewFrame(ScrollState, Frame.m_ViewRect, *pContentHeight, Frame.m_Style);
-	}
-	const float CurrentOffsetY = Frame.m_Frame.m_ScrollbarVisible ? Frame.m_Frame.m_Offset : 0.0f;
-	if(TrackScrollActive)
-	{
-		m_SettingsScrollActive = m_SettingsScrollActive || absolute(CurrentOffsetY - Frame.m_PreviousOffsetY) > 0.01f;
-		if(pPreviousOffsetY != nullptr)
-			*pPreviousOffsetY = CurrentOffsetY;
-	}
-	if(Frame.m_Frame.m_ScrollbarVisible)
-	{
-		DrawRoundedSurface(Ui(), Frame.m_Frame.m_ScrollbarTrackRect, ColorRGBA(1.0f, 1.0f, 1.0f, 0.08f), ColorRGBA(), Frame.m_Frame.m_ScrollbarTrackRect.w * 0.5f);
-		DrawRoundedSurface(Ui(), Frame.m_Frame.m_ScrollbarThumbRect, ColorRGBA(1.0f, 1.0f, 1.0f, 0.34f), ColorRGBA(), Frame.m_Frame.m_ScrollbarThumbRect.w * 0.5f);
-	}
 }
 
 bool CMenus::RenderQmHudCheckbox(CUIRect &Content, float LineHeight, float LineSpacing, const void *pId, const char *pTextId, const char *pText, int *pValue)
@@ -1533,8 +1441,8 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 	QmClient.MarkQmNewsRead();
 	if(m_QmNewFeaturesScrollReset && QmClient.HasDeveloperCredential())
 		QmClient.QmNewsReloadDraft();
-	// 底部：关闭按钮及仅限开发者凭据的公告草稿操作。
-	CUIRect ButtonRow, CloseButtonRect;
+	// 底部：仅保留检查更新入口；关闭交给标题栏 X 与点击面板外。
+	CUIRect ButtonRow;
 	Inner.HSplitBottom(ButtonH, &Inner, &ButtonRow);
 	Inner.HSplitBottom(Gap, &Inner, nullptr);
 	if(QmClient.HasDeveloperCredential())
@@ -1585,31 +1493,24 @@ void CMenus::RenderQmNewFeaturesPopup(CUIRect Screen)
 		}
 	}
 	static ui_widget::SSettingsActionGroupState s_NewsActionWidths;
-	const char *apNewsActions[] = {Localize("Check for updates"), Localize("Close")};
-	const auto NewsActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_NewsActionWidths, ButtonRow, apNewsActions, 2, ResolveSettingsContentMetrics(ButtonRow.w));
-	CloseButtonRect = NewsActions.m_aButtons[1];
+	const char *apNewsActions[] = {Localize("Check for updates")};
+	const auto NewsActions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_NewsActionWidths, ButtonRow, apNewsActions, 1, ResolveSettingsContentMetrics(ButtonRow.w));
 	static CButtonContainer s_CheckUpdatesButton;
 	if(ui_widget::SecondaryButton(Ctx, &s_CheckUpdatesButton, Localize("Check for updates"), NewsActions.m_aButtons[0]))
 	{
 		ShowQmUpdatePopup();
 		return;
 	}
-	static CButtonContainer s_CloseButton;
-	if(ui_widget::PrimaryButton(Ctx, &s_CloseButton, Localize("Close"), CloseButtonRect))
-	{
-		m_Popup = POPUP_NONE;
-		return;
-	}
 
-	// 条目区：内容超出时滚动；每次打开回到顶部。
+	// 条目区：内容超出时滚动；每次打开回到顶部。滚动条与速度沿用设置页策略，滑块用面板强调色。
 	static CScrollRegion s_ScrollRegion;
 	if(m_QmNewFeaturesScrollReset)
 	{
 		s_ScrollRegion.Reset();
 		m_QmNewFeaturesScrollReset = false;
 	}
-	CScrollRegionParams ScrollParams;
-	ScrollParams.m_ScrollUnit = 3.0f * BodySize;
+	CScrollRegionParams ScrollParams = QmSettingsScrollRegionParams(1.0f);
+	ScrollParams.m_pSliderThemeColor = &PanelTheme.m_Accent;
 	vec2 ScrollOffset;
 	CUIRect ScrollArea = Inner;
 	s_ScrollRegion.Begin(&ScrollArea, &ScrollOffset, &ScrollParams);
@@ -1833,10 +1734,18 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	const float RequestedScale = std::clamp(g_Config.m_QmUiScale / 100.0f, 0.5f, 2.0f);
 	const float ViewportWidth = std::max(0.0f, Ui()->Screen()->w - 16.0f);
 	const CUIRect Panel = Screen;
-	static ui_widget::SSecondaryPanelLabel s_Title;
+	static ui_widget::SSecondaryPanelLabel s_Title, s_TitleCaption;
 	static CButtonContainer s_HeaderClose;
 	ui_widget::CSecondaryPanel PanelHeader(Ctx, Panel, !Ui()->RenderOnly(), ui_widget::ResolveSecondaryPanelMetrics(ViewportWidth, ESettingsSecondaryPanelKind::UPDATE, RequestedScale), {});
-	if(PanelHeader.Header(s_Title, s_HeaderClose, Localize("Update")))
+	// 版本与更新状态合并为标题右侧小字；正文只保留进度、说明与操作。
+	char aTitleCaption[160];
+	if(State == static_cast<int>(EQmClientUpdateStatus::CURRENT))
+		str_format(aTitleCaption, sizeof(aTitleCaption), Localize("Current version: %s (up to date)"), CLIENT_RELEASE_VERSION);
+	else if(State == static_cast<int>(EQmClientUpdateStatus::IDLE))
+		str_format(aTitleCaption, sizeof(aTitleCaption), Localize("Current version: %s"), CLIENT_RELEASE_VERSION);
+	else
+		str_copy(aTitleCaption, Update.QmClientUpdateStatusText());
+	if(PanelHeader.Header(s_Title, s_HeaderClose, Localize("Update"), &s_TitleCaption, aTitleCaption))
 	{
 		Update.m_UpdatePopupRequested = false;
 		m_Popup = POPUP_NONE;
@@ -1849,10 +1758,9 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	const float Gap = std::min(ui_token::spacing::MD * Scale, ViewportWidth * 0.02f);
 	const float BodySize = ui_token::font::BODY * Scale;
 	CUIRect Row;
-	CUIRect Buttons, SecondaryButtons;
+	CUIRect Buttons;
+	// 底部单行操作区：主操作、次操作与版本发布页；关闭交给标题栏 X 与点击外部。
 	Content.HSplitBottom(BodySize * ui_token::secondary_panel::UPDATE_ACTION_LINE_FACTOR, &Content, &Buttons);
-	Content.HSplitBottom(Gap, &Content, nullptr);
-	Content.HSplitBottom(Buttons.h, &Content, &SecondaryButtons);
 	Content.HSplitBottom(Gap, &Content, nullptr);
 	// 下载能力固定在操作区上方，说明可独立滚动，缺包提示不会被长说明挤掉。
 #if defined(CONF_QMCLIENT_PORTABLE)
@@ -1863,26 +1771,13 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	if(Update.QmClientUpdateStatus() == EQmClientUpdateStatus::AVAILABLE && !Update.CanDownloadQmClientUpdate())
 	{
 		const char *pPackage = QmUpdatePortableBuild ? Localize("No downloadable portable package for this version") :
-							       Localize("No compatible Windows update package for this version");
+						       Localize("No compatible Windows update package for this version");
 		CUIRect Availability;
 		Content.HSplitBottom(QmWrappedLineCount(TextRender(), BodySize, pPackage, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Content, &Availability);
 		Ui()->DoLabel(&Availability, pPackage, BodySize, TEXTALIGN_TL, {.m_MaxWidth = Availability.w});
 		Content.HSplitBottom(Gap, &Content, nullptr);
 	}
-	// 状态和进度固定在说明滚动区外，长发布说明不会遮住下载结果。
-	const char *pStatus = Update.QmClientUpdateStatusText();
-	Content.HSplitTop(QmWrappedLineCount(TextRender(), BodySize, pStatus, std::max(1.0f, Content.w)) * BodySize * 1.6f + Gap, &Row, &Content);
-	Ui()->DoLabel(&Row, pStatus, BodySize, TEXTALIGN_TL, {.m_MaxWidth = Row.w});
-	char aVersion[128];
-	str_format(aVersion, sizeof(aVersion), Localize("Current version: %s"), CLIENT_RELEASE_VERSION);
-	Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
-	Ui()->DoLabel(&Row, aVersion, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Row.w});
-	if(Update.m_FetchedQmClientUpdateInfo)
-	{
-		str_format(aVersion, sizeof(aVersion), Localize("Latest release: %s"), Update.m_UpdateRelease.m_aVersion);
-		Content.HSplitTop(BodySize * 1.7f, &Row, &Content);
-		Ui()->DoLabel(&Row, aVersion, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Row.w});
-	}
+	// 下载进度固定在说明滚动区外，长发布说明不会遮住下载结果。
 	if(Update.IsUpdateDownloading() && Update.m_pUpdatePackageTask)
 	{
 		const auto &Task = Update.m_pUpdatePackageTask;
@@ -1916,8 +1811,10 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 		s_ScrollRegion.Reset();
 		m_QmUpdateScrollReset = false;
 	}
-	CScrollRegionParams ScrollParams;
-	ScrollParams.m_ScrollUnit = BodySize * 3;
+	// 滚动条几何与滚轮速度沿用设置页外层策略，弹窗与设置页手感一致；
+	// 滑块显式使用面板主题强调色，避免弹窗表面对比不足时回落成前景白。
+	CScrollRegionParams ScrollParams = QmSettingsScrollRegionParams(1.0f);
+	ScrollParams.m_pSliderThemeColor = &PanelTheme.m_Accent;
 	vec2 ScrollOffset;
 	s_ScrollRegion.Begin(&Content, &ScrollOffset, &ScrollParams);
 	Content.x += ScrollOffset.x;
@@ -2040,8 +1937,8 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	}
 	s_ScrollRegion.End();
 	// 按可用宽度均分按钮；长译文由共享按钮的文本适配处理。
-	CUIRect Action, Recheck, Manual, Close;
-	static CButtonContainer s_Action, s_Recheck, s_Manual, s_Close;
+	CUIRect Action, Recheck, Manual;
+	static CButtonContainer s_Action, s_Recheck, s_Manual;
 	const bool Busy = Update.IsUpdateChecking() || Update.IsUpdateDownloading();
 	// 缺包时仍可重新检查发布者后补的附件；下载能力由生产包选择器阻断。
 	const EQmClientUpdateAction UpdateAction = ResolveQmClientUpdateAction(Busy, Update.m_UpdateReady, Update.m_FetchedQmClientUpdateInfo, Update.m_UpdateCheckFailed, Update.CanDownloadQmClientUpdate());
@@ -2053,16 +1950,12 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	const bool ShowRecheck = UpdateAction == EQmClientUpdateAction::DOWNLOAD;
 	const char *pRecheck = Update.m_UpdateReady ? Localize("Discard update") : ShowRecheck ? Localize("Check again") :
 												 Localize("New features");
-	const char *pClose = Update.m_UpdateReady ? Localize("Later") : Localize("Close");
-	static ui_widget::SSettingsActionGroupState s_UpdateActionWidths, s_UpdateSecondaryWidths;
-	const char *apActions[] = {pAction, pRecheck};
-	const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_UpdateActionWidths, Buttons, apActions, 2, ResolveSettingsContentMetrics(Buttons.w));
+	static ui_widget::SSettingsActionGroupState s_UpdateActionWidths;
+	const char *apActions[] = {pAction, pRecheck, Localize("Release page")};
+	const auto ActionLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_UpdateActionWidths, Buttons, apActions, 3, ResolveSettingsContentMetrics(Buttons.w));
 	Action = ActionLayout.m_aButtons[0];
 	Recheck = ActionLayout.m_aButtons[1];
-	const char *apSecondary[] = {Localize("Release page"), pClose};
-	const auto SecondaryLayout = ui_widget::PrepareSettingsActionGroup(*Ui(), s_UpdateSecondaryWidths, SecondaryButtons, apSecondary, 2, ResolveSettingsContentMetrics(Buttons.w));
-	Manual = SecondaryLayout.m_aButtons[0];
-	Close = SecondaryLayout.m_aButtons[1];
+	Manual = ActionLayout.m_aButtons[2];
 	if(ui_widget::PrimaryButton(Ctx, &s_Action, pAction, Action, Update.m_UpdateInstallerStarted))
 	{
 		if(UpdateAction == EQmClientUpdateAction::CANCEL)
@@ -2087,9 +1980,4 @@ void CMenus::RenderQmUpdatePopup(CUIRect Screen)
 	}
 	if(ui_widget::SecondaryButton(Ctx, &s_Manual, Localize("Release page"), Manual))
 		Client()->ViewLink(qm_update::MANUAL_DOWNLOAD_URL);
-	if(ui_widget::SecondaryButton(Ctx, &s_Close, pClose, Close))
-	{
-		Update.m_UpdatePopupRequested = false;
-		m_Popup = POPUP_NONE;
-	}
 }

@@ -20,13 +20,11 @@ inline void CCommandProcessorFragment_Vulkan::QmEnhancedMarkDisabled(const qm_vu
 	m_QmMediaIslandSdfPipelineValid = false;
 	m_QmRoundedRectSdfPipelineValid = false;
 	m_ProceduralRingPipelineValid = false;
-	m_GaussianBlurPipelineValid = false;
 	SyncProceduralRingCapability();
 	if(m_pBackendCapabilities != nullptr)
 	{
 		m_pBackendCapabilities->m_MediaIslandSdf = false;
 		m_pBackendCapabilities->m_RoundedRectSdf = false;
-		m_pBackendCapabilities->m_RenderTargetGaussianBlur = false;
 	}
 	log_info("vulkan", "Qm enhanced rendering disabled: %s", qm_vulkan_ext::DisableReasonLabel(Reason));
 }
@@ -113,7 +111,7 @@ inline bool CCommandProcessorFragment_Vulkan::CreateGaussianBlurGraphicsPipeline
 	aPushConstants[0] = {VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SUniformGaussianBlur)};
 	return CreateGraphicsPipeline<true>(pVertName, pFragName, m_GaussianBlurPipeline, sizeof(CCommandBuffer::SVertex), aAttributeDescriptions, aSetLayouts, aPushConstants,
 		VULKAN_BACKEND_TEXTURE_MODE_TEXTURED, VULKAN_BACKEND_BLEND_MODE_NONE, VULKAN_BACKEND_CLIP_MODE_DYNAMIC_SCISSOR_AND_VIEWPORT, false,
-		m_VKRenderTargetRenderPass, VK_SAMPLE_COUNT_1_BIT, false, QmEnhancedMode() == qm_vulkan_ext::EEnhancedMode::ON);
+		m_VKRenderTargetRenderPass, VK_SAMPLE_COUNT_1_BIT, false, false);
 }
 
 inline void CCommandProcessorFragment_Vulkan::Cmd_RenderMediaIslandSdf_FillExecuteBuffer(SRenderCommandExecuteBuffer &ExecBuffer, const CCommandBuffer::SCommand_RenderMediaIslandSdf *pCommand)
@@ -329,22 +327,21 @@ inline int CCommandProcessorFragment_Vulkan::InitQmPipelines()
 		{
 			SyncProceduralRingCapability();
 		}
-		if(!m_QmEnhancedSessionDisabled && g_Config.m_QmEnhancedBlur)
-		{
-			m_GaussianBlurPipelineValid = CreateGaussianBlurGraphicsPipeline("shader/vulkan/gaussian_blur.vert.spv", "shader/vulkan/gaussian_blur.frag.spv");
-			if(m_HasError || m_LastPipelineCreateResult == VK_ERROR_DEVICE_LOST || (!m_GaussianBlurPipelineValid && QmEnhancedMode() == qm_vulkan_ext::EEnhancedMode::ON))
-				return -1;
-			if(!m_GaussianBlurPipelineValid)
-			{
-				m_GaussianBlurPipeline.Destroy(m_VKDevice);
-				SetWarning(EGfxWarningType::GFX_WARNING_TYPE_INIT_FAILED, "Gaussian blur pipeline unavailable, falling back to unblurred rendering.");
-			}
-		}
 	}
 	else
 	{
 		SyncProceduralRingCapability();
 	}
+	// 背景模糊独立于 SDF/圆环增强模式，管线预备好后由 UI 总开关即时控制。
+	m_GaussianBlurPipelineValid = CreateGaussianBlurGraphicsPipeline("shader/vulkan/gaussian_blur.vert.spv", "shader/vulkan/gaussian_blur.frag.spv");
+	if(m_HasError || m_LastPipelineCreateResult == VK_ERROR_DEVICE_LOST)
+		return -1;
+	if(!m_GaussianBlurPipelineValid)
+	{
+		m_GaussianBlurPipeline.Destroy(m_VKDevice);
+		SetWarning(EGfxWarningType::GFX_WARNING_TYPE_INIT_FAILED, "Gaussian blur pipeline unavailable, falling back to unblurred rendering.");
+	}
+
 	return 0;
 }
 

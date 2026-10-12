@@ -103,6 +103,10 @@ public:
 	void ValidateBeforeOverwrite(bool ValidateBeforeOverwrite) { m_ValidateBeforeOverwrite = ValidateBeforeOverwrite; }
 	void ExpectSha256(const SHA256_DIGEST &Sha256) { m_ExpectedSha256 = Sha256; }
 
+	// 仅官方服务器列表允许加密 DNS 恢复，不影响其他 HTTP 请求。
+	bool ServerListDnsFallback();
+	bool ServerListDnsFallbackEnabled() const { return m_ServerListDnsFallback; }
+
 	void Head();
 	void Post(const unsigned char *pData, size_t DataLength);
 	void PostForm(const unsigned char *pData, size_t DataLength);
@@ -207,6 +211,7 @@ protected:
 	bool m_FailOnErrorStatus = true;
 	bool m_AllowInsecureProtocol = false;
 	bool m_RevocationBestEffort = false;
+	bool m_ServerListDnsFallback = false;
 	bool m_ValidateBeforeOverwrite = false;
 	std::optional<SHA256_DIGEST> m_ExpectedSha256 = std::nullopt;
 	int64_t m_IfModifiedSince = -1;
@@ -216,6 +221,8 @@ protected:
 	SHA256_CTX m_ActualSha256Ctx;
 	uint64_t m_ResponseLength = 0;
 	int m_StatusCode = 0;
+	std::optional<int64_t> m_ResultAge = std::nullopt;
+	std::optional<std::chrono::nanoseconds> m_ResultHeadersReceivedAt;
 	std::optional<int64_t> m_ResultDate = std::nullopt;
 	std::optional<int64_t> m_ResultLastModified = std::nullopt;
 	std::optional<int64_t> m_ResultRetryAfterSeconds = std::nullopt;

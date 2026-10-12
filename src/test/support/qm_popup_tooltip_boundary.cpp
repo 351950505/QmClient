@@ -25,6 +25,14 @@ void CTooltips::DoToolTipForRect(const void *, const CUIRect *, const char *, fl
 {
 }
 
+void CTooltips::DoToolTip(const void *, const CUIRect *, const char *, float)
+{
+}
+
+void CTooltips::DoSmallToolTip(const void *, const CUIRect *, const char *, float, float)
+{
+}
+
 // 本目标不启用菜单卡片说明作用域；括号标签解析由生产策略单元测试覆盖。
 const char *CTooltips::PrepareCardLabel(const CUIRect *, const char *pText, bool)
 {

@@ -4534,6 +4534,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/contract/qmclient/client/qm_phosphor_resource_contract_test.cpp
     src/test/contract/qmclient/ui/qm_font_icon_resource_contract_test.cpp
     src/test/unit/qmclient/ui/QmLayoutTest.cpp
+    src/test/unit/qmclient/ui/QmColorPickerPaletteTest.cpp
+    src/test/unit/qmclient/ui/QmColorPickerSliderTest.cpp
     src/test/unit/qmclient/ui/qm_secondary_button_style_test.cpp
     src/test/contract/qmclient/client/qm_afk_presentation_contract_test.cpp
     src/test/unit/qmclient/client/qm_blank_asset_fallback_test.cpp
@@ -4840,6 +4842,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qmclient_update_http_test.cpp
     src/test/unit/engine/http/http_url_test.cpp
     src/test/unit/qmclient/client/qmclient_update_proxy_test.cpp
+    src/test/integration/qmclient/client/qm_serverlist_recovery_test.cpp
     src/test/integration/qmclient/client/qmclient_update_request_test.cpp
     src/test/integration/qmclient/client/qmclient_update_survey_test.cpp
     src/test/integration/qmclient/client/qmclient_update_package_test.cpp

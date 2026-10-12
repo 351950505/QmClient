@@ -6,6 +6,7 @@
 #include <base/mem.h>
 #include <base/str.h>
 #include <base/system.h>
+#include <base/time.h>
 
 #include <engine/external/json-parser/json.h>
 #include <engine/shared/config.h>
@@ -15,6 +16,7 @@
 #include <game/version.h>
 
 #include <algorithm>
+#include <limits>
 
 IHttpRequest::IHttpRequest(const char *pUrl)
 {
@@ -59,6 +61,21 @@ void IHttpRequest::WriteToFileAndMemory(IStorage *pStorage, const char *pDest, i
 {
 	WriteToFile(pStorage, pDest, StorageType);
 	m_WriteToMemory = true;
+}
+
+bool IHttpRequest::ServerListDnsFallback()
+{
+	for(int Index = 1; Index <= 4; ++Index)
+	{
+		char aUrl[128];
+		str_format(aUrl, sizeof(aUrl), "https://master%d.ddnet.org/ddnet/15/servers.json", Index);
+		if(str_comp(m_aUrl, aUrl) == 0)
+		{
+			m_ServerListDnsFallback = true;
+			return true;
+		}
+	}
+	return false;
 }
 
 void IHttpRequest::Head()
@@ -194,11 +211,28 @@ int IHttpRequest::CompletedStatusCode() const
 std::optional<int64_t> IHttpRequest::ResultAgeSeconds() const
 {
 	dbg_assert(State() == EHttpState::DONE, "Request not done");
-	if(!m_ResultDate || !m_ResultLastModified)
+	const auto SaturatingAdd = [](int64_t Left, int64_t Right) {
+		return Right > std::numeric_limits<int64_t>::max() - Left ? std::numeric_limits<int64_t>::max() : Left + Right;
+	};
+	const int64_t Resident = m_ResultHeadersReceivedAt ?
+					 std::max<int64_t>(0, std::chrono::duration_cast<std::chrono::seconds>(time_get_nanoseconds() - *m_ResultHeadersReceivedAt).count()) :
+					 0;
+	std::optional<int64_t> Age;
+	if(m_ResultAge)
 	{
-		return {};
+		Age = SaturatingAdd(*m_ResultAge, Resident);
+		// Date 的时钟偏差只能让数据更旧，不能让有效 Age 变小。
+		if(m_ResultDate)
+			Age = std::max(*Age, std::max<int64_t>(0, time_timestamp() - *m_ResultDate));
 	}
-	return *m_ResultDate - *m_ResultLastModified;
+	if(m_ResultDate && m_ResultLastModified)
+	{
+		const int64_t SourceAge = std::max<int64_t>(0, *m_ResultDate - *m_ResultLastModified);
+		const int64_t Transit = std::max(Resident, std::max<int64_t>(0, time_timestamp() - *m_ResultDate));
+		const int64_t ModifiedAge = SaturatingAdd(SourceAge, Transit);
+		Age = std::max(Age.value_or(0), ModifiedAge);
+	}
+	return Age;
 }
 
 std::optional<int64_t> IHttpRequest::ResultLastModified() const

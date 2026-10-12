@@ -4031,6 +4031,22 @@ turkish = "Güncellemeleri kontrol et"
 polish = "Sprawdź aktualizacje"
 
 [[message]]
+key = "Current version: %s (up to date)"
+[message.translations]
+simplified_chinese = "当前版本：%s（已是最新）"
+traditional_chinese = "目前版本：%s（已是最新）"
+japanese = "現在のバージョン：%s（最新）"
+korean = "현재 버전: %s(최신)"
+russian = "Текущая версия: %s (актуальная)"
+german = "Aktuelle Version: %s (aktuell)"
+spanish = "Versión actual: %s (actualizada)"
+french = "Version actuelle : %s (à jour)"
+brazilian_portuguese = "Versão atual: %s (atualizada)"
+portuguese = "Versão atual: %s (atualizada)"
+turkish = "Mevcut sürüm: %s (güncel)"
+polish = "Obecna wersja: %s (aktualna)"
+
+[[message]]
 key = "Check if voice server address is reachable"
 [message.translations]
 simplified_chinese = "建议检查语音服务器地址是否可用"

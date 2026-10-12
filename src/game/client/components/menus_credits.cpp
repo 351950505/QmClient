@@ -334,29 +334,30 @@ void CMenus::AppendDdnetContributorCard(std::vector<SSettingsCardDefinition> &vC
 		for(const char *pName : s_apDdnetContributors)
 		{
 			if(!Names.empty())
-				Names += ", ";
+				Names += " · ";
 			Names += pName;
 		}
 		return Names;
 	}();
 	DdnetCredits.m_RenderMeasured = [this, Metrics, LineHeight, LineSpacing, TipSize, ReadOnly](CUIRect &Content) {
-		CUIRect Row;
+		CUIRect Row, LeftButton, RightButton;
 		static CButtonContainer s_DdnetStaffButton;
 		static CButtonContainer s_DdnetReleasesButton;
+		const char *apLabels[] = {Localize("DDNet staff"), Localize("DDNet releases")};
 
 		CSettingsContentLayoutFlow Flow(Content);
 		if(Flow.Control("ddnet-actions", LineHeight, Row))
 		{
-			static ui_widget::SSettingsActionGroupState s_Widths;
-			const char *apLabels[] = {Localize("DDNet staff"), Localize("DDNet releases")};
-			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_Widths, Row, apLabels, 2, Metrics);
-			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetStaffButton, "qmclient-ddnet-staff", apLabels[0], ReadOnly ? -1 : 0, &Actions.m_aButtons[0]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+			// 两枚入口按钮等分整行宽度，中缝留出行距。
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetStaffButton, "qmclient-ddnet-staff", apLabels[0], ReadOnly ? -1 : 0, &LeftButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
 				Client()->ViewLink("https://ddnet.org/staff");
-			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetReleasesButton, "qmclient-ddnet-releases", apLabels[1], ReadOnly ? -1 : 0, &Actions.m_aButtons[1]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetReleasesButton, "qmclient-ddnet-releases", apLabels[1], ReadOnly ? -1 : 0, &RightButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
 				Client()->ViewLink("https://ddnet.org/releases/");
 		}
 		Flow.Space(LineSpacing);
-		Flow.Text("ddnet-contributor-names", s_Contributors.c_str(), 0.0f, TipSize, 0.0f, [this](const char *pText, float Width, float Size) { return TextRender()->TextBoundingBox(Size, pText, -1, Width).m_H + Size * 0.25f; }, [this, TipSize](const CUIRect &Rect, const char *pText) { Ui()->DoLabel(&Rect, pText, TipSize, TEXTALIGN_ML, {.m_MaxWidth = Rect.w, .m_EnableWidthCheck = false}); }, LineHeight);
+		// 名单用小字加大行距的流式排版，间隔点分隔，降低拥挤感。
+		Flow.Text("ddnet-contributor-names", s_Contributors.c_str(), 0.0f, TipSize, 0.0f, [this](const char *pText, float Width, float Size) { return TextRender()->TextBoundingBox(Size, pText, -1, Width).m_H + Size * 0.75f; }, [this, TipSize](const CUIRect &Rect, const char *pText) { Ui()->DoLabel(&Rect, pText, TipSize, TEXTALIGN_ML, {.m_MaxWidth = Rect.w, .m_EnableWidthCheck = false}); }, LineHeight);
 	};
 	qm_settings_content::UseDeclaredContent(DdnetCredits, Ui(), TextRender());
 	vCards.push_back(std::move(DdnetCredits));
@@ -377,11 +378,8 @@ void CMenus::AppendTClientDeveloperCard(std::vector<SSettingsCardDefinition> &vC
 		CUIRect Row, LeftButton, RightButton;
 		if(Flow.Control("tclient-developer-actions-0", LineHeight, Row))
 		{
-			static ui_widget::SSettingsActionGroupState s_Widths;
-			const char *apLabels[] = {Localize("Discord"), Localize("Website")};
-			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_Widths, Row, apLabels, 2, Metrics);
-			LeftButton = Actions.m_aButtons[0];
-			RightButton = Actions.m_aButtons[1];
+			// 两枚链接按钮等分整行宽度，与友链卡按钮同栅格。
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DiscordButton, "tclient-links-discord", Localize("Discord"), 0, &LeftButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
 				Client()->ViewLink("https://discord.gg/fBvhH93Bt6");
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_WebsiteButton, "tclient-links-website", Localize("Website"), 0, &RightButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
@@ -390,11 +388,7 @@ void CMenus::AppendTClientDeveloperCard(std::vector<SSettingsCardDefinition> &vC
 		Flow.Space(LineSpacing);
 		if(Flow.Control("tclient-developer-actions-1", LineHeight, Row))
 		{
-			static ui_widget::SSettingsActionGroupState s_Widths;
-			const char *apLabels[] = {Localize("Github"), Localize("Support ♥")};
-			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_Widths, Row, apLabels, 2, Metrics);
-			LeftButton = Actions.m_aButtons[0];
-			RightButton = Actions.m_aButtons[1];
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_GithubButton, "tclient-links-github", Localize("Github"), 0, &LeftButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
 				Client()->ViewLink("https://github.com/sjrc6/TaterClient-ddnet");
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_SupportButton, "tclient-links-support", Localize("Support ♥"), 0, &RightButton) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
@@ -421,25 +415,47 @@ void CMenus::AppendTClientDeveloperCard(std::vector<SSettingsCardDefinition> &vC
 		};
 		static std::array<CButtonContainer, std::size(s_aDevelopers)> s_aLinkButtons;
 		constexpr float TeeSize = 50.0f;
-		for(size_t Index = 0; Index < std::size(s_aDevelopers); ++Index)
+		// 开发者两列网格：每格 Tee + 名称 + 跳转按钮，名称垂直居中，两列上下对齐。
+		const float CellGap = LineSpacing;
+		const float CellWidth = std::max(0.0f, (Content.w - CellGap) * 0.5f);
+		const size_t DevRowCount = (std::size(s_aDevelopers) + 1) / 2;
+		for(size_t RowIndex = 0; RowIndex < DevRowCount; ++RowIndex)
 		{
-			CUIRect TeeRect, Label, Button;
-			const float TextIndent = TeeSize + 2.0f * LineSpacing + LineHeight;
-			if(!Flow.MeasuredControl(s_aDevelopers[Index].m_pName, s_aDevelopers[Index].m_pName, TeeSize + LineSpacing, BodySize, TextIndent, 0.0f, 0.0f, Row,
-				   [this](const SSettingsContentRowDeclaration &Declaration, float Width) { return TextRender()->TextBoundingBox(Declaration.m_FontSize, Declaration.m_Text.c_str(), -1, std::max(1.0f, Width)).m_H + Declaration.m_FontSize * 0.25f; }))
+			char aRowId[40];
+			str_format(aRowId, sizeof(aRowId), "tclient-developer-row-%d", static_cast<int>(RowIndex));
+			if(!Flow.Control(aRowId, TeeSize + LineSpacing, Row))
 				continue;
-			Row.VSplitLeft(TeeSize + LineSpacing, &TeeRect, &Label);
-			TeeRect.w = TeeSize;
-			Label.VSplitLeft(std::min(TextRender()->TextWidth(BodySize, s_aDevelopers[Index].m_pName), std::max(0.0f, Label.w - LineSpacing - LineHeight)), &Label, &Button);
-			Button.VSplitLeft(LineSpacing, nullptr, &Button);
-			Button.w = LineHeight;
-			Button.h = LineHeight;
-			Button.y = Label.y + (Label.h - Button.h) * 0.5f;
-			DoSettingsLabel(SETTINGS_CONTRIBUTORS, -1, s_aDevelopers[Index].m_pName, &Label, s_aDevelopers[Index].m_pName, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Label.w, .m_EnableWidthCheck = false});
-			if(Ui()->DoButton_QmIcon(&s_aLinkButtons[Index], EQmIcon::ARROW_UP_RIGHT_FROM_SQUARE, FONT_ICON_ARROW_UP_RIGHT_FROM_SQUARE, 0, &Button, IGraphics::CORNER_ALL) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
-				Client()->ViewLink(s_aDevelopers[Index].m_pUrl);
-			if(Flow.Drawing())
-				RenderDevSkin(TeeRect.Center(), TeeSize, s_aDevelopers[Index].m_pSkin, s_aDevelopers[Index].m_pUseCustomColors, s_aDevelopers[Index].m_CustomColors, 0, 0, 0, false, true, s_aDevelopers[Index].m_BodyColor, s_aDevelopers[Index].m_FeetColor);
+			CUIRect Cell = Row;
+			for(size_t Column = 0; Column < 2; ++Column)
+			{
+				const size_t Index = RowIndex * 2 + Column;
+				CUIRect CellRect;
+				if(Column == 0)
+				{
+					Cell.VSplitLeft(CellWidth, &CellRect, &Cell);
+					Cell.VSplitLeft(CellGap, nullptr, &Cell);
+				}
+				else
+					CellRect = Cell;
+				if(Index >= std::size(s_aDevelopers))
+					break;
+				CUIRect TeeRect, Label, Button;
+				CellRect.h = TeeSize;
+				CellRect.VSplitLeft(TeeSize, &TeeRect, &Label);
+				Label.VSplitLeft(LineSpacing, nullptr, &Label);
+				// 名称列按实测宽加余量定宽并启用省略号，避免测量与渲染的亚像素差把末字母挤到下一行。
+				const float NameWidth = std::min(TextRender()->TextWidth(BodySize, s_aDevelopers[Index].m_pName) + 2.0f, std::max(0.0f, Label.w - LineSpacing - LineHeight));
+				Label.VSplitLeft(NameWidth, &Label, &Button);
+				Button.VSplitLeft(LineSpacing, nullptr, &Button);
+				Button.w = LineHeight;
+				Button.h = LineHeight;
+				Button.y = Label.y + (Label.h - Button.h) * 0.5f;
+				DoSettingsLabel(SETTINGS_CONTRIBUTORS, -1, s_aDevelopers[Index].m_pName, &Label, s_aDevelopers[Index].m_pName, BodySize, TEXTALIGN_ML, {.m_MaxWidth = Label.w, .m_EllipsisAtEnd = true, .m_EnableWidthCheck = false});
+				if(Ui()->DoButton_QmIcon(&s_aLinkButtons[Index], EQmIcon::ARROW_UP_RIGHT_FROM_SQUARE, FONT_ICON_ARROW_UP_RIGHT_FROM_SQUARE, 0, &Button, IGraphics::CORNER_ALL) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
+					Client()->ViewLink(s_aDevelopers[Index].m_pUrl);
+				if(Flow.Drawing())
+					RenderDevSkin(TeeRect.Center(), TeeSize, s_aDevelopers[Index].m_pSkin, s_aDevelopers[Index].m_pUseCustomColors, s_aDevelopers[Index].m_CustomColors, 0, 0, 0, false, true, s_aDevelopers[Index].m_BodyColor, s_aDevelopers[Index].m_FeetColor);
+			}
 		}
 	};
 	qm_settings_content::UseDeclaredContent(Developers, Ui(), TextRender());
@@ -494,11 +510,8 @@ void CMenus::AppendFriendLinkCards(std::vector<SSettingsCardDefinition> &vCards,
 		CUIRect Row, LeftButton, RightButton;
 		if(Flow.Control("friend-link-actions-0", LineHeight, Row))
 		{
-			static ui_widget::SSettingsActionGroupState s_Widths;
-			const char *apLabels[] = {"DDNet Workshop", Localize("DDNet Website")};
-			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_Widths, Row, apLabels, std::size(apLabels), Metrics);
-			LeftButton = Actions.m_aButtons[0];
-			RightButton = Actions.m_aButtons[1];
+			// 每行两枚按钮等分整行宽度，中缝留出行距。
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetWorkshopButton, "credits-links-ddnet-workshop", "DDNet Workshop", 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::MAP, FONT_ICON_MAP, &s_aSiteIcons[ICON_DDRACE]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
 				Client()->ViewLink("https://ddrace.cn/");
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdnetWebsiteButton, "credits-links-ddnet-website", Localize("DDNet Website"), 0, &RightButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::EARTH_AMERICAS, FONT_ICON_EARTH_AMERICAS, &s_aSiteIcons[ICON_DDNET]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
@@ -507,11 +520,7 @@ void CMenus::AppendFriendLinkCards(std::vector<SSettingsCardDefinition> &vCards,
 		Flow.Space(LineSpacing);
 		if(Flow.Control("friend-link-actions-1", LineHeight, Row))
 		{
-			static ui_widget::SSettingsActionGroupState s_Widths;
-			const char *apLabels[] = {Localize("QmClient Website"), "shengyan 北京服"};
-			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_Widths, Row, apLabels, std::size(apLabels), Metrics);
-			LeftButton = Actions.m_aButtons[0];
-			RightButton = Actions.m_aButtons[1];
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_QmClientWebsiteButton, "credits-links-qmclient-website", Localize("QmClient Website"), 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::HOUSE, FONT_ICON_HOUSE, &s_aSiteIcons[ICON_QMCLIENT]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
 				Client()->ViewLink("https://qmclient.icu");
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_ShengyanButton, "credits-links-shengyan", "shengyan 北京服", 0, &RightButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::NETWORK_WIRED, FONT_ICON_NETWORK_WIRED, &s_aSiteIcons[ICON_SHENGYAN]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
@@ -520,11 +529,7 @@ void CMenus::AppendFriendLinkCards(std::vector<SSettingsCardDefinition> &vCards,
 		Flow.Space(LineSpacing);
 		if(Flow.Control("friend-link-actions-2", LineHeight, Row))
 		{
-			static ui_widget::SSettingsActionGroupState s_Widths;
-			const char *apLabels[] = {"TeeData 官方资源库", "DDStats 官方统计网站"};
-			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_Widths, Row, apLabels, std::size(apLabels), Metrics);
-			LeftButton = Actions.m_aButtons[0];
-			RightButton = Actions.m_aButtons[1];
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_TeeDataButton, "credits-links-teedata", "TeeData 官方资源库", 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::FOLDER_OPEN, FONT_ICON_FOLDER_OPEN, &s_aSiteIcons[ICON_TEEDATA]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
 				Client()->ViewLink("https://teedata.net/");
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_DdStatsButton, "credits-links-ddstats", "DDStats 官方统计网站", 0, &RightButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::LIST_UL, FONT_ICON_LIST_UL, &s_aSiteIcons[ICON_DDSTATS]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
@@ -533,10 +538,8 @@ void CMenus::AppendFriendLinkCards(std::vector<SSettingsCardDefinition> &vCards,
 		Flow.Space(LineSpacing);
 		if(Flow.Control("friend-link-actions-3", LineHeight, Row))
 		{
-			static ui_widget::SSettingsActionGroupState s_Widths;
-			const char *apLabels[] = {"Axiom 社区"};
-			const auto Actions = ui_widget::PrepareSettingsActionGroup(*Ui(), s_Widths, Row, apLabels, std::size(apLabels), Metrics);
-			LeftButton = Actions.m_aButtons[0];
+			// 单枚按钮同样占半行，与其余行保持同一栅格。
+			Row.VSplitMid(&LeftButton, &RightButton, LineSpacing);
 			if(DoSettingsButton_Menu(SETTINGS_CONTRIBUTORS, -1, -1, &s_AxiomButton, "credits-links-axiom", "Axiom 社区", 0, &LeftButton, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL, ui_token::radius::BASE, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 0.0f, -1.0f, EQmIcon::EARTH_AMERICAS, FONT_ICON_EARTH_AMERICAS, &s_aSiteIcons[ICON_AXIOM]) && Flow.Input() && !ReadOnly && !Ui()->RenderOnly())
 				Client()->ViewLink("https://axiom.teeworlds.cn/");
 		}

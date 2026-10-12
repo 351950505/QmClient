@@ -848,9 +848,6 @@ Apply a writable preset and edit first
 Apply Changes
 == 应用更改
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== 对二级弹窗与下拉列表背后的内容应用模糊
-
 Apply input early before next tick for prediction
 == 在下一 tick 前提前应用输入进行预测
 
@@ -1970,9 +1967,6 @@ Chinese font:
 CHN
 == 中国
 
-Choose a GPU for this app in system graphics settings, then restart the client.
-== 在系统图形设置中为此程序选择 GPU，然后重启客户端。
-
 Choose colors for weapons and entity lasers
 == 选择武器和实体激光的颜色
 
@@ -2858,11 +2852,17 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == 当前裁剪无效或已添加
 
+Current driver
+== 当前驱动
+
 Current file
 == 当前文件
 
 Current GPU
-== 当前 GPU
+== 当前显卡
+
+Current graphics backend
+== 当前图形后端
 
 Current rescue mode: %s
 == 当前救援模式：%s
@@ -2872,6 +2872,9 @@ Current status
 
 Current version: %s
 == 当前版本：%s
+
+Current version: %s (up to date)
+== 当前版本：%s（已是最新）
 
 Current: Ranks
 == 当前：查分
@@ -4087,9 +4090,6 @@ Enable fat skin
 
 Enable freeze call sound
 == 启用冻结呼叫声
-
-Enable frosted glass blur behind secondary popups and dropdowns
-== 启用二级弹窗与下拉列表背景模糊
 
 Enable FTAPI auto-translate
 == 启用 FTAPI 自动翻译
@@ -6512,12 +6512,6 @@ Latency compensation
 Latency Jitter
 == 延迟抖动
 
-Later
-== 稍后
-
-Latest release: %s
-== 最新发布：%s
-
 Latin font
 == 拉丁文字字体
 
@@ -7066,6 +7060,9 @@ Map upload network error.
 
 Map uploaded successfully.
 == 地图上传成功。
+
+Maps
+== 地图
 
 Maps finished
 == 已过地图
@@ -8897,14 +8894,8 @@ Polished
 Pop wave
 == 放大凸起
 
-Popup & dropdown blur
-== 弹窗与下拉列表模糊
-
 Popup animation
 == 弹出动画
-
-Popup blur
-== 弹出面板模糊
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == 用于客户端连接到服务器的端口（0 选择随机端口，1024 或更高设置手动端口）
@@ -9317,6 +9308,9 @@ Quads are used for background decoration
 Query current map info
 == 查询当前地图信息
 
+Query isolated serverlist consumer state
+== Query isolated serverlist consumer state
+
 Query map info for %s
 == 查询地图 %s 的信息
 
@@ -9628,6 +9622,9 @@ Refresh
 
 Refresh interval
 == 刷新间隔
+
+Refresh isolated serverlist consumer
+== Refresh isolated serverlist consumer
 
 Refresh Rate
 == 刷新率
@@ -14236,9 +14233,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == 用敌对列表驱动玩家指示器
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== 启用增强渲染时使用高斯模糊管线
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == 使用高带宽模式。服务器所需的带宽加倍。仅限局域网使用

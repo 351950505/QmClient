@@ -3,6 +3,7 @@
 #ifndef GAME_CLIENT_UI_H
 #define GAME_CLIENT_UI_H
 
+#include "QmUi/ColorPickerPalette.h"
 #include "QmUi/QmAnimationBackend.h"
 #include "QmUi/QmCardLabelHints.h"
 #include "QmUi/QmDropdown.h"
@@ -1036,6 +1037,9 @@ public:
 	void SetKeyboardFocus(const void *pId);
 	const void *KeyboardFocusItem() const { return m_KeyboardFocus.m_pItem; }
 	int DoButtonGroupKeyboard(const void *const *ppIds, const bool *pEnabled, int Count);
+	void DoTooltip(const void *pId, const CUIRect *pNearRect, const char *pText, float WidthHint = -1.0f);
+	void DoSmallTooltip(const void *pId, const CUIRect *pNearRect, const char *pText, float FontSize = 12.0f, float WidthHint = -1.0f);
+	CTooltips *QmTooltips() const { return m_pQmTooltips; }
 	const SUiTheme &QmControlTheme();
 	float DropDownFontSize() const { return m_DropDownFontSize; }
 	void Update();
@@ -1446,23 +1450,58 @@ public:
 		enum EColorPickerMode
 		{
 			MODE_UNSET = -1,
+			MODE_RECOMMENDED,
 			MODE_HSVA,
 			MODE_RGBA,
 			MODE_HSLA,
 		};
+		// 主取色区形态：方图（SV 平面 + 竖向色相条）或色环（环选色相 + 环内 SV 方图）。
+		enum EColorPickerShape
+		{
+			SHAPE_SQUARE = 0,
+			SHAPE_WHEEL,
+		};
 
 		CUi *m_pUI; // set by CUi when popup is shown
 		EColorPickerMode m_ColorMode = MODE_UNSET;
+		EColorPickerShape m_Shape = SHAPE_SQUARE;
 		bool m_Alpha = false;
 		unsigned int *m_pHslaColor = nullptr; // may be nullptr
 		ColorHSVA m_HsvaColor;
 		ColorRGBA m_RgbaColor;
 		ColorHSLA m_HslaColor;
+		// 打开时快照的初始颜色：确认关闭保持当前值，取消关闭恢复快照。
+		ColorHSVA m_InitialHsvaColor;
+		ColorRGBA m_InitialRgbaColor;
+		ColorHSLA m_InitialHslaColor;
+		// 「我的调色板」工作副本：打开时从 g_Config.m_QmColorPickerPalette 载入，
+		// 每次增删改名即刻序列化回写；全部取色器实例共享同一份配置。
+		std::vector<qm_picker_palette::SSwatch> m_vPalette;
+		int m_RenamingPaletteIndex = -1; // >=0 时对应色块显示为行内改名输入框
+		CLineInput m_RenameInput;
+		char m_aRenameBuffer[qm_picker_palette::MAX_NAME_BYTES];
 		// UI element IDs
 		const char m_HuePickerId = 0;
+		const char m_WheelPickerId = 0;
 		const char m_ColorPickerId = 0;
 		const char m_aValueSelectorIds[5] = {0};
+		// 通道滑条行（H/S/V/L/A 与 Hex）的常驻小输入框：滑条拖动与数值输入双向。
+		char m_aacChannelBuffers[4][8];
+		CLineInput m_aChannelInputs[4];
+		char m_aHexBuffer[16];
+		CLineInput m_HexInput;
 		CButtonContainer m_aModeButtons[(int)MODE_HSLA + 1];
+		CButtonContainer m_ShapeButton;
+		CButtonContainer m_AcceptButton;
+		CButtonContainer m_CloseButton;
+		CButtonContainer m_InitialColorButton;
+		CButtonContainer m_aPresetButtons[24];
+		CButtonContainer m_aPaletteSwatchButtons[qm_picker_palette::MAX_SWATCHES];
+		CButtonContainer m_aPaletteDeleteButtons[qm_picker_palette::MAX_SWATCHES];
+		CButtonContainer m_AddPaletteButton;
+		// 调色板色块双击改名判定：记录上次左键点击的色块与时间。
+		float m_aSwatchClickTime[qm_picker_palette::MAX_SWATCHES] = {0.0f};
+		int m_LastSwatchClickIndex = -1;
 		EEditState m_State = EEditState::NONE;
 	};
 	void ShowPopupColorPicker(float X, float Y, SColorPickerPopupContext *pContext);

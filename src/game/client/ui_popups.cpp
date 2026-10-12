@@ -1,5 +1,6 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
+#include "QmUi/ColorPickerSlider.h"
 #include "QmUi/QmDropdown.h"
 #include "QmUi/QmPopupPointer.h"
 #include "QmUi/QmPopupSource.h"
@@ -24,6 +25,7 @@
 #include <engine/keys.h>
 #include <engine/shared/config.h>
 
+#include <game/client/qm_icon.h>
 #include <game/localization.h>
 
 #include <algorithm>
@@ -148,9 +150,9 @@ void CUi::RenderPopupMenus()
 	// 公共入口自行接入模糊链，聊天和编辑器无需逐个补接线。
 	CUiScopedGaussianBlur PopupBlurScope(this);
 	// 禁用弹层模糊时，背景和分隔线的半透明绘制也不能触发自动背板模糊。
-	CUiScopedGaussianBlurSuppression PopupBlurSuppression(this, g_Config.m_QmUiPopupBlur == 0);
+	CUiScopedGaussianBlurSuppression PopupBlurSuppression(this, g_Config.m_QmGaussianBlur == 0);
 	// 页面文字绘制晚于菜单背板捕获；弹层栈需要完整页面的新快照，栈内继续复用。
-	if(!m_vPopupMenus.empty() && g_Config.m_QmUiPopupBlur != 0 && GaussianBlurScopeActive())
+	if(!m_vPopupMenus.empty() && g_Config.m_QmGaussianBlur != 0 && GaussianBlurScopeActive())
 		m_GaussianBlurPrepared = false;
 	m_RenderingPopupMenus = true;
 	const float Now = Client()->LocalTime();
@@ -224,7 +226,7 @@ void CUi::RenderPopupMenus()
 					FillRect.y += SPopupMenu::POPUP_BORDER;
 					FillRect.h -= SPopupMenu::POPUP_BORDER;
 				}
-				if(g_Config.m_QmUiPopupBlur != 0 && GaussianBlurScopeActive())
+				if(g_Config.m_QmGaussianBlur != 0 && GaussianBlurScopeActive())
 				{
 					RenderGaussianBlur(FillRect, Alpha, Below ? IGraphics::CORNER_B : IGraphics::CORNER_T, ui_token::radius::BASE);
 				}
@@ -232,7 +234,7 @@ void CUi::RenderPopupMenus()
 			}
 			else
 			{
-				if(g_Config.m_QmUiPopupBlur != 0 && GaussianBlurScopeActive())
+				if(g_Config.m_QmGaussianBlur != 0 && GaussianBlurScopeActive())
 				{
 					RenderGaussianBlur(ShrinkRect, Alpha, PopupMenu.m_Props.m_Corners, CornerRadius);
 				}
@@ -387,7 +389,7 @@ void CUi::RenderPopupMenus()
 					FillRect.y += SPopupMenu::POPUP_BORDER;
 					FillRect.h -= SPopupMenu::POPUP_BORDER;
 				}
-				if(g_Config.m_QmUiPopupBlur != 0 && GaussianBlurScopeActive())
+				if(g_Config.m_QmGaussianBlur != 0 && GaussianBlurScopeActive())
 				{
 					RenderGaussianBlur(FillRect, AnimAlphaMul, Below ? IGraphics::CORNER_B : IGraphics::CORNER_T, ui_token::radius::BASE);
 				}
@@ -404,7 +406,7 @@ void CUi::RenderPopupMenus()
 					EffectiveBg = Theme.m_Surface;
 					EffectiveBorder = Theme.m_Border;
 				}
-				if(g_Config.m_QmUiPopupBlur != 0 && GaussianBlurScopeActive())
+				if(g_Config.m_QmGaussianBlur != 0 && GaussianBlurScopeActive())
 				{
 					RenderGaussianBlur(PopupRect, AnimAlphaMul, PopupProps.m_Corners, CornerRadius);
 				}
@@ -1263,6 +1265,301 @@ int CUi::DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, 
 	return DoDropDown(pRect, CurSelection, pStrs, Num, State, DropDownProps);
 }
 
+namespace
+{
+	// 取色器二级弹窗页面布局常量（逻辑像素，外层套 ui 缩放）。
+	constexpr float PICKER_POPUP_WIDTH = 280.0f;
+	constexpr float PICKER_POPUP_HEIGHT = 256.0f;
+	constexpr float PICKER_TITLE_HEIGHT = 15.0f;
+	constexpr float PICKER_TAB_HEIGHT = 15.0f;
+	constexpr float PICKER_TAB_WIDTH = 36.0f;
+	constexpr float PICKER_TAB_GAP = 2.0f;
+	constexpr float PICKER_SHAPE_TOGGLE_WIDTH = 46.0f;
+	constexpr float PICKER_SV_SQUARE_HEIGHT = 96.0f;
+	constexpr float PICKER_WHEEL_SIZE = 112.0f;
+	constexpr float PICKER_WHEEL_RING_WIDTH = 10.0f;
+	constexpr float PICKER_HUE_BAR_WIDTH = 10.0f;
+	constexpr float PICKER_ROW_HEIGHT = 13.0f;
+	constexpr float PICKER_ROW_GAP = 2.5f;
+	constexpr float PICKER_SLIDER_LABEL_WIDTH = 9.0f;
+	constexpr float PICKER_SLIDER_TRACK_HEIGHT = 7.0f;
+	constexpr float PICKER_VALUE_BOX_WIDTH = 30.0f;
+	// Hex 行标签用“颜色代码”文案，需要容纳 4 个全角字（字号 7 时约 28u）。
+	constexpr float PICKER_HEX_LABEL_WIDTH = 34.0f;
+	constexpr float PICKER_PALETTE_COLGAP = 2.0f;
+	constexpr float PICKER_PALETTE_ROWGAP = 2.0f;
+	// 底部调色板行：紧凑单行（标签 + 12 格色块 + ＋），避免独立大卡片的空旷感。
+	constexpr float PICKER_PALETTE_ROW_HEIGHT = 16.0f;
+	constexpr float PICKER_PALETTE_SWATCH_SIZE = 14.0f;
+	constexpr float PICKER_PALETTE_LABEL_WIDTH = 30.0f;
+	constexpr int PICKER_PALETTE_COLS = 12;
+	constexpr float PICKER_PREVIEW_BAR_HEIGHT = 12.0f;
+	constexpr int PICKER_PRESET_COLS = 8;
+	constexpr int PICKER_PRESET_ROWS = 3;
+	constexpr float PICKER_DOUBLE_CLICK_INTERVAL = 0.4f;
+
+	// 勾选图标的字体回退字形（U+E182，与 qm_icon_registry.inc 的 CHECK 一致）。
+	constexpr const char *PICKER_ICON_CHECK = "\xEE\x86\x82";
+
+	// SV 平面渐变：底层白→纯色相，上层透明→黑。方图与色环共用。
+	void PickerDrawSvGradient(CUi *pUI, const CUIRect &Area, float Hue)
+	{
+		ColorRGBA TL, TR, BL, BR;
+		TL = BL = color_cast<ColorRGBA>(ResolveUiColorPickerSelection(Hue, 0.0f, 0.0f, 1.0f));
+		TR = BR = color_cast<ColorRGBA>(ResolveUiColorPickerSelection(Hue, 1.0f, 0.0f, 1.0f));
+		Area.Draw4(TL, TR, BL, BR, IGraphics::CORNER_NONE, 0.0f);
+
+		TL = TR = ColorRGBA(0.0f, 0.0f, 0.0f, 0.0f);
+		BL = BR = ColorRGBA(0.0f, 0.0f, 0.0f, 1.0f);
+		Area.Draw4(TL, TR, BL, BR, IGraphics::CORNER_NONE, 0.0f);
+	}
+
+	// 水平色相谱条（红→黄→绿→青→蓝→品红→红），用于色相滑条轨道。
+	void PickerDrawHueStrip(const CUIRect &Area)
+	{
+		static constexpr float s_aaHueStops[7][3] = {
+			{1.0f, 0.0f, 0.0f}, // red
+			{1.0f, 0.0f, 1.0f}, // magenta
+			{0.0f, 0.0f, 1.0f}, // blue
+			{0.0f, 1.0f, 1.0f}, // cyan
+			{0.0f, 1.0f, 0.0f}, // green
+			{1.0f, 1.0f, 0.0f}, // yellow
+			{1.0f, 0.0f, 0.0f}, // red
+		};
+		const float StopWidth = Area.w / (std::size(s_aaHueStops) - 1);
+		CUIRect StopArea;
+		for(size_t j = 0; j < std::size(s_aaHueStops) - 1; j++)
+		{
+			StopArea.x = Area.x + StopWidth * j;
+			StopArea.y = Area.y;
+			StopArea.w = StopWidth + 0.5f; // 微重叠消除接缝
+			StopArea.h = Area.h;
+			const ColorRGBA Left(s_aaHueStops[j][0], s_aaHueStops[j][1], s_aaHueStops[j][2], 1.0f);
+			const ColorRGBA Right(s_aaHueStops[j + 1][0], s_aaHueStops[j + 1][1], s_aaHueStops[j + 1][2], 1.0f);
+			int Corners = IGraphics::CORNER_NONE;
+			if(j == 0)
+				Corners = IGraphics::CORNER_L;
+			else if(j == std::size(s_aaHueStops) - 2)
+				Corners = IGraphics::CORNER_R;
+			StopArea.Draw4(Left, Right, Left, Right, Corners, 3.5f);
+		}
+	}
+
+	// 通道滑条轨道渐变：返回 false 表示该通道用色相谱条（H 行）特殊绘制。
+	// Mode/Channel 组合语义：HSVA 页 H 色相谱、S 灰→当前纯色、V 黑→当前纯色；
+	// RGBA 页 R/G/B 黑→纯通道色；HSLA 页 H 色相谱、S 灰→纯色、L 黑→白；A 透明→当前色。
+	bool PickerChannelTrackColors(int Mode, int Channel, const ColorHSVA &Hsv, const ColorRGBA &Rgb, ColorRGBA &Left, ColorRGBA &Right)
+	{
+		const ColorRGBA PureHue = color_cast<ColorRGBA>(ColorHSVA(Hsv.h, 1.0f, 1.0f, 1.0f));
+		if(Mode == CUi::SColorPickerPopupContext::MODE_HSVA)
+		{
+			if(Channel == 0)
+				return false; // H：色相谱条
+			if(Channel == 1)
+			{
+				Left = ColorRGBA(0.5f, 0.5f, 0.5f, 1.0f); // S：灰 → 当前纯色
+				Right = PureHue;
+				return true;
+			}
+			if(Channel == 2)
+			{
+				Left = ColorRGBA(0.0f, 0.0f, 0.0f, 1.0f); // V：黑 → 当前纯色
+				Right = PureHue;
+				return true;
+			}
+		}
+		else if(Mode == CUi::SColorPickerPopupContext::MODE_RGBA)
+		{
+			static constexpr float s_aaChannelHues[3][3] = {
+				{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
+			if(Channel < 3)
+			{
+				Left = ColorRGBA(0.0f, 0.0f, 0.0f, 1.0f); // R/G/B：黑 → 纯通道色
+				Right = ColorRGBA(s_aaChannelHues[Channel][0], s_aaChannelHues[Channel][1], s_aaChannelHues[Channel][2], 1.0f);
+				return true;
+			}
+		}
+		else if(Mode == CUi::SColorPickerPopupContext::MODE_HSLA)
+		{
+			if(Channel == 0)
+				return false; // H：色相谱条
+			if(Channel == 1)
+			{
+				Left = ColorRGBA(0.5f, 0.5f, 0.5f, 1.0f); // S：灰 → 当前纯色（同亮度）
+				Right = PureHue;
+				return true;
+			}
+			if(Channel == 2)
+			{
+				// L：黑 → 当前纯色 → 白（三段，退化为左黑右白 + 中点由 Draw4 顶点近似）。
+				Left = ColorRGBA(0.0f, 0.0f, 0.0f, 1.0f);
+				Right = ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f);
+				return true;
+			}
+		}
+		// A 行（各页共用）与兜底。
+		Left = ColorRGBA(Rgb.r, Rgb.g, Rgb.b, 0.0f);
+		Right = ColorRGBA(Rgb.r, Rgb.g, Rgb.b, 1.0f);
+		return true;
+	}
+
+	// 色环：180 段纯色微段消除弦线锯齿与马赫带，红在正上方，顺时针色相递增；
+	// 内外缘各一圈深色细描边收敛边缘。
+	// 色环纹理：CPU 逐像素生成一次并缓存。freeform 分段扇形依赖渲染后端对
+	// 四边形的三角化/剔除路径，在 Vulkan 后端下会产生鳞片状伪影且弦段渐变
+	// 失真；逐像素纹理在任意后端下都平滑，边缘抗锯齿与描边直接烘焙。
+	// 红在正上方，顺时针随色相递增（与 DoPickerLogic 命中映射一致）。
+	IGraphics::CTextureHandle PickerWheelTexture(CUi *pUI)
+	{
+		static IGraphics::CTextureHandle s_WheelTexture;
+		if(s_WheelTexture.IsValid())
+			return s_WheelTexture;
+
+		constexpr int Size = 256;
+		CImageInfo Info;
+		Info.m_Width = Size;
+		Info.m_Height = Size;
+		Info.m_Format = CImageInfo::FORMAT_RGBA;
+		Info.m_pData = static_cast<uint8_t *>(malloc((size_t)Size * Size * 4));
+		if(Info.m_pData == nullptr)
+			return s_WheelTexture;
+
+		const float Center = (Size - 1) * 0.5f;
+		const float Outer = Size * 0.5f - 1.0f;
+		// 环宽比例按半径归一，与命中检测的 WheelInner（PICKER_WHEEL_SIZE/2 - RING_WIDTH）一致。
+		const float Inner = Outer * (1.0f - PICKER_WHEEL_RING_WIDTH / (PICKER_WHEEL_SIZE * 0.5f));
+		constexpr float AaWidth = 1.5f;
+		constexpr float OutlineDarkness = 0.55f;
+		for(int y = 0; y < Size; y++)
+		{
+			for(int x = 0; x < Size; x++)
+			{
+				const float Dx = x - Center;
+				const float Dy = y - Center;
+				const float Dist = std::sqrt(Dx * Dx + Dy * Dy);
+				// 屏幕坐标 y 向下：色相 0 在正上方、顺时针递增。
+				float Angle = std::atan2(Dy, Dx) + (float)pi * 0.5f;
+				if(Angle < 0.0f)
+					Angle += 2.0f * (float)pi;
+				const float Hue = Angle / (2.0f * (float)pi);
+				ColorRGBA Color = color_cast<ColorRGBA>(ColorHSVA(Hue, 1.0f, 1.0f, 1.0f));
+				// 内外缘抗锯齿。
+				const float AlphaOuter = std::clamp((Outer - Dist) / AaWidth + 0.5f, 0.0f, 1.0f);
+				const float AlphaInner = std::clamp((Dist - Inner) / AaWidth + 0.5f, 0.0f, 1.0f);
+				const float Alpha = minimum(AlphaOuter, AlphaInner);
+				// 内外缘 1px 深色描边烘焙。
+				const float EdgeDist = minimum(Outer - Dist, Dist - Inner);
+				const float Outline = 1.0f - std::clamp(1.0f - EdgeDist, 0.0f, 1.0f) * OutlineDarkness;
+				Color = ColorRGBA(Color.r * Outline, Color.g * Outline, Color.b * Outline, Color.a * Alpha);
+				uint8_t *pPixel = &Info.m_pData[(y * Size + x) * 4];
+				pPixel[0] = (uint8_t)round_truncate(Color.r * 255.0f);
+				pPixel[1] = (uint8_t)round_truncate(Color.g * 255.0f);
+				pPixel[2] = (uint8_t)round_truncate(Color.b * 255.0f);
+				pPixel[3] = (uint8_t)round_truncate(Color.a * 255.0f);
+			}
+		}
+
+		s_WheelTexture = pUI->Graphics()->LoadTextureRawMove(Info, 0, "qm-picker-wheel");
+		return s_WheelTexture;
+	}
+
+	// 色环：单张 CPU 纹理一次 quad 绘制，后端无关。
+	void PickerDrawColorWheel(CUi *pUI, const CUIRect &Area)
+	{
+		IGraphics *pGraphics = pUI->Graphics();
+		const IGraphics::CTextureHandle Texture = PickerWheelTexture(pUI);
+		if(!Texture.IsValid())
+			return;
+		pGraphics->TextureSet(Texture);
+		pGraphics->WrapClamp();
+		pGraphics->QuadsBegin();
+		pGraphics->SetColor(ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f));
+		const IGraphics::CQuadItem Item(Area.x, Area.y, Area.w, Area.h);
+		pGraphics->QuadsDrawTL(&Item, 1);
+		pGraphics->QuadsEnd();
+		pGraphics->WrapNormal();
+	}
+
+	// 推荐页预设色：8 色相 × 两档深浅 + 灰阶行 + 两个强调色。
+	ColorHSVA PickerPresetColorHsv(int Index)
+	{
+		const int Row = Index / PICKER_PRESET_COLS;
+		const int Col = Index % PICKER_PRESET_COLS;
+		if(Row == 0)
+			return ColorHSVA(Col / 8.0f, 1.0f, 1.0f, 1.0f);
+		if(Row == 1)
+			return ColorHSVA(Col / 8.0f, 0.65f, 0.90f, 1.0f);
+		static constexpr ColorHSVA ROW3[8] = {
+			ColorHSVA(0.0f, 0.0f, 0.00f, 1.0f),
+			ColorHSVA(0.0f, 0.0f, 0.22f, 1.0f),
+			ColorHSVA(0.0f, 0.0f, 0.45f, 1.0f),
+			ColorHSVA(0.0f, 0.0f, 0.68f, 1.0f),
+			ColorHSVA(0.0f, 0.0f, 0.86f, 1.0f),
+			ColorHSVA(0.0f, 0.0f, 1.00f, 1.0f),
+			ColorHSVA(0.55f, 0.75f, 0.96f, 1.0f),
+			ColorHSVA(0.99f, 0.72f, 0.96f, 1.0f),
+		};
+		return ROW3[Col];
+	}
+
+	// 调色板工作副本 → 配置串（增删改名即刻回写，随 CFGFLAG_SAVE 持久化）。
+	void PickerSavePalette(CUi::SColorPickerPopupContext *pPicker)
+	{
+		qm_picker_palette::Serialize(g_Config.m_QmColorPickerPalette, (int)sizeof(g_Config.m_QmColorPickerPalette), pPicker->m_vPalette);
+	}
+
+	// 绘制单个色块（圆角外框、透明棋盘格衬底、选中状态指示与高亮悬浮微浮起）。
+	void PickerDrawSwatch(CUi *pUI, const CUIRect &Cell, const ColorRGBA &Color, bool CurrentMatch, bool Hovered, bool Pressed, float Radius = 2.5f)
+	{
+		CUIRect DrawCell = Cell;
+		if(Hovered && !Pressed)
+		{
+			DrawCell.Margin(-1.0f, &DrawCell);
+			const CUIRect Shadow{DrawCell.x, DrawCell.y + 0.8f, DrawCell.w, DrawCell.h};
+			DrawRoundedSurface(pUI, Shadow, ColorRGBA(0.0f, 0.0f, 0.0f, 0.35f), ColorRGBA(), Radius, 0.0f);
+		}
+		else if(Pressed)
+		{
+			DrawCell.Margin(0.5f, &DrawCell);
+		}
+
+		// 半透明颜色时绘制深色衬底
+		if(Color.a < 0.99f)
+			DrawRoundedSurface(pUI, DrawCell, ColorRGBA(0.15f, 0.15f, 0.15f, 1.0f), ColorRGBA(), Radius);
+
+		const float Lum = 0.299f * Color.r + 0.587f * Color.g + 0.114f * Color.b;
+		ColorRGBA Outline;
+		float OutlineWidth = 1.0f;
+		if(CurrentMatch)
+		{
+			Outline = ui_token::color::ACCENT_PRIMARY;
+			OutlineWidth = 2.0f;
+		}
+		else if(Hovered)
+		{
+			Outline = ColorRGBA(1.0f, 1.0f, 1.0f, 0.95f);
+			OutlineWidth = 1.5f;
+		}
+		else
+		{
+			Outline = Lum < 0.2f ? ColorRGBA(1.0f, 1.0f, 1.0f, 0.25f) : ColorRGBA(0.0f, 0.0f, 0.0f, 0.35f);
+			OutlineWidth = 1.0f;
+		}
+
+		DrawRoundedSurface(pUI, DrawCell, Color, Outline, Radius, OutlineWidth);
+
+		// 当前选中颜色：中心显示高对比指示圆点，即便所选颜色与主题强调色接近也能清晰识别
+		if(CurrentMatch)
+		{
+			const ColorRGBA PipColor = Lum > 0.5f ? ColorRGBA(0.0f, 0.0f, 0.0f, 0.8f) : ColorRGBA(1.0f, 1.0f, 1.0f, 0.95f);
+			const vec2 Center = DrawCell.Center();
+			const float PipRadius = minimum(Radius, 2.0f);
+			const CUIRect CenterPip{Center.x - PipRadius, Center.y - PipRadius, PipRadius * 2.0f, PipRadius * 2.0f};
+			DrawRoundedSurface(pUI, CenterPip, PipColor, ColorRGBA(), PipRadius);
+		}
+	}
+} // namespace
+
 CUi::EPopupMenuFunctionResult CUi::PopupColorPicker(void *pContext, CUIRect View, bool Active)
 {
 	SColorPickerPopupContext *pColorPicker = static_cast<SColorPickerPopupContext *>(pContext);
@@ -1275,271 +1572,825 @@ CUi::EPopupMenuFunctionResult CUi::PopupColorPicker(void *pContext, CUIRect View
 	// 成模糊背板，选择方块因此显示为灰度渐变、不随所选色相变化。
 	CUiScopedGaussianBlurSuppression PickerBlurSuppression(pUI);
 
-	CUIRect ColorsArea, HueArea, BottomArea, ModeButtonArea, HueRect, SatRect, ValueRect, HexRect, AlphaRect;
+	// 弹窗背板沿用 RenderPopupMenus 的主题玻璃样式（与其他二级菜单一致），
+	// 此处不再叠加自绘底色。
 
-	View.HSplitTop(140.0f, &ColorsArea, &BottomArea);
-	ColorsArea.VSplitRight(20.0f, &ColorsArea, &HueArea);
-	const CUIRect ColorsHitArea = ColorsArea;
-
-	BottomArea.HSplitTop(3.0f, nullptr, &BottomArea);
-	HueArea.VSplitLeft(3.0f, nullptr, &HueArea);
-	const CUIRect HueHitArea = HueArea;
-
-	BottomArea.HSplitTop(20.0f, &HueRect, &BottomArea);
-	BottomArea.HSplitTop(3.0f, nullptr, &BottomArea);
-
-	constexpr float ValuePadding = 5.0f;
-	const float HsvValueWidth = (HueRect.w - ValuePadding * 2) / 3.0f;
-	const float HexValueWidth = HsvValueWidth * 2 + ValuePadding;
-
-	HueRect.VSplitLeft(HsvValueWidth, &HueRect, &SatRect);
-	SatRect.VSplitLeft(ValuePadding, nullptr, &SatRect);
-	SatRect.VSplitLeft(HsvValueWidth, &SatRect, &ValueRect);
-	ValueRect.VSplitLeft(ValuePadding, nullptr, &ValueRect);
-
-	BottomArea.HSplitTop(20.0f, &HexRect, &BottomArea);
-	BottomArea.HSplitTop(3.0f, nullptr, &BottomArea);
-	HexRect.VSplitLeft(HexValueWidth, &HexRect, &AlphaRect);
-	AlphaRect.VSplitLeft(ValuePadding, nullptr, &AlphaRect);
-	BottomArea.HSplitTop(20.0f, &ModeButtonArea, &BottomArea);
-
-	const ColorRGBA BlackColor = ColorRGBA(0.0f, 0.0f, 0.0f, 0.5f);
-
-	HueArea.Draw(BlackColor, IGraphics::CORNER_NONE, 0.0f);
-	HueArea.Margin(1.0f, &HueArea);
-
-	ColorsArea.Draw(BlackColor, IGraphics::CORNER_NONE, 0.0f);
-	ColorsArea.Margin(1.0f, &ColorsArea);
+	// 输入框底板：弹窗玻璃背板与默认输入框外壳亮度接近，数值框几乎看不出边界。
+	// 取色器内所有输入统一压一层深色底板 + 细描边，聚焦时切成强调色描边，
+	// 与周围文字、轨道拉开层次，一眼可辨“这里能输入”。
+	const auto DrawInputPlate = [&](const CUIRect &Rect, bool Focused) {
+		const bool Hovered = !Focused && pUI->MouseHovered(&Rect);
+		const ColorRGBA Fill = ColorRGBA(0.0f, 0.0f, 0.0f, Focused ? 0.38f : (Hovered ? 0.32f : 0.26f));
+		const ColorRGBA Border = Focused ? ui_token::color::BORDER_FOCUS : ColorRGBA(1.0f, 1.0f, 1.0f, Hovered ? 0.22f : 0.12f);
+		DrawRoundedSurface(pUI, Rect, Fill, Border, ui_token::radius::TIGHT, Focused ? 1.4f : 1.0f);
+	};
+	// 文本/光标相对底板左右内缩，避免贴边；竖向仍由 DoEditBox 的 VSpacing 处理。
+	const auto InputTextRect = [](const CUIRect &Plate, float Inset) {
+		CUIRect Text = Plate;
+		Text.x += Inset;
+		Text.w -= Inset * 2.0f;
+		return Text;
+	};
 
 	ColorHSVA PickerColorHSV = pColorPicker->m_HsvaColor;
 	ColorRGBA PickerColorRGB = pColorPicker->m_RgbaColor;
 	ColorHSLA PickerColorHSL = pColorPicker->m_HslaColor;
-
-	// Color Area
-	ColorRGBA TL, TR, BL, BR;
-	TL = BL = color_cast<ColorRGBA>(ResolveUiColorPickerSelection(PickerColorHSV.x, 0.0f, 0.0f, 1.0f));
-	TR = BR = color_cast<ColorRGBA>(ResolveUiColorPickerSelection(PickerColorHSV.x, 1.0f, 0.0f, 1.0f));
-	ColorsArea.Draw4(TL, TR, BL, BR, IGraphics::CORNER_NONE, 0.0f);
-
-	TL = TR = ColorRGBA(0.0f, 0.0f, 0.0f, 0.0f);
-	BL = BR = ColorRGBA(0.0f, 0.0f, 0.0f, 1.0f);
-	ColorsArea.Draw4(TL, TR, BL, BR, IGraphics::CORNER_NONE, 0.0f);
-
-	// Hue Area
-	static const float s_aaColorIndices[7][3] = {
-		{1.0f, 0.0f, 0.0f}, // red
-		{1.0f, 0.0f, 1.0f}, // magenta
-		{0.0f, 0.0f, 1.0f}, // blue
-		{0.0f, 1.0f, 1.0f}, // cyan
-		{0.0f, 1.0f, 0.0f}, // green
-		{1.0f, 1.0f, 0.0f}, // yellow
-		{1.0f, 0.0f, 0.0f}, // red
+	const auto SyncFromHsv = [&]() {
+		PickerColorHSL = color_cast<ColorHSLA>(PickerColorHSV);
+		PickerColorRGB = color_cast<ColorRGBA>(PickerColorHSL);
+	};
+	const auto SyncFromRgb = [&]() {
+		PickerColorHSL = color_cast<ColorHSLA>(PickerColorRGB);
+		PickerColorHSV = color_cast<ColorHSVA>(PickerColorHSL);
+	};
+	const auto SyncFromHsl = [&]() {
+		PickerColorHSV = color_cast<ColorHSVA>(PickerColorHSL);
+		PickerColorRGB = color_cast<ColorRGBA>(PickerColorHSL);
 	};
 
-	const float HuePickerOffset = HueArea.h / 6.0f;
-	CUIRect HuePartialArea = HueArea;
-	HuePartialArea.h = HuePickerOffset;
+	// ===== 标题栏：颜色徽标 + 标题 + 确认/关闭 =====
+	CUIRect TitleRow, Body;
+	View.HSplitTop(PICKER_TITLE_HEIGHT, &TitleRow, &Body);
+	CUIRect CloseButtonRect, AcceptButtonRect;
+	TitleRow.VSplitRight(PICKER_TITLE_HEIGHT, &TitleRow, &CloseButtonRect);
+	TitleRow.VSplitRight(PICKER_TITLE_HEIGHT + 2.0f, &TitleRow, &AcceptButtonRect);
+	const bool CloseClicked = pUI->DoButton_QmIcon(&pColorPicker->m_CloseButton, EQmIcon::CLOSE, FontIcons::FONT_ICON_XMARK, 0, &CloseButtonRect, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL);
+	const bool AcceptClicked = pUI->DoButton_QmIcon(&pColorPicker->m_AcceptButton, EQmIcon::CHECK, PICKER_ICON_CHECK, 0, &AcceptButtonRect, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL);
 
-	for(size_t j = 0; j < std::size(s_aaColorIndices) - 1; j++)
+	CUIRect TitleChipRect, TitleRect;
+	TitleRow.VSplitLeft(TitleRow.h, &TitleChipRect, &TitleRect);
+	TitleRect.VSplitLeft(4.0f, nullptr, &TitleRect);
+	// 颜色徽标左右分半：左旧色（快照）右新色（当前），改动一眼可见；点击左半直接还原初始颜色。
+	CUIRect ChipOld, ChipNew;
+	TitleChipRect.VSplitMid(&ChipOld, &ChipNew, 1.0f);
+	if(pUI->DoButtonLogic(&pColorPicker->m_InitialColorButton, 0, &ChipOld, BUTTONFLAG_LEFT))
 	{
-		TL = ColorRGBA(s_aaColorIndices[j][0], s_aaColorIndices[j][1], s_aaColorIndices[j][2], 1.0f);
-		BL = ColorRGBA(s_aaColorIndices[j + 1][0], s_aaColorIndices[j + 1][1], s_aaColorIndices[j + 1][2], 1.0f);
+		PickerColorHSV = pColorPicker->m_InitialHsvaColor;
+		PickerColorRGB = pColorPicker->m_InitialRgbaColor;
+		PickerColorHSL = pColorPicker->m_InitialHslaColor;
+		pColorPicker->m_State = EEditState::ONE_GO;
+	}
+	DrawRoundedSurface(pUI, ChipOld, pColorPicker->m_InitialRgbaColor, ColorRGBA(1.0f, 1.0f, 1.0f, 0.25f), 2.0f, 1.0f, IGraphics::CORNER_L);
+	DrawRoundedSurface(pUI, ChipNew, PickerColorRGB, ColorRGBA(1.0f, 1.0f, 1.0f, 0.25f), 2.0f, 1.0f, IGraphics::CORNER_R);
+	pUI->DoSmallTooltip(&pColorPicker->m_InitialColorButton, &TitleChipRect, "左: 初始颜色（点击还原） · 右: 当前修改颜色");
+	pUI->DoLabel(&TitleRect, "取色器", 8.0f, TEXTALIGN_ML);
 
-		HuePartialArea.y = HueArea.y + HuePickerOffset * j;
-		HuePartialArea.Draw4(TL, TL, BL, BL, IGraphics::CORNER_NONE, 0.0f);
+	pUI->DoSmallTooltip(&pColorPicker->m_AcceptButton, &AcceptButtonRect, "确认并保留修改");
+	pUI->DoSmallTooltip(&pColorPicker->m_CloseButton, &CloseButtonRect, "取消并还原初始颜色 (ESC)");
+
+	if(AcceptClicked)
+		return CUi::POPUP_CLOSE_CURRENT;
+	if(CloseClicked || (Active && pColorPicker->m_RenamingPaletteIndex < 0 && pUI->ConsumeHotkey(HOTKEY_ESCAPE)))
+	{
+		// 取消：还原打开时的快照颜色后再关闭。
+		pColorPicker->m_HsvaColor = pColorPicker->m_InitialHsvaColor;
+		pColorPicker->m_RgbaColor = pColorPicker->m_InitialRgbaColor;
+		pColorPicker->m_HslaColor = pColorPicker->m_InitialHslaColor;
+		if(pColorPicker->m_pHslaColor != nullptr)
+			*pColorPicker->m_pHslaColor = pColorPicker->m_HslaColor.Pack(pColorPicker->m_Alpha);
+		return CUi::POPUP_CLOSE_CURRENT;
 	}
 
-	SValueSelectorProperties ColorValueProps;
-	ColorValueProps.m_UseScroll = false;
+	// ===== 分割线 =====
+	CUIRect Divider;
+	Body.HSplitTop(2.0f, nullptr, &Body);
+	Body.HSplitTop(1.0f, &Divider, &Body);
+	Divider.Draw(ui_token::color::BORDER_SUBTLE, IGraphics::CORNER_NONE, 0.0f);
+	Body.HSplitTop(3.0f, nullptr, &Body);
 
-	const auto &&RenderAlphaSelector = [&](unsigned OldA) -> SEditResult<int64_t> {
-		if(pColorPicker->m_Alpha)
+	// ===== 页签行：推荐/HSVA/RGBA/HSLA + 方图/色环切换 =====
+	CUIRect TabRow, MainArea;
+	Body.HSplitTop(PICKER_TAB_HEIGHT, &TabRow, &MainArea);
+	MainArea.HSplitTop(3.0f, nullptr, &MainArea);
+
+	static constexpr SColorPickerPopupContext::EColorPickerMode PICKER_MODES[] = {
+		SColorPickerPopupContext::MODE_RECOMMENDED,
+		SColorPickerPopupContext::MODE_HSVA,
+		SColorPickerPopupContext::MODE_RGBA,
+		SColorPickerPopupContext::MODE_HSLA,
+	};
+	static constexpr const char *PICKER_MODE_LABELS[] = {"推荐", "HSVA", "RGBA", "HSLA"};
+	static constexpr const char *PICKER_MODE_TOOLTIPS[] = {
+		"常用预设色板与当前颜色参数卡片",
+		"色相 / 饱和度 / 明度取色模式",
+		"红 / 绿 / 蓝通道取色模式",
+		"色相 / 饱和度 / 亮度取色模式",
+	};
+	static_assert(std::size(PICKER_MODES) == std::size(PICKER_MODE_LABELS));
+	static_assert(std::size(PICKER_MODES) == std::size(PICKER_MODE_TOOLTIPS));
+
+	CUIRect ShapeToggleRect;
+	TabRow.VSplitRight(PICKER_SHAPE_TOGGLE_WIDTH, &TabRow, &ShapeToggleRect);
+	TabRow.VSplitRight(PICKER_TAB_GAP, &TabRow, nullptr);
+	for(SColorPickerPopupContext::EColorPickerMode Mode : PICKER_MODES)
+	{
+		CUIRect TabButton;
+		TabRow.VSplitLeft(PICKER_TAB_WIDTH, &TabButton, &TabRow);
+		TabRow.VSplitLeft(PICKER_TAB_GAP, nullptr, &TabRow);
+		const bool Selected = pColorPicker->m_ColorMode == Mode;
+		if(pUI->DoButton_PopupMenu(&pColorPicker->m_aModeButtons[(int)Mode], PICKER_MODE_LABELS[Mode], &TabButton, 7.5f, TEXTALIGN_MC, 0.0f, true, !Selected))
 		{
-			return pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[3], &AlphaRect, "A:", OldA, 0, 255, ColorValueProps);
+			pColorPicker->m_ColorMode = Mode;
 		}
-		else
+		pUI->DoSmallTooltip(&pColorPicker->m_aModeButtons[(int)Mode], &TabButton, PICKER_MODE_TOOLTIPS[Mode]);
+		if(Selected)
 		{
-			char aBuf[8];
-			str_format(aBuf, sizeof(aBuf), "A: %d", OldA);
-			pUI->DoLabel(&AlphaRect, aBuf, 10.0f, TEXTALIGN_MC);
-			AlphaRect.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.65f), IGraphics::CORNER_ALL, 3.0f);
-			return {EEditState::NONE, OldA};
+			// 选中页签底部强调色下划线，明确当前页。
+			CUIRect TabIndicator;
+			TabButton.HSplitBottom(2.0f, nullptr, &TabIndicator);
+			TabIndicator.VMargin(6.0f, &TabIndicator);
+			TabIndicator.Draw(ui_token::color::ACCENT_PRIMARY, IGraphics::CORNER_ALL, 1.0f);
 		}
+	}
+
+	if(pColorPicker->m_ColorMode != SColorPickerPopupContext::MODE_RECOMMENDED)
+	{
+		if(pUI->DoButton_PopupMenu(&pColorPicker->m_ShapeButton, pColorPicker->m_Shape == SColorPickerPopupContext::SHAPE_WHEEL ? "色环" : "方图", &ShapeToggleRect, 7.5f, TEXTALIGN_MC, 0.0f, false))
+		{
+			pColorPicker->m_Shape = pColorPicker->m_Shape == SColorPickerPopupContext::SHAPE_WHEEL ? SColorPickerPopupContext::SHAPE_SQUARE : SColorPickerPopupContext::SHAPE_WHEEL;
+			g_Config.m_QmColorPickerShape = (int)pColorPicker->m_Shape;
+		}
+		pUI->DoSmallTooltip(&pColorPicker->m_ShapeButton, &ShapeToggleRect, "切换取色区样式（方图 / 色环）");
+	}
+
+	// ===== 主区：取色/推荐页占满全宽，调色板收进底部行 =====
+	CUIRect PaletteRow;
+	MainArea.HSplitBottom(PICKER_PALETTE_ROW_HEIGHT, &MainArea, &PaletteRow);
+	MainArea.HSplitBottom(4.0f, &MainArea, nullptr);
+	CUIRect LeftCol = MainArea;
+
+	// 调色板交互辅助。
+	const auto StartRename = [&](int Index) {
+		pColorPicker->m_RenamingPaletteIndex = Index;
+		str_copy(pColorPicker->m_aRenameBuffer, pColorPicker->m_vPalette[Index].m_aName);
+		pColorPicker->m_RenameInput.SetBuffer(pColorPicker->m_aRenameBuffer, sizeof(pColorPicker->m_aRenameBuffer));
+		pColorPicker->m_RenameInput.Set(pColorPicker->m_aRenameBuffer);
+		pColorPicker->m_RenameInput.SetCursorOffset(str_length(pColorPicker->m_aRenameBuffer));
+		pUI->SetActiveItem(&pColorPicker->m_RenameInput);
+	};
+	const auto AddCurrentColorToPalette = [&]() {
+		if((int)pColorPicker->m_vPalette.size() >= qm_picker_palette::MAX_SWATCHES)
+			return;
+		qm_picker_palette::SSwatch Swatch;
+		str_format(Swatch.m_aName, sizeof(Swatch.m_aName), "颜色 %d", (int)pColorPicker->m_vPalette.size() + 1);
+		Swatch.m_Color = PickerColorRGB;
+		pColorPicker->m_vPalette.push_back(Swatch);
+		PickerSavePalette(pColorPicker);
+		StartRename((int)pColorPicker->m_vPalette.size() - 1);
 	};
 
-	// Editboxes Area
-	if(pColorPicker->m_ColorMode == SColorPickerPopupContext::MODE_HSVA)
+	if(pColorPicker->m_ColorMode == SColorPickerPopupContext::MODE_RECOMMENDED)
 	{
-		const unsigned OldH = round_to_int(PickerColorHSV.h * 255.0f);
-		const unsigned OldS = round_to_int(PickerColorHSV.s * 255.0f);
-		const unsigned OldV = round_to_int(PickerColorHSV.v * 255.0f);
-		const unsigned OldA = round_to_int(PickerColorHSV.a * 255.0f);
-
-		const auto [StateH, H] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[0], &HueRect, "H:", OldH, 0, 255, ColorValueProps);
-		const auto [StateS, S] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[1], &SatRect, "S:", OldS, 0, 255, ColorValueProps);
-		const auto [StateV, V] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[2], &ValueRect, "V:", OldV, 0, 255, ColorValueProps);
-		const auto [StateA, A] = RenderAlphaSelector(OldA);
-
-		if(OldH != H || OldS != S || OldV != V || OldA != A)
+		// 预览条：左半旧色（快照）右半新色（当前），一条横杠看差异；点击旧色恢复初始颜色。
+		CUIRect PreviewRow;
+		LeftCol.HSplitTop(PICKER_PREVIEW_BAR_HEIGHT, &PreviewRow, &LeftCol);
+		LeftCol.HSplitTop(5.0f, nullptr, &LeftCol);
+		CUIRect OldHalf, NewHalf;
+		PreviewRow.VSplitMid(&OldHalf, &NewHalf);
+		if(pUI->DoButtonLogic(&pColorPicker->m_InitialColorButton, 0, &OldHalf, BUTTONFLAG_LEFT))
 		{
-			PickerColorHSV = ColorHSVA(H / 255.0f, S / 255.0f, V / 255.0f, A / 255.0f);
-			PickerColorHSL = color_cast<ColorHSLA>(PickerColorHSV);
-			PickerColorRGB = color_cast<ColorRGBA>(PickerColorHSL);
+			PickerColorHSV = pColorPicker->m_InitialHsvaColor;
+			PickerColorRGB = pColorPicker->m_InitialRgbaColor;
+			PickerColorHSL = pColorPicker->m_InitialHslaColor;
+			pColorPicker->m_State = EEditState::ONE_GO;
 		}
+		DrawRoundedSurface(pUI, OldHalf, pColorPicker->m_InitialRgbaColor, ColorRGBA(0.0f, 0.0f, 0.0f, 0.25f), 3.0f, 1.0f, IGraphics::CORNER_L);
+		DrawRoundedSurface(pUI, NewHalf, PickerColorRGB, ColorRGBA(0.0f, 0.0f, 0.0f, 0.25f), 3.0f, 1.0f, IGraphics::CORNER_R);
+		pUI->DoSmallTooltip(&pColorPicker->m_InitialColorButton, &OldHalf, "左侧: 初始颜色（点击可还原）");
+		pUI->DoSmallTooltip(&pColorPicker->m_AcceptButton, &NewHalf, "右侧: 当前修改颜色");
 
-		for(auto State : {StateH, StateS, StateV, StateA})
+		// 中缝指示旧/新边界。
+		CUIRect Seam{PreviewRow.x + PreviewRow.w * 0.5f - 0.5f, PreviewRow.y, 1.0f, PreviewRow.h};
+		Seam.Draw(ui_token::color::BORDER_SUBTLE, IGraphics::CORNER_NONE, 0.0f);
+
+		// 预设网格 8×3。
+		LeftCol.HSplitTop(2.0f, nullptr, &LeftCol);
+		const float PresetSwatchSize = (LeftCol.w - (PICKER_PRESET_COLS - 1) * PICKER_PALETTE_COLGAP) / PICKER_PRESET_COLS;
+		for(int Row = 0; Row < PICKER_PRESET_ROWS; Row++)
 		{
-			if(State != EEditState::NONE)
+			CUIRect RowRect;
+			LeftCol.HSplitTop(PresetSwatchSize, &RowRect, &LeftCol);
+			LeftCol.HSplitTop(PICKER_PALETTE_ROWGAP, nullptr, &LeftCol);
+			CUIRect CellCursor = RowRect;
+			for(int Col = 0; Col < PICKER_PRESET_COLS; Col++)
 			{
-				pColorPicker->m_State = State;
-				break;
+				CUIRect Cell;
+				CellCursor.VSplitLeft(PresetSwatchSize, &Cell, &CellCursor);
+				CellCursor.VSplitLeft(PICKER_PALETTE_COLGAP, nullptr, &CellCursor);
+				const int Index = Row * PICKER_PRESET_COLS + Col;
+				const ColorHSVA PresetHsv = PickerPresetColorHsv(Index);
+				const ColorRGBA PresetRgb = color_cast<ColorRGBA>(PresetHsv);
+
+				const bool CurrentMatch = std::fabs(PresetRgb.r - PickerColorRGB.r) < 0.005f &&
+							  std::fabs(PresetRgb.g - PickerColorRGB.g) < 0.005f &&
+							  std::fabs(PresetRgb.b - PickerColorRGB.b) < 0.005f;
+
+				const int Click = pUI->DoButtonLogic(&pColorPicker->m_aPresetButtons[Index], 0, &Cell, BUTTONFLAG_LEFT);
+				const bool Hovered = (pUI->HotItem() == &pColorPicker->m_aPresetButtons[Index]) || pUI->MouseHovered(&Cell);
+				const bool Pressed = pUI->CheckActiveItem(&pColorPicker->m_aPresetButtons[Index]);
+
+				PickerDrawSwatch(pUI, Cell, PresetRgb, CurrentMatch, Hovered, Pressed, 3.0f);
+
+				if(Hovered)
+				{
+					char aHexTip[32];
+					str_format(aHexTip, sizeof(aHexTip), "#%06x\n点击应用颜色", PresetRgb.Pack(false));
+					pUI->DoSmallTooltip(&pColorPicker->m_aPresetButtons[Index], &Cell, aHexTip);
+				}
+
+				if(Click == 1)
+				{
+					PickerColorHSV = PresetHsv;
+					SyncFromHsv();
+					pColorPicker->m_State = EEditState::ONE_GO;
+				}
 			}
 		}
-	}
-	else if(pColorPicker->m_ColorMode == SColorPickerPopupContext::MODE_RGBA)
-	{
-		const unsigned OldR = round_to_int(PickerColorRGB.r * 255.0f);
-		const unsigned OldG = round_to_int(PickerColorRGB.g * 255.0f);
-		const unsigned OldB = round_to_int(PickerColorRGB.b * 255.0f);
-		const unsigned OldA = round_to_int(PickerColorRGB.a * 255.0f);
 
-		const auto [StateR, R] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[0], &HueRect, "R:", OldR, 0, 255, ColorValueProps);
-		const auto [StateG, G] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[1], &SatRect, "G:", OldG, 0, 255, ColorValueProps);
-		const auto [StateB, B] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[2], &ValueRect, "B:", OldB, 0, 255, ColorValueProps);
-		const auto [StateA, A] = RenderAlphaSelector(OldA);
-
-		if(OldR != R || OldG != G || OldB != B || OldA != A)
+		// 当前颜色参数卡片
+		LeftCol.HSplitTop(5.0f, nullptr, &LeftCol);
+		if(LeftCol.h >= 24.0f)
 		{
-			PickerColorRGB = ColorRGBA(R / 255.0f, G / 255.0f, B / 255.0f, A / 255.0f);
-			PickerColorHSL = color_cast<ColorHSLA>(PickerColorRGB);
-			PickerColorHSV = color_cast<ColorHSVA>(PickerColorHSL);
-		}
-
-		for(auto State : {StateR, StateG, StateB, StateA})
-		{
-			if(State != EEditState::NONE)
-			{
-				pColorPicker->m_State = State;
-				break;
-			}
-		}
-	}
-	else if(pColorPicker->m_ColorMode == SColorPickerPopupContext::MODE_HSLA)
-	{
-		const unsigned OldH = round_to_int(PickerColorHSL.h * 255.0f);
-		const unsigned OldS = round_to_int(PickerColorHSL.s * 255.0f);
-		const unsigned OldL = round_to_int(PickerColorHSL.l * 255.0f);
-		const unsigned OldA = round_to_int(PickerColorHSL.a * 255.0f);
-
-		const auto [StateH, H] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[0], &HueRect, "H:", OldH, 0, 255, ColorValueProps);
-		const auto [StateS, S] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[1], &SatRect, "S:", OldS, 0, 255, ColorValueProps);
-		const auto [StateL, L] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[2], &ValueRect, "L:", OldL, 0, 255, ColorValueProps);
-		const auto [StateA, A] = RenderAlphaSelector(OldA);
-
-		if(OldH != H || OldS != S || OldL != L || OldA != A)
-		{
-			PickerColorHSL = ColorHSLA(H / 255.0f, S / 255.0f, L / 255.0f, A / 255.0f);
-			PickerColorHSV = color_cast<ColorHSVA>(PickerColorHSL);
-			PickerColorRGB = color_cast<ColorRGBA>(PickerColorHSL);
-		}
-
-		for(auto State : {StateH, StateS, StateL, StateA})
-		{
-			if(State != EEditState::NONE)
-			{
-				pColorPicker->m_State = State;
-				break;
-			}
+			CUIRect InfoCard;
+			LeftCol.HSplitTop(minimum(LeftCol.h, 34.0f), &InfoCard, &LeftCol);
+			DrawRoundedSurface(pUI, InfoCard, ColorRGBA(1.0f, 1.0f, 1.0f, 0.04f), ui_token::color::BORDER_SUBTLE, 3.0f, 1.0f);
+			InfoCard.Margin(3.0f, &InfoCard);
+			CUIRect HexRow, DetailRow;
+			InfoCard.HSplitMid(&HexRow, &DetailRow);
+			char aHexStr[32];
+			str_format(aHexStr, sizeof(aHexStr), "HEX: #%06x", PickerColorRGB.Pack(false));
+			pUI->DoLabel(&HexRow, aHexStr, 7.5f, TEXTALIGN_MC);
+			char aDetailStr[64];
+			str_format(aDetailStr, sizeof(aDetailStr), "RGB: %d, %d, %d   HSV: %d°, %d%%, %d%%",
+				round_to_int(PickerColorRGB.r * 255.0f),
+				round_to_int(PickerColorRGB.g * 255.0f),
+				round_to_int(PickerColorRGB.b * 255.0f),
+				round_to_int(PickerColorHSV.h * 360.0f),
+				round_to_int(PickerColorHSV.s * 100.0f),
+				round_to_int(PickerColorHSV.v * 100.0f));
+			pUI->DoLabel(&DetailRow, aDetailStr, 6.0f, TEXTALIGN_MC);
 		}
 	}
 	else
 	{
-		dbg_assert_failed("Color picker mode invalid: %d", (int)pColorPicker->m_ColorMode);
+		// ===== 取色页：主取色区（方图 / 色环）+ 通道数值行 + Hex =====
+		CUIRect PickerZone, RowsZone;
+		LeftCol.HSplitTop(pColorPicker->m_Shape == SColorPickerPopupContext::SHAPE_WHEEL ? PICKER_WHEEL_SIZE : PICKER_SV_SQUARE_HEIGHT, &PickerZone, &RowsZone);
+		RowsZone.HSplitTop(PICKER_ROW_GAP, nullptr, &RowsZone);
+
+		const ColorRGBA BorderColor = ColorRGBA(0.0f, 0.0f, 0.0f, 0.5f);
+		CUIRect SvArea, HueArea;
+		CUIRect SvHitArea, HueHitArea, WheelHitArea;
+		vec2 WheelCenter(0.0f, 0.0f);
+		float WheelOuter = 0.0f, WheelInner = 0.0f;
+		const bool WheelShape = pColorPicker->m_Shape == SColorPickerPopupContext::SHAPE_WHEEL;
+
+		if(WheelShape)
+		{
+			// 色环：水平居中；环内放 SV 方图。
+			const float WheelX = PickerZone.x + (PickerZone.w - PICKER_WHEEL_SIZE) * 0.5f;
+			const CUIRect WheelArea{WheelX, PickerZone.y, PICKER_WHEEL_SIZE, PICKER_WHEEL_SIZE};
+			WheelHitArea = WheelArea;
+			WheelCenter = WheelArea.Center();
+			WheelOuter = PICKER_WHEEL_SIZE * 0.5f;
+			WheelInner = WheelOuter - PICKER_WHEEL_RING_WIDTH;
+			const float SvSide = WheelInner * 2.0f * 0.7071f * 0.88f;
+			SvArea = CUIRect{WheelCenter.x - SvSide * 0.5f, WheelCenter.y - SvSide * 0.5f, SvSide, SvSide};
+			SvHitArea = SvArea;
+			PickerDrawColorWheel(pUI, WheelArea);
+
+			// SV 方图背景卡片与微边框
+			CUIRect SvBorder = SvArea;
+			SvBorder.Margin(-1.0f, &SvBorder);
+			DrawRoundedSurface(pUI, SvBorder, ColorRGBA(0.0f, 0.0f, 0.0f, 0.45f), ColorRGBA(1.0f, 1.0f, 1.0f, 0.18f), 2.5f, 1.0f);
+			SvArea.Draw(ColorRGBA(0.0f, 0.0f, 0.0f, 0.55f), IGraphics::CORNER_NONE, 0.0f);
+			PickerDrawSvGradient(pUI, SvArea, PickerColorHSV.x);
+		}
+		else
+		{
+			// 方图：SV 平面 + 右侧竖向色相条（保留原有视觉）。
+			PickerZone.VSplitRight(PICKER_HUE_BAR_WIDTH + PICKER_ROW_GAP, &SvArea, &HueHitArea);
+			HueHitArea.VSplitLeft(PICKER_ROW_GAP, nullptr, &HueHitArea);
+			HueArea = HueHitArea;
+			SvHitArea = SvArea;
+			SvArea.Draw(BorderColor, IGraphics::CORNER_NONE, 0.0f);
+			SvArea.Margin(1.0f, &SvArea);
+			HueArea.Draw(BorderColor, IGraphics::CORNER_NONE, 0.0f);
+			HueArea.Margin(1.0f, &HueArea);
+			PickerDrawSvGradient(pUI, SvArea, PickerColorHSV.x);
+
+			static const float s_aaColorIndices[7][3] = {
+				{1.0f, 0.0f, 0.0f}, // red
+				{1.0f, 0.0f, 1.0f}, // magenta
+				{0.0f, 0.0f, 1.0f}, // blue
+				{0.0f, 1.0f, 1.0f}, // cyan
+				{0.0f, 1.0f, 0.0f}, // green
+				{1.0f, 1.0f, 0.0f}, // yellow
+				{1.0f, 0.0f, 0.0f}, // red
+			};
+			const float HuePickerOffset = HueArea.h / 6.0f;
+			CUIRect HuePartialArea = HueArea;
+			HuePartialArea.h = HuePickerOffset;
+			for(size_t j = 0; j < std::size(s_aaColorIndices) - 1; j++)
+			{
+				const ColorRGBA TL = ColorRGBA(s_aaColorIndices[j][0], s_aaColorIndices[j][1], s_aaColorIndices[j][2], 1.0f);
+				const ColorRGBA BL = ColorRGBA(s_aaColorIndices[j + 1][0], s_aaColorIndices[j + 1][1], s_aaColorIndices[j + 1][2], 1.0f);
+				HuePartialArea.y = HueArea.y + HuePickerOffset * j;
+				HuePartialArea.Draw4(TL, TL, BL, BL, IGraphics::CORNER_NONE, 0.0f);
+			}
+		}
+
+		// 主取色区交互。
+		float PickerX, PickerY;
+		if(!WheelShape)
+		{
+			const EEditState ColorPickerRes = pUI->DoPickerLogic(&pColorPicker->m_ColorPickerId, &SvHitArea, &PickerX, &PickerY);
+			if(ColorPickerRes != EEditState::NONE)
+			{
+				const float ColorX = std::clamp(PickerX - (SvArea.x - SvHitArea.x), 0.0f, SvArea.w);
+				const float ColorY = std::clamp(PickerY - (SvArea.y - SvHitArea.y), 0.0f, SvArea.h);
+				PickerColorHSV = ResolveUiColorPickerSelection(PickerColorHSV.x, ColorX / std::max(SvArea.w, 1.0f), ColorY / std::max(SvArea.h, 1.0f), PickerColorHSV.a);
+				SyncFromHsv();
+				pColorPicker->m_State = ColorPickerRes;
+			}
+
+			const EEditState HuePickerRes = pUI->DoPickerLogic(&pColorPicker->m_HuePickerId, &HueHitArea, &PickerX, &PickerY);
+			if(HuePickerRes != EEditState::NONE)
+			{
+				const float HueY = std::clamp(PickerY - (HueArea.y - HueHitArea.y), 0.0f, HueArea.h);
+				PickerColorHSV.x = 1.0f - HueY / HueArea.h;
+				SyncFromHsv();
+				pColorPicker->m_State = HuePickerRes;
+			}
+		}
+		else
+		{
+			// 1. 中间 SV 方图交互：独立使用 m_ColorPickerId 与 SvArea，支持自由拖拽并全向自动 clamp。
+			const EEditState ColorPickerRes = pUI->DoPickerLogic(&pColorPicker->m_ColorPickerId, &SvArea, &PickerX, &PickerY);
+			if(ColorPickerRes != EEditState::NONE)
+			{
+				PickerColorHSV = ResolveUiColorPickerSelection(
+					PickerColorHSV.x,
+					PickerX / std::max(SvArea.w, 1.0f),
+					PickerY / std::max(SvArea.h, 1.0f),
+					PickerColorHSV.a);
+				SyncFromHsv();
+				pColorPicker->m_State = ColorPickerRes;
+			}
+
+			// 2. 色环外环交互：独立使用 m_WheelPickerId，点击外环激活，拖拽时按环心极角丝滑调相。
+			const void *pWheelId = &pColorPicker->m_WheelPickerId;
+			const float MouseDx = pUI->MouseX() - WheelCenter.x;
+			const float MouseDy = pUI->MouseY() - WheelCenter.y;
+			const float MouseDist = std::sqrt(MouseDx * MouseDx + MouseDy * MouseDy);
+			const bool OverRing = (MouseDist >= WheelInner - 2.0f && MouseDist <= WheelOuter + 3.0f);
+			const bool InsideSv = pUI->MouseHovered(&SvArea);
+
+			if(pUI->CheckActiveItem(pWheelId))
+			{
+				if(!pUI->MouseButton(0))
+				{
+					pUI->SetActiveItem(nullptr);
+					pColorPicker->m_State = EEditState::END;
+				}
+				else
+				{
+					float Angle = std::atan2(MouseDy, MouseDx) + (float)pi * 0.5f;
+					if(Angle < 0.0f)
+						Angle += 2.0f * (float)pi;
+					PickerColorHSV.x = std::clamp(Angle / (2.0f * (float)pi), 0.0f, 0.9999f);
+					SyncFromHsv();
+					pColorPicker->m_State = EEditState::EDITING;
+				}
+			}
+			else if(OverRing && !InsideSv)
+			{
+				pUI->SetHotItem(pWheelId);
+				if(pUI->MouseButtonClicked(0))
+				{
+					pUI->SetActiveItem(pWheelId);
+					float Angle = std::atan2(MouseDy, MouseDx) + (float)pi * 0.5f;
+					if(Angle < 0.0f)
+						Angle += 2.0f * (float)pi;
+					PickerColorHSV.x = std::clamp(Angle / (2.0f * (float)pi), 0.0f, 0.9999f);
+					SyncFromHsv();
+					pColorPicker->m_State = EEditState::START;
+				}
+			}
+		}
+
+		// ===== 通道滑条行：语义渐变轨道 + 圆形滑块 + 数值小输入框（拖动与输入双向）=====
+		const unsigned OldA = round_to_int(PickerColorHSV.a * 255.0f);
+		const auto DoChannelSliderRow = [&](int ChannelIndex, const char *pLabel, unsigned CurValue) -> SEditResult<int64_t> {
+			CUIRect RowRect;
+			RowsZone.HSplitTop(PICKER_ROW_HEIGHT, &RowRect, &RowsZone);
+			RowsZone.HSplitTop(PICKER_ROW_GAP, nullptr, &RowsZone);
+
+			CUIRect LabelRect, TrackRect, ValueRect;
+			RowRect.VSplitLeft(PICKER_SLIDER_LABEL_WIDTH, &LabelRect, &TrackRect);
+			TrackRect.VSplitRight(PICKER_VALUE_BOX_WIDTH, &TrackRect, &ValueRect);
+			TrackRect.VSplitRight(4.0f, &TrackRect, nullptr);
+			TrackRect.VSplitLeft(2.0f, nullptr, &TrackRect);
+
+			pUI->DoLabel(&LabelRect, pLabel, 7.5f, TEXTALIGN_ML);
+
+			// 语义渐变轨道（H 通道用色相谱条）；纵向居中于行高，横向铺满滑条宽度。
+			// 轨道宽度即滑块圆心行程（见 qm_picker_slider），两端才能对齐。
+			CUIRect TrackBar;
+			TrackRect.VMargin((TrackRect.h - PICKER_SLIDER_TRACK_HEIGHT) * 0.5f, &TrackBar);
+			TrackBar.h = PICKER_SLIDER_TRACK_HEIGHT;
+			ColorRGBA TrackLeft, TrackRight;
+			if(!PickerChannelTrackColors((int)pColorPicker->m_ColorMode, ChannelIndex, PickerColorHSV, PickerColorRGB, TrackLeft, TrackRight))
+				PickerDrawHueStrip(TrackBar);
+			else
+				TrackBar.Draw4(TrackLeft, TrackRight, TrackLeft, TrackRight, IGraphics::CORNER_ALL, 3.5f);
+
+			// 轨道外细描边增强质感
+			DrawRoundedSurface(pUI, TrackBar, ColorRGBA(0.0f, 0.0f, 0.0f, 0.0f), ColorRGBA(0.0f, 0.0f, 0.0f, 0.35f), 3.5f, 1.0f);
+
+			// 轨道交互：点击/拖动设值（PickerX 已经是相对 TrackRect 的局部坐标，
+			// 与滑块圆心行程同源换算，滑块落点跟随鼠标）。
+			float PickerX = 0.0f, PickerY = 0.0f;
+			int64_t NewValue = CurValue;
+			EEditState ResultState = EEditState::NONE;
+			const EEditState TrackState = pUI->DoPickerLogic(&pColorPicker->m_aValueSelectorIds[ChannelIndex], &TrackRect, &PickerX, &PickerY);
+			if(TrackState != EEditState::NONE)
+			{
+				NewValue = round_to_int(qm_picker_slider::ValueFromTrackOffset(TrackRect.w, PickerX) * 255.0f);
+				ResultState = TrackState;
+			}
+
+			// 数值输入框：非编辑态回显当前值，编辑态实时提交合法数字。
+			// 底板自绘（DoEditBox 关掉自带外壳），文字居中回显；
+			// 聚焦时底板描边转强调色，与旁边的渐变轨道形成清晰的“拖动 / 输入”分工。
+			CLineInput &Input = pColorPicker->m_aChannelInputs[ChannelIndex];
+			if(!Input.IsActive())
+			{
+				str_format(pColorPicker->m_aacChannelBuffers[ChannelIndex], sizeof(pColorPicker->m_aacChannelBuffers[ChannelIndex]), "%u", CurValue);
+				Input.Set(pColorPicker->m_aacChannelBuffers[ChannelIndex]);
+			}
+			const bool InputFocused = Input.IsActive();
+			DrawInputPlate(ValueRect, InputFocused);
+			const CUIRect ValueTextRect = InputTextRect(ValueRect, 2.5f);
+			CUi::SEditBoxRenderOptions ValueRenderOptions;
+			ValueRenderOptions.m_DrawBackground = false;
+			// 命中区仍是整块底板：文本内缩只为排版留白，不该让边缘点击落空。
+			ValueRenderOptions.m_pHitRect = &ValueRect;
+			pUI->DoEditBox(&Input, &ValueTextRect, 7.0f, IGraphics::CORNER_ALL, {}, TEXTALIGN_MC, ValueRenderOptions);
+			if(Input.WasChanged())
+			{
+				const char *pText = pColorPicker->m_aacChannelBuffers[ChannelIndex];
+				char *pEnd = nullptr;
+				const long Parsed = strtol(pText, &pEnd, 10);
+				if(pEnd != pText && *str_skip_whitespaces(pEnd) == '\0')
+				{
+					NewValue = std::clamp<long>(Parsed, 0, 255);
+					ResultState = EEditState::ONE_GO;
+				}
+			}
+
+			// 圆形滑块：立体阴影 + 纯白外圈 + 对应通道颜色内核；悬停或拖拽时高亮微放大。
+			// 圆心行程两端各内缩基础半径，0 / 255 时滑块完整落在轨道内且贴住轨道端沿。
+			const bool KnobHovered = pUI->MouseHovered(&TrackRect) || TrackState != EEditState::NONE;
+			const float TrackT = std::clamp(NewValue / 255.0f, 0.0f, 1.0f);
+			const float KnobX = TrackRect.x + qm_picker_slider::KnobCenterOffset(TrackRect.w, TrackT);
+			const float KnobY = TrackRect.y + TrackRect.h * 0.5f;
+			const float KnobR = KnobHovered ? qm_picker_slider::KNOB_HOVER_RADIUS : qm_picker_slider::KNOB_RADIUS;
+			const CUIRect KnobShadow{KnobX - KnobR, KnobY - KnobR + 0.6f, KnobR * 2.0f, KnobR * 2.0f};
+			DrawRoundedSurface(pUI, KnobShadow, ColorRGBA(0.0f, 0.0f, 0.0f, 0.35f), ColorRGBA(), KnobR, 0.0f);
+			const CUIRect Knob{KnobX - KnobR, KnobY - KnobR, KnobR * 2.0f, KnobR * 2.0f};
+			DrawRoundedSurface(pUI, Knob, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f), ColorRGBA(0.0f, 0.0f, 0.0f, 0.35f), KnobR, 1.0f);
+			const float InnerDotR = KnobR - 1.8f;
+			const CUIRect InnerDot{KnobX - InnerDotR, KnobY - InnerDotR, InnerDotR * 2.0f, InnerDotR * 2.0f};
+			InnerDot.Draw(PickerColorRGB, IGraphics::CORNER_ALL, InnerDotR);
+
+			return SEditResult<int64_t>{ResultState, NewValue};
+		};
+
+		if(pColorPicker->m_ColorMode == SColorPickerPopupContext::MODE_HSVA)
+		{
+			const unsigned OldH = round_to_int(PickerColorHSV.h * 255.0f);
+			const unsigned OldS = round_to_int(PickerColorHSV.s * 255.0f);
+			const unsigned OldV = round_to_int(PickerColorHSV.v * 255.0f);
+
+			const auto [StateH, H] = DoChannelSliderRow(0, "H", OldH);
+			const auto [StateS, S] = DoChannelSliderRow(1, "S", OldS);
+			const auto [StateV, V] = DoChannelSliderRow(2, "V", OldV);
+			int64_t A = OldA;
+			EEditState StateA = EEditState::NONE;
+			if(pColorPicker->m_Alpha)
+			{
+				const auto [StateTmp, ValueTmp] = DoChannelSliderRow(3, "A", OldA);
+				StateA = StateTmp;
+				A = ValueTmp;
+			}
+
+			if(OldH != (unsigned)H || OldS != (unsigned)S || OldV != (unsigned)V || OldA != (unsigned)A)
+			{
+				PickerColorHSV = ColorHSVA(H / 255.0f, S / 255.0f, V / 255.0f, A / 255.0f);
+				SyncFromHsv();
+			}
+			for(auto State : {StateH, StateS, StateV, StateA})
+			{
+				if(State != EEditState::NONE)
+				{
+					pColorPicker->m_State = State;
+					break;
+				}
+			}
+		}
+		else if(pColorPicker->m_ColorMode == SColorPickerPopupContext::MODE_RGBA)
+		{
+			const unsigned OldR = round_to_int(PickerColorRGB.r * 255.0f);
+			const unsigned OldG = round_to_int(PickerColorRGB.g * 255.0f);
+			const unsigned OldB = round_to_int(PickerColorRGB.b * 255.0f);
+
+			const auto [StateR, R] = DoChannelSliderRow(0, "R", OldR);
+			const auto [StateG, G] = DoChannelSliderRow(1, "G", OldG);
+			const auto [StateB, B] = DoChannelSliderRow(2, "B", OldB);
+			int64_t A = OldA;
+			EEditState StateA = EEditState::NONE;
+			if(pColorPicker->m_Alpha)
+			{
+				const auto [StateTmp, ValueTmp] = DoChannelSliderRow(3, "A", OldA);
+				StateA = StateTmp;
+				A = ValueTmp;
+			}
+
+			if(OldR != (unsigned)R || OldG != (unsigned)G || OldB != (unsigned)B || OldA != (unsigned)A)
+			{
+				PickerColorRGB = ColorRGBA(R / 255.0f, G / 255.0f, B / 255.0f, A / 255.0f);
+				SyncFromRgb();
+			}
+			for(auto State : {StateR, StateG, StateB, StateA})
+			{
+				if(State != EEditState::NONE)
+				{
+					pColorPicker->m_State = State;
+					break;
+				}
+			}
+		}
+		else if(pColorPicker->m_ColorMode == SColorPickerPopupContext::MODE_HSLA)
+		{
+			const unsigned OldH = round_to_int(PickerColorHSL.h * 255.0f);
+			const unsigned OldS = round_to_int(PickerColorHSL.s * 255.0f);
+			const unsigned OldL = round_to_int(PickerColorHSL.l * 255.0f);
+
+			const auto [StateH, H] = DoChannelSliderRow(0, "H", OldH);
+			const auto [StateS, S] = DoChannelSliderRow(1, "S", OldS);
+			const auto [StateL, L] = DoChannelSliderRow(2, "L", OldL);
+			int64_t A = OldA;
+			EEditState StateA = EEditState::NONE;
+			if(pColorPicker->m_Alpha)
+			{
+				const auto [StateTmp, ValueTmp] = DoChannelSliderRow(3, "A", OldA);
+				StateA = StateTmp;
+				A = ValueTmp;
+			}
+
+			if(OldH != (unsigned)H || OldS != (unsigned)S || OldL != (unsigned)L || OldA != (unsigned)A)
+			{
+				PickerColorHSL = ColorHSLA(H / 255.0f, S / 255.0f, L / 255.0f, A / 255.0f);
+				SyncFromHsl();
+			}
+			for(auto State : {StateH, StateS, StateL, StateA})
+			{
+				if(State != EEditState::NONE)
+				{
+					pColorPicker->m_State = State;
+					break;
+				}
+			}
+		}
+		else
+		{
+			dbg_assert_failed("Color picker mode invalid: %d", (int)pColorPicker->m_ColorMode);
+		}
+
+		// Hex 行：常驻输入框，#RRGGBB[AA] 实时解析（所有取色模式共享）。
+		// 标签用“颜色代码”文案（不加图标），输入框沿用同款深色底板。
+		{
+			CUIRect RowRect;
+			RowsZone.HSplitTop(PICKER_ROW_HEIGHT, &RowRect, &RowsZone);
+			RowsZone.HSplitTop(PICKER_ROW_GAP, nullptr, &RowsZone);
+			CUIRect LabelRect, HexBox;
+			RowRect.VSplitLeft(PICKER_HEX_LABEL_WIDTH, &LabelRect, &HexBox);
+			pUI->DoLabel(&LabelRect, "颜色代码", 7.0f, TEXTALIGN_ML);
+
+			const unsigned OldHex = PickerColorRGB.PackAlphaLast(pColorPicker->m_Alpha);
+			if(!pColorPicker->m_HexInput.IsActive())
+			{
+				str_format(pColorPicker->m_aHexBuffer, sizeof(pColorPicker->m_aHexBuffer), pColorPicker->m_Alpha ? "#%08x" : "#%06x", OldHex);
+				pColorPicker->m_HexInput.Set(pColorPicker->m_aHexBuffer);
+			}
+			const bool HexFocused = pColorPicker->m_HexInput.IsActive();
+			DrawInputPlate(HexBox, HexFocused);
+			const CUIRect HexTextRect = InputTextRect(HexBox, 3.0f);
+			CUi::SEditBoxRenderOptions HexRenderOptions;
+			HexRenderOptions.m_DrawBackground = false;
+			HexRenderOptions.m_pHitRect = &HexBox;
+			pUI->DoEditBox(&pColorPicker->m_HexInput, &HexTextRect, 7.0f, IGraphics::CORNER_ALL, {}, TEXTALIGN_ML, HexRenderOptions);
+			pUI->DoSmallTooltip(&pColorPicker->m_HexInput, &HexBox, "支持 3/4/6/8 位十六进制颜色（例如 #F00、#FF0000）");
+			if(pColorPicker->m_HexInput.WasChanged())
+			{
+				ColorRGBA ParsedColor;
+				if(qm_picker_palette::ParseHexColor(pColorPicker->m_aHexBuffer, ParsedColor))
+				{
+					const float OldAlphaFloat = PickerColorRGB.a;
+					PickerColorRGB = ParsedColor;
+					if(!pColorPicker->m_Alpha)
+						PickerColorRGB.a = OldAlphaFloat;
+					SyncFromRgb();
+					pColorPicker->m_State = EEditState::ONE_GO;
+				}
+			}
+		}
+
+		// 标记点：SV 方图双环高对比度指针，暗底亮底均清晰可见
+		const float MarkerX = SvArea.x + SvArea.w * PickerColorHSV.y;
+		const float MarkerY = SvArea.y + SvArea.h * (1.0f - PickerColorHSV.z);
+		const CUIRect ColorMarkerOuter{MarkerX - 4.5f, MarkerY - 4.5f, 9.0f, 9.0f};
+		DrawRoundedSurface(pUI, ColorMarkerOuter, PickerColorRGB, ColorRGBA(0.0f, 0.0f, 0.0f, 0.75f), 4.5f, 1.8f);
+		const CUIRect ColorMarkerInner{MarkerX - 3.5f, MarkerY - 3.5f, 7.0f, 7.0f};
+		DrawRoundedSurface(pUI, ColorMarkerInner, PickerColorRGB, ColorRGBA(1.0f, 1.0f, 1.0f, 0.95f), 3.5f, 1.0f);
+
+		if(!WheelShape)
+		{
+			CUIRect HueMarker;
+			HueArea.Margin(-2.5f, &HueMarker);
+			HueMarker.h = 6.5f;
+			HueMarker.y = (HueArea.y + HueArea.h * (1.0f - PickerColorHSV.x)) - HueMarker.h / 2.0f;
+
+			const ColorRGBA HueMarkerColor = color_cast<ColorRGBA>(ColorHSVA(PickerColorHSV.x, 1.0f, 1.0f, 1.0f));
+			const float HueMarkerOutlineColor = PickerColorHSV.x > 0.75f ? 1.0f : 0.0f;
+			const ColorRGBA HueMarkerOutline = ColorRGBA(HueMarkerOutlineColor, HueMarkerOutlineColor, HueMarkerOutlineColor, 1.0f);
+			DrawRoundedSurface(pUI, HueMarker, HueMarkerColor, HueMarkerOutline, 1.2f, 1.2f);
+		}
+		else
+		{
+			const float MarkerAngle = PickerColorHSV.x * 2.0f * (float)pi - (float)pi * 0.5f;
+			const float MarkerRadius = (WheelOuter + WheelInner) * 0.5f;
+			const vec2 WheelMarkerPos = WheelCenter + direction(MarkerAngle) * MarkerRadius;
+			const float HandleR = (WheelOuter - WheelInner) * 0.5f;
+			const CUIRect WheelMarkerShadow{WheelMarkerPos.x - HandleR, WheelMarkerPos.y - HandleR + 0.6f, HandleR * 2.0f, HandleR * 2.0f};
+			DrawRoundedSurface(pUI, WheelMarkerShadow, ColorRGBA(0.0f, 0.0f, 0.0f, 0.4f), ColorRGBA(), HandleR, 0.0f);
+			const CUIRect WheelMarker{WheelMarkerPos.x - HandleR, WheelMarkerPos.y - HandleR, HandleR * 2.0f, HandleR * 2.0f};
+			const ColorRGBA WheelMarkerColor = color_cast<ColorRGBA>(ColorHSVA(PickerColorHSV.x, 1.0f, 1.0f, 1.0f));
+			DrawRoundedSurface(pUI, WheelMarker, WheelMarkerColor, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f), HandleR, 1.8f);
+		}
 	}
 
-	SValueSelectorProperties Props;
-	Props.m_UseScroll = false;
-	Props.m_IsHex = true;
-	Props.m_HexPrefix = pColorPicker->m_Alpha ? 8 : 6;
-	const unsigned OldHex = PickerColorRGB.PackAlphaLast(pColorPicker->m_Alpha);
-	auto [HexState, Hex] = pUI->DoValueSelectorWithState(&pColorPicker->m_aValueSelectorIds[4], &HexRect, "Hex:", OldHex, 0, pColorPicker->m_Alpha ? 0xFFFFFFFFll : 0xFFFFFFll, Props);
-	if(OldHex != Hex)
+	// ===== 底部：我的调色板行（所有页面常驻，带半透明底卡与悬停高光）=====
 	{
-		const float OldAlpha = PickerColorRGB.a;
-		PickerColorRGB = ColorRGBA::UnpackAlphaLast<ColorRGBA>(Hex, pColorPicker->m_Alpha);
-		if(!pColorPicker->m_Alpha)
-			PickerColorRGB.a = OldAlpha;
-		PickerColorHSL = color_cast<ColorHSLA>(PickerColorRGB);
-		PickerColorHSV = color_cast<ColorHSVA>(PickerColorHSL);
+		CUIRect PaletteCard = PaletteRow;
+		PaletteCard.Margin(-2.0f, &PaletteCard);
+		DrawRoundedSurface(pUI, PaletteCard, ColorRGBA(0.0f, 0.0f, 0.0f, 0.20f), ColorRGBA(1.0f, 1.0f, 1.0f, 0.08f), 4.0f, 1.0f);
+
+		CUIRect LabelRect, SwatchZone;
+		PaletteRow.VSplitLeft(PICKER_PALETTE_LABEL_WIDTH, &LabelRect, &SwatchZone);
+		SwatchZone.VSplitLeft(2.0f, nullptr, &SwatchZone);
+
+		// 行首标签：永远固定显示“调色板”，彻底消除文本闪烁
+		pUI->DoLabel(&LabelRect, "调色板", 7.0f, TEXTALIGN_ML);
+
+		const int NumSwatches = (int)pColorPicker->m_vPalette.size();
+		const bool HasAddCell = NumSwatches < qm_picker_palette::MAX_SWATCHES;
+
+		// ＋ 固定当前颜色：紧随色块后排列，聚合度更高
+		const float AddX = SwatchZone.x + NumSwatches * (PICKER_PALETTE_SWATCH_SIZE + PICKER_PALETTE_COLGAP);
+		const CUIRect AddRect{AddX, SwatchZone.y, PICKER_PALETTE_SWATCH_SIZE, SwatchZone.h};
+		const CUIRect SwatchArea = SwatchZone;
+
+		if(pColorPicker->m_RenamingPaletteIndex < 0)
+		{
+			for(int i = 0; i < NumSwatches; i++)
+			{
+				const CUIRect Cell{SwatchArea.x + i * (PICKER_PALETTE_SWATCH_SIZE + PICKER_PALETTE_COLGAP), SwatchArea.y, PICKER_PALETTE_SWATCH_SIZE, SwatchArea.h};
+				const qm_picker_palette::SSwatch &Entry = pColorPicker->m_vPalette[i];
+
+				const bool CurrentMatch = std::fabs(Entry.m_Color.r - PickerColorRGB.r) < 0.002f &&
+							  std::fabs(Entry.m_Color.g - PickerColorRGB.g) < 0.002f &&
+							  std::fabs(Entry.m_Color.b - PickerColorRGB.b) < 0.002f &&
+							  std::fabs(Entry.m_Color.a - PickerColorRGB.a) < 0.002f;
+
+				const int Click = pUI->DoButtonLogic(&pColorPicker->m_aPaletteSwatchButtons[i], 0, &Cell, BUTTONFLAG_LEFT | BUTTONFLAG_RIGHT);
+				const bool Hovered = (pUI->HotItem() == &pColorPicker->m_aPaletteSwatchButtons[i]) || pUI->MouseHovered(&Cell);
+				const bool Pressed = pUI->CheckActiveItem(&pColorPicker->m_aPaletteSwatchButtons[i]);
+
+				PickerDrawSwatch(pUI, Cell, Entry.m_Color, CurrentMatch, Hovered, Pressed, 2.8f);
+
+				if(Hovered)
+				{
+					char aTooltip[128];
+					str_format(aTooltip, sizeof(aTooltip), "%s (#%06x)\n左键: 应用 · 双击: 重命名 · 右键: 删除",
+						Entry.m_aName, Entry.m_Color.Pack(false));
+					pUI->DoSmallTooltip(&pColorPicker->m_aPaletteSwatchButtons[i], &Cell, aTooltip);
+				}
+
+				if(Click == 1)
+				{
+					// 双击改名：两次快速左键点击同一色块。
+					const double Now = pUI->Client()->LocalTime();
+					if(pColorPicker->m_LastSwatchClickIndex == i && Now - pColorPicker->m_aSwatchClickTime[i] < PICKER_DOUBLE_CLICK_INTERVAL)
+					{
+						StartRename(i);
+					}
+					else
+					{
+						PickerColorRGB = Entry.m_Color;
+						SyncFromRgb();
+						pColorPicker->m_State = EEditState::ONE_GO;
+					}
+					pColorPicker->m_LastSwatchClickIndex = i;
+					pColorPicker->m_aSwatchClickTime[i] = Now;
+				}
+				else if(Click == 2)
+				{
+					pColorPicker->m_vPalette.erase(pColorPicker->m_vPalette.begin() + i);
+					pColorPicker->m_LastSwatchClickIndex = -1;
+					PickerSavePalette(pColorPicker);
+					break;
+				}
+			}
+
+			// 色块与＋之后剩余区域的提示文本（常驻静态，绝不随悬停变化，杜绝闪烁）
+			const float GuideX = AddX + (HasAddCell ? PICKER_PALETTE_SWATCH_SIZE + 6.0f : 2.0f);
+			const float GuideWidth = (SwatchZone.x + SwatchZone.w) - GuideX;
+			if(GuideWidth > 30.0f)
+			{
+				CUIRect GuideRect{GuideX, SwatchZone.y, GuideWidth, SwatchZone.h};
+				if(NumSwatches == 0)
+				{
+					pUI->DoLabel(&GuideRect, "点击 ＋ 保存当前颜色", 6.5f, TEXTALIGN_ML);
+				}
+				else if(GuideWidth >= 70.0f)
+				{
+					pUI->DoLabel(&GuideRect, "双击改名 · 右键删除", 6.0f, TEXTALIGN_ML);
+				}
+			}
+		}
+		else
+		{
+			// 行内改名输入框：覆盖色块区整行，左侧附当前修改色块徽标
+			const int Index = pColorPicker->m_RenamingPaletteIndex;
+			if(Index >= 0 && Index < NumSwatches)
+			{
+				CUIRect ChipRect, InputRect;
+				SwatchArea.VSplitLeft(PICKER_PALETTE_SWATCH_SIZE, &ChipRect, &InputRect);
+				InputRect.VSplitLeft(3.0f, nullptr, &InputRect);
+				DrawRoundedSurface(pUI, ChipRect, pColorPicker->m_vPalette[Index].m_Color, ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f), 2.5f, 1.0f);
+
+				const bool WasActive = pColorPicker->m_RenameInput.IsActive();
+				DrawInputPlate(InputRect, WasActive);
+				const CUIRect RenameTextRect = InputTextRect(InputRect, 3.0f);
+				CUi::SEditBoxRenderOptions RenameRenderOptions;
+				RenameRenderOptions.m_DrawBackground = false;
+				RenameRenderOptions.m_pHitRect = &InputRect;
+				pUI->DoEditBox(&pColorPicker->m_RenameInput, &RenameTextRect, 7.5f, IGraphics::CORNER_ALL, {}, TEXTALIGN_ML, RenameRenderOptions);
+
+				const bool SaveConfirmed = pUI->ConsumeHotkey(HOTKEY_ENTER) || (WasActive && !pColorPicker->m_RenameInput.IsActive());
+				const bool Canceled = pUI->ConsumeHotkey(HOTKEY_ESCAPE);
+
+				if(SaveConfirmed)
+				{
+					char aName[qm_picker_palette::MAX_NAME_BYTES];
+					str_copy(aName, pColorPicker->m_aRenameBuffer, (int)sizeof(aName));
+					qm_picker_palette::SanitizeName(aName, (int)sizeof(aName));
+					if(aName[0] == '\0')
+						str_format(aName, sizeof(aName), "颜色 %d", Index + 1);
+					str_copy(pColorPicker->m_vPalette[Index].m_aName, aName);
+					pColorPicker->m_RenamingPaletteIndex = -1;
+					PickerSavePalette(pColorPicker);
+				}
+				else if(Canceled)
+				{
+					pColorPicker->m_RenamingPaletteIndex = -1;
+				}
+			}
+			else
+			{
+				pColorPicker->m_RenamingPaletteIndex = -1;
+			}
+		}
+
+		// ＋ 新增当前颜色
+		if(HasAddCell && pColorPicker->m_RenamingPaletteIndex < 0)
+		{
+			if(pUI->DoButton_QmIcon(&pColorPicker->m_AddPaletteButton, EQmIcon::PLUS, FontIcons::FONT_ICON_PLUS, 0, &AddRect, BUTTONFLAG_LEFT, IGraphics::CORNER_ALL))
+			{
+				AddCurrentColorToPalette();
+			}
+			pUI->DoSmallTooltip(&pColorPicker->m_AddPaletteButton, &AddRect, "固定当前颜色到调色板（最多 12 项）");
+		}
 	}
 
-	if(HexState != EEditState::NONE)
-		pColorPicker->m_State = HexState;
-
-	// Logic
-	float PickerX, PickerY;
-	EEditState ColorPickerRes = pUI->DoPickerLogic(&pColorPicker->m_ColorPickerId, &ColorsHitArea, &PickerX, &PickerY);
-	if(ColorPickerRes != EEditState::NONE)
-	{
-		const float ColorX = std::clamp(PickerX - (ColorsArea.x - ColorsHitArea.x), 0.0f, ColorsArea.w);
-		const float ColorY = std::clamp(PickerY - (ColorsArea.y - ColorsHitArea.y), 0.0f, ColorsArea.h);
-		PickerColorHSV = ResolveUiColorPickerSelection(PickerColorHSV.x, ColorX / std::max(ColorsArea.w, 1.0f), ColorY / std::max(ColorsArea.h, 1.0f), PickerColorHSV.a);
-		PickerColorHSL = color_cast<ColorHSLA>(PickerColorHSV);
-		PickerColorRGB = color_cast<ColorRGBA>(PickerColorHSL);
-		pColorPicker->m_State = ColorPickerRes;
-	}
-
-	EEditState HuePickerRes = pUI->DoPickerLogic(&pColorPicker->m_HuePickerId, &HueHitArea, &PickerX, &PickerY);
-	if(HuePickerRes != EEditState::NONE)
-	{
-		const float HueY = std::clamp(PickerY - (HueArea.y - HueHitArea.y), 0.0f, HueArea.h);
-		PickerColorHSV.x = 1.0f - HueY / HueArea.h;
-		PickerColorHSL = color_cast<ColorHSLA>(PickerColorHSV);
-		PickerColorRGB = color_cast<ColorRGBA>(PickerColorHSL);
-		pColorPicker->m_State = HuePickerRes;
-	}
-
-	// Marker Color Area
-	const float MarkerX = ColorsArea.x + ColorsArea.w * PickerColorHSV.y;
-	const float MarkerY = ColorsArea.y + ColorsArea.h * (1.0f - PickerColorHSV.z);
-
-	const float MarkerOutlineInd = PickerColorHSV.z > 0.5f ? 0.0f : 1.0f;
-	const ColorRGBA MarkerOutline = ColorRGBA(MarkerOutlineInd, MarkerOutlineInd, MarkerOutlineInd, 1.0f);
-
-	const CUIRect ColorMarker{MarkerX - 4.5f, MarkerY - 4.5f, 9.0f, 9.0f};
-	DrawRoundedSurface(pUI, ColorMarker, PickerColorRGB, MarkerOutline, 4.5f, 1.0f);
-
-	// Marker Hue Area
-	CUIRect HueMarker;
-	HueArea.Margin(-2.5f, &HueMarker);
-	HueMarker.h = 6.5f;
-	HueMarker.y = (HueArea.y + HueArea.h * (1.0f - PickerColorHSV.x)) - HueMarker.h / 2.0f;
-
-	const ColorRGBA HueMarkerColor = color_cast<ColorRGBA>(ColorHSVA(PickerColorHSV.x, 1.0f, 1.0f, 1.0f));
-	const float HueMarkerOutlineColor = PickerColorHSV.x > 0.75f ? 1.0f : 0.0f;
-	const ColorRGBA HueMarkerOutline = ColorRGBA(HueMarkerOutlineColor, HueMarkerOutlineColor, HueMarkerOutlineColor, 1.0f);
-
-	DrawRoundedSurface(pUI, HueMarker, HueMarkerColor, HueMarkerOutline, 1.2f, 1.2f);
-
+	// ===== 回写 =====
 	pColorPicker->m_HsvaColor = PickerColorHSV;
 	pColorPicker->m_RgbaColor = PickerColorRGB;
 	pColorPicker->m_HslaColor = PickerColorHSL;
 	if(pColorPicker->m_pHslaColor != nullptr)
 		*pColorPicker->m_pHslaColor = PickerColorHSL.Pack(pColorPicker->m_Alpha);
-
-	static constexpr SColorPickerPopupContext::EColorPickerMode PICKER_MODES[] = {SColorPickerPopupContext::MODE_HSVA, SColorPickerPopupContext::MODE_RGBA, SColorPickerPopupContext::MODE_HSLA};
-	static constexpr const char *PICKER_MODE_LABELS[] = {"HSVA", "RGBA", "HSLA"};
-	static_assert(std::size(PICKER_MODES) == std::size(PICKER_MODE_LABELS));
-	for(SColorPickerPopupContext::EColorPickerMode Mode : PICKER_MODES)
-	{
-		CUIRect ModeButton;
-		ModeButtonArea.VSplitLeft(HsvValueWidth, &ModeButton, &ModeButtonArea);
-		ModeButtonArea.VSplitLeft(ValuePadding, nullptr, &ModeButtonArea);
-		if(pUI->DoButton_PopupMenu(&pColorPicker->m_aModeButtons[(int)Mode], PICKER_MODE_LABELS[Mode], &ModeButton, 10.0f, TEXTALIGN_MC, 2.0f, false, pColorPicker->m_ColorMode != Mode))
-		{
-			pColorPicker->m_ColorMode = Mode;
-		}
-	}
 
 	return CUi::POPUP_KEEP_OPEN;
 }
@@ -1549,9 +2400,26 @@ void CUi::ShowPopupColorPicker(float X, float Y, SColorPickerPopupContext *pCont
 	pContext->m_pUI = this;
 	if(pContext->m_ColorMode == SColorPickerPopupContext::MODE_UNSET)
 		pContext->m_ColorMode = SColorPickerPopupContext::MODE_HSVA;
+	pContext->m_InitialHsvaColor = pContext->m_HsvaColor;
+	pContext->m_InitialRgbaColor = pContext->m_RgbaColor;
+	pContext->m_InitialHslaColor = pContext->m_HslaColor;
+	pContext->m_vPalette = qm_picker_palette::Parse(g_Config.m_QmColorPickerPalette);
+	pContext->m_RenamingPaletteIndex = -1;
+	pContext->m_LastSwatchClickIndex = -1;
+	pContext->m_Shape = (SColorPickerPopupContext::EColorPickerShape)std::clamp(g_Config.m_QmColorPickerShape, 0, 1);
+	for(int i = 0; i < 4; i++)
+	{
+		pContext->m_aacChannelBuffers[i][0] = '\0';
+		pContext->m_aChannelInputs[i].SetBuffer(pContext->m_aacChannelBuffers[i], (int)sizeof(pContext->m_aacChannelBuffers[i]));
+	}
+	pContext->m_aHexBuffer[0] = '\0';
+	pContext->m_HexInput.SetBuffer(pContext->m_aHexBuffer, (int)sizeof(pContext->m_aHexBuffer));
+
+	// 二级菜单弹窗页面：视口内居中，阻断下层滚动与指针交互。
 	SPopupMenuProperties PopupProps;
+	PopupProps.m_CenterInViewport = true;
 	PopupProps.m_BlockUnderlyingPointerInput = true;
 	PopupProps.m_BlockUnderlyingScroll = true;
 	PopupProps.m_Animate = true;
-	DoPopupMenu(pContext, X, Y, 160.0f + 10.0f, 209.0f + 10.0f, pContext, PopupColorPicker, PopupProps);
+	DoPopupMenu(pContext, X, Y, PICKER_POPUP_WIDTH, PICKER_POPUP_HEIGHT, pContext, PopupColorPicker, PopupProps);
 }

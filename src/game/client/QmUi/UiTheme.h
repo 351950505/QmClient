@@ -174,9 +174,11 @@ inline SUiTheme ResolveUiTheme(const ColorHSLA BaseColor, float Opacity, const C
 }
 
 // 二级面板统一读取独立背景色与透明度，边框沿用全局卡片配置。
+// 强调色/焦点/选中跟随用户配置：弹窗内的主按钮、滚动条与设置页共享同一套强调色，不回落到硬编码默认值。
 inline SUiTheme ResolveSecondaryPanelTheme(unsigned BackgroundColor, int Opacity, unsigned BorderColor)
 {
-	SUiTheme Theme = ResolveUiTheme(ColorHSLA(BackgroundColor), 1.0f);
+	SUiTheme Theme = ResolveUiTheme(ColorHSLA(BackgroundColor), 1.0f, ColorHSLA(g_Config.m_QmUiFocusColor),
+		ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f), ColorHSLA(g_Config.m_QmUiSelectedColor));
 	Theme.m_Surface = Theme.m_Surface.WithAlpha(std::clamp(Opacity / 100.0f, 0.0f, 1.0f));
 	Theme.m_Border = color_cast<ColorRGBA>(ColorHSLA(BorderColor, true));
 	Theme.m_TextTitle = ResolveConfiguredTextColor(Theme.m_Surface);

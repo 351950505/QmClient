@@ -848,9 +848,6 @@ Apply a writable preset and edit first
 Apply Changes
 == Aplicar Alterações
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== Desfocar o fundo de janelas secundárias e listas
-
 Apply input early before next tick for prediction
 == Aplicar entrada antecipada antes do próximo tick para predição
 
@@ -1970,9 +1967,6 @@ Chinese font:
 CHN
 == CHN
 
-Choose a GPU for this app in system graphics settings, then restart the client.
-== Escolha uma GPU para este aplicativo nas configurações gráficas do sistema e reinicie o cliente.
-
 Choose colors for weapons and entity lasers
 == Choose colors for weapons and entity lasers
 
@@ -2858,11 +2852,17 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == Corte atual é inválido ou já foi adicionado
 
+Current driver
+== Driver atual
+
 Current file
 == Arquivo atual
 
 Current GPU
 == GPU atual
+
+Current graphics backend
+== Backend gráfico atual
 
 Current rescue mode: %s
 == Modo de resgate atual: %s
@@ -2872,6 +2872,9 @@ Current status
 
 Current version: %s
 == Versão atual: %s
+
+Current version: %s (up to date)
+== Versão atual: %s (atualizada)
 
 Current: Ranks
 == Atual: Rankings
@@ -4087,9 +4090,6 @@ Enable fat skin
 
 Enable freeze call sound
 == Ativar som de chamada de congelamento
-
-Enable frosted glass blur behind secondary popups and dropdowns
-== Ativar desfoque atrás de janelas secundárias e listas
 
 Enable FTAPI auto-translate
 == Ativar tradução automática FTAPI
@@ -6512,12 +6512,6 @@ Latency compensation
 Latency Jitter
 == Variação de latência
 
-Later
-== Mais tarde
-
-Latest release: %s
-== Versão mais recente: %s
-
 Latin font
 == Fonte latina
 
@@ -7066,6 +7060,9 @@ Map upload network error.
 
 Map uploaded successfully.
 == Mapa enviado com sucesso.
+
+Maps
+== Mapas
 
 Maps finished
 == Mapas concluídos
@@ -8897,14 +8894,8 @@ Polished
 Pop wave
 == Onda de ampliação
 
-Popup & dropdown blur
-== Desfoque de janelas e listas
-
 Popup animation
 == Animação de pop-up
-
-Popup blur
-== Desfoque de painéis flutuantes
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == Porta para conexão do cliente ao servidor (0=aleatória, >=1024 define porta manual)
@@ -9317,6 +9308,9 @@ Quads are used for background decoration
 Query current map info
 == Consultar informações do mapa atual
 
+Query isolated serverlist consumer state
+== Query isolated serverlist consumer state
+
 Query map info for %s
 == Consultar informações do mapa %s
 
@@ -9628,6 +9622,9 @@ Refresh
 
 Refresh interval
 == Intervalo de atualização
+
+Refresh isolated serverlist consumer
+== Refresh isolated serverlist consumer
 
 Refresh Rate
 == Taxa de atualização
@@ -14236,9 +14233,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == Usar lista de inimigos para conduzir indicadores de jogador
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== Usar o pipeline de desfoque gaussiano quando a renderização aprimorada estiver ativa
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == Usar modo de alta largura de banda (dobra a largura de banda do servidor, apenas LAN)

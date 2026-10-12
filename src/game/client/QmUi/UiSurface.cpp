@@ -10,6 +10,21 @@
 
 #include <algorithm>
 
+namespace
+{
+	void DrawRoundedSurfaceBorder(IGraphics *pGraphics, const SRoundedSurfacePlan &Plan, const ColorRGBA &Border, int Corners)
+	{
+		if(Border.a <= 0.0f || Plan.m_BorderWidth <= 0.0f)
+			return;
+		const auto aMesh = ResolveRoundedSurfaceBorderMesh(Plan, Corners);
+		pGraphics->TextureClear();
+		pGraphics->QuadsBegin();
+		pGraphics->SetColor(Border);
+		pGraphics->QuadsDrawFreeform(aMesh.data(), aMesh.size());
+		pGraphics->QuadsEnd();
+	}
+}
+
 bool DrawRoundedSurface(IGraphics *pGraphics, const CUIRect &Rect, const ColorRGBA &Fill, const ColorRGBA &Border, const SRoundedSurfaceParams &Params)
 {
 	if(pGraphics == nullptr || Rect.w <= 0.0f || Rect.h <= 0.0f)
@@ -35,11 +50,12 @@ bool DrawRoundedSurface(IGraphics *pGraphics, const CUIRect &Rect, const ColorRG
 		return true;
 	}
 
-	pGraphics->DrawRect(Plan.m_Rect.x, Plan.m_Rect.y, Plan.m_Rect.w, Plan.m_Rect.h, Border, Params.m_Corners, Plan.m_Radius);
 	CUIRect Inner = Plan.m_Rect;
 	Inner.Margin(Plan.m_BorderWidth, &Inner);
 	if(Inner.w > 0.0f && Inner.h > 0.0f)
 		pGraphics->DrawRect(Inner.x, Inner.y, Inner.w, Inner.h, Fill, Params.m_Corners, std::max(0.0f, Plan.m_Radius - Plan.m_BorderWidth));
+	// 边框仅覆盖环带；整块边框垫底会透过半透明填色污染输入框内部。
+	DrawRoundedSurfaceBorder(pGraphics, Plan, Border, Params.m_Corners);
 	return true;
 }
 
@@ -76,9 +92,7 @@ bool DrawRoundedGradientSurface(IGraphics *pGraphics, const CUIRect &Rect, const
 	CUIRect Inner = Plan.m_Rect;
 	if(Plan.m_BorderWidth > 0.0f)
 	{
-		SRoundedSurfaceParams BorderParams = Params;
-		BorderParams.m_BorderWidth = 0.0f;
-		DrawRoundedSurface(pGraphics, Inner, Border, ColorRGBA(), BorderParams);
+		DrawRoundedSurfaceBorder(pGraphics, Plan, Border, Params.m_Corners);
 		Inner.Margin(Plan.m_BorderWidth, &Inner);
 	}
 	if(Inner.w <= 0.0f || Inner.h <= 0.0f)

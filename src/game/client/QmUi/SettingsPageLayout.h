@@ -69,7 +69,8 @@ inline CUIRect ResolveSettingsSecondaryPanelRect(const CUIRect &Viewport, const 
 	{
 		const float Padding = std::min(ui_token::spacing::LG * Scale, std::max(0.0f, Viewport.w) * 0.04f);
 		Width = std::min(ui_token::secondary_panel::UPDATE_WIDTH * Scale, std::max(0.0f, Viewport.w - 2.0f * Padding));
-		Height = std::min(ui_token::secondary_panel::UPDATE_HEIGHT * Scale, std::max(0.0f, Viewport.h - 2.0f * Padding));
+		// 发布说明通常很长，高度与公告面板一致占满可用视口，不再使用固定扁窗。
+		Height = std::max(0.0f, Viewport.h - 4.0f * ui_token::spacing::LG);
 	}
 	else
 	{
@@ -559,15 +560,53 @@ struct SSettingsGpuControl
 	bool m_ShowSelector = false;
 	bool m_ShowSystemSettings = false;
 
-	int RowCount() const { return m_ShowSelector ? 1 : m_ShowSystemSettings ? 3 :
-										  0; }
+	int RowCount() const { return (m_ShowSelector ? 1 : 0) + (m_ShowSystemSettings ? 1 : 0); }
 };
 
 inline SSettingsGpuControl ResolveSettingsGpuControl(size_t AdapterCount, bool CanSelect, bool HasSystemSettings)
 {
 	if(AdapterCount <= 1)
 		return {};
-	return {CanSelect, !CanSelect && HasSystemSettings};
+	return {CanSelect, HasSystemSettings};
+}
+
+struct SSettingsGraphicsRuntimeInfo
+{
+	std::string m_Backend;
+	std::string m_Driver;
+};
+
+// 后端已有运行时字符串包含 API 与驱动两部分；只拆分已知格式，不猜测缺失的驱动版本。
+inline SSettingsGraphicsRuntimeInfo ResolveSettingsGraphicsRuntimeInfo(const char *pVersion, const char *pDetectedBackend, int Major, int Minor, int Patch)
+{
+	SSettingsGraphicsRuntimeInfo Info;
+	const std::string Version = pVersion != nullptr ? pVersion : "";
+	const size_t Driver = Version.find(" (driver: ");
+	if(Driver != std::string::npos)
+	{
+		Info.m_Backend = Version.substr(0, Driver);
+		const size_t End = Version.find(')', Driver + 10);
+		Info.m_Driver = Version.substr(Driver + 10, End == std::string::npos ? std::string::npos : End - Driver - 10);
+	}
+	else if(Major > 0 && pDetectedBackend != nullptr && pDetectedBackend[0] != '\0')
+	{
+		Info.m_Backend = std::string(pDetectedBackend) + " " + std::to_string(Major) + "." + std::to_string(Minor) + "." + std::to_string(Patch);
+		// OpenGL / GLES 的驱动描述位于 API 版本之后，ES 可带厂商配置前缀。
+		const size_t ApiStart = Version.find_first_of("0123456789");
+		if(ApiStart != std::string::npos)
+		{
+			const size_t ApiEnd = Version.find(' ', ApiStart);
+			if(ApiEnd != std::string::npos)
+			{
+				const size_t Description = Version.find_first_not_of(' ', ApiEnd);
+				if(Description != std::string::npos)
+					Info.m_Driver = Version.substr(Description);
+			}
+		}
+	}
+	else
+		Info.m_Backend = Version;
+	return Info;
 }
 
 // 列表 viewport 只允许显示完整行。列表控件的行距由调用方显式消费，

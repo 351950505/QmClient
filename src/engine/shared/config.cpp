@@ -914,7 +914,10 @@ void CConfigManager::StoreUnknownCommand(const char *pCommand, ConfigDomain Conf
 {
 	// 已移除的界面开关不再作为未知命令写回旧配置。
 	std::string_view Command(pCommand);
-	if(str_comp_nocase(QmRemovedConfig::ReadToken(Command).c_str(), "qm_new_ui") == 0)
+	const std::string Token = QmRemovedConfig::ReadToken(Command);
+	if(str_comp_nocase(Token.c_str(), "qm_new_ui") == 0 ||
+		str_comp_nocase(Token.c_str(), "qm_enhanced_blur") == 0 ||
+		str_comp_nocase(Token.c_str(), "qm_ui_popup_blur") == 0)
 		return;
 	m_avpUnknownCommands[ConfigDomain].push_back(m_ConfigHeap.StoreString(pCommand));
 }

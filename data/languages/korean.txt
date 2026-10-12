@@ -848,9 +848,6 @@ Apply a writable preset and edit first
 Apply Changes
 == 변경 사항 적용
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== 하위 팝업과 드롭다운 뒤의 배경을 흐리게 표시
-
 Apply input early before next tick for prediction
 == 예측을 위해 다음 틱 전에 입력을 미리 적용
 
@@ -1970,9 +1967,6 @@ Chinese font:
 CHN
 == 중국
 
-Choose a GPU for this app in system graphics settings, then restart the client.
-== 시스템 그래픽 설정에서 이 앱의 GPU를 선택한 다음 클라이언트를 다시 시작하세요.
-
 Choose colors for weapons and entity lasers
 == Choose colors for weapons and entity lasers
 
@@ -2858,11 +2852,17 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == 현재 잘라낸 구간이 유효하지 않거나 이미 추가되었습니다
 
+Current driver
+== 현재 드라이버
+
 Current file
 == 현재 파일
 
 Current GPU
 == 현재 GPU
+
+Current graphics backend
+== 현재 그래픽 백엔드
 
 Current rescue mode: %s
 == 현재 구조 모드: %s
@@ -2872,6 +2872,9 @@ Current status
 
 Current version: %s
 == 현재 버전: %s
+
+Current version: %s (up to date)
+== 현재 버전: %s(최신)
 
 Current: Ranks
 == 현재: 순위
@@ -4087,9 +4090,6 @@ Enable fat skin
 
 Enable freeze call sound
 == 프리즈 콜 사운드 활성화
-
-Enable frosted glass blur behind secondary popups and dropdowns
-== 하위 팝업과 드롭다운 배경 흐림 활성화
 
 Enable FTAPI auto-translate
 == FTAPI 자동 번역 활성화
@@ -6512,12 +6512,6 @@ Latency compensation
 Latency Jitter
 == 지연 시간 지터
 
-Later
-== 나중에
-
-Latest release: %s
-== 최신 릴리스: %s
-
 Latin font
 == 라틴 문자 글꼴
 
@@ -7066,6 +7060,9 @@ Map upload network error.
 
 Map uploaded successfully.
 == 맵을 업로드했습니다.
+
+Maps
+== 맵
 
 Maps finished
 == 완료한 맵
@@ -8897,14 +8894,8 @@ Polished
 Pop wave
 == 확대 물결
 
-Popup & dropdown blur
-== 팝업 및 드롭다운 흐림
-
 Popup animation
 == 팝업 애니메이션
-
-Popup blur
-== 팝업 흐림
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == 클라이언트-서버 연결 포트 (0=랜덤, >=1024는 수동 포트 설정)
@@ -9317,6 +9308,9 @@ Quads are used for background decoration
 Query current map info
 == 현재 맵 정보 조회
 
+Query isolated serverlist consumer state
+== Query isolated serverlist consumer state
+
 Query map info for %s
 == %s 맵 정보 조회
 
@@ -9628,6 +9622,9 @@ Refresh
 
 Refresh interval
 == 새로 고침 간격
+
+Refresh isolated serverlist consumer
+== Refresh isolated serverlist consumer
 
 Refresh Rate
 == 재생률
@@ -14236,9 +14233,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == 적 목록을 사용하여 플레이어 표시기 구동
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== 향상된 렌더링이 활성화되면 가우시안 블러 파이프라인 사용
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == 높은 대역폭 모드 사용 (서버 대역폭 두 배, LAN 전용)

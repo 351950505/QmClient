@@ -848,9 +848,6 @@ Apply a writable preset and edit first
 Apply Changes
 == Değişiklikleri Uygula
 
-Apply frosted glass blur behind secondary popups and dropdowns
-== Alt pencerelerin ve açılır listelerin arkasını bulanıklaştır
-
 Apply input early before next tick for prediction
 == Tahmin için bir sonraki tick'ten önce girdiyi erken uygula
 
@@ -1970,9 +1967,6 @@ Chinese font:
 CHN
 == Çin
 
-Choose a GPU for this app in system graphics settings, then restart the client.
-== Sistem grafik ayarlarından bu uygulama için bir GPU seçin, ardından istemciyi yeniden başlatın.
-
 Choose colors for weapons and entity lasers
 == Choose colors for weapons and entity lasers
 
@@ -2858,11 +2852,17 @@ Current aspect ratio: Show default
 Current cut is invalid or already added
 == Geçerli kesim geçersiz veya zaten eklendi
 
+Current driver
+== Geçerli sürücü
+
 Current file
 == Geçerli dosya
 
 Current GPU
 == Geçerli GPU
+
+Current graphics backend
+== Geçerli grafik arka ucu
 
 Current rescue mode: %s
 == Mevcut kurtarma modu: %s
@@ -2872,6 +2872,9 @@ Current status
 
 Current version: %s
 == Mevcut sürüm: %s
+
+Current version: %s (up to date)
+== Mevcut sürüm: %s (güncel)
 
 Current: Ranks
 == Geçerli: Sıralamalar
@@ -4087,9 +4090,6 @@ Enable fat skin
 
 Enable freeze call sound
 == Donma çağrı sesini etkinleştir
-
-Enable frosted glass blur behind secondary popups and dropdowns
-== Alt pencerelerin ve açılır listelerin arkasında bulanıklığı etkinleştir
 
 Enable FTAPI auto-translate
 == FTAPI otomatik çeviriyi etkinleştir
@@ -6512,12 +6512,6 @@ Latency compensation
 Latency Jitter
 == Gecikme dalgalanması
 
-Later
-== Daha sonra
-
-Latest release: %s
-== En son yayımlanan sürüm: %s
-
 Latin font
 == Latin yazı tipi
 
@@ -7066,6 +7060,9 @@ Map upload network error.
 
 Map uploaded successfully.
 == Harita başarıyla yüklendi.
+
+Maps
+== Haritalar
 
 Maps finished
 == Tamamlanan haritalar
@@ -8897,14 +8894,8 @@ Polished
 Pop wave
 == Büyütme dalgası
 
-Popup & dropdown blur
-== Açılır pencere ve liste bulanıklığı
-
 Popup animation
 == Açılır animasyon
-
-Popup blur
-== Açılır panel bulanıklığı
 
 Port for client to server connection (0=random, >=1024 sets manual port)
 == İstemci-sunucu bağlantısı için port (0=rastgele, >=1024 manuel port ayarlar)
@@ -9317,6 +9308,9 @@ Quads are used for background decoration
 Query current map info
 == Geçerli harita bilgisini sorgula
 
+Query isolated serverlist consumer state
+== Query isolated serverlist consumer state
+
 Query map info for %s
 == %s haritasının bilgisini sorgula
 
@@ -9628,6 +9622,9 @@ Refresh
 
 Refresh interval
 == Yenileme aralığı
+
+Refresh isolated serverlist consumer
+== Refresh isolated serverlist consumer
 
 Refresh Rate
 == Yenileme Hızı
@@ -14236,9 +14233,6 @@ Use enemy color instead of frozen color
 
 Use enemy list to drive player indicators
 == Oyuncu göstergelerini yönlendirmek için düşman listesini kullan
-
-Use Gaussian blur pipeline when enhanced rendering is active
-== Gelişmiş işleme etkin olduğunda Gauss bulanıklığı işlem hattını kullan
 
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 == Yüksek bant genişliği modunu kullan (sunucu bant genişliğini iki katına çıkarır, yalnızca LAN)

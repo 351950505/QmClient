@@ -1424,7 +1424,8 @@ void CMenus::RenderServerbrowserStatusBox(CUIRect StatusBox, bool WasListboxItem
 			SMenuButtonProperties Props;
 			Props.m_UseIconFont = true;
 			Props.m_HintCanChangePositionOrSize = true;
-			Props.m_Color = ColorRGBA(0.5f, 1.0f, 0.5f, 0.5f);
+			// 连接动作保留绿色语义，颜色改由统一语义色板提供（原为裸字面量 0.5/1.0/0.5）。
+			Props.m_Color = ui_token::color::SUCCESS.WithAlpha(0.5f);
 
 			static CButtonContainer s_ConnectButton;
 			if(Ui()->DoButton_Menu(m_ConnectButton, &s_ConnectButton, ConnectLabelFunc, &ButtonConnect, Props) || WasListboxItemActivated || (!Ui()->IsPopupOpen() && Ui()->ConsumeHotkey(CUi::HOTKEY_ENTER)))

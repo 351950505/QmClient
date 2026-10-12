@@ -35,12 +35,3 @@ TEST(QmVulkanEnhancedSource, IslandRingFallbackUsesThickness)
 	EXPECT_NE(Source.find("OuterRadius"), std::string::npos);
 	EXPECT_EQ(Source.find("LinesDraw(vLines.data()"), std::string::npos);
 }
-
-TEST(QmVulkanEnhancedConfig, MasterAndFeatureSwitchesExist)
-{
-	const std::string Config = ReadRepoFile("src/engine/shared/config_variables_qmclient.h");
-	EXPECT_NE(Config.find("MACRO_CONFIG_INT(QmEnhancedRendering, qm_enhanced_rendering, 1, 0, 2"), std::string::npos);
-	EXPECT_NE(Config.find("MACRO_CONFIG_INT(QmEnhancedSdf, qm_enhanced_sdf"), std::string::npos);
-	EXPECT_NE(Config.find("MACRO_CONFIG_INT(QmEnhancedBlur, qm_enhanced_blur"), std::string::npos);
-	EXPECT_NE(Config.find("MACRO_CONFIG_INT(QmEnhancedProceduralRing, qm_enhanced_procedural_ring"), std::string::npos);
-}

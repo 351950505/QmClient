@@ -20,6 +20,7 @@
 #include <game/client/QmUi/SettingsLabelMetadata.h>
 #include <game/client/QmUi/SettingsPageLayout.h>
 #include <game/client/QmUi/UiButtonStyle.h>
+#include <game/client/QmUi/UiSurface.h>
 #include <game/client/QmUi/UiTheme.h>
 #include <game/client/QmUi/UiTokens.h>
 #include <game/client/QmUi/cards/QmCardMeasureRevision.h>
@@ -706,3 +707,18 @@ static void BM_CardTextColumnsLayout(benchmark::State &State)
 	State.SetItemsProcessed(State.iterations() * 16);
 }
 BENCHMARK(BM_CardTextColumnsLayout)->Arg(0)->Arg(1);
+
+static void BM_RoundedSurfaceBorderMesh(benchmark::State &State)
+{
+	SRoundedSurfaceParams Params;
+	Params.m_Radius = 8;
+	Params.m_BorderWidth = 2;
+	const auto Plan = ResolveRoundedSurfacePlan({20, 30, 160, 24}, Params, false);
+	for(auto _ : State)
+	{
+		const auto Mesh = ResolveRoundedSurfaceBorderMesh(Plan, IGraphics::CORNER_ALL);
+		benchmark::DoNotOptimize(Mesh);
+	}
+	State.SetItemsProcessed(State.iterations());
+}
+BENCHMARK(BM_RoundedSurfaceBorderMesh);

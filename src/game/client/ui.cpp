@@ -2084,6 +2084,18 @@ void CUi::DoButtonTooltip(const void *pId, const CUIRect *pRect, const char *pTe
 		m_pQmTooltips->DoToolTipForRect(pId, pRect, pText);
 }
 
+void CUi::DoTooltip(const void *pId, const CUIRect *pNearRect, const char *pText, float WidthHint)
+{
+	if(m_pQmTooltips != nullptr)
+		m_pQmTooltips->DoToolTip(pId, pNearRect, pText, WidthHint);
+}
+
+void CUi::DoSmallTooltip(const void *pId, const CUIRect *pNearRect, const char *pText, float FontSize, float WidthHint)
+{
+	if(m_pQmTooltips != nullptr)
+		m_pQmTooltips->DoSmallToolTip(pId, pNearRect, pText, FontSize, WidthHint);
+}
+
 const SUiTheme &CUi::QmControlTheme()
 {
 	const std::array<unsigned, 8> aConfig = {

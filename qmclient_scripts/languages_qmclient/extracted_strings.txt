@@ -281,7 +281,6 @@ Apply a random skin from the queue
 Apply a saved profile by 1-based index to the current tee
 Apply a writable preset and edit first
 Apply Changes
-Apply frosted glass blur behind secondary popups and dropdowns
 Apply input early before next tick for prediction
 Apply Qm recommended appearance
 Apply quick input to other Tees as well
@@ -655,7 +654,6 @@ Chinese (Simplified)
 Chinese (Traditional)
 Chinese font:
 CHN
-Choose a GPU for this app in system graphics settings, then restart the client.
 Choose colors for weapons and entity lasers
 Choose country flag
 Choose default eyes when joining a server
@@ -951,11 +949,14 @@ Current
 Current aspect ratio:
 Current aspect ratio: Show default
 Current cut is invalid or already added
+Current driver
 Current file
 Current GPU
+Current graphics backend
 Current rescue mode: %s
 Current status
 Current version: %s
+Current version: %s (up to date)
 Current: Ranks
 Current: Score
 Current: Time
@@ -1361,7 +1362,6 @@ Enable fast input in Gores mode
 Enable fast map download
 Enable fat skin
 Enable freeze call sound
-Enable frosted glass blur behind secondary popups and dropdowns
 Enable FTAPI auto-translate
 Enable FTAPI auto-translate (may overload the service)
 Enable game sounds
@@ -2169,8 +2169,6 @@ Last viewed client release notes
 Latency
 Latency compensation
 Latency Jitter
-Later
-Latest release: %s
 Latin font
 Latin font weight
 Launch count threshold for the next sponsor reminder
@@ -2354,6 +2352,7 @@ Map upload endpoint must use HTTP or HTTPS
 Map upload in progress...
 Map upload network error.
 Map uploaded successfully.
+Maps
 Maps finished
 Margin when notification is docked
 Mark demo
@@ -2964,9 +2963,7 @@ Points
 Points unavailable
 Polished
 Pop wave
-Popup & dropdown blur
 Popup animation
-Popup blur
 Port for client to server connection (0=random, >=1024 sets manual port)
 Port for dummy connection to server (0=random, >=1024 sets manual port)
 Port for master server registration, useful if behind NAT, otherwise just use sv_port
@@ -3104,6 +3101,7 @@ QQ Music hook heartbeat timeout (milliseconds)
 QQ Music hook helper path (empty=beside QmClient)
 Quads are used for background decoration
 Query current map info
+Query isolated serverlist consumer state
 Query map info for %s
 Query points for %s
 Query rank for %s
@@ -3208,6 +3206,7 @@ Reduced: uses shorter transitions and disables presentation animations
 Reflected gradient
 Refresh
 Refresh interval
+Refresh isolated serverlist consumer
 Refresh Rate
 Refresh the demo list
 Regex
@@ -4744,7 +4743,6 @@ Use embedded HUD progress bar
 Use emote
 Use enemy color instead of frozen color
 Use enemy list to drive player indicators
-Use Gaussian blur pipeline when enhanced rendering is active
 Use high bandwidth mode (doubles server bandwidth, LAN only)
 Use k key to kill (restart), q to pause and watch other players. See settings for other key binds.
 Use large emote

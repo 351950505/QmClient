@@ -178,7 +178,7 @@ namespace qm_ui_test
 			CLineInput::SetTextInputAutoManaged(false);
 			g_Config = CConfig();
 			g_Config.m_QmUiMotionLevel = 0;
-			g_Config.m_QmUiPopupBlur = 0;
+			g_Config.m_QmGaussianBlur = 0;
 			g_Config.m_QmPerfDebug = g_Config.m_QmPerfLogfile = g_Config.m_QmPerfStutterDiagnostics = 0;
 			m_Info.m_DeleteTestStorageFilesOnSuccess = false;
 			m_pStorage = m_Info.CreateTestStorage();

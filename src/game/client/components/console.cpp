@@ -1978,7 +1978,7 @@ void CGameConsole::OnRender()
 	}
 
 	// 在日志和控制台背板之前保存底层画面，二级面板不透出清晰日志。
-	if(SettingsOpen && g_Config.m_QmUiPopupBlur)
+	if(SettingsOpen && g_Config.m_QmGaussianBlur)
 		Ui()->PrepareGaussianBlur();
 
 	// 本地控制台使用终端式纯色面板，工具栏与状态栏独立分区。

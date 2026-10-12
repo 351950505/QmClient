@@ -20,18 +20,28 @@ TEST(SettingsPageLayout, UpdateContentFitsShortViewportAtLargeScale)
 	const float Scale = ui_widget::ResolveUpdatePanelContentScale(Content, 2.0f);
 	EXPECT_GT(Scale, 0.0f);
 	EXPECT_LT(Scale, 1.0f);
-	// 两排操作、状态、版本和下载进度之外，仍可显示至少两行发布说明。
+	// 版本与状态在标题栏小字；单行操作与下载进度之外，仍可显示至少两行发布说明。
 	const float BodySize = ui_token::font::BODY * Scale;
 	const float Gap = ui_token::spacing::MD * Scale;
-	const float Actions = 2.0f * BodySize * ui_token::secondary_panel::UPDATE_ACTION_LINE_FACTOR + 2.0f * Gap;
-	const float StatusVersionsProgress = BodySize * (1.6f + 3.4f + 1.7f) + 3.0f * Gap;
-	EXPECT_GE(Content.h - Actions - StatusVersionsProgress, 2.0f * BodySize);
+	const float Actions = BodySize * ui_token::secondary_panel::UPDATE_ACTION_LINE_FACTOR + Gap;
+	const float Progress = BodySize * 1.7f + std::max(4.0f, Gap) + Gap;
+	EXPECT_GE(Content.h - Actions - Progress, 2.0f * BodySize);
 }
 
 TEST(SettingsPageLayout, UpdateContentKeepsRequestedScaleWhenSpaceAllows)
 {
 	EXPECT_FLOAT_EQ(ui_widget::ResolveUpdatePanelContentScale({0, 0, 600, 350}, 1.0f), 1.0f);
 	EXPECT_FLOAT_EQ(ui_widget::ResolveUpdatePanelContentScale({0, 0, 600, 350}, 0.5f), 0.5f);
+}
+
+TEST(SettingsPageLayout, UpdateSecondaryPanelFollowsViewportHeight)
+{
+	const CUIRect Viewport{0, 0, 1200, 600};
+	const CUIRect Panel = ResolveSettingsSecondaryPanelRect(Viewport, ESettingsSecondaryPanelKind::UPDATE, 1.0f);
+	// 更新面板与公告面板一致占满可用高度，不再使用固定扁窗高度。
+	EXPECT_FLOAT_EQ(Panel.h, Viewport.h - 4.0f * ui_token::spacing::LG);
+	EXPECT_FLOAT_EQ(Panel.y, (Viewport.h - Panel.h) * 0.5f);
+	EXPECT_FLOAT_EQ(Panel.w, std::min(ui_token::secondary_panel::UPDATE_WIDTH, Viewport.w - 2.0f * std::min(ui_token::spacing::LG, Viewport.w * 0.04f)));
 }
 
 #include <array>
@@ -329,14 +339,14 @@ TEST(SettingsPageLayout, GpuControlsHideWithoutMultipleAdapters)
 			}
 }
 
-TEST(SettingsPageLayout, SelectableMultipleAdaptersUseOneDropdownWithoutSystemInstructions)
+TEST(SettingsPageLayout, SelectableMultipleAdaptersAlsoOfferAvailableSystemSettings)
 {
 	for(const bool HasSystemSettings : {false, true})
 	{
 		const auto Control = ResolveSettingsGpuControl(2, true, HasSystemSettings);
 		EXPECT_TRUE(Control.m_ShowSelector);
-		EXPECT_FALSE(Control.m_ShowSystemSettings);
-		EXPECT_EQ(Control.RowCount(), 1);
+		EXPECT_EQ(Control.m_ShowSystemSettings, HasSystemSettings);
+		EXPECT_EQ(Control.RowCount(), HasSystemSettings ? 2 : 1);
 	}
 }
 
@@ -345,7 +355,7 @@ TEST(SettingsPageLayout, SystemManagedMultipleAdaptersOnlyOfferSupportedSystemSe
 	const auto Windows = ResolveSettingsGpuControl(2, false, true);
 	EXPECT_FALSE(Windows.m_ShowSelector);
 	EXPECT_TRUE(Windows.m_ShowSystemSettings);
-	EXPECT_EQ(Windows.RowCount(), 3);
+	EXPECT_EQ(Windows.RowCount(), 1);
 	const auto WithoutSystemSettings = ResolveSettingsGpuControl(2, false, false);
 	EXPECT_FALSE(WithoutSystemSettings.m_ShowSelector);
 	EXPECT_FALSE(WithoutSystemSettings.m_ShowSystemSettings);
@@ -360,9 +370,39 @@ TEST(SettingsPageLayout, GpuControlsRecoverAcrossAdapterAndBackendChanges)
 	EXPECT_EQ(Control.RowCount(), 0);
 	Control = ResolveSettingsGpuControl(2, true, true);
 	EXPECT_TRUE(Control.m_ShowSelector);
-	EXPECT_EQ(Control.RowCount(), 1);
+	EXPECT_EQ(Control.RowCount(), 2);
 	Control = ResolveSettingsGpuControl(0, false, true);
 	EXPECT_EQ(Control.RowCount(), 0);
+}
+
+TEST(SettingsPageLayout, RuntimeGraphicsInfoSeparatesVulkanDriverFromActualApi)
+{
+	const auto Info = ResolveSettingsGraphicsRuntimeInfo("Vulkan 1.4.341 (driver: 610.88.0.0)", "Vulkan", 1, 4, 0);
+	EXPECT_EQ(Info.m_Backend, "Vulkan 1.4.341");
+	EXPECT_EQ(Info.m_Driver, "610.88.0.0");
+}
+
+TEST(SettingsPageLayout, RuntimeGraphicsInfoSeparatesOpenGlAndGlesDriverDescriptions)
+{
+	const auto Gl = ResolveSettingsGraphicsRuntimeInfo("4.6.0 NVIDIA 610.88", "OpenGL", 4, 6, 0);
+	EXPECT_EQ(Gl.m_Backend, "OpenGL 4.6.0");
+	EXPECT_EQ(Gl.m_Driver, "NVIDIA 610.88");
+	const auto Es = ResolveSettingsGraphicsRuntimeInfo("OpenGL ES 3.2 Mesa 24.0", "GLES", 3, 2, 0);
+	EXPECT_EQ(Es.m_Backend, "GLES 3.2.0");
+	EXPECT_EQ(Es.m_Driver, "Mesa 24.0");
+}
+
+TEST(SettingsPageLayout, RuntimeGraphicsInfoNeverInventsUnavailableDriverVersions)
+{
+	const auto Metal = ResolveSettingsGraphicsRuntimeInfo("Metal native", "", 0, 0, 0);
+	EXPECT_EQ(Metal.m_Backend, "Metal native");
+	EXPECT_TRUE(Metal.m_Driver.empty());
+	const auto Gl = ResolveSettingsGraphicsRuntimeInfo("4.6", "OpenGL", 4, 6, 0);
+	EXPECT_EQ(Gl.m_Backend, "OpenGL 4.6.0");
+	EXPECT_TRUE(Gl.m_Driver.empty());
+	const auto Empty = ResolveSettingsGraphicsRuntimeInfo(nullptr, nullptr, 0, 0, 0);
+	EXPECT_TRUE(Empty.m_Backend.empty());
+	EXPECT_TRUE(Empty.m_Driver.empty());
 }
 
 TEST(QmConsoleSettingsPanelLayout, PresetFitsContentAndCustomExpandsWithinScreen)
