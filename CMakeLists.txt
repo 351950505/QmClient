@@ -4616,6 +4616,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/integration/qmclient/client/qm_statistics_save_test.cpp
     src/test/integration/engine/config_migration_backup_test.cpp
     src/test/integration/qmclient/client/bounded_file_reader_test.cpp
+    src/test/integration/qmclient/client/custom_community_info_test.cpp
     src/test/integration/qmclient/client/qm_sponsors_draft_test.cpp
     src/test/integration/qmclient/client/rank_view_timeline_test.cpp
     src/test/integration/qmclient/music/netease_shared_memory_readonly_test.cpp
@@ -5004,6 +5005,8 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/client/skins/skin_transition_test.cpp
     src/test/unit/client/skins/skins_test.cpp
     src/test/integration/client/skins/skin_source_job_test.cpp
+    src/test/integration/client/skins/skin7_info_job_test.cpp
+    src/test/unit/client/skin7_resource_lifecycle_test.cpp
     src/test/unit/client/skins/skins_preview_layers_test.cpp
     src/test/contract/client/skins/skins_resource_contract_test.cpp
     src/test/contract/client/skins/skins_render_contract_test.cpp
@@ -5476,6 +5479,7 @@ if(TARGET benchmark::benchmark AND SERVER AND FREETYPE_FOUND)
   # 对象库集合与 testrunner 一致，基准可覆盖 base/engine/game 各层代码
   add_executable(qm-benchmarks EXCLUDE_FROM_ALL
     src/test/benchmark/qm_skin_download_benchmark.cpp
+    src/test/benchmark/qm_startup_info_benchmark.cpp
     src/test/benchmark/qm_benchmark_main.cpp
     src/test/benchmark/qm_online_replay_benchmark.cpp
     src/test/benchmark/qm_route_render_cache_benchmark.cpp

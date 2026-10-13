@@ -8442,8 +8442,8 @@ void CGameClient::RefreshSkins(int SkinDescriptorFlags)
 	}
 	if(SkinDescriptorFlags & CSkinDescriptor::FLAG_SEVEN)
 	{
-		m_Skins7.Refresh([this, ProgressCallback]() {
-			ProgressCallback();
+		// 0.7 异步加载期间正常主循环持续绘制；完成时不能再用耗时阈值补画阻塞式加载页。
+		m_Skins7.Refresh([this]() {
 			for(const std::shared_ptr<CManagedTeeRenderInfo> &pManagedTeeRenderInfo : m_vpManagedTeeRenderInfos)
 			{
 				if(pManagedTeeRenderInfo->SkinDescriptor().m_Flags & CSkinDescriptor::FLAG_SEVEN)
