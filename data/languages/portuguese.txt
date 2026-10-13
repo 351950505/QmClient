@@ -256,32 +256,17 @@
 0 disables timed rotation; skins only switch on random start events
 == 0 desativa a rotação temporizada; as skins só mudam em eventos de início aleatório
 
-1 star
-== 1 estrela
-
 1% low
 == 1% mais baixo
 
 128 player id <-> 64 player id map update rate
 == Taxa de atualização do mapa de IDs de jogador 128 <-> 64
 
-2 stars
-== 2 estrelas
-
-3 stars
-== 3 estrelas
-
 3D background
 == Fundo 3D
 
-4 stars
-== 4 estrelas
-
 45° Aim
 == Mira a 45°
-
-5 stars
-== 5 estrelas
 
 === All Local Saves ===
 == === Todos os saves locais ===
@@ -676,9 +661,6 @@ All players
 
 All sounds
 == Todos os sons
-
-All stars
-== Todas as estrelas
 
 Allow /map.
 == Permitir /map.
@@ -1855,9 +1837,6 @@ Change map
 
 Change ready state (0.7 only)
 == Alterar estado de prontidão (apenas 0.7)
-
-Change settings
-== Alterar definições
 
 Change the skip duration
 == Alterar a duração do salto
@@ -3136,9 +3115,6 @@ DDNet Client needs to be restarted to complete update!
 
 DDNet contributors and staff credits
 == Contribuidores e equipe do DDNet
-
-DDNet map library
-== Biblioteca de mapas DDNet
 
 DDNet Memory
 == Memória do DDNet
@@ -5774,9 +5750,6 @@ Hide weapon muzzle flashes
 High Detail
 == Alto Detalhe
 
-High to low
-== Alto para baixo
-
 Higher input latency
 == maior latência de entrada
 
@@ -7072,9 +7045,6 @@ Long frames
 
 Lose weapons when teleporting (useful for race maps)
 == Perder armas ao teletransportar (útil para mapas de corrida)
-
-Low to high
-== Baixo para alto
 
 LXGW WenKai is available.
 == LXGW WenKai está disponível.
@@ -10592,17 +10562,11 @@ Rifle laser outline color
 Right jump
 == Salto direito
 
-Right-click to add to favorites
-== Clique com o botão direito para adicionar aos favoritos
-
 Right-click to disable auto-translate
 == Clique direito para desativar tradução automática
 
 Right-click to enable auto-translate
 == Clique direito para ativar tradução automática
-
-Right-click to remove from favorites
-== Clique com o botão direito para remover dos favoritos
 
 Ring
 == Anel
@@ -11188,9 +11152,6 @@ Server browser filter string
 
 Server browser sort column
 == Coluna de ordenação do navegador de servidores
-
-Server control
-== Controlo do servidor
 
 Server could not be started
 == O servidor não pôde ser iniciado
@@ -14989,18 +14950,6 @@ Vote a map by name
 
 Vote aborted
 == Votação cancelada
-
-Vote command
-== Comando de votação
-
-Vote command:
-== Comando de votação:
-
-Vote description
-== Descrição da votação
-
-Vote description:
-== Descrição da votação:
 
 Vote duration (in seconds)
 == Duração da votação (em segundos)

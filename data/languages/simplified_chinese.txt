@@ -256,32 +256,17 @@
 0 disables timed rotation; skins only switch on random start events
 == 0 表示不做时间轮换；仅在随机起点事件时切换皮肤
 
-1 star
-== 1 星
-
 1% low
 == 1% 最低帧
 
 128 player id <-> 64 player id map update rate
 == 128 玩家 ID <-> 64 玩家 ID 地图更新速率
 
-2 stars
-== 2 星
-
-3 stars
-== 3 星
-
 3D background
 == 3D 背景
 
-4 stars
-== 4 星
-
 45° Aim
 == 45°瞄准
-
-5 stars
-== 5 星
 
 === All Local Saves ===
 == === 所有本地存档 ===
@@ -676,9 +661,6 @@ All players
 
 All sounds
 == 全部音效
-
-All stars
-== 全部星级
 
 Allow /map.
 == 是否允许 /map
@@ -1855,9 +1837,6 @@ Change map
 
 Change ready state (0.7 only)
 == 更改就绪状态（仅限 0.7）
-
-Change settings
-== 变更设置
 
 Change the skip duration
 == 变更指定时长
@@ -3136,9 +3115,6 @@ DDNet Client needs to be restarted to complete update!
 
 DDNet contributors and staff credits
 == DDNet 贡献者与团队名单
-
-DDNet map library
-== DDNet 地图库
 
 DDNet Memory
 == DDNet 内存
@@ -5777,9 +5753,6 @@ Hide weapon muzzle flashes
 High Detail
 == 显示地图细节
 
-High to low
-== 由高到低
-
 Higher input latency
 == 增加输入延迟
 
@@ -7075,9 +7048,6 @@ Long frames
 
 Lose weapons when teleporting (useful for race maps)
 == 传送时失去武器（对某些竞速地图有用）
-
-Low to high
-== 由低到高
 
 LXGW WenKai is available.
 == 霞鹜文楷可用。
@@ -10595,17 +10565,11 @@ Rifle laser outline color
 Right jump
 == 右跳
 
-Right-click to add to favorites
-== 右键点击以添加到收藏夹
-
 Right-click to disable auto-translate
 == 右键关闭自动翻译
 
 Right-click to enable auto-translate
 == 右键开启自动翻译
-
-Right-click to remove from favorites
-== 右键点击以从收藏夹移除
 
 Ring
 == 圆环
@@ -11191,9 +11155,6 @@ Server browser filter string
 
 Server browser sort column
 == 服务器浏览器中的排序列
-
-Server control
-== 服务器控制
 
 Server could not be started
 == 无法启动服务器
@@ -14992,18 +14953,6 @@ Vote a map by name
 
 Vote aborted
 == 投票已中止
-
-Vote command
-== 投票命令
-
-Vote command:
-== 投票命令：
-
-Vote description
-== 投票描述
-
-Vote description:
-== 投票描述：
 
 Vote duration (in seconds)
 == 投票持续时间（秒）

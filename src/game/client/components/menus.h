@@ -1691,28 +1691,11 @@ protected:
 	CLineInput m_PasswordInput;
 
 	// for call vote
-	enum class ECallvoteMapSort
-	{
-		ALL,
-		STAR_1,
-		STAR_2,
-		STAR_3,
-		STAR_4,
-		STAR_5,
-		FAVORITES,
-		LOW_TO_HIGH,
-		HIGH_TO_LOW,
-		NUM_MODES,
-	};
-	int m_CallvoteSelectedOption;
-	int m_CallvoteSelectedPlayer;
-	ECallvoteMapSort m_CallvoteMapSort = ECallvoteMapSort::ALL;
 	// 稳定行标识持有下拉状态，窗口缩放不改变当前选择或弹层 owner。
 	using SSettingsRadioState = SSettingsChoiceState;
 	std::unordered_map<const void *, SSettingsRadioState> m_SettingsRadioStates;
 	SQmVoteMenuState m_QmVoteMenu;
 	SQmPlayersMenuState m_QmPlayersMenu;
-	CUi::SDropDownState m_CallvoteMapSortDropDownState;
 	CLineInputBuffered<VOTE_REASON_LENGTH> m_CallvoteReasonInput;
 	CLineInputBuffered<64> m_FilterInput;
 	CLineInputBuffered<64> m_ExcludeInput;
@@ -2321,11 +2304,9 @@ protected:
 	void DrainIngameUiSnapshotTextRuntime();
 	void DrainIngameUiTextRuntime(bool AllowCurrentFrame = false);
 	void RenderServerControl(CUIRect MainView);
-	void RenderServerControlLegacy(CUIRect MainView);
 	void RenderVoteMapLibrary(CUIRect MainView);
 	void RenderUnfinishedMaps(CUIRect MainView);
-	bool RenderServerControlKick(CUIRect MainView, bool FilterSpectators, bool UpdateScroll);
-	bool RenderServerControlServer(CUIRect MainView, bool UpdateScroll);
+	void RenderVotePlayerList(CUIRect MainView, bool MoveToSpectators);
 	void RenderIngameHint();
 
 	// found in menus_browser.cpp

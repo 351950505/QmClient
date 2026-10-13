@@ -32,6 +32,7 @@
 #include <game/client/components/qmclient/rank_ghost.h>
 #include <game/client/components/qmclient/score_hud_layout.h>
 #include <game/client/components/qmclient/spectator_hud_layout.h>
+#include <game/client/components/qmclient/spectator_hud_text.h>
 #include <game/client/components/scoreboard.h>
 #include <game/client/gameclient.h>
 #include <game/client/prediction/entities/character.h>
@@ -6638,7 +6639,8 @@ void CHud::RenderSpectatorHud()
 	const char *pAutoLabel = Localize("AUTO", "Spectating Camera Mode Icon");
 	const float AutoLabelWidth = ShowAutoTag ? TextRender()->TextWidth(6.0f, pAutoLabel) : 0.0f;
 	const float AutoTagWidth = ShowAutoTag ? 6.0f + AutoLabelWidth + 9.0f : 0.0f;
-	const auto Layout = QmSpectatorHudLayout(m_Width, TextRender()->TextWidth(8.0f, aBuf), ShowAutoTag ? AutoTagWidth + 4.0f : 0.0f);
+	const float SpectatorTextWidth = TextRender()->TextWidth(8.0f, aBuf);
+	const auto Layout = QmSpectatorHudLayout(m_Width, SpectatorTextWidth, ShowAutoTag ? AutoTagWidth + 4.0f : 0.0f);
 	const auto HudEditorScope = GameClient()->m_HudEditor.BeginTransform(EHudEditorElement::SpectatorHud, {Layout.m_Left, BoundsTop, Layout.m_Width, BoundsBottom - BoundsTop});
 	const CUIRect BackgroundRect = {Layout.m_Left, AdjustedHeight - 15.0f, Layout.m_Width, 15.0f};
 	ColorRGBA BackgroundColor = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiColor));
@@ -6648,11 +6650,7 @@ void CHud::RenderSpectatorHud()
 	if(Layout.m_TextWidth > 0.0f)
 	{
 		const CUIRect Label{Layout.m_Left + 6.0f, BackgroundRect.y, Layout.m_TextWidth, BackgroundRect.h};
-		SLabelProperties Props;
-		Props.m_MaxWidth = Label.w;
-		Props.m_EllipsisAtEnd = true;
-		const CQmCardLabelHintScope NameHints(Ui(), false);
-		Ui()->DoLabel(&Label, aBuf, 8.0f, TEXTALIGN_ML, Props);
+		QmDrawSpectatorHudLabel(*Ui(), Label, aBuf, SpectatorTextWidth);
 	}
 
 	// draw the camera info

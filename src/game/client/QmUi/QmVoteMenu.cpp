@@ -15,6 +15,7 @@
 #include <engine/shared/localization.h>
 #include <engine/textrender.h>
 
+#include <game/client/animstate.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/voting.h>
 #include <game/client/gameclient.h>
@@ -61,17 +62,25 @@ void CMenus::RenderServerControl(CUIRect MainView)
 	CUIRect Navigation;
 	MainView.HSplitTop(28.0f, &Navigation, &MainView);
 	MainView.HSplitTop(8.0f, nullptr, &MainView);
-	Navigation.w = std::min(360.0f, Navigation.w);
-	static CButtonContainer s_aPages[2];
-	const char *apPages[] = {Localize("DDNet map library"), Localize("Server control")};
+	Navigation.w = std::min(540.0f, Navigation.w);
+	static CButtonContainer s_aPages[3];
+	const char *apPages[] = {Localize("Map"), Localize("Kick player"), Localize("Move player to spectators")};
 	const auto Style = CapsuleTabBarStyleFor(ms_ColorTabbarActive);
-	m_QmVoteMenu.m_ShowLibrary = DoNavigationTabs(s_aPages, apPages, 2, m_QmVoteMenu.m_ShowLibrary ? 0 : 1, Navigation, 8.0f, &Style) == 0;
-	if(m_QmVoteMenu.m_ShowLibrary)
+	const auto PreviousPage = m_QmVoteMenu.m_Page;
+	m_QmVoteMenu.m_Page = static_cast<EQmVoteMenuPage>(DoNavigationTabs(s_aPages, apPages, std::size(apPages), static_cast<int>(PreviousPage), Navigation, 8.0f, &Style));
+	if(m_QmVoteMenu.m_Page != PreviousPage)
+	{
+		Ui()->ClosePopupMenus();
+		if(CLineInput *pActiveInput = CLineInput::GetActiveInput())
+			Ui()->ReleaseActiveTextInput(pActiveInput);
+		m_ControlPageOpening = true;
+	}
+	if(m_QmVoteMenu.m_Page == EQmVoteMenuPage::MAPS)
 		RenderVoteMapLibrary(MainView);
 	else
 	{
 		m_QmVoteMenu.m_Loader.Suspend();
-		RenderServerControlLegacy(MainView);
+		RenderVotePlayerList(MainView, m_QmVoteMenu.m_Page == EQmVoteMenuPage::SPECTATE);
 	}
 }
 
@@ -577,5 +586,178 @@ void CMenus::RenderVoteMapLibrary(CUIRect MainView)
 			if(Action != CVoting::EUnfinishedMapVoteAction::NO_OPTION)
 				m_CallvoteReasonInput.Clear();
 		}
+	}
+}
+
+void CMenus::RenderVotePlayerList(CUIRect MainView, bool MoveToSpectators)
+{
+	const int PageIndex = MoveToSpectators ? 1 : 0;
+	const auto Page = MoveToSpectators ? EQmVoteMenuPage::SPECTATE : EQmVoteMenuPage::KICK;
+	auto &Selection = m_QmVoteMenu.m_PlayerSelections[PageIndex];
+	auto &SearchInput = m_QmVoteMenu.m_PlayerSearch[PageIndex];
+	auto &ExcludeInput = m_QmVoteMenu.m_PlayerExclude[PageIndex];
+	auto Identity = [&](int Id) { return QmPlayersUi::SIdentity{Id, GameClient()->m_aClients[Id].m_aName, GameClient()->m_aClients[Id].m_aClan}; };
+	auto Eligible = [&](int Id) {
+		const bool Present = Id >= 0 && Id < MAX_CLIENTS && GameClient()->m_Snap.m_apPlayerInfos[Id] != nullptr;
+		return QmVotePlayerEligible(Page, Id, GameClient()->m_Snap.m_LocalClientId, Present, Present && GameClient()->m_Snap.m_apPlayerInfos[Id]->m_Team == TEAM_SPECTATORS);
+	};
+	if(Eligible(Selection.Id()))
+	{
+		const auto Current = Identity(Selection.Id());
+		Selection.Validate(&Current);
+	}
+	else
+		Selection.Validate(nullptr);
+
+	MainView.Draw(ms_ColorTabbarActive, IGraphics::CORNER_ALL, 10.0f);
+	CUiScopedSurfaceText SurfaceText(TextRender(), ms_ColorTabbarActive);
+	const ColorRGBA Ink = ResolveUiSurfaceForeground(SurfaceText.Surface());
+	MainView.Margin(12.0f, &MainView);
+	CUIRect Header, Bottom, Search, Exclude;
+	MainView.HSplitTop(28.0f, &Header, &MainView);
+	MainView.HSplitTop(8.0f, nullptr, &MainView);
+	MainView.HSplitBottom(28.0f, &MainView, &Bottom);
+	MainView.HSplitBottom(8.0f, &MainView, nullptr);
+	Header.VSplitRight(Header.w * 0.34f, &Search, &Exclude);
+	Search.VSplitRight(8.0f, &Search, nullptr);
+	IUiContext Ctx = ui_widget::ControlContext(Ui());
+	Ctx.m_pTree = &GameClient()->UiRuntimeV2()->Tree();
+	Ctx.m_FrameDt = GameClient()->UiRuntimeV2()->FrameDt();
+	Ctx.m_ScopeHash = MakeUiScopeHash(MoveToSpectators ? "qm_vote_spectate_search" : "qm_vote_kick_search");
+	ui_widget::SInputFieldOptions InputOptions;
+	InputOptions.m_Mode = ui_widget::EInputFieldMode::SEARCH;
+	InputOptions.m_Clearable = true;
+	InputOptions.m_FontSize = 13.0f;
+	InputOptions.m_pPlaceholder = Localize("Search");
+	InputOptions.m_SearchHotkeyEnabled = !Ui()->IsPopupOpen() && !GameClient()->m_GameConsole.IsActive();
+	if(m_ControlPageOpening)
+	{
+		m_ControlPageOpening = false;
+		Ui()->SetActiveItem(&SearchInput);
+		SearchInput.SelectAll();
+	}
+	bool Searching = ui_widget::InputField(Ctx, &SearchInput, Search, InputOptions).m_Changed;
+	Ctx.m_ScopeHash = MakeUiScopeHash(MoveToSpectators ? "qm_vote_spectate_exclude" : "qm_vote_kick_exclude");
+	InputOptions.m_pPlaceholder = Localize("Exclude");
+	InputOptions.m_SearchHotkeyEnabled = false;
+	Searching = ui_widget::InputField(Ctx, &ExcludeInput, Exclude, InputOptions).m_Changed || Searching;
+
+	auto Label = [&](CUIRect Rect, const char *pText, bool Muted = false) {
+		SLabelProperties Props;
+		Props.m_DisallowNewline = true;
+		Props.m_MaxWidth = Rect.w;
+		Props.m_StopAtEnd = true;
+		Props.m_EllipsisAtEnd = true;
+		const auto Previous = TextRender()->GetTextColor();
+		if(Muted)
+			TextRender()->TextColor(Previous.WithMultipliedAlpha(0.7f));
+		Ui()->DoLabel(&Rect, pText, 12.0f, TEXTALIGN_ML, Props);
+		TextRender()->TextColor(Previous);
+	};
+	const bool ShowClan = MainView.w >= 340.0f;
+	auto Columns = [&](CUIRect Row) {
+		std::array<CUIRect, 2> aRects{};
+		Row.VMargin(8.0f, &Row);
+		if(ShowClan)
+			Row.VSplitRight(Row.w * 0.35f, &Row, &aRects[1]);
+		aRects[0] = Row;
+		return aRects;
+	};
+	CUIRect TableHeader;
+	MainView.HSplitTop(20.0f, &TableHeader, &MainView);
+	TableHeader.Draw(Ink.WithAlpha(0.06f), IGraphics::CORNER_ALL, 4.0f);
+	const auto aHead = Columns(TableHeader);
+	Label(aHead[0], Localize("Player"), true);
+	if(ShowClan)
+		Label(aHead[1], Localize("Clan"), true);
+	std::array<int, MAX_CLIENTS> aPlayerIds{};
+	int NumPlayers = 0;
+	int Selected = -1;
+	for(const auto *pInfo : GameClient()->m_Snap.m_apInfoByName)
+	{
+		if(pInfo == nullptr || !Eligible(pInfo->m_ClientId))
+			continue;
+		const int Id = pInfo->m_ClientId;
+		if(!QmTextMatchesIncludeExcludeFilter(GameClient()->m_aClients[Id].m_aName, SearchInput.GetString(), ExcludeInput.GetString()))
+			continue;
+		if(Selection.Id() == Id)
+			Selected = NumPlayers;
+		aPlayerIds[NumPlayers++] = Id;
+	}
+	static CListBox s_aPlayerLists[2];
+	auto &ListBox = s_aPlayerLists[PageIndex];
+	ListBox.SetItemColors(Ink.WithAlpha(0.12f), Ink.WithAlpha(0.08f), Ink.WithAlpha(0.05f));
+	ListBox.SetActive(!Ui()->IsPopupOpen() && !SearchInput.IsActive() && !ExcludeInput.IsActive() && !m_CallvoteReasonInput.IsActive());
+	ListBox.DoStart(24.0f, NumPlayers, 1, 3, Selected, &MainView, false);
+	for(int i = 0; i < NumPlayers; ++i)
+	{
+		const int Id = aPlayerIds[i];
+		const CListboxItem Item = ListBox.DoNextItem(&GameClient()->m_aClients[Id]);
+		if(!Item.m_Visible)
+			continue;
+		auto aColumns = Columns(Item.m_Rect);
+		CUIRect Tee;
+		aColumns[0].VSplitLeft(24.0f, &Tee, &aColumns[0]);
+		aColumns[0].VSplitLeft(4.0f, nullptr, &aColumns[0]);
+		CTeeRenderInfo TeeInfo = GameClient()->m_aClients[Id].m_RenderInfo;
+		TeeInfo.m_Size = 24.0f;
+		const CAnimState *pIdle = CAnimState::GetIdle();
+		vec2 Offset;
+		CRenderTools::GetRenderTeeOffsetToRenderedTee(pIdle, &TeeInfo, Offset);
+		RenderTools()->RenderTee(pIdle, &TeeInfo, EMOTE_NORMAL, vec2(1, 0), Tee.Center() + Offset);
+		char aName[MAX_NAME_LENGTH];
+		GameClient()->FormatStreamerName(Id, aName, sizeof(aName));
+		Label(aColumns[0], aName);
+		if(ShowClan && !GameClient()->ShouldHideStreamerIdentity(Id))
+			Label(aColumns[1], GameClient()->m_aClients[Id].m_aClan);
+	}
+	Selected = ListBox.DoEnd();
+	if(Searching)
+		ListBox.ScrollToSelected();
+	if(Selected >= 0 && Selected < NumPlayers)
+	{
+		if(Selection.Id() != aPlayerIds[Selected])
+			Selection.Choose(Identity(aPlayerIds[Selected]));
+	}
+	else
+		Selection.Validate(nullptr);
+	if(NumPlayers == 0)
+		Label(MainView, Localize("No players match these filters"), true);
+
+	CUIRect CallButton, ForceButton, Reason;
+	Bottom.VSplitRight(std::min(112.0f, Bottom.w * 0.3f), &Bottom, &CallButton);
+	Bottom.VSplitRight(8.0f, &Bottom, nullptr);
+	const bool CanForce = Client()->RconAuthed();
+	if(CanForce)
+	{
+		Bottom.VSplitRight(std::min(112.0f, Bottom.w * 0.4f), &Bottom, &ForceButton);
+		Bottom.VSplitRight(8.0f, &Bottom, nullptr);
+	}
+	Bottom.VSplitRight(std::min(240.0f, Bottom.w * 0.6f), &Bottom, &Reason);
+	Bottom.VSplitRight(8.0f, &Bottom, nullptr);
+	InputOptions = {};
+	InputOptions.m_pPlaceholder = Localize("Reason (optional)");
+	InputOptions.m_FontSize = 12.0f;
+	Ctx.m_ScopeHash = MakeUiScopeHash("qm_vote_player_reason");
+	if(Input()->KeyPress(KEY_R) && Input()->ModifierIsPressed())
+	{
+		Ui()->SetActiveItem(&m_CallvoteReasonInput);
+		m_CallvoteReasonInput.SelectAll();
+	}
+	ui_widget::InputField(Ctx, &m_CallvoteReasonInput, Reason, InputOptions);
+	const int Target = Selection.Id();
+	const bool HasTarget = Eligible(Target);
+	const bool CanCall = HasTarget && !GameClient()->m_Voting.IsVoting();
+	static CButtonContainer s_aCall[2], s_aForce[2];
+	const bool Force = CanForce && ui_widget::SecondaryButton(Ctx, &s_aForce[PageIndex], Localize("Force vote"), ForceButton, !HasTarget);
+	const bool Call = ui_widget::PrimaryButton(Ctx, &s_aCall[PageIndex], Localize("Call vote"), CallButton, !CanCall);
+	if((CanCall && (Call || ListBox.WasItemActivated())) || (Force && HasTarget))
+	{
+		if(MoveToSpectators)
+			GameClient()->m_Voting.CallvoteSpectate(Target, m_CallvoteReasonInput.GetString(), Force);
+		else
+			GameClient()->m_Voting.CallvoteKick(Target, m_CallvoteReasonInput.GetString(), Force);
+		m_CallvoteReasonInput.Clear();
+		SetActive(false);
 	}
 }
