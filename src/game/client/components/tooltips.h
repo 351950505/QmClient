@@ -321,7 +321,7 @@ class CTooltips : public CComponent
 	CTooltip m_DisplayTooltip;
 	CTooltip m_CardLabelHint;
 	CQmCardLabelHintCache m_CardLabelTexts;
-	std::optional<std::array<int, 14>> m_Context;
+	std::optional<std::array<int, 9>> m_Context;
 	uint64_t m_Frame = 1;
 	bool m_ConfigHelpInitialized = false;
 	std::unordered_map<const void *, const SConfigVariable *> m_ConfigHelp;

@@ -15,7 +15,7 @@
 void CMenus::RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetrics &Metrics, bool PrewarmOnly)
 {
 	CSettingsContentLayoutFlow Flow(Content);
-	// F1/F2 面板、分类页和搜索页共用配置与控件；后台帧保留真实控件绘制，只有纯测量帧才进入 RenderOnly。
+	// F1 面板、分类页和搜索页共用配置与控件；后台帧保留真实控件绘制，只有纯测量帧才进入 RenderOnly。
 	const bool MeasureOnly = PrewarmOnly && !Ui()->BackgroundRender();
 	if(MeasureOnly)
 		Ui()->BeginRenderOnly();
@@ -24,7 +24,7 @@ void CMenus::RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetr
 		ui_widget::SNumericFieldState m_FontSize;
 		ui_widget::SNumericFieldState m_Opacity;
 		CButtonContainer m_Highlight;
-		CButtonContainer m_aSchemes[4];
+		CButtonContainer m_aSchemes[3];
 		CButtonContainer m_aColorReset[QmConsoleAppearance::COLOR_COUNT];
 		CButtonContainer m_Reset;
 	};
@@ -53,10 +53,10 @@ void CMenus::RenderQmConsoleContent(CUIRect &Content, const SSettingsContentMetr
 		g_Config.m_QmConsoleHighlightCommands ^= 1;
 	if(TakeRow("console-scheme-label", Metrics.m_LineHeight))
 		Ui()->DoLabel(&Row, Localize("Console color scheme"), Metrics.m_BodySize, TEXTALIGN_ML);
-	const char *apSchemes[] = {Localize("Modern terminal"), Localize("Classic PowerShell"), Localize("Custom"), Localize("PowerShell 7")};
+	const char *apSchemes[] = {Localize("Modern terminal"), Localize("Classic PowerShell"), Localize("Custom")};
 	if(TakeRow("console-scheme-choice", Metrics.m_LineHeight))
 	{
-		const int Scheme = DoSegmentedChoice(Controls.m_aSchemes, apSchemes, 4, g_Config.m_QmConsoleColorScheme, Row, ui_token::radius::BASE, nullptr, Metrics.m_BodySize, &g_Config.m_QmConsoleColorScheme);
+		const int Scheme = DoSegmentedChoice(Controls.m_aSchemes, apSchemes, 3, g_Config.m_QmConsoleColorScheme, Row, ui_token::radius::BASE, nullptr, Metrics.m_BodySize, &g_Config.m_QmConsoleColorScheme);
 		if(!Ui()->RenderOnly())
 			g_Config.m_QmConsoleColorScheme = Scheme;
 	}
@@ -129,7 +129,7 @@ namespace qm_card_catalog
 			qm_module::EQmModuleId::Console,
 			"qm:console",
 			"Console settings",
-			"Appearance and command highlighting of local and remote consoles",
+			"Appearance and command highlighting of the local console",
 			[Ctx](CUIRect &Content) { QmCardRenderHook::RenderQmConsoleContent(Ctx.m_pMenus, Content, Ctx.m_Metrics, Ctx.m_ReadOnly); },
 			Out);
 		UseDeclaredModuleContent(Ctx, Out);
@@ -141,10 +141,10 @@ void CGameConsole::OpenSettings()
 {
 	const CUIRect Panel = QmConsoleSettingsLayout::PanelRect(*Ui()->Screen(), g_Config.m_QmConsoleColorScheme == 2, g_Config.m_QmConsoleFontSize);
 	m_SettingsScrollRegion.Reset();
-	CurrentConsole()->m_Selection.Finish();
-	CurrentConsole()->m_MouseIsPress = false;
-	CurrentConsole()->m_ScrollbarDragging = false;
-	CurrentConsole()->m_Input.GetMouseSelection()->m_Selecting = false;
+	m_LocalConsole.m_Selection.Finish();
+	m_LocalConsole.m_MouseIsPress = false;
+	m_LocalConsole.m_ScrollbarDragging = false;
+	m_LocalConsole.m_Input.GetMouseSelection()->m_Selecting = false;
 	m_TouchState.m_ScrollAmount = vec2(0.0f, 0.0f);
 	auto Props = ui_widget::SecondaryPanelProperties();
 	// 入场与退场均由公共弹层栈驱动，控制台绘制入口保留退场帧。

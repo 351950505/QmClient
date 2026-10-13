@@ -53,16 +53,6 @@ namespace QmConsoleAppearance
 			Result.m_aColors[BACKGROUND] = ColorRGBA(0.004f, 0.141f, 0.337f, 1.0f);
 			Result.m_aColors[TEXT] = ColorRGBA(0.94f, 0.94f, 0.94f, 1.0f);
 		}
-		else if(Scheme == 3)
-		{
-			// PowerShell 7 风格：深色终端、黄色命令、青色参数及绿色字符串。
-			Result.m_aColors[BACKGROUND] = ColorRGBA(0.047f, 0.047f, 0.047f, 1.0f);
-			Result.m_aColors[TEXT] = ColorRGBA(0.94f, 0.94f, 0.94f, 1.0f);
-			Result.m_aColors[COMMAND] = ColorRGBA(1.0f, 1.0f, 0.0f, 1.0f);
-			Result.m_aColors[PARAMETER] = ColorRGBA(0.0f, 1.0f, 1.0f, 1.0f);
-			Result.m_aColors[STRING] = ColorRGBA(0.0f, 0.8f, 0.0f, 1.0f);
-			Result.m_aColors[NUMBER] = ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f);
-		}
 		else if(Scheme == 2)
 		{
 			for(size_t i = 0; i < Custom.size(); ++i)

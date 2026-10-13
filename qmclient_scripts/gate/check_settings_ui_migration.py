@@ -143,8 +143,7 @@ PAGE_FUNCTIONS = {
 	"assets": ("CMenus::RenderSettingsCustom",),
 }
 
-# 保留的旧 tab 是卡片生产分类，不再表示侧栏页面入口。
-PAGE_REGISTRY_TABS = {
+PAGE_ROUTE_TABS = {
 	"general": ("general",),
 	"player": ("player",),
 	"tee": ("tee",),
@@ -235,7 +234,7 @@ _PAGE_SOURCE = {
 	"qmclient_function": Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
 	"qmclient_visual": Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
 	"contributors": Path("src/game/client/components/menus_credits.cpp"),
-	"global_search": Path("src/game/client/QmUi/SettingsSearchPage.cpp"),
+	"global_search": Path("src/game/client/components/qmclient/menus_qmclient_search.cpp"),
 	"tclient": Path("src/game/client/components/tclient/menus_tclient.cpp"),
 	"tclient_bind_wheel": Path("src/game/client/components/tclient/menus_tclient.cpp"),
 	"tclient_chat_binds": Path("src/game/client/components/tclient/menus_tclient.cpp"),
@@ -248,11 +247,6 @@ _PAGE_SOURCE = {
 _DEFAULT_SOURCE = Path("src/game/client/components/menus_settings.cpp")
 _REGISTRY_SOURCE = Path("src/game/client/QmUi/QmCardRegistry.cpp")
 _NAVIGATION_SOURCE = Path("src/game/client/components/menus.cpp")
-_MODERN_NAVIGATION_SOURCE = Path("src/game/client/QmUi/SettingsNavigation.cpp")
-_MODERN_PAGE_SOURCE = Path("src/game/client/QmUi/ModernSettingsPage.cpp")
-PAGE_MODERN_VIEWS = {"player": "modern-tee-identity", "sound": "modern-sound"}
-_STANDALONE_SETTINGS_PAGES = {"CMenus::SETTINGS_ASSETS", "CMenus::SETTINGS_SEARCH", "CMenus::SETTINGS_CONTRIBUTORS"}
-_SETTINGS_PAGE_UNITS = (_MODERN_NAVIGATION_SOURCE, _MODERN_PAGE_SOURCE, _PAGE_SOURCE["global_search"])
 # 卡片生产的归属：页面声明「这一页有哪些卡片」，具体生产在全局卡片目录的分类模块里（N3）。
 _CATALOGUE_SOURCE = Path("src/game/client/QmUi/cards/QmCardCatalogIds.cpp")
 PAGE_CATALOGUE_LIST = {
@@ -347,13 +341,12 @@ _TYPOGRAPHY_SOURCES = (
 	Path("src/game/client/components/menus_settings_controls.cpp"),
 	Path("src/game/client/components/tclient/menus_tclient.cpp"),
 	Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
-	Path("src/game/client/QmUi/SettingsSearchPage.cpp"),
+	Path("src/game/client/components/qmclient/menus_qmclient_search.cpp"),
 	Path("src/game/client/components/qmclient/menus_qmclient_popups.cpp"),
 	Path("src/game/client/components/tclient/menus_tclient_preview.cpp"),
 	Path("src/game/client/QmUi/SettingsMenuWidgets.cpp"),
 	Path("src/game/client/QmUi/SettingsMenuPrewarm.cpp"),
 	Path("src/game/client/QmUi/SettingsRuntimeCache.cpp"),
-	_MODERN_PAGE_SOURCE,
 )
 _FONT_ASSIGNMENT_SOURCES = _TYPOGRAPHY_SOURCES + (_NAVIGATION_SOURCE,)
 # 特殊视觉元素不属于设置内容文字：国旗代码、Tee/皮肤状态图标、统计预览、
@@ -399,6 +392,11 @@ def _read(root: Path, relative: Path) -> str:
 		return path.read_text(encoding="utf-8")
 	except FileNotFoundError:
 		return ""
+
+
+def _navigation_has_route(navigation: str, route: str) -> bool:
+	set_page_body = _extract_function_body(navigation, "CMenus::SetSettingsPageFromCardTab") or ""
+	return f'str_comp(pTab, "{route}") == 0' in set_page_body
 
 
 def _mask_cpp_comments_and_strings(source: str) -> str:
@@ -605,22 +603,21 @@ def audit_page(repo_root: Path, page: str) -> list[str]:
 	page_source = "\n".join(bodies)
 	contract_source = page_source
 	entries = _registry_entries(_read(repo_root, _REGISTRY_SOURCE))
+	navigation = _read(repo_root, _NAVIGATION_SOURCE)
 	if page in CATALOG_PAGE_SOURCES:
 		# 接线属于迁移架构合同；布局、滚动、测量和输入行为由运行时测试负责。
-		delegate = "RenderModernSettingsCards" if page in PAGE_MODERN_VIEWS else "RenderSettingsCatalogPage"
-		calls = list(_iter_cpp_call_arguments(page_source, delegate))
+		calls = list(_iter_cpp_call_arguments(page_source, "RenderSettingsCatalogPage"))
 		if not calls:
 			errors.append(f"{page}: catalog page delegation missing")
-		tabs = PAGE_REGISTRY_TABS[page]
+		tabs = PAGE_ROUTE_TABS[page]
 		delegated_tabs = []
 		for start, end, _, arguments in calls:
 			delegated_tabs.extend(_string_literals(page_source[start:end]))
 			if len(arguments) > 1 and (array := re.match(r"(\w+)\s*\[", arguments[1])):
 				delegated_tabs.extend(_string_literals(_initializer(page_source, array.group(1))))
-		delegated_views = (PAGE_MODERN_VIEWS[page],) if page in PAGE_MODERN_VIEWS else tabs
-		for view in delegated_views:
-			if view not in delegated_tabs:
-				errors.append(f"{page}: {view}: catalog page route missing")
+		for tab in tabs:
+			if tab not in delegated_tabs:
+				errors.append(f"{page}: {tab}: catalog page route missing")
 		producer = _CARDS_DIRECTORY / CATALOG_PAGE_SOURCES[page]
 		producer_source = _read(repo_root, producer)
 		contract_source += "\n" + producer_source
@@ -643,93 +640,15 @@ def audit_page(repo_root: Path, page: str) -> list[str]:
 	for token in REGISTRY_FORBIDDEN.get(page, ()):
 		if token in entries:
 			errors.append(f"{page}: {token}: legacy registry entry remains")
+	for route in PAGE_ROUTE_TABS[page]:
+		if not _navigation_has_route(navigation, route):
+			errors.append(f"{page}: {route}: registry/navigation entry missing")
 	if page == "controls":
 		contract_source += "\n" + _read(repo_root, _CARDS_DIRECTORY / "QmCardCatalogControls.cpp")
 	forbidden = (COMMON_FORBIDDEN if page in STRICT_LEGACY_PAGES else DECK_LEGACY_FORBIDDEN) + PAGE_FORBIDDEN.get(page, ())
 	for token in forbidden:
 		if _contains_forbidden_token(page, contract_source, token):
 			errors.append(f"{page}: {token}: legacy path remains")
-	return errors
-
-
-def _initializer_entries(initializer: str) -> list[str]:
-	"""读取结构化清单的直接子项；注释、字符串内的括号不参与层级。"""
-	code = _mask_cpp_comments_and_strings(initializer)
-	entries = []
-	depth = 0
-	start = 0
-	for index, char in enumerate(code):
-		if char == "{":
-			if depth == 1:
-				start = index
-			depth += 1
-		elif char == "}":
-			depth -= 1
-			if depth == 1:
-				entries.append(initializer[start:index + 1])
-	return entries
-
-
-def _modern_view_entries(source: str) -> list[tuple[str, str]]:
-	views = _initializer(source, "s_Views")
-	entries = []
-	for page_entry in _initializer_entries(views):
-		match = re.match(r"\{\s*(CMenus::SETTINGS_\w+)\s*,", _mask_cpp_comments_and_strings(page_entry))
-		if match is None:
-			continue
-		for view_entry in _initializer_entries(page_entry[match.end():].strip()):
-			literals = _string_literals(view_entry)
-			if literals:
-				entries.append((match.group(1), literals[0]))
-	return entries
-
-
-def audit_modern_navigation_contracts(repo_root: Path) -> list[str]:
-	"""只检查视图注册与共享目录边界；路由结果、排序和迁移由 C++ 接口测试负责。"""
-	errors: list[str] = []
-	source = _read(repo_root, _MODERN_NAVIGATION_SOURCE)
-	pages_initializer = _initializer(source, "s_vPages")
-	pages = re.findall(r"\bCMenus::SETTINGS_\w+\b", _mask_cpp_comments_and_strings(pages_initializer))
-	entries = _modern_view_entries(source)
-	if not pages:
-		errors.append("navigation: sidebar page registry missing")
-	if not entries:
-		errors.append("navigation: modern view registry missing")
-	for page in sorted(set(pages)):
-		if pages.count(page) != 1:
-			errors.append(f"navigation: {page}: duplicate sidebar registration")
-		if page not in _STANDALONE_SETTINGS_PAGES and not any(owner == page for owner, _ in entries):
-			errors.append(f"navigation: {page}: modern view registration missing")
-	view_ids = [view for _, view in entries]
-	for owner, view in entries:
-		if owner not in pages:
-			errors.append(f"navigation: {view}: owner is not registered in sidebar")
-		if not view.startswith("modern-"):
-			errors.append(f"navigation: {view}: modern stable view identity missing")
-	for view in sorted(set(view_ids)):
-		if view_ids.count(view) != 1:
-			errors.append(f"navigation: {view}: duplicate view registration")
-
-	modern = _read(repo_root, _MODERN_PAGE_SOURCE)
-	# 设置容器和搜索必须接入同一个卡片目录；这里不约束渲染次序或交互实现。
-	delegations = (
-		(_DEFAULT_SOURCE, "CMenus::RenderSettings", "RenderModernSettingsPage"),
-		(_MODERN_PAGE_SOURCE, "CMenus::RenderModernSettingsCards", "qm_card_catalog::BuildCards"),
-		(_PAGE_SOURCE["global_search"], "CMenus::RenderSettingsGlobalSearchContent", "qm_card_catalog::BuildCard"),
-	)
-	for path, symbol, builder in delegations:
-		body = _extract_function_body(_read(repo_root, path), symbol) or ""
-		if not list(_iter_cpp_call_arguments(body, builder)):
-			errors.append(f"navigation: {symbol}: shared page/catalog delegation missing ({builder})")
-	for path in (_DEFAULT_SOURCE, _MODERN_PAGE_SOURCE):
-		page_source = _read(repo_root, path)
-		for start, end, _, _ in _iter_cpp_call_arguments(page_source, "RenderModernSettingsCards"):
-			for view in _string_literals(page_source[start:end]):
-				if view not in view_ids:
-					errors.append(f"navigation: {path}: {view}: undeclared modern view")
-	for token in COMMON_FORBIDDEN:
-		if _contains_forbidden_token("modern", modern, token):
-			errors.append(f"navigation: {token}: modern page bypasses shared card implementation")
 	return errors
 
 
@@ -745,13 +664,6 @@ def audit_catalog_build_contracts(repo_root: Path) -> list[str]:
 			errors.append(f"catalog: {name}: source missing")
 		if name not in registered:
 			errors.append(f"catalog: {name}: CMake registration missing")
-	registered_pages = set(re.findall(r"(?<![\w/])(QmUi/[\w]+\.cpp)(?![\w.])", cmake))
-	for source in _SETTINGS_PAGE_UNITS:
-		client_path = source.relative_to("src/game/client").as_posix()
-		if not _read(repo_root, source).strip():
-			errors.append(f"settings page: {client_path}: source missing")
-		if client_path not in registered_pages:
-			errors.append(f"settings page: {client_path}: CMake registration missing")
 	return errors
 
 
@@ -791,7 +703,6 @@ def main() -> int:
 	errors = [error for page in pages for error in audit_page(args.repo_root, page)]
 	errors.extend(audit_shared_contracts(args.repo_root))
 	errors.extend(audit_catalog_build_contracts(args.repo_root))
-	errors.extend(audit_modern_navigation_contracts(args.repo_root))
 	if errors:
 		print("P5 设置页迁移结构清单失败：")
 		for error in errors:

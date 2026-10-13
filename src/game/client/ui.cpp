@@ -4,7 +4,6 @@
 
 #include "QmUi/QmDropdown.h"
 #include "QmUi/QmUiPerf.h"
-#include "QmUi/SettingsSearchHighlight.h"
 #include "QmUi/UiButtons.h"
 #include "QmUi/UiForms.h"
 #include "QmUi/UiSurface.h"
@@ -138,7 +137,6 @@ void CUIElement::SUIElementRect::Reset()
 	m_Corners = -1;
 	m_BackgroundAlphaScale = 1.0f;
 	m_Text.clear();
-	m_SettingsSearchLabel.clear();
 	m_FontSize = -1.0f;
 	m_TextAlign = -1;
 	m_LabelMaxWidth = -2.0f;
@@ -159,7 +157,6 @@ void CUIElement::SUIElementRect::Draw(const CUIRect *pRect, ColorRGBA Color, int
 {
 	if(m_pParent->Ui()->DrawingSuppressed())
 		return;
-	Rounding = m_pParent->Ui()->QmSurfaceRounding(Rounding);
 	bool NeedsRecreate = false;
 	if(m_UIRectQuadContainer == -1 || m_Width != pRect->w || m_Height != pRect->h || m_QuadColor != Color || m_Rounding != Rounding || m_Corners != Corners)
 	{
@@ -439,7 +436,6 @@ bool CUi::PrepareGaussianBlur()
 
 void CUi::RenderGaussianBlur(const CUIRect &Rect, float Alpha, int Corners, float Rounding)
 {
-	Rounding = QmSurfaceRounding(Rounding);
 	// 调用方（模糊作用域与 HUD 背景）只看作用域，不看 qm_gaussian_blur，因此功能关闭时
 	// 每个半透明矩形仍会走到这里。关闭是用户的正常选择、不是失败，不能打 trace——
 	// 否则 qm_graphics_trace 一开，加载界面/主菜单每帧都会刷满 "prepare failed"。
@@ -1002,9 +998,9 @@ void CUi::MapScreen()
 	Graphics()->MapScreen(pScreen->x, pScreen->y, pScreen->w, pScreen->h);
 }
 
-float CUi::PixelSize() const
+float CUi::PixelSize()
 {
-	return QmUiVirtualScreenHeight(g_Config.m_QmUiScale) * Graphics()->ScreenAspect() / Graphics()->ScreenWidth();
+	return Screen()->w / Graphics()->ScreenWidth();
 }
 
 void CUi::BeginRenderOnly()
@@ -1091,7 +1087,6 @@ void CUi::RegisterPassiveHotItem(const void *pId, const CUIRect *pRect)
 
 int CUi::QuadBatchRectContainer(float Width, float Height, float Rounding, int Corners) const
 {
-	Rounding = QmSurfaceRounding(Rounding);
 	if(!UiBatchableRectHasPositiveSize(Width, Height))
 		return -1;
 
@@ -1176,12 +1171,6 @@ void CUi::RenderBatchableRect(const CUIRect *pRect, ColorRGBA Color, int Corners
 		const_cast<CUi *>(this)->RenderGaussianBlur(*pRect, GaussianBlurScopeAlpha(), Corners, Rounding);
 	const int QuadContainerIndex = QuadBatchRectContainer(pRect->w, pRect->h, Rounding, Corners);
 	RenderQuadContainerBatchable(QuadContainerIndex, pRect->x + pRect->w / 2.0f, pRect->y + pRect->h / 2.0f, Color);
-}
-
-float CUi::QmSurfaceRounding(float Rounding) const
-{
-	// 客户端绑定共享 UI runtime；编辑器继续使用自己的控件形状。
-	return ResolveUiSurfaceRadius(Rounding, QmAnimationRuntime() == nullptr || g_Config.m_QmUiRoundedCorners != 0);
 }
 
 int CUi::DoButtonLogic(const void *pId, int Checked, const CUIRect *pRect, const unsigned Flags)
@@ -1321,18 +1310,11 @@ bool CUi::DoDoubleClickLogic(const void *pId)
 	if(RenderOnly())
 		return false;
 
-	const uint64_t Frame = Client()->PerfFrame();
-	if(m_DoubleClickState.m_pProcessedClickId == pId && m_DoubleClickState.m_ProcessedClickFrame == Frame)
-		return m_DoubleClickState.m_ProcessedClickWasDouble;
-	m_DoubleClickState.m_pProcessedClickId = pId;
-	m_DoubleClickState.m_ProcessedClickFrame = Frame;
-	m_DoubleClickState.m_ProcessedClickWasDouble = false;
 	if(m_DoubleClickState.m_pLastClickedId == pId &&
 		Client()->GlobalTime() - m_DoubleClickState.m_LastClickTime < 0.5f &&
 		distance(m_DoubleClickState.m_LastClickPos, MousePos()) <= 32.0f * Screen()->h / Graphics()->ScreenHeight())
 	{
 		m_DoubleClickState.m_pLastClickedId = nullptr;
-		m_DoubleClickState.m_ProcessedClickWasDouble = true;
 		return true;
 	}
 	m_DoubleClickState.m_pLastClickedId = pId;
@@ -1388,12 +1370,6 @@ void CUi::DoSmoothScrollLogic(float *pScrollOffset, float *pScrollOffsetChange, 
 	if(TotalSize < ViewPortSize)
 	{
 		*pScrollOffsetChange = -*pScrollOffset;
-	}
-	if(g_Config.m_QmUiScrollMode == 0)
-	{
-		*pScrollOffset += *pScrollOffsetChange;
-		*pScrollOffsetChange = 0.0f;
-		SmoothClamp = false;
 	}
 
 	// instant scrolling if distance too long
@@ -1594,27 +1570,6 @@ const char *CUi::PrepareCardLabel(const CUIRect *pRect, const char *pText, bool 
 		       pText;
 }
 
-void CUi::ObserveSettingsSearchLabel(const CUIRect *pRect, std::string_view Text, bool IconFont) const
-{
-	if(m_pSettingsSearchHighlight == nullptr || pRect == nullptr || MeasurementOnly() || (BackgroundRender() && m_ContentDrawDepth != m_BackgroundRenderDepth) || RenderingPopupMenus() || IconFont || !m_pSettingsSearchHighlight->ObserveLabel(Text, *pRect))
-		return;
-	DrawSettingsSearchHighlight(*pRect);
-}
-
-void CUi::DrawSettingsSearchHighlight(const CUIRect &Rect) const
-{
-	// 预布局只记录命中坐标，最终绘制仍由卡片的正常渲染阶段负责。
-	if(DrawingSuppressed() || !m_pSettingsSearchHighlight->TryMarkHighlightDrawn(Rect))
-		return;
-	const ColorRGBA Accent = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(std::clamp(g_Config.m_QmUiAccentOpacity / 100.0f, 0.0f, 1.0f));
-	SRoundedSurfaceParams Params;
-	Params.m_Radius = QmSurfaceRounding(std::min(ui_token::radius::TIGHT, Rect.h * 0.25f));
-	Params.m_BorderWidth = 1.0f;
-	Params.m_PixelSize = PixelSize();
-	FlushQuadBatch();
-	DrawRoundedSurface(Graphics(), Rect, ScaleBackgroundAlpha(Accent.WithMultipliedAlpha(0.16f)), ScaleBackgroundAlpha(Accent.WithMultipliedAlpha(0.70f)), Params);
-}
-
 void CUi::DoText(float X, float Y, float Size, const char *pText, float LineWidth) const
 {
 	if(DrawingSuppressed())
@@ -1628,7 +1583,6 @@ CLabelResult CUi::DoLabel(const CUIRect *pRect, const char *pText, float Size, i
 	if(PreLayoutInput())
 		return {};
 	pText = PrepareCardLabel(pRect, pText);
-	ObserveSettingsSearchLabel(pRect, pText, TextRender()->GetFontPreset() != EFontPreset::DEFAULT_FONT);
 	const SQmIconLabelGlyphs Icons = QmIconLabelGlyphs(TextRender()->GetFontPreset(), pText);
 	const CQmIconLabelFontScope FontScope(*TextRender(), Icons);
 	if(!DrawingSuppressed() && Icons.m_Count > 0 && pRect->w >= Size * Icons.m_Count && pRect->h >= Size && LabelProps.m_vColorSplits.empty() && LabelProps.m_MaxWidth < 0 && DrawCachedQmIconLabel(*pRect, pText, Size, Align, Icons.m_Count))
@@ -1669,7 +1623,6 @@ void CUi::DoLabel(CUIElement::SUIElementRect &RectEl, const CUIRect *pRect, cons
 	RectEl.m_aQmIcons = Icons.m_aIcons;
 	RectEl.m_NumQmIcons = Icons.m_Count;
 	RectEl.m_FontPreset = TextRender()->GetFontPreset();
-	RectEl.m_SettingsSearchLabel = pReadCursor == nullptr && RectEl.m_FontPreset == EFontPreset::DEFAULT_FONT ? std::string(pText, StrLen < 0 ? std::char_traits<char>::length(pText) : static_cast<size_t>(StrLen)) : std::string();
 	const int Flags = GetFlagsForLabelProperties(LabelProps, pReadCursor);
 	const SCursorAndBoundingBox TextBounds = CalcFontSizeCursorHeightAndBoundingBox(TextRender(), pText, Flags, Size, pRect->w, LabelProps);
 
@@ -1707,7 +1660,6 @@ void CUi::RenderLabelTextContainerAligned(const CUIElement::SUIElementRect &Rect
 {
 	if(DrawingSuppressed() || pRect == nullptr || !RectEl.m_UITextContainer.Valid())
 		return;
-	ObserveSettingsSearchLabel(pRect, RectEl.m_SettingsSearchLabel, RectEl.m_FontPreset != EFontPreset::DEFAULT_FONT);
 
 	const float *pBiggestCharHeight = RectEl.m_LineCount == 1 ? &RectEl.m_BiggestCharacterHeight : nullptr;
 	const vec2 CursorPos = CalcAlignedCursorPos(pRect, vec2(RectEl.m_Cursor.m_LongestLineWidth, RectEl.m_Cursor.Height()), Align, pBiggestCharHeight);
@@ -1884,18 +1836,7 @@ bool CUi::DoEditBox(CLineInput *pLineInput, const CUIRect *pRect, float FontSize
 
 	// Update mouse selection information
 	CLineInput::SMouseSelection *pMouseSelection = pLineInput->GetMouseSelection();
-	if(Inside && MouseButtonClicked(0) && DoDoubleClickLogic(pLineInput))
-	{
-		if(pLineInput->IsActive() && (Input()->HasComposition() || Input()->GetCandidateCount()))
-		{
-			Input()->StopTextInput();
-			Input()->StartTextInput();
-		}
-		// 双击在本次文字遍历前提交全选，避免鼠标选区计算立即覆盖全选结果。
-		pMouseSelection->m_Selecting = false;
-		pLineInput->SelectAll();
-	}
-	else if(Inside)
+	if(Inside)
 	{
 		if(!pMouseSelection->m_Selecting && MouseButtonClicked(0))
 		{
@@ -2024,17 +1965,7 @@ bool CUi::DoEditBoxMultiLine(CLineInput *pLineInput, const CUIRect *pRect, float
 		pLineInput->Deactivate();
 
 	CLineInput::SMouseSelection *pMouseSelection = pLineInput->GetMouseSelection();
-	if(Inside && MouseButtonClicked(0) && DoDoubleClickLogic(pLineInput))
-	{
-		if(pLineInput->IsActive() && (Input()->HasComposition() || Input()->GetCandidateCount()))
-		{
-			Input()->StopTextInput();
-			Input()->StartTextInput();
-		}
-		pMouseSelection->m_Selecting = false;
-		pLineInput->SelectAll();
-	}
-	else if(Inside)
+	if(Inside)
 	{
 		if(!pMouseSelection->m_Selecting && MouseButtonClicked(0))
 		{
@@ -2147,15 +2078,6 @@ bool CUi::DoEditBox_Search(CLineInput *pLineInput, const CUIRect *pRect, float F
 
 void CUi::DoConfigTooltip(const void *pId, const CUIRect *pRect, const void *pValue, const void *pSecondValue)
 {
-	if(m_pSettingsSearchHighlight != nullptr && pRect != nullptr && !MeasurementOnly() && (!BackgroundRender() || m_ContentDrawDepth == m_BackgroundRenderDepth) && !RenderingPopupMenus())
-	{
-		// 配置地址提供完整行的几何，后续标签绘制共用去重记录。
-		bool Matched = m_pSettingsSearchHighlight->ObserveConfig(pValue, *pRect);
-		Matched = m_pSettingsSearchHighlight->ObserveConfig(pSecondValue, *pRect) || Matched;
-		Matched = m_pSettingsSearchHighlight->ObserveConfig(pId, *pRect) || Matched;
-		if(Matched)
-			DrawSettingsSearchHighlight(*pRect);
-	}
 	if(m_pQmTooltips != nullptr)
 		m_pQmTooltips->DoConfigToolTip(pId, pRect, pValue, pSecondValue);
 }
@@ -2180,9 +2102,9 @@ void CUi::DoSmallTooltip(const void *pId, const CUIRect *pNearRect, const char *
 
 const SUiTheme &CUi::QmControlTheme()
 {
-	const std::array<unsigned, 7> aConfig = {
+	const std::array<unsigned, 8> aConfig = {
 		g_Config.m_QmUiColor, static_cast<unsigned>(g_Config.m_QmUiOpacity), g_Config.m_QmUiFocusColor,
-		g_Config.m_QmUiAccentColor, static_cast<unsigned>(g_Config.m_QmUiAccentOpacity),
+		g_Config.m_QmUiAccentColor, static_cast<unsigned>(g_Config.m_QmUiAccentOpacity), g_Config.m_QmUiSelectedColor,
 		static_cast<unsigned>(g_Config.m_QmUiTextColorMode), g_Config.m_QmUiTextCustomColor};
 	// 同帧所有控件复用主题；配置变化时才重新解析颜色与前景。
 	if(!m_HasQmControlTheme || m_aQmControlThemeConfig != aConfig)

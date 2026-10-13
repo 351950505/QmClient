@@ -18,7 +18,6 @@
 #include <game/client/ui.h>
 #include <game/client/ui_scrollregion.h>
 
-#include <array>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -38,13 +37,6 @@ class CQmChatExportJob;
 class CGameConsole : public CComponent
 {
 public:
-	enum
-	{
-		CONSOLETYPE_LOCAL = 0,
-		CONSOLETYPE_REMOTE,
-		NUM_CONSOLETYPES
-	};
-
 	struct SColorSpan
 	{
 		int m_CharIndex;
@@ -242,7 +234,7 @@ private:
 
 	bool m_WantsSelectionCopy = false;
 	bool m_LocalConsoleFullscreen = false;
-	std::array<float, NUM_CONSOLETYPES> m_aLastFontSize = {-1.0f, -1.0f};
+	float m_LastLocalFontSize = -1.0f;
 	SPopupMenuId m_SettingsPopupId;
 	CScrollRegion m_SettingsScrollRegion;
 	CButtonContainer m_SettingsCloseButton;
@@ -272,6 +264,13 @@ private:
 	static void ConchainConsoleOutputLevel(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 public:
+	enum
+	{
+		CONSOLETYPE_LOCAL = 0,
+		CONSOLETYPE_REMOTE,
+		NUM_CONSOLETYPES
+	};
+
 	CGameConsole();
 	~CGameConsole() override;
 	int Sizeof() const override { return sizeof(*this); }

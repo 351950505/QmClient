@@ -4,7 +4,6 @@
 
 #include <engine/shared/config.h>
 
-#include <game/client/QmUi/SettingsNavigation.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/qmclient/perf_logging.h>
 
@@ -30,14 +29,10 @@ int SettingsCanonicalPage(int Page)
 {
 	switch(Page)
 	{
-	case CMenus::SETTINGS_GENERAL:
-	case CMenus::SETTINGS_DDNET:
-	case CMenus::SETTINGS_TCLIENT:
+	case CMenus::SETTINGS_LANGUAGE: return CMenus::SETTINGS_GENERAL;
+	case CMenus::SETTINGS_PLAYER: return CMenus::SETTINGS_TEE;
 	case CMenus::SETTINGS_CONFIGS:
 		return CMenus::SETTINGS_QMCLIENT;
-	case CMenus::SETTINGS_PLAYER: return CMenus::SETTINGS_TEE;
-	case CMenus::SETTINGS_PROFILES: return CMenus::SETTINGS_TEE;
-	case CMenus::SETTINGS_GRAPHICS: return CMenus::SETTINGS_APPEARANCE;
 	default:
 		return Page;
 	}
@@ -45,70 +40,16 @@ int SettingsCanonicalPage(int Page)
 
 bool SettingsPageVisibleInRightTabBar(int Page)
 {
-	const auto &vPages = qm_settings_navigation::PageOrder();
-	return std::find(vPages.begin(), vPages.end(), Page) != vPages.end();
-}
-
-int SettingsNavigationSubtab(const int Page, const SSettingsNavigationTabs &Tabs)
-{
-	if(!SettingsPageVisibleInRightTabBar(Page))
-	{
-		const auto Route = qm_settings_navigation::ResolveLegacyPage(Page);
-		return Route.IsValid() ? Route.m_SubTab : -1;
-	}
-	int Tab = 0;
 	switch(Page)
 	{
-	case CMenus::SETTINGS_FRIENDS: Tab = Tabs.m_FriendsTab; break;
-	case CMenus::SETTINGS_TEE: Tab = Tabs.m_TeeTab; break;
-	case CMenus::SETTINGS_APPEARANCE: Tab = Tabs.m_VisualTab; break;
-	case CMenus::SETTINGS_CONTROLS: Tab = Tabs.m_ControlsTab; break;
-	case CMenus::SETTINGS_QMCLIENT: Tab = Tabs.m_FeaturesTab; break;
-	case CMenus::SETTINGS_CONTRIBUTORS: return std::clamp(Tabs.m_CreditsTab, 0, CMenus::CREDITS_SETTINGS_TAB_NUM - 1);
+	case CMenus::SETTINGS_LANGUAGE:
+	case CMenus::SETTINGS_PLAYER:
+	case CMenus::SETTINGS_PROFILES:
+	case CMenus::SETTINGS_CONFIGS:
+		return false;
+	default:
+		return Page >= 0 && Page < CMenus::SETTINGS_LENGTH;
 	}
-	const auto &vViews = qm_settings_navigation::Views(Page);
-	return vViews.empty() ? -1 : std::clamp(Tab, 0, static_cast<int>(vViews.size()) - 1);
-}
-
-SSettingsWarmupView ResolveSettingsWarmupView(int Page, const int NavigationVersion, const SSettingsNavigationTabs &Tabs, const int AppearanceTab, const int TClientTab, const int QmTab)
-{
-	if(NavigationVersion == 0 || !SettingsPageVisibleInRightTabBar(Page))
-	{
-		const auto Route = qm_settings_navigation::ResolveLegacyPage(Page, AppearanceTab, TClientTab, QmTab);
-		if(Route.IsValid())
-			return {Route.m_Page, qm_settings_navigation::Views(Route.m_Page).empty() && Route.m_Page != CMenus::SETTINGS_CONTRIBUTORS ? -1 : Route.m_SubTab};
-		Page = CMenus::SETTINGS_LANGUAGE;
-	}
-	return {Page, SettingsNavigationSubtab(Page, Tabs)};
-}
-
-std::vector<SSettingsWarmupView> BuildSettingsWarmupViews(int PreferredPage, int PreferredTab)
-{
-	std::vector<SSettingsWarmupView> vViews;
-	for(const int Page : qm_settings_navigation::PageOrder())
-	{
-		const int NumViews = Page == CMenus::SETTINGS_CONTRIBUTORS ? CMenus::CREDITS_SETTINGS_TAB_NUM : static_cast<int>(qm_settings_navigation::Views(Page).size());
-		if(NumViews == 0)
-			vViews.push_back({Page, -1});
-		else
-			for(int Tab = 0; Tab < NumViews; ++Tab)
-				vViews.push_back({Page, Tab});
-	}
-	if(!SettingsPageVisibleInRightTabBar(PreferredPage))
-	{
-		const auto Route = qm_settings_navigation::ResolveLegacyPage(PreferredPage);
-		if(Route.IsValid())
-		{
-			PreferredPage = Route.m_Page;
-			PreferredTab = Route.m_SubTab;
-		}
-	}
-	const auto It = std::find_if(vViews.begin(), vViews.end(), [&](const SSettingsWarmupView &View) {
-		return View.m_Page == PreferredPage && View.m_Tab == PreferredTab;
-	});
-	if(It != vViews.end())
-		std::rotate(vViews.begin(), It, It + 1);
-	return vViews;
 }
 
 bool SettingsRuntimeCacheKeyMatches(const SSettingsRuntimeCacheKey &A, const SSettingsRuntimeCacheKey &B)
@@ -321,8 +262,6 @@ static std::string SettingsRuntimePageName(int Page)
 	case CMenus::SETTINGS_QMCLIENT: return "qmclient";
 	case CMenus::SETTINGS_SEARCH: return "search";
 	case CMenus::SETTINGS_CONTRIBUTORS: return "contributors";
-	case CMenus::SETTINGS_FRIENDS: return "friends";
-	case CMenus::SETTINGS_HUD: return "hud";
 	default: return "unknown";
 	}
 }

@@ -31,13 +31,10 @@ using namespace FontIcons;
 
 void CMenus::AudioPackEditorOpen(const char *pPackName)
 {
-	if(Ui()->RenderOnly())
-		return;
-	OpenResourceEditorWorkspace(static_cast<int>(qm_resource_editor::EWorkspace::AUDIO));
 	AudioPackEditorStopPreview();
-	if(m_AudioPackEditorState.m_Open)
-		return;
+	g_Config.m_UiSettingsPage = SETTINGS_SOUND;
 	m_AudioPackEditorState.m_Open = true;
+	g_Config.m_UiSettingsPage = SETTINGS_SOUND;
 	m_AudioPackEditorState.m_Initialized = false;
 	m_AudioPackEditorState.m_SelectedSlotIndex = 0;
 	m_AudioPackEditorState.m_Category = 0;
@@ -290,10 +287,7 @@ bool CMenus::AudioPackEditorCopyAbsoluteFileToStorage(const char *pSourcePath, c
 void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 {
 	using namespace qm_audio_pack;
-	const bool ReadOnly = Ui()->RenderOnly();
 	if(!m_AudioPackEditorState.m_Open)
-		return;
-	if(ReadOnly && !m_AudioPackEditorState.m_Initialized)
 		return;
 	const bool Initialize = !m_AudioPackEditorState.m_Initialized;
 	if(Initialize)
@@ -400,15 +394,13 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 	for(int Index = 0; Index < (int)ECategory::COUNT; ++Index)
 		apCategories[Index] = Localize(CategoryName((ECategory)Index));
 	const int PreviousCategory = m_AudioPackEditorState.m_Category;
-	const int Category = DoSettingsDropDown(&CategoryRow, PreviousCategory, apCategories, (int)ECategory::COUNT, s_CategoryDropdown);
-	if(!ReadOnly)
-		m_AudioPackEditorState.m_Category = Category;
+	m_AudioPackEditorState.m_Category = DoSettingsDropDown(&CategoryRow, PreviousCategory, apCategories, (int)ECategory::COUNT, s_CategoryDropdown);
 	if(PreviousCategory != m_AudioPackEditorState.m_Category)
 		s_GroupList.ResetScroll();
 	Catalog.HSplitTop(Gap, nullptr, &Catalog);
 	const auto vVisible = FilterGroups(s_vGroups, s_vSlots, (ECategory)m_AudioPackEditorState.m_Category, m_AudioPackEditorState.m_FilterInput.GetString(), [](const char *pText) { return Localize(pText); });
 	int GroupIndex = SelectedGroup(s_vGroups, m_AudioPackEditorState.m_SelectedSlotIndex);
-	if(!ReadOnly && !vVisible.empty() && std::find(vVisible.begin(), vVisible.end(), GroupIndex) == vVisible.end())
+	if(!vVisible.empty() && std::find(vVisible.begin(), vVisible.end(), GroupIndex) == vVisible.end())
 	{
 		GroupIndex = vVisible.front();
 		m_AudioPackEditorState.m_SelectedSlotIndex = SelectGroupSlot(s_vGroups[GroupIndex], -1);
@@ -435,7 +427,7 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 		Label(IdRow, aSubtitle, true);
 	}
 	const int NewSelection = s_GroupList.DoEnd();
-	if(!ReadOnly && NewSelection != VisibleSelection && NewSelection >= 0 && NewSelection < (int)vVisible.size())
+	if(NewSelection != VisibleSelection && NewSelection >= 0 && NewSelection < (int)vVisible.size())
 	{
 		GroupIndex = vVisible[NewSelection];
 		m_AudioPackEditorState.m_SelectedSlotIndex = SelectGroupSlot(s_vGroups[GroupIndex], m_AudioPackEditorState.m_SelectedSlotIndex);
@@ -535,14 +527,11 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 	for(int Index = 0; Index < (int)m_AudioPackEditorState.m_vCandidateEntries.size(); ++Index)
 		if(str_utf8_find_nocase(m_AudioPackEditorState.m_vCandidateEntries[Index].m_Path.c_str(), pFilter))
 			vCandidates.push_back(Index);
-	int SelectedCandidate = m_AudioPackEditorState.m_SelectedCandidateIndex;
-	if(std::find(vCandidates.begin(), vCandidates.end(), SelectedCandidate) == vCandidates.end())
-		SelectedCandidate = vCandidates.empty() ? -1 : vCandidates.front();
-	if(!ReadOnly)
-		m_AudioPackEditorState.m_SelectedCandidateIndex = SelectedCandidate;
+	if(std::find(vCandidates.begin(), vCandidates.end(), m_AudioPackEditorState.m_SelectedCandidateIndex) == vCandidates.end())
+		m_AudioPackEditorState.m_SelectedCandidateIndex = vCandidates.empty() ? -1 : vCandidates.front();
 	int CandidateSelection = -1;
 	for(int Index = 0; Index < (int)vCandidates.size(); ++Index)
-		if(vCandidates[Index] == SelectedCandidate)
+		if(vCandidates[Index] == m_AudioPackEditorState.m_SelectedCandidateIndex)
 			CandidateSelection = Index;
 	const CUIRect CandidateRect = Take(EditorLineSize * 6.0f);
 	s_CandidateList.SetWheelOwnerPriority(EUiWheelOwnerPriority::COMPOSITE_CONTROL);
@@ -564,16 +553,13 @@ void CMenus::RenderAudioPackEditorScreen(CUIRect MainView)
 		GameClient()->m_Tooltips.DoToolTipForRect(&Entry, &Item.m_Rect, Entry.m_Path.c_str());
 	}
 	const int NewCandidate = s_CandidateList.DoEnd();
-	if(!ReadOnly && NewCandidate >= 0 && NewCandidate < (int)vCandidates.size())
-	{
-		SelectedCandidate = vCandidates[NewCandidate];
-		m_AudioPackEditorState.m_SelectedCandidateIndex = SelectedCandidate;
-	}
+	if(NewCandidate >= 0 && NewCandidate < (int)vCandidates.size())
+		m_AudioPackEditorState.m_SelectedCandidateIndex = vCandidates[NewCandidate];
 	if(vCandidates.empty())
 		Label(CandidateRect, Localize("No candidate files match this search."), true);
 	const char *pSelectedCandidatePath = "";
-	if(SelectedCandidate >= 0 && SelectedCandidate < (int)m_AudioPackEditorState.m_vCandidateEntries.size())
-		pSelectedCandidatePath = m_AudioPackEditorState.m_vCandidateEntries[SelectedCandidate].m_Path.c_str();
+	if(m_AudioPackEditorState.m_SelectedCandidateIndex >= 0)
+		pSelectedCandidatePath = m_AudioPackEditorState.m_vCandidateEntries[m_AudioPackEditorState.m_SelectedCandidateIndex].m_Path.c_str();
 	Space();
 	Label(Take(EditorLineSize), Localize("Manual source file"), true);
 	CUIRect ManualInput = Take(EditorLineSize);

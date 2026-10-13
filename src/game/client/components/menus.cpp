@@ -29,7 +29,6 @@
 #include <generated/client_data.h>
 #include <generated/protocol.h>
 
-#include <game/client/QmUi/MenuNavigation.h>
 #include <game/client/QmUi/QmAnimCurves.h>
 #include <game/client/QmUi/QmAnimResolve.h>
 #include <game/client/QmUi/QmCardOrderModel.h>
@@ -40,7 +39,6 @@
 #include <game/client/QmUi/QmUiPerf.h>
 #include <game/client/QmUi/SettingsCard.h>
 #include <game/client/QmUi/SettingsLabelMetadata.h>
-#include <game/client/QmUi/SettingsNavigation.h>
 #include <game/client/QmUi/ThemeSelectionLayout.h>
 #include <game/client/QmUi/UiButtons.h>
 #include <game/client/QmUi/UiContainers.h>
@@ -76,7 +74,6 @@
 #include <cmath>
 #include <limits>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 extern bool gs_SettingsAssetsEntityGamePreview;
@@ -85,10 +82,7 @@ namespace
 {
 	// 胶囊行高与内容缩放常量已提升到 menus.h（menus_ingame.cpp 的服务器导航栏也用）。
 	constexpr float MENU_MENUBAR_GAP_NEW = 8.0f; // 导航→内容间隙（统一边距基准）
-	float MenuMenubarHeight()
-	{
-		return MENU_MENUBAR_CAPSULE_ROW_HEIGHT_NEW * std::clamp(g_Config.m_QmUiNavScale / 100.0f, 0.75f, 1.5f) + MENU_MENUBAR_GAP_NEW;
-	}
+	constexpr float MENU_MENUBAR_HEIGHT_NEW = MENU_MENUBAR_CAPSULE_ROW_HEIGHT_NEW + MENU_MENUBAR_GAP_NEW;
 
 	void FormatStatsPlaytime(int64_t Seconds, bool TotalHours, char *pBuf, size_t BufSize)
 	{
@@ -166,6 +160,15 @@ namespace
 	{
 		return !Item.m_TextId.empty() && !Item.m_Text.empty() && Item.m_FontSize > 0.0f && Item.m_Rect.w > 0.0f && Item.m_Rect.h > 0.0f;
 	}
+
+	int CanonicalizeTClientCacheTab(int Tab)
+	{
+		// TClient 页签不再支持隐藏，缓存槽位只需收敛到合法 tab 区间。
+		// TCLIENT_TAB_* 枚举是 menus_tclient.cpp / menus_qmclient.cpp 的文件级枚举，这里按槽位数收敛。
+		constexpr int NumTClientTabs = 5;
+		return std::clamp(Tab, 0, NumTClientTabs - 1);
+	}
+
 }
 
 using namespace FontIcons;
@@ -270,7 +273,8 @@ namespace
 	// 容器与服务器列表面板同源（qm_ui_color / qm_ui_opacity「界面表面」，
 	// 与 CMenus::BrowserPanelColor(1.0f) 一致），保证导航栏和下方列表底色一致，
 	// 并统一跟随设置页「界面背景」配置；
-	// 滑块统一读取强调色与透明度，激活文字按滑块和容器合成后的明暗适配。
+	// 滑块与文字按容器明暗自适应 —— 默认暗色界面是「深容器 + 亮滑块 + 深字」，
+	// 浅色界面自动反向，避免白底白滑块看不见。自适应规则本体在 ui_widget::CapsuleTabBar*。
 	ColorRGBA MenuCapsuleSurfaceColor()
 	{
 		const ColorRGBA Base = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiColor));
@@ -279,12 +283,12 @@ namespace
 
 	ColorRGBA MenuCapsuleTabIndicatorColor()
 	{
-		return color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(std::clamp(g_Config.m_QmUiAccentOpacity / 100.0f, 0.0f, 1.0f));
+		return ui_widget::CapsuleTabBarIndicatorColor(MenuCapsuleSurfaceColor());
 	}
 
 	ColorRGBA MenuCapsuleTabActiveLabelColor()
 	{
-		return ResolveUiSurfaceForeground(MenuCapsuleTabIndicatorColor(), CompositeUiSurface(MenuCapsuleSurfaceColor()));
+		return ui_widget::CapsuleTabBarActiveLabelColor(MenuCapsuleSurfaceColor());
 	}
 
 	ColorRGBA MenuCapsuleTabInactiveLabelColor()
@@ -374,8 +378,8 @@ ui_widget::SCapsuleTabBarStyle CMenus::CapsuleTabBarStyleFor(const ColorRGBA &Su
 	ui_widget::SCapsuleTabBarStyle Style;
 	// 胶囊只当滑块轨道：在容器表面上再压一层暗色，深浅主题下都比容器深一档。
 	Style.m_CapsuleColor = ColorRGBA(0.0f, 0.0f, 0.0f, 0.16f);
-	Style.m_IndicatorColor = MenuCapsuleTabIndicatorColor();
-	Style.m_ActiveLabelColor = ResolveUiSurfaceForeground(Style.m_IndicatorColor, CompositeUiSurface(SurfaceColor));
+	Style.m_IndicatorColor = ui_widget::CapsuleTabBarIndicatorColor(SurfaceColor);
+	Style.m_ActiveLabelColor = ui_widget::CapsuleTabBarActiveLabelColor(SurfaceColor);
 	Style.m_InactiveLabelColor = ui_widget::CapsuleTabBarInactiveLabelColor(SurfaceColor);
 	return Style;
 }
@@ -383,11 +387,11 @@ ui_widget::SCapsuleTabBarStyle CMenus::CapsuleTabBarStyleFor(const ColorRGBA &Su
 ui_widget::SCapsuleTabBarStyle CMenus::MenuCapsuleTabBarStyle() const
 {
 	// 主导航胶囊：容器是悬浮表面本体（MenuCapsuleSurfaceColor 与 BrowserPanelColor(1.0f)
-	// 同源），滑块使用强调色，文字按合成后的表面明暗适配。
+	// 同源，非压暗轨道），滑块与文字按该表面明暗自适应。
 	ui_widget::SCapsuleTabBarStyle Style;
 	Style.m_CapsuleColor = MenuCapsuleSurfaceColor();
-	Style.m_IndicatorColor = MenuCapsuleTabIndicatorColor();
-	Style.m_ActiveLabelColor = MenuCapsuleTabActiveLabelColor();
+	Style.m_IndicatorColor = ui_widget::CapsuleTabBarIndicatorColor(Style.m_CapsuleColor);
+	Style.m_ActiveLabelColor = ui_widget::CapsuleTabBarActiveLabelColor(Style.m_CapsuleColor);
 	Style.m_InactiveLabelColor = ui_widget::CapsuleTabBarInactiveLabelColor(Style.m_CapsuleColor);
 	return Style;
 }
@@ -473,7 +477,7 @@ namespace
 	CUIRect MenuTextSettingsContentView(CUIRect Screen)
 	{
 		CUIRect TabBar, MainView;
-		Screen.HSplitTop(MenuMenubarHeight(), &TabBar, &MainView);
+		Screen.HSplitTop(MENU_MENUBAR_HEIGHT_NEW, &TabBar, &MainView);
 		return MainView;
 	}
 
@@ -578,7 +582,6 @@ namespace
 		case CMenus::PAGE_FAVORITE_MAPS: return "favorite_maps";
 		case CMenus::PAGE_DEMOS: return "demos";
 		case CMenus::PAGE_SETTINGS: return "settings";
-		case CMenus::PAGE_RESOURCE_EDITOR: return "resource_editor";
 		case CMenus::PAGE_STATS: return "stats";
 		default: return "unknown";
 		}
@@ -596,7 +599,6 @@ namespace
 		case CMenus::PAGE_RANK_DEMO: return "rank_demo";
 		case CMenus::PAGE_CALLVOTE: return "call_vote";
 		case CMenus::PAGE_SETTINGS: return "settings";
-		case CMenus::PAGE_RESOURCE_EDITOR: return "resource_editor";
 		case CMenus::PAGE_DEMOS: return "demos";
 		case CMenus::PAGE_UNFINISHED_MAPS: return "unfinished_maps";
 		default: return "unknown";
@@ -698,7 +700,7 @@ CMenus::CMenus()
 
 IUiContext CMenus::SettingsUiContext(const char *pScope, const float UiScale)
 {
-	m_SettingsUiTheme = ResolveUiTheme(ColorHSLA(g_Config.m_QmUiColor), g_Config.m_QmUiOpacity / 100.0f, ColorHSLA(g_Config.m_QmUiFocusColor), ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f));
+	m_SettingsUiTheme = ResolveUiTheme(ColorHSLA(g_Config.m_QmUiColor), g_Config.m_QmUiOpacity / 100.0f, ColorHSLA(g_Config.m_QmUiFocusColor), ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f), ColorHSLA(g_Config.m_QmUiSelectedColor));
 	IUiContext Context;
 	Context.m_pUi = Ui();
 	Context.m_pAnim = &GameClient()->UiRuntimeV2()->AnimRuntime();
@@ -771,13 +773,6 @@ qm_card_order::CModel &CMenus::SettingsCardOrderModel()
 {
 	if(!m_SettingsCardOrderLoaded)
 		LoadSettingsCardOrderModel();
-	if(m_SettingsModernLayoutRevision != m_SettingsCardOrderModel.LayoutRevision())
-	{
-		const bool Changed = qm_settings_navigation::MigrateLayout(m_SettingsCardOrderModel);
-		m_SettingsModernLayoutRevision = m_SettingsCardOrderModel.LayoutRevision();
-		if(Changed)
-			SaveSettingsCardOrderModel();
-	}
 	return m_SettingsCardOrderModel;
 }
 
@@ -791,7 +786,6 @@ qm_card_order::CModel &CMenus::SettingsCardOrderModelForRenderPass()
 		qm_card_registry::RepairLegacyCreditsTabs(m_SettingsCardRenderOnlyOrderModel);
 		qm_card_registry::RepairLegacyNameplateTitleLayout(m_SettingsCardRenderOnlyOrderModel);
 		qm_card_registry::RepairLegacyTeeLayout(m_SettingsCardRenderOnlyOrderModel);
-		qm_settings_navigation::MigrateLayout(m_SettingsCardRenderOnlyOrderModel);
 		m_SettingsCardRenderOnlyOrderSource = g_Config.m_QmGlobalCardOrder;
 		m_SettingsCardRenderOnlyOrderInitialized = true;
 	}
@@ -1437,7 +1431,7 @@ int CMenus::DoButton_MenuTabInternal(CButtonContainer *pButtonContainer, const c
 		if(pActiveColor)
 			ColorMenuTab = *pActiveColor;
 		else
-			ColorMenuTab = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f);
+			ColorMenuTab = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)).WithAlpha(0.42f);
 
 		DrawRoundedSurface(Ui(), *pRect, ColorMenuTab, ColorRGBA(), EdgeRounding, 0.0f, Corners);
 	}
@@ -1449,7 +1443,7 @@ int CMenus::DoButton_MenuTabInternal(CButtonContainer *pButtonContainer, const c
 			if(pHoverColor)
 				HoverColorMenuTab = *pHoverColor;
 			else
-				HoverColorMenuTab = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiAccentColor)).WithAlpha(g_Config.m_QmUiAccentOpacity / 200.0f);
+				HoverColorMenuTab = color_cast<ColorRGBA>(ColorHSLA(g_Config.m_QmUiSelectedColor)).WithAlpha(0.20f);
 
 			const ColorRGBA IdleColor = pDefaultColor != nullptr ? *pDefaultColor : ms_ColorTabbarInactive;
 			const ColorRGBA AnimatedColor(
@@ -1563,9 +1557,22 @@ void CMenus::UpdateSettingsTabLabels()
 	m_SettingsTabSixup = Sixup;
 	m_SettingsTabLabelsInit = true;
 
-	for(const int Page : qm_settings_navigation::PageOrder())
-		m_apSettingsTabs[Page] = Localize(qm_settings_navigation::PageLabel(Page));
+	m_apSettingsTabs[SETTINGS_LANGUAGE] = Localize("Language");
+	m_apSettingsTabs[SETTINGS_GENERAL] = Localize("General");
+	m_apSettingsTabs[SETTINGS_PLAYER] = Localize("Player");
 	m_apSettingsTabs[SETTINGS_TEE] = Sixup ? Localize("Tee 0.7") : Localize("Tee");
+	m_apSettingsTabs[SETTINGS_APPEARANCE] = Localize("Appearance");
+	m_apSettingsTabs[SETTINGS_CONTROLS] = Localize("Controls");
+	m_apSettingsTabs[SETTINGS_GRAPHICS] = Localize("Graphics");
+	m_apSettingsTabs[SETTINGS_SOUND] = Localize("Sound");
+	m_apSettingsTabs[SETTINGS_DDNET] = Localize("DDNet");
+	m_apSettingsTabs[SETTINGS_ASSETS] = Localize("Assets");
+	m_apSettingsTabs[SETTINGS_TCLIENT] = Localize("TClient");
+	m_apSettingsTabs[SETTINGS_QMCLIENT] = Localize("QmClient");
+	m_apSettingsTabs[SETTINGS_SEARCH] = Localize("Search");
+	m_apSettingsTabs[SETTINGS_PROFILES] = Localize("Profiles");
+	m_apSettingsTabs[SETTINGS_CONFIGS] = Localize("Configs");
+	m_apSettingsTabs[SETTINGS_CONTRIBUTORS] = Localize("Contributors");
 
 	if(m_SettingsTabLabelElementsInit)
 	{
@@ -1574,22 +1581,21 @@ void CMenus::UpdateSettingsTabLabels()
 	}
 }
 
-void CMenus::PrepareSettingsTabLabelCache(float MainViewWidth, float TabBarWidthOverride, float NavigationScaleOverride)
+void CMenus::PrepareSettingsTabLabelCache(float MainViewWidth, float TabBarWidthOverride)
 {
 	InitSettingsTabLabelCache();
 	UpdateSettingsTabLabels();
 
 	const float TabBarWidth = TabBarWidthOverride > 0.0f ? TabBarWidthOverride : std::clamp(MainViewWidth * 0.14f, 108.0f, 120.0f);
-	const float NavigationScale = NavigationScaleOverride > 0.0f ? NavigationScaleOverride : std::clamp(g_Config.m_QmUiNavScale / 100.0f, 0.75f, 1.5f);
 	CUIRect Button;
 	Button.x = 0.0f;
 	Button.y = 0.0f;
 	Button.w = TabBarWidth;
-	Button.h = ui_token::settings::TAB_HEIGHT * NavigationScale;
+	Button.h = ui_token::settings::TAB_HEIGHT;
 
 	CUIRect Label;
 	Button.HMargin(2.0f, &Label);
-	const float FontSize = ui_token::settings::TAB_FONT_SIZE * NavigationScale;
+	const float FontSize = ui_token::settings::TAB_FONT_SIZE;
 
 	for(int i = 0; i < SETTINGS_LENGTH; i++)
 	{
@@ -1600,7 +1606,7 @@ void CMenus::PrepareSettingsTabLabelCache(float MainViewWidth, float TabBarWidth
 		const char *pText = m_apSettingsTabs[i];
 		const bool ColorChanged = RectEl.m_TextColor != TextRender()->GetTextColor() || RectEl.m_TextOutlineColor != TextRender()->GetTextOutlineColor();
 		const bool TextChanged = str_comp(RectEl.m_Text.c_str(), pText) != 0;
-		const bool SizeChanged = RectEl.m_Width != Label.w || RectEl.m_Height != Label.h || RectEl.m_FontSize != FontSize;
+		const bool SizeChanged = RectEl.m_Width != Label.w || RectEl.m_Height != Label.h;
 		if(RectEl.m_UITextContainer.Valid() && !ColorChanged && !TextChanged && !SizeChanged)
 			continue;
 
@@ -1619,11 +1625,7 @@ void CMenus::PrepareSettingsTabLabelCache(float MainViewWidth, float TabBarWidth
 		TmpRect.y = 0.0f;
 		TmpRect.w = Label.w;
 		TmpRect.h = Label.h;
-		SLabelProperties Props;
-		Props.m_MaxWidth = TmpRect.w;
-		Props.m_MinimumFontSize = FontSize;
-		Props.m_EllipsisAtEnd = true;
-		Ui()->DoLabel(RectEl, &TmpRect, pText, FontSize, TEXTALIGN_MC, Props);
+		Ui()->DoLabel(RectEl, &TmpRect, pText, FontSize, TEXTALIGN_TL);
 	}
 }
 
@@ -2410,185 +2412,376 @@ bool CMenus::RenderMenubar(CUIRect Box, IClient::EClientState ClientState)
 {
 	TextRender()->SetRenderFlags(0);
 	TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
-	const bool Offline = ClientState == IClient::STATE_OFFLINE;
-	dbg_assert(Offline || ClientState == IClient::STATE_ONLINE, "Invalid client state for menu navigation");
-	const int ActivePage = Offline ? m_MenuPage : m_GamePage;
-	int NewPage = -1;
-	const bool MobileSpectator = qm_mobile_spectator::Enabled();
-	const float NavScale = std::clamp(g_Config.m_QmUiNavScale / 100.0f, 0.75f, 1.5f);
 
-	struct SNavigationTab
+	CUIRect Button;
+
+	int NewPage = -1;
+	int ActivePage = -1;
+	if(ClientState == IClient::STATE_OFFLINE)
 	{
-		int m_Page;
-		EQmIcon m_Icon;
-		const char *m_pFallback;
-		const char *m_pLabel;
-		const CCommunityIcon *m_pCommunity = nullptr;
-		float m_AppearStrength = 1.0f;
-	};
-	SNavigationTab aLeftTabs[qm_navigation::SLayout::MAX_LEFT];
-	int LeftCount = 0;
-	if(Offline)
+		ActivePage = m_MenuPage;
+	}
+	else if(ClientState == IClient::STATE_ONLINE)
 	{
-		aLeftTabs[LeftCount++] = {-1, EQmIcon::HOUSE, FONT_ICON_HOUSE, Localize("Main menu")};
-		aLeftTabs[LeftCount++] = {PAGE_INTERNET, EQmIcon::EARTH_AMERICAS, FONT_ICON_EARTH_AMERICAS, Localize("Internet")};
-		aLeftTabs[LeftCount++] = {PAGE_LAN, EQmIcon::NETWORK_WIRED, FONT_ICON_NETWORK_WIRED, Localize("LAN")};
-		aLeftTabs[LeftCount++] = {PAGE_FAVORITES, EQmIcon::STAR, FONT_ICON_STAR, Localize("Favorites")};
-		aLeftTabs[LeftCount++] = {PAGE_FAVORITE_MAPS, EQmIcon::BOOKMARK, FONT_ICON_BOOKMARK, Localize("Favorite map")};
-		int CommunityIndex = 0;
-		for(const CCommunity *pCommunity : ServerBrowser()->FavoriteCommunities())
-		{
-			if(LeftCount == qm_navigation::SLayout::MAX_LEFT)
-				break;
-			SUiAnimTransition AppearTransition;
-			AppearTransition.m_DurationSec = 0.18f;
-			AppearTransition.m_Easing = EEasing::EASE_OUT;
-			const uint64_t NodeKey = BuildUiAnimNodeKey(MakeUiScopeHash("menu_favorite_community_tab_appear"), static_cast<uint64_t>(str_quickhash(pCommunity->Id())));
-			const SUiPresenceResult Presence = GameClient()->UiRuntimeV2()->Tree().ResolvePresence(GameClient()->UiRuntimeV2()->AnimRuntime(), NodeKey, true, AppearTransition);
-			aLeftTabs[LeftCount++] = {PAGE_FAVORITE_COMMUNITY_1 + CommunityIndex++, EQmIcon::ELLIPSIS, FONT_ICON_ELLIPSIS, pCommunity->Name(), m_CommunityIcons.Find(pCommunity->Id()), std::clamp(Presence.m_Alpha, 0.0f, 1.0f)};
-		}
+		ActivePage = m_GamePage;
 	}
 	else
 	{
-		aLeftTabs[LeftCount++] = {PAGE_GAME, EQmIcon::MAP, FONT_ICON_MAP, Localize("Game")};
-		aLeftTabs[LeftCount++] = {PAGE_PLAYERS, EQmIcon::USERS, FONT_ICON_USERS, Localize("Players")};
-		aLeftTabs[LeftCount++] = {PAGE_SERVER_INFO, EQmIcon::INFO, FONT_ICON_INFO, Localize("Server info")};
-		aLeftTabs[LeftCount++] = {PAGE_NETWORK, EQmIcon::EARTH_AMERICAS, FONT_ICON_EARTH_AMERICAS, Localize("Browser")};
-		if(GameClient()->m_GameInfo.m_Race)
-		{
-			aLeftTabs[LeftCount++] = {PAGE_GHOST, EQmIcon::FLAG_CHECKERED, FONT_ICON_FLAG_CHECKERED, Localize("Ghost")};
-			aLeftTabs[LeftCount++] = {PAGE_RANK_DEMO, EQmIcon::STAR, FONT_ICON_STAR, Localize("Rank 1")};
-		}
-		aLeftTabs[LeftCount++] = {PAGE_CALLVOTE, EQmIcon::LIST_UL, FONT_ICON_LIST_UL, Localize("Call vote")};
+		dbg_assert_failed("Client state %d is invalid for RenderMenubar", ClientState);
 	}
-	const SNavigationTab aRightTabs[] = {
-		{PAGE_DEMOS, EQmIcon::IMAGE, FONT_ICON_IMAGE, Localize("Screenshots")},
-		{PAGE_DEMOS, EQmIcon::CLAPPERBOARD, FONT_ICON_CLAPPERBOARD, Localize("Demos")},
-		{-1, MobileSpectator ? EQmIcon::VIDEO : EQmIcon::PEN_TO_SQUARE, MobileSpectator ? FONT_ICON_VIDEO : FONT_ICON_PEN_TO_SQUARE, MobileSpectator ? Localize("Videos directory") : Localize("Editor")},
-		{PAGE_RESOURCE_EDITOR, EQmIcon::FOLDER_OPEN, FONT_ICON_FOLDER_OPEN, Localize("Assets editor")},
-		{PAGE_SETTINGS, EQmIcon::GEAR, FONT_ICON_GEAR, Localize("Settings")},
-		{-1, EQmIcon::POWER_OFF, FONT_ICON_POWER_OFF, Localize("Quit")},
-	};
-	qm_navigation::SLayout Layout = qm_navigation::Resolve(Box, LeftCount, std::size(aRightTabs), MENU_MENUBAR_CAPSULE_ROW_HEIGHT_NEW, NavScale);
-	for(int Index = 0; Index < LeftCount; ++Index)
-	{
-		CUIRect &Slot = Layout.m_aLeft[Index];
-		const float RevealWidth = Slot.w * aLeftTabs[Index].m_AppearStrength;
-		Slot.x += (Slot.w - RevealWidth) * 0.5f;
-		Slot.w = RevealWidth;
-	}
-	const float ContentScale = MENU_MENUBAR_CONTENT_SCALE_NEW * Layout.m_ContentScale;
-	static CButtonContainer s_aOfflineButtons[qm_navigation::SLayout::MAX_LEFT];
-	static CButtonContainer s_aOnlineButtons[qm_navigation::SLayout::MAX_LEFT];
-	static CButtonContainer s_aRightButtons[qm_navigation::SLayout::MAX_RIGHT];
-	CButtonContainer *pLeftButtons = Offline ? s_aOfflineButtons : s_aOnlineButtons;
-	const IUiContext Ctx = TabBarUiContext();
-	const int PressedLeft = ui_widget::CapsuleTabBarPressedIndex(Ctx, Layout.m_aLeft.data(), LeftCount);
-	const int PressedRight = ui_widget::CapsuleTabBarPressedIndex(Ctx, Layout.m_aRight.data(), Layout.m_RightCount);
-	if(PressedLeft >= 0 && aLeftTabs[PressedLeft].m_Page >= 0)
-		NewPage = aLeftTabs[PressedLeft].m_Page;
+
+	// 先保留右侧五个槽位，再计算左侧原有布局。
+	TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+	TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
+
+	const bool MobileSpectator = qm_mobile_spectator::Enabled();
+	bool ShowStart = false;
+	// 统一边距基准：全局安全区（8px）已提供到窗口上/左/右的距离，
+	// 导航胶囊行直接对齐安全区边缘、不再额外内缩；导航栏高度余下的
+	// MENU_MENUBAR_GAP_NEW（8px）就是导航→内容的间隙。
+	// 导航栏不自绘整条背景，直接透出下方的菜单背景；观感由左侧页签胶囊
+	// 与右侧图标簇胶囊自身承担，避免硬编码一条与背景脱节的底色。
+	Box.HSplitTop(MENU_MENUBAR_CAPSULE_ROW_HEIGHT_NEW, &Box, nullptr);
+
+	const float MenubarIconButtonSize = Box.h;
+	const float MenubarIconGap = 6.0f;
+	const float MenubarItemGap = 4.0f;
+	const ColorRGBA QuitButtonDefault = MenuDangerTabDefaultColor();
+	const ColorRGBA QuitButtonHover = MenuDangerTabHoverColor();
+	// 新 UI 右侧图标簇（截图/回放/编辑器/设置/退出）为滑块式胶囊导航，
+	// 离线与在线（游戏内 ESC）共用：槽位先收集、再画胶囊与滑块、最后画图标。
+	CUIRect aRightNavSlots[5];
+	Box.VSplitRight(MenubarIconButtonSize, &Box, &Button);
+	static CButtonContainer s_QuitButton;
+	// 退出按钮并入右侧滑块导航（最右槽位），统一绘制在槽位收集完成后。
+	aRightNavSlots[4] = Button;
+	GameClient()->m_Tooltips.DoToolTip(&s_QuitButton, &Button, Localize("Quit"));
+
+	Box.VSplitRight(MenubarIconGap, &Box, nullptr);
+	Box.VSplitRight(MenubarIconButtonSize, &Box, &Button);
+	static CButtonContainer s_SettingsButton;
+	// 设置按钮并入右侧滑块导航，统一绘制在槽位收集完成后。
+	aRightNavSlots[3] = Button;
+	GameClient()->m_Tooltips.DoToolTip(&s_SettingsButton, &Button, Localize("Settings"));
+
+	Box.VSplitRight(MenubarIconGap, &Box, nullptr);
+	Box.VSplitRight(MenubarIconButtonSize, &Box, &Button);
+	static CButtonContainer s_EditorButton;
+	// 编辑器按钮并入右侧滑块导航，统一绘制在槽位收集完成后。
+	aRightNavSlots[2] = Button;
+	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &Button, MobileSpectator ? Localize("Videos directory") : Localize("Editor"));
+
+	// 截图/回放并入滑块导航槽位（离线与在线同构）。
+	Box.VSplitRight(MenubarIconGap, &Box, nullptr);
+	Box.VSplitRight(MenubarIconButtonSize, &Box, &Button);
+	aRightNavSlots[1] = Button;
+
+	Box.VSplitRight(MenubarIconGap, &Box, nullptr);
+	Box.VSplitRight(MenubarIconButtonSize, &Box, &Button);
+	aRightNavSlots[0] = Button;
+
+	const IUiContext NavigationCtx = TabBarUiContext();
+	const int PressedRight = ui_widget::CapsuleTabBarPressedIndex(NavigationCtx, aRightNavSlots, std::size(aRightNavSlots));
 	if(PressedRight == 0 || PressedRight == 1)
 		NewPage = PAGE_DEMOS;
-	else if(PressedRight == 4)
+	else if(PressedRight == 3)
 		NewPage = PAGE_SETTINGS;
 
-	if(!Ui()->RenderOnly() && Offline && !Ui()->IsPopupOpen() && CLineInput::GetActiveInput() == nullptr)
+	if(ClientState == IClient::STATE_OFFLINE)
 	{
-		// 按可见顺序翻页，地图工作区位于收藏服务器与社区之间。
-		int Current = -1;
-		for(int Index = 1; Index < LeftCount; ++Index)
-			if(aLeftTabs[Index].m_Page == ActivePage)
-				Current = Index;
-		if(Current >= 1)
+		Box.VSplitRight(8.0f, &Box, nullptr);
+
+		const float BrowserButtonWidth = 58.0f * MENU_MENUBAR_CONTENT_SCALE_NEW;
+
+		// 胶囊 Tabbar：页签槽位（含收藏社区页签的展开宽度）先全部算完，再画容器与滑块，
+		// 最后画图标 —— 滑块必须压在图标之下，布局与绘制不能混在同一遍里做。
+		static CButtonContainer s_aStartTabButtons[10];
+		struct SStartTab
 		{
-			if(Input()->KeyPress(KEY_RIGHT))
-				NewPage = aLeftTabs[Current + 1 < LeftCount ? Current + 1 : 1].m_Page;
-			else if(Input()->KeyPress(KEY_LEFT))
-				NewPage = aLeftTabs[Current > 1 ? Current - 1 : LeftCount - 1].m_Page;
+			int m_Page;
+			EQmIcon m_Icon;
+			const char *m_pIcon;
+			const CCommunityIcon *m_pCommunityIcon;
+			const char *m_pTooltip;
+			float m_AppearStrength;
+		};
+		SStartTab aStartTabs[std::size(s_aStartTabButtons)];
+		CUIRect aStartTabSlots[std::size(s_aStartTabButtons)];
+		int NumStartTabs = 0;
+		int ActiveStartTab = -1;
+		auto AddStartTab = [&](const int Page, const EQmIcon Icon, const char *pIcon, const CCommunityIcon *pCommunityIcon, const char *pTooltip, const float AppearStrength, const CUIRect &Slot) {
+			aStartTabs[NumStartTabs] = {Page, Icon, pIcon, pCommunityIcon, pTooltip, AppearStrength};
+			aStartTabSlots[NumStartTabs] = Slot;
+			if(ActivePage == Page)
+				ActiveStartTab = NumStartTabs;
+			++NumStartTabs;
+		};
+		{
+			const int aFixedPages[] = {PAGE_INTERNET, PAGE_LAN, PAGE_FAVORITES, PAGE_FAVORITE_MAPS};
+			const EQmIcon aFixedIcons[] = {EQmIcon::EARTH_AMERICAS, EQmIcon::NETWORK_WIRED, EQmIcon::STAR, EQmIcon::BOOKMARK};
+			const char *const apFixedIcons[] = {FONT_ICON_EARTH_AMERICAS, FONT_ICON_NETWORK_WIRED, FONT_ICON_STAR, FONT_ICON_BOOKMARK};
+			const char *const apFixedTooltips[] = {Localize("Internet"), Localize("LAN"), Localize("Favorites"), Localize("Favorite map")};
+			CUIRect TabsRemainder = Box;
+			// 主菜单入口并入左侧滑块导航：作为第一个槽位，点击回到主菜单。
+			CUIRect HomeTabSlot;
+			TabsRemainder.VSplitLeft(BrowserButtonWidth, &HomeTabSlot, &TabsRemainder);
+			AddStartTab(-1, EQmIcon::HOUSE, FONT_ICON_HOUSE, nullptr, Localize("Main menu"), 1.0f, HomeTabSlot);
+			for(size_t Fixed = 0; Fixed < std::size(aFixedPages); ++Fixed)
+			{
+				if(NumStartTabs > 0)
+					TabsRemainder.VSplitLeft(MenubarItemGap, nullptr, &TabsRemainder);
+				CUIRect Slot;
+				TabsRemainder.VSplitLeft(BrowserButtonWidth, &Slot, &TabsRemainder);
+				AddStartTab(aFixedPages[Fixed], aFixedIcons[Fixed], apFixedIcons[Fixed], nullptr, apFixedTooltips[Fixed], 1.0f, Slot);
+			}
+
+			static const uint64_t s_FavoriteCommunityAppearScopeHash = static_cast<uint64_t>(str_quickhash("menu_favorite_community_tab_appear"));
+			CUiV2AnimationRuntime &AnimRuntime = GameClient()->UiRuntimeV2()->AnimRuntime();
+			CUiV2Tree &Tree = GameClient()->UiRuntimeV2()->Tree();
+			SUiAnimTransition AppearTransition;
+			AppearTransition.m_DurationSec = 0.18f;
+			AppearTransition.m_Easing = EEasing::EASE_OUT;
+			static_assert(std::size(s_aStartTabButtons) == 1 + 4 + (size_t)PAGE_FAVORITE_COMMUNITY_5 - PAGE_FAVORITE_COMMUNITY_1 + 1);
+			static_assert(std::size(s_aStartTabButtons) - 5 == (size_t)BIT_TAB_FAVORITE_COMMUNITY_5 - BIT_TAB_FAVORITE_COMMUNITY_1 + 1);
+			static_assert(std::size(s_aStartTabButtons) - 5 == (size_t)IServerBrowser::TYPE_FAVORITE_COMMUNITY_5 - IServerBrowser::TYPE_FAVORITE_COMMUNITY_1 + 1);
+			for(const CCommunity *pCommunity : ServerBrowser()->FavoriteCommunities())
+			{
+				if((size_t)NumStartTabs >= std::size(s_aStartTabButtons))
+					break;
+				// 宽度不够时后面的社区页签不参与，避免挤掉右侧图标簇。
+				if(TabsRemainder.w < BrowserButtonWidth + MenubarItemGap)
+					break;
+				TabsRemainder.VSplitLeft(MenubarItemGap, nullptr, &TabsRemainder);
+				CUIRect Slot;
+				TabsRemainder.VSplitLeft(BrowserButtonWidth, &Slot, &TabsRemainder);
+
+				const uint64_t NodeKey = BuildUiAnimNodeKey(s_FavoriteCommunityAppearScopeHash, static_cast<uint64_t>(str_quickhash(pCommunity->Id())));
+				const SUiPresenceResult Presence = Tree.ResolvePresence(AnimRuntime, NodeKey, true, AppearTransition);
+				const float AppearStrength = std::clamp(Presence.m_Alpha, 0.0f, 1.0f);
+				const float RevealWidth = maximum(2.0f, Slot.w * AppearStrength);
+				Slot.x += (Slot.w - RevealWidth) * 0.5f;
+				Slot.w = RevealWidth;
+
+				const int Page = PAGE_FAVORITE_COMMUNITY_1 + (NumStartTabs - 5);
+				AddStartTab(Page, EQmIcon::ELLIPSIS, FONT_ICON_ELLIPSIS, m_CommunityIcons.Find(pCommunity->Id()), pCommunity->Name(), AppearStrength, Slot);
+			}
+			// 右侧图标簇紧接着页签右边排，中间不留额外空白。
+			Box = TabsRemainder;
 		}
-	}
 
-	// 先用最终目标绘制反馈，标签用完后再提交页面，避免刷新使社区借用指针失效。
-	const int FeedbackPage = NewPage >= 0 ? NewPage : PressedRight == 3 ? PAGE_RESOURCE_EDITOR : ActivePage;
-	const bool BrowsingScreenshots = PressedRight == 0 || (PressedRight != 1 && DemoBrowserBrowsingScreenshots());
-	int ActiveLeft = -1;
-	for(int Index = 0; Index < LeftCount; ++Index)
-		if(aLeftTabs[Index].m_Page == FeedbackPage)
-			ActiveLeft = Index;
-	int ActiveRight = -1;
-	if(FeedbackPage == PAGE_DEMOS)
-		ActiveRight = BrowsingScreenshots ? 0 : 1;
-	else if(FeedbackPage == PAGE_RESOURCE_EDITOR)
-		ActiveRight = 3;
-	else if(FeedbackPage == PAGE_SETTINGS)
-		ActiveRight = 4;
+		const int PressedLeft = PressedRight < 0 ? ui_widget::CapsuleTabBarPressedIndex(NavigationCtx, aStartTabSlots, NumStartTabs) : -1;
+		if(PressedLeft >= 0)
+		{
+			if(aStartTabs[PressedLeft].m_Page < 0)
+				ShowStart = true;
+			else
+				NewPage = aStartTabs[PressedLeft].m_Page;
+		}
+		if(!Ui()->RenderOnly() && !Ui()->IsPopupOpen() && CLineInput::GetActiveInput() == nullptr)
+		{
+			int Current = -1;
+			for(int Index = 1; Index < NumStartTabs; ++Index)
+				if(aStartTabs[Index].m_Page == ActivePage)
+					Current = Index;
+			if(Current >= 1)
+			{
+				if(Input()->KeyPress(KEY_RIGHT))
+					NewPage = aStartTabs[Current + 1 < NumStartTabs ? Current + 1 : 1].m_Page;
+				else if(Input()->KeyPress(KEY_LEFT))
+					NewPage = aStartTabs[Current > 1 ? Current - 1 : NumStartTabs - 1].m_Page;
+			}
+		}
+		ActiveStartTab = -1;
+		for(int Index = 0; Index < NumStartTabs; ++Index)
+			if(aStartTabs[Index].m_Page == (NewPage >= 0 ? NewPage : ActivePage))
+				ActiveStartTab = Index;
 
-	ColorRGBA aLeftTints[qm_navigation::SLayout::MAX_LEFT] = {};
-	bool GotNewsOrUpdate = g_Config.m_UiUnreadNews != 0;
+		// 胶囊 Tab 槽位自定义底色：未读新闻/更新时主菜单入口（第一个槽位）用绿色
+		// 高亮提醒，底色画在容器之上、滑块之下，几何与滑块一致。
+		bool GotNewsOrUpdate = false;
 #if defined(CONF_AUTOUPDATE)
-	GotNewsOrUpdate |= Updater()->GetCurrentState() == IUpdater::CLEAN && str_comp(Client()->LatestVersion(), "0") != 0;
-#endif
-	if(Offline && GotNewsOrUpdate)
-		aLeftTints[0] = ColorRGBA(0.0f, 1.0f, 0.0f, 0.25f);
-	ColorRGBA aRightTints[qm_navigation::SLayout::MAX_RIGHT] = {};
-	aRightTints[5] = MenuDangerTabDefaultColor();
-	ui_widget::CapsuleTabBarChrome(Ctx, MakeUiScopeHash(Offline ? "menubar_capsule_start_tabs" : "menubar_capsule_ingame_tabs"), Layout.m_aLeft.data(), LeftCount, ActiveLeft, MenuCapsuleTabBarStyle(), aLeftTints);
-	ui_widget::CapsuleTabBarChrome(Ctx, MakeUiScopeHash("menubar_capsule_right_nav"), Layout.m_aRight.data(), Layout.m_RightCount, ActiveRight, MenuCapsuleTabBarStyle(), aRightTints);
-	for(int Index = 0; Index < LeftCount; ++Index)
-	{
-		const SNavigationTab &Tab = aLeftTabs[Index];
-		const CUIRect &Slot = Layout.m_aLeft[Index];
-		if(!Offline && TextRender()->TextWidth(ui_token::settings::TAB_FONT_SIZE * ContentScale, Tab.m_pLabel) <= Slot.w - 4.0f * ContentScale)
-			DoMenuTabV2(&pLeftButtons[Index], Tab.m_pLabel, ActiveLeft == Index, &Slot, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, ContentScale, true);
-		else
-			DoMenuTabV2_QmIcon(&pLeftButtons[Index], Tab.m_Icon, Tab.m_pFallback, ActiveLeft == Index, &Slot, IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, Tab.m_pCommunity, nullptr, ContentScale, true);
-		GameClient()->m_Tooltips.DoToolTip(&pLeftButtons[Index], &Slot, Tab.m_pLabel);
-	}
-	for(int Index = 0; Index < Layout.m_RightCount; ++Index)
-	{
-		const SNavigationTab &Tab = aRightTabs[Index];
-		const ColorRGBA Danger = MenuDangerTabHoverColor();
-		DoMenuTabV2_QmIcon(&s_aRightButtons[Index], Tab.m_Icon, Tab.m_pFallback, ActiveRight == Index, &Layout.m_aRight[Index], IGraphics::CORNER_ALL, nullptr, nullptr, Index == 5 ? &Danger : nullptr, nullptr, nullptr, ContentScale, true);
-		GameClient()->m_Tooltips.DoToolTip(&s_aRightButtons[Index], &Layout.m_aRight[Index], Tab.m_pLabel);
-	}
-	if(PressedLeft >= 0)
-	{
-		if(aLeftTabs[PressedLeft].m_Page < 0)
+		const int UpdaterState = Updater()->GetCurrentState();
+		if(UpdaterState == IUpdater::CLEAN && str_comp(Client()->LatestVersion(), "0"))
 		{
-			SuspendResourceEditorWorkspace();
-			m_ShowStart = true;
+			GotNewsOrUpdate = true;
 		}
-		else if(aLeftTabs[PressedLeft].m_Page == PAGE_CALLVOTE)
-			m_ControlPageOpening = true;
+#endif
+		GotNewsOrUpdate |= (bool)g_Config.m_UiUnreadNews;
+
+		ColorRGBA aStartTabTints[std::size(s_aStartTabButtons)] = {};
+		if(GotNewsOrUpdate)
+		{
+			aStartTabTints[0] = ColorRGBA(0.0f, 1.0f, 0.0f, 0.25f);
+		}
+
+		const IUiContext TabBarCtx = TabBarUiContext();
+		ui_widget::CapsuleTabBarChrome(TabBarCtx, MakeUiScopeHash("menubar_capsule_start_tabs"), aStartTabSlots, NumStartTabs, ActiveStartTab, MenuCapsuleTabBarStyle(), aStartTabTints);
+
+		TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+		TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
+		for(int TabIndex = 0; TabIndex < NumStartTabs; ++TabIndex)
+		{
+			const SStartTab &Tab = aStartTabs[TabIndex];
+			const bool TabActive = (NewPage >= 0 ? NewPage : ActivePage) == Tab.m_Page;
+			ColorRGBA InactiveColor = MenuTabDefaultColor();
+			ColorRGBA ActiveColor = MenuTabActiveColor();
+			ColorRGBA HoverColor = MenuMenubarHoverColor();
+			InactiveColor.a *= Tab.m_AppearStrength;
+			ActiveColor.a *= Tab.m_AppearStrength;
+			HoverColor.a *= Tab.m_AppearStrength;
+			if(Tab.m_Page < 0)
+			{
+				// 主菜单入口页签：不切页，点击回到主菜单。
+				// hover 用激活滑块同色的弱化版提亮（自动适配明暗主题）；
+				// MenuMenubarHoverColor 是 RGB 压暗的表面色，叠在胶囊容器上只会变暗。
+				ColorRGBA HomeHover = MenuCapsuleTabIndicatorColor().WithAlpha(0.18f);
+				HomeHover.a *= Tab.m_AppearStrength;
+				DoMenuTabV2_QmIcon(&s_aStartTabButtons[TabIndex], Tab.m_Icon, Tab.m_pIcon, false, &aStartTabSlots[TabIndex], IGraphics::CORNER_ALL, &InactiveColor, &ActiveColor, &HomeHover, Tab.m_pCommunityIcon, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true);
+			}
+			else
+				DoMenuTabV2_QmIcon(&s_aStartTabButtons[TabIndex], Tab.m_Icon, Tab.m_pIcon, TabActive, &aStartTabSlots[TabIndex], IGraphics::CORNER_ALL, &InactiveColor, &ActiveColor, &HoverColor, Tab.m_pCommunityIcon, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true);
+			GameClient()->m_Tooltips.DoToolTip(&s_aStartTabButtons[TabIndex], &aStartTabSlots[TabIndex], Tab.m_pTooltip);
+		}
+
+		TextRender()->SetRenderFlags(0);
+		TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
 	}
-	if(PressedRight == 0 || PressedRight == 1)
+	else
 	{
-		SetDemoBrowserSource(PressedRight == 0 ? DEMO_BROWSER_SOURCE_SCREENSHOTS : DEMO_BROWSER_SOURCE_DEMOS);
+		TextRender()->SetRenderFlags(0);
+		TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
+
+		const bool CompactOnlineMenuTabs = Graphics()->ScreenAspect() <= 1.45f || Box.w < 690.0f;
+		const float GameButtonWidth = (CompactOnlineMenuTabs ? 56.0f : 64.0f) * MENU_MENUBAR_CONTENT_SCALE_NEW;
+		const float PlayersButtonWidth = (CompactOnlineMenuTabs ? 56.0f : 64.0f) * MENU_MENUBAR_CONTENT_SCALE_NEW;
+		const float ServerInfoButtonWidth = (CompactOnlineMenuTabs ? 94.0f : 104.0f) * MENU_MENUBAR_CONTENT_SCALE_NEW;
+		const float BrowserButtonWidth = (CompactOnlineMenuTabs ? 56.0f : 64.0f) * MENU_MENUBAR_CONTENT_SCALE_NEW;
+		const float GhostButtonWidth = (CompactOnlineMenuTabs ? 56.0f : 64.0f) * MENU_MENUBAR_CONTENT_SCALE_NEW;
+		const float RankDemoButtonWidth = (CompactOnlineMenuTabs ? 56.0f : 64.0f) * MENU_MENUBAR_CONTENT_SCALE_NEW;
+		const float CallVoteButtonWidth = (CompactOnlineMenuTabs ? 80.0f : 88.0f) * MENU_MENUBAR_CONTENT_SCALE_NEW;
+		const float OnlineTabGap = 4.0f;
+
+		// 胶囊 Tabbar：先把所有页签槽位算完，再画容器与滑块，最后画页签文字。
+		// 滑块必须压在文字之下，所以布局与绘制不能混在同一遍里做。
+		static CButtonContainer s_aOnlineTabButtons[7];
+		struct SOnlineTab
+		{
+			int m_Page;
+			const char *m_pTextId;
+			const char *m_pText;
+			float m_Width;
+			bool m_Visible;
+		};
+		const bool ShowGhostTab = GameClient()->m_GameInfo.m_Race;
+		const SOnlineTab aOnlineTabs[] = {
+			{PAGE_GAME, "ingame-tab-game", Localize("Game"), GameButtonWidth, true},
+			{PAGE_PLAYERS, "ingame-tab-players", Localize("Players"), PlayersButtonWidth, true},
+			{PAGE_SERVER_INFO, "ingame-tab-server-info", Localize("Server info"), ServerInfoButtonWidth, true},
+			{PAGE_NETWORK, "ingame-tab-browser", Localize("Browser"), BrowserButtonWidth, true},
+			{PAGE_GHOST, "ingame-tab-ghost", Localize("Ghost"), GhostButtonWidth, ShowGhostTab},
+			{PAGE_RANK_DEMO, "ingame-tab-rank-demo", Localize("Rank 1"), RankDemoButtonWidth, ShowGhostTab},
+			{PAGE_CALLVOTE, "ingame-tab-call-vote", Localize("Call vote"), CallVoteButtonWidth, true},
+		};
+		static_assert(std::size(aOnlineTabs) == std::size(s_aOnlineTabButtons));
+		CUIRect aOnlineTabSlots[std::size(aOnlineTabs)];
+		int aOnlineTabPages[std::size(aOnlineTabs)];
+		int NumOnlineTabs = 0;
+		int ActiveOnlineTab = -1;
+		{
+			CUIRect TabsRemainder = Box;
+			for(const SOnlineTab &Tab : aOnlineTabs)
+			{
+				if(!Tab.m_Visible)
+					continue; // Ghost / Rank 1 页签只在竞速图出现，跳过的槽位不留空
+				if(NumOnlineTabs > 0)
+					TabsRemainder.VSplitLeft(OnlineTabGap, nullptr, &TabsRemainder);
+				TabsRemainder.VSplitLeft(Tab.m_Width, &aOnlineTabSlots[NumOnlineTabs], &TabsRemainder);
+				aOnlineTabPages[NumOnlineTabs] = Tab.m_Page;
+				if(ActivePage == Tab.m_Page)
+					ActiveOnlineTab = NumOnlineTabs;
+				++NumOnlineTabs;
+			}
+			// 右侧图标簇紧接着页签右边排，中间不留额外空白。
+			Box = TabsRemainder;
+		}
+
+		const int PressedLeft = PressedRight < 0 ? ui_widget::CapsuleTabBarPressedIndex(NavigationCtx, aOnlineTabSlots, NumOnlineTabs) : -1;
+		if(PressedLeft >= 0)
+			NewPage = aOnlineTabPages[PressedLeft];
+		ActiveOnlineTab = -1;
+		for(int Index = 0; Index < NumOnlineTabs; ++Index)
+			if(aOnlineTabPages[Index] == (NewPage >= 0 ? NewPage : ActivePage))
+				ActiveOnlineTab = Index;
+
+		const IUiContext TabBarCtx = TabBarUiContext();
+		ui_widget::CapsuleTabBarChrome(TabBarCtx, MakeUiScopeHash("menubar_capsule_ingame_tabs"), ui_widget::CapsuleTabBarRowRect(aOnlineTabSlots, NumOnlineTabs), ActiveOnlineTab >= 0 ? &aOnlineTabSlots[ActiveOnlineTab] : nullptr, MenuCapsuleTabBarStyle());
+
+		int DrawnOnlineTabs = 0;
+		for(const SOnlineTab &Tab : aOnlineTabs)
+		{
+			if(!Tab.m_Visible)
+				continue;
+			const CUIRect &TabRect = aOnlineTabSlots[DrawnOnlineTabs];
+			DoIngameMenuTab(&s_aOnlineTabButtons[DrawnOnlineTabs], Tab.m_Page, Tab.m_pTextId, Tab.m_pText, (NewPage >= 0 ? NewPage : ActivePage) == Tab.m_Page, &TabRect, IGraphics::CORNER_ALL);
+			++DrawnOnlineTabs;
+		}
 	}
+
+	// 全部导航目标确定后绘制右侧反馈，最后才提交业务，避免社区刷新使借用标签失效。
+	const int FeedbackPage = NewPage >= 0 ? NewPage : ActivePage;
+	const bool BrowsingScreenshots = PressedRight == 0 || (PressedRight != 1 && DemoBrowserBrowsingScreenshots());
+	const bool DemoBrowserScreenshotsActive = FeedbackPage == PAGE_DEMOS && BrowsingScreenshots;
+	const bool DemoBrowserReplaysActive = FeedbackPage == PAGE_DEMOS && !BrowsingScreenshots;
+	int ActiveRightNavTab = -1;
+	if(FeedbackPage == PAGE_SETTINGS)
+		ActiveRightNavTab = 3;
+	else if(FeedbackPage == PAGE_DEMOS)
+		ActiveRightNavTab = DemoBrowserScreenshotsActive ? 0 : 1;
+	ColorRGBA aRightNavTintColors[std::size(aRightNavSlots)] = {};
+	aRightNavTintColors[4] = QuitButtonDefault;
+	ui_widget::CapsuleTabBarChrome(NavigationCtx, MakeUiScopeHash("menubar_capsule_right_nav"), aRightNavSlots, std::size(aRightNavSlots), ActiveRightNavTab, MenuCapsuleTabBarStyle(), aRightNavTintColors);
+
+	TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+	TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
+	static CButtonContainer s_ScreenshotButton;
+	DoMenuTabV2_QmIcon(&s_ScreenshotButton, EQmIcon::IMAGE, FONT_ICON_IMAGE, DemoBrowserScreenshotsActive, &aRightNavSlots[0], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true);
+	GameClient()->m_Tooltips.DoToolTip(&s_ScreenshotButton, &aRightNavSlots[0], Localize("Screenshots"));
+	static CButtonContainer s_DemoButton;
+	DoMenuTabV2_QmIcon(&s_DemoButton, EQmIcon::CLAPPERBOARD, FONT_ICON_CLAPPERBOARD, DemoBrowserReplaysActive, &aRightNavSlots[1], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true);
+	GameClient()->m_Tooltips.DoToolTip(&s_DemoButton, &aRightNavSlots[1], Localize("Demos"));
+	DoMenuTabV2_QmIcon(&s_EditorButton, MobileSpectator ? EQmIcon::VIDEO : EQmIcon::PEN_TO_SQUARE, MobileSpectator ? FONT_ICON_VIDEO : FONT_ICON_PEN_TO_SQUARE, false, &aRightNavSlots[2], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true);
+	GameClient()->m_Tooltips.DoToolTip(&s_EditorButton, &aRightNavSlots[2], MobileSpectator ? Localize("Videos directory") : Localize("Editor"));
+	DoMenuTabV2_QmIcon(&s_SettingsButton, EQmIcon::GEAR, FONT_ICON_GEAR, FeedbackPage == PAGE_SETTINGS, &aRightNavSlots[3], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true);
+	GameClient()->m_Tooltips.DoToolTip(&s_SettingsButton, &aRightNavSlots[3], Localize("Settings"));
+	DoMenuTabV2_QmIcon(&s_QuitButton, EQmIcon::POWER_OFF, FONT_ICON_POWER_OFF, false, &aRightNavSlots[4], IGraphics::CORNER_ALL, &QuitButtonDefault, nullptr, &QuitButtonHover, nullptr, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true);
+	GameClient()->m_Tooltips.DoToolTip(&s_QuitButton, &aRightNavSlots[4], Localize("Quit"));
+	TextRender()->SetRenderFlags(0);
+	TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
+
+	if(ShowStart)
+		m_ShowStart = true;
+	if(NewPage == PAGE_CALLVOTE)
+		m_ControlPageOpening = true;
+	if(PressedRight == 0 || PressedRight == 1)
+		SetDemoBrowserSource(PressedRight == 0 ? DEMO_BROWSER_SOURCE_SCREENSHOTS : DEMO_BROWSER_SOURCE_DEMOS);
 	else if(PressedRight == 2)
 	{
-		SuspendResourceEditorWorkspace();
 		if(MobileSpectator)
 			GameClient()->m_QmMobileSpectator.ShowMediaFiles(true);
 		else
 			g_Config.m_ClEditor = 1;
 	}
-	else if(PressedRight == 3)
-		OpenResourceEditorWorkspace();
-	else if(PressedRight == 5)
+	else if(PressedRight == 4)
 	{
-		AudioPackEditorStopPreview();
-		if(GameClient()->Editor()->HasUnsavedData() || m_AssetsEditorState.m_HasUnsavedChanges || (GameClient()->CurrentRaceTime() / 60 >= g_Config.m_ClConfirmQuitTime && g_Config.m_ClConfirmQuitTime >= 0) || m_MenusIngameTouchControls.UnsavedChanges() || GameClient()->m_TouchControls.HasEditingChanges())
+		if(GameClient()->Editor()->HasUnsavedData() || (GameClient()->CurrentRaceTime() / 60 >= g_Config.m_ClConfirmQuitTime && g_Config.m_ClConfirmQuitTime >= 0) || m_MenusIngameTouchControls.UnsavedChanges() || GameClient()->m_TouchControls.HasEditingChanges())
 			m_Popup = POPUP_QUIT;
 		else
 			Client()->Quit();
 	}
 
-	TextRender()->SetRenderFlags(0);
-	TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
 	if(NewPage != -1)
 	{
-		if(Offline)
+		if(ClientState == IClient::STATE_OFFLINE)
 			SetMenuPage(NewPage);
 		else
 			SetGamePage(NewPage);
@@ -4045,7 +4238,7 @@ void CMenus::Render()
 		{
 			CPerfTimer ShellTimer;
 			CUIRect TabBar, MainView;
-			Screen.HSplitTop(MenuMenubarHeight(), &TabBar, &MainView);
+			Screen.HSplitTop(MENU_MENUBAR_HEIGHT_NEW, &TabBar, &MainView);
 			bool NavigationHandedOff;
 			{
 				CPerfTimer StageTimer;
@@ -4125,10 +4318,6 @@ void CMenus::Render()
 			{
 				RenderDemoBrowser(MainView);
 			}
-			else if(m_MenuPage == PAGE_RESOURCE_EDITOR)
-			{
-				RenderResourceEditorWorkspace(MainView);
-			}
 			else if(m_MenuPage == PAGE_SETTINGS)
 			{
 				RenderSettings(MainView);
@@ -4173,7 +4362,7 @@ void CMenus::Render()
 		{
 			CPerfTimer ShellTimer;
 			CUIRect TabBar, MainView;
-			Screen.HSplitTop(MenuMenubarHeight(), &TabBar, &MainView);
+			Screen.HSplitTop(MENU_MENUBAR_HEIGHT_NEW, &TabBar, &MainView);
 			bool NavigationHandedOff;
 			{
 				CPerfTimer StageTimer;
@@ -4296,10 +4485,6 @@ void CMenus::Render()
 				CPerfTimer StageTimer;
 				RenderDemoBrowser(MainView);
 				LogPerfStage(Client(), "ingame_esc_tab_content", StageTimer.ElapsedMs(), TransitionActive, aEscPerfExtra);
-			}
-			else if(m_GamePage == PAGE_RESOURCE_EDITOR)
-			{
-				RenderResourceEditorWorkspace(MainView);
 			}
 			else if(m_GamePage == PAGE_SETTINGS)
 			{
@@ -5686,8 +5871,6 @@ void CMenus::RenderThemeSelection(CUIRect MainView, const SSettingsContentMetric
 
 void CMenus::SetActive(bool Active)
 {
-	if(!Active && m_ResourceEditorWorkspace.Visible())
-		SuspendResourceEditorWorkspace();
 	if(!Active)
 		m_QmVoteMenu.m_Loader.Suspend();
 	if(Active != m_MenuActive)
@@ -5763,9 +5946,6 @@ const char *CMenus::CurrentQmUiPerfPage() const
 
 	switch(SettingsCanonicalPage(g_Config.m_UiSettingsPage))
 	{
-	case SETTINGS_LANGUAGE: return "settings:language";
-	case SETTINGS_FRIENDS: return "settings:friends";
-	case SETTINGS_HUD: return "settings:hud";
 	case SETTINGS_GENERAL: return "settings:general";
 	case SETTINGS_TEE: return "settings:tee";
 	case SETTINGS_APPEARANCE: return "settings:appearance";
@@ -5789,9 +5969,6 @@ const char *CMenus::CurrentQmUiPerfOperation() const
 
 	switch(SettingsCanonicalPage(g_Config.m_UiSettingsPage))
 	{
-	case SETTINGS_LANGUAGE: return "settings_language";
-	case SETTINGS_FRIENDS: return "settings_friends";
-	case SETTINGS_HUD: return "settings_hud";
 	case SETTINGS_GENERAL: return "settings_general";
 	case SETTINGS_TEE: return "settings_tee";
 	case SETTINGS_APPEARANCE: return "settings_appearance";
@@ -5866,7 +6043,7 @@ void CMenus::FinishSettingsScrollRegion(CScrollRegion &ScrollRegion, SSettingsSc
 CMenus::SQmSettingsCardStyle CMenus::QmSettingsCardStyle(float UiScale) const
 {
 	SQmSettingsCardStyle Style;
-	const SUiTheme Theme = ResolveUiTheme(ColorHSLA(g_Config.m_QmUiColor), g_Config.m_QmUiOpacity / 100.0f, ColorHSLA(g_Config.m_QmUiFocusColor), ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f));
+	const SUiTheme Theme = ResolveUiTheme(ColorHSLA(g_Config.m_QmUiColor), g_Config.m_QmUiOpacity / 100.0f, ColorHSLA(g_Config.m_QmUiFocusColor), ColorHSLA(g_Config.m_QmUiAccentColor).WithAlpha(g_Config.m_QmUiAccentOpacity / 100.0f), ColorHSLA(g_Config.m_QmUiSelectedColor));
 	const ui_widget::SCardProps CardProps = ui_widget::QmClientCardProps(UiScale, &Theme);
 	const SQmScrollContainerStyle ScrollStyle = QmScrollContainerStyleForSize(EQmScrollSize::MEDIUM, 1.0f);
 	Style.m_Padding = CardProps.m_Padding;
@@ -5917,44 +6094,143 @@ SSettingsPageLayoutFrame CMenus::SettingsPageLayout(const CUIRect &ContentView, 
 	return ResolveSettingsPageLayoutForScrollViewport(Page, Page.m_ScrollViewport, m_SettingsShellLayout.m_UiScale);
 }
 
-void CMenus::ApplyModernSettingsRoute(const qm_settings_navigation::SRoute &Route)
-{
-	if(!Route.IsValid())
-		return;
-	g_Config.m_UiSettingsPage = Route.m_Page;
-	g_Config.m_QmSettingsNavigationVersion = 1;
-	switch(Route.m_Page)
-	{
-	case SETTINGS_FRIENDS: m_ModernFriendsTab = Route.m_SubTab; break;
-	case SETTINGS_TEE: m_ModernTeeTab = Route.m_SubTab; break;
-	case SETTINGS_APPEARANCE: m_ModernVisualTab = Route.m_SubTab; break;
-	case SETTINGS_CONTROLS: m_ModernControlsTab = Route.m_SubTab; break;
-	case SETTINGS_QMCLIENT: m_ModernFeaturesTab = Route.m_SubTab; break;
-	case SETTINGS_CONTRIBUTORS: m_CreditsSettingsTab = Route.m_SubTab; break;
-	}
-}
-
 bool CMenus::SetSettingsPageFromCardTab(const char *pTab)
 {
-	const auto Route = qm_settings_navigation::ResolveCardTab(pTab);
-	ApplyModernSettingsRoute(Route);
-	return Route.IsValid();
+	if(pTab == nullptr || pTab[0] == '\0')
+		return false;
+	if(str_comp(pTab, "general") == 0)
+		g_Config.m_UiSettingsPage = SETTINGS_GENERAL;
+	else if(str_comp(pTab, "player") == 0)
+		g_Config.m_UiSettingsPage = SETTINGS_PLAYER;
+	else if(str_comp(pTab, "tee") == 0)
+		g_Config.m_UiSettingsPage = SETTINGS_TEE;
+	else if(str_comp(pTab, "tee7") == 0)
+		g_Config.m_UiSettingsPage = SETTINGS_TEE;
+	else if(str_comp(pTab, "visual") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_QMCLIENT;
+		m_QmClientSettingsTab = QMCLIENT_SETTINGS_TAB_VISUAL;
+	}
+	else if(str_comp(pTab, "function") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_QMCLIENT;
+		m_QmClientSettingsTab = QMCLIENT_SETTINGS_TAB_FUNCTION;
+	}
+	else if(str_comp(pTab, "hud") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_QMCLIENT;
+		m_QmClientSettingsTab = QMCLIENT_SETTINGS_TAB_HUD;
+	}
+	else if(str_comp(pTab, "qmclient-overview") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_QMCLIENT;
+		m_QmClientSettingsTab = QMCLIENT_SETTINGS_TAB_VISUAL;
+	}
+	else if(str_comp(pTab, "qmclient-contributors") == 0 || str_comp(pTab, "credits-qmclient") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_CONTRIBUTORS;
+		m_CreditsSettingsTab = CREDITS_SETTINGS_TAB_QMCLIENT;
+	}
+	else if(str_comp(pTab, "credits-links") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_CONTRIBUTORS;
+		m_CreditsSettingsTab = CREDITS_SETTINGS_TAB_LINKS;
+	}
+	else if(str_comp(pTab, "qmclient-contributors-ddnet") == 0 || str_comp(pTab, "tclient-info") == 0 || str_comp(pTab, "credits-other") == 0)
+	{
+		// 「其他」子页签已并入友链；DDNet/TClient 署名卡与旧深链接（含已删除的信息 tab）都落到友链。
+		g_Config.m_UiSettingsPage = SETTINGS_CONTRIBUTORS;
+		m_CreditsSettingsTab = CREDITS_SETTINGS_TAB_LINKS;
+	}
+	else if(str_comp(pTab, "tclient") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_TCLIENT;
+		m_TClientSettingsTab = 0;
+	}
+	else if(str_comp(pTab, "bind") == 0 || str_comp(pTab, "qmclient-bind") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_QMCLIENT;
+		m_QmClientSettingsTab = QMCLIENT_SETTINGS_TAB_BIND;
+	}
+	else if(str_comp(pTab, "tclient-bind-wheel") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_TCLIENT;
+		m_TClientSettingsTab = 1;
+	}
+	else if(str_comp(pTab, "tclient-warlist") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_TCLIENT;
+		m_TClientSettingsTab = 2;
+	}
+	else if(str_comp(pTab, "tclient-chat-binds") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_TCLIENT;
+		m_TClientSettingsTab = 3;
+	}
+	else if(str_comp(pTab, "tclient-status-bar") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_TCLIENT;
+		m_TClientSettingsTab = 4;
+	}
+	else if(str_comp(pTab, "tclient-info") == 0)
+	{
+		// 信息 tab 已删除，卡片并入贡献者页；旧深链接继续可用，落到贡献者页。
+		g_Config.m_UiSettingsPage = SETTINGS_CONTRIBUTORS;
+	}
+	else if(str_comp(pTab, "tclient-profiles") == 0)
+		g_Config.m_UiSettingsPage = SETTINGS_PROFILES;
+	else if(str_comp(pTab, "tclient-configs") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_QMCLIENT;
+		m_QmClientSettingsTab = QMCLIENT_SETTINGS_TAB_CONFIG;
+	}
+	else if(str_comp(pTab, "graphics") == 0)
+		g_Config.m_UiSettingsPage = SETTINGS_GRAPHICS;
+	else if(str_comp(pTab, "sound") == 0)
+		g_Config.m_UiSettingsPage = SETTINGS_SOUND;
+	else if(str_comp(pTab, "ddnet") == 0)
+		g_Config.m_UiSettingsPage = SETTINGS_DDNET;
+	else if(str_comp(pTab, "controls") == 0)
+		g_Config.m_UiSettingsPage = SETTINGS_CONTROLS;
+	else if(str_comp(pTab, "appearance-hud") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_APPEARANCE;
+		m_AppearanceSettingsTab = APPEARANCE_TAB_HUD;
+	}
+	else if(str_comp(pTab, "appearance-chat") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_APPEARANCE;
+		m_AppearanceSettingsTab = APPEARANCE_TAB_CHAT;
+	}
+	else if(str_comp(pTab, "appearance-name-plate") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_APPEARANCE;
+		m_AppearanceSettingsTab = APPEARANCE_TAB_NAME_PLATE;
+	}
+	else if(str_comp(pTab, "appearance-hook-collision") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_APPEARANCE;
+		m_AppearanceSettingsTab = APPEARANCE_TAB_HOOK_COLLISION;
+	}
+	else if(str_comp(pTab, "appearance-info-messages") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_APPEARANCE;
+		m_AppearanceSettingsTab = APPEARANCE_TAB_INFO_MESSAGES;
+	}
+	else if(str_comp(pTab, "appearance-laser") == 0)
+	{
+		g_Config.m_UiSettingsPage = SETTINGS_APPEARANCE;
+		m_AppearanceSettingsTab = APPEARANCE_TAB_LASER;
+	}
+	else
+		return false;
+	return true;
 }
 
 void CMenus::NavigateToSettingsCard(const qm_card_registry::SCardNavigationTarget &Target)
 {
-	const bool FromSearch = g_Config.m_UiSettingsPage == SETTINGS_SEARCH;
-	if(Target.m_pStableId == nullptr || Target.m_pStableId[0] == '\0')
+	if(Target.m_pStableId == nullptr || Target.m_pStableId[0] == '\0' || !SetSettingsPageFromCardTab(Target.m_pTab))
 		return;
-	const auto Route = qm_settings_navigation::ResolveCard(Target.m_pStableId, Target.m_pTab);
-	if(!Route.IsValid())
-		return;
-	ApplyModernSettingsRoute(Route);
-	if(FromSearch)
-	{
-		m_ReturnToSettingsSearch = true;
-		m_SettingsSearchLocatedPage = g_Config.m_UiSettingsPage;
-	}
 	m_SettingsCardDeck.RequestReveal(Target.m_pStableId);
 }
 
@@ -6065,8 +6341,6 @@ const char *CMenus::SettingsPerfStableTextScope(int Page) const
 
 void CMenus::OnReset()
 {
-	if(m_ResourceEditorWorkspace.Visible())
-		SuspendResourceEditorWorkspace();
 	if(m_pScreenshotWatermarkJob)
 		m_pScreenshotWatermarkJob->Cancel();
 	m_TranslateProbe.Cancel();
@@ -6077,8 +6351,6 @@ void CMenus::OnReset()
 
 void CMenus::OnShutdown()
 {
-	if(m_ResourceEditorWorkspace.Visible())
-		SuspendResourceEditorWorkspace();
 	m_QmVoteMenu.m_Loader.Suspend();
 	if(m_pScreenshotWatermarkJob)
 		m_pScreenshotWatermarkJob->Cancel();
@@ -6849,16 +7121,20 @@ bool CMenus::PrebuildSettingsTextPlanItem(const SMenuTextPlanItem &Item, int &Re
 	return true;
 }
 
-void CMenus::CollectBaseSettingsMenuTextPlanUnit(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView, const int Page, const int Tab)
+void CMenus::BuildBaseSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView)
 {
-	// 预热只借用导航和文本收集状态，不能提交旧页码迁移或改变玩家当前子页。
+	static constexpr int s_aBaseSettingsPages[] = {
+		SETTINGS_GENERAL,
+		SETTINGS_TEE,
+		SETTINGS_APPEARANCE,
+		SETTINGS_CONTROLS,
+		SETTINGS_GRAPHICS,
+		SETTINGS_SOUND,
+		SETTINGS_ASSETS,
+		SETTINGS_DDNET,
+	};
+
 	const int PreviousSettingsPage = g_Config.m_UiSettingsPage;
-	const int PreviousNavigationVersion = g_Config.m_QmSettingsNavigationVersion;
-	const SSettingsNavigationTabs PreviousTabs{m_ModernFriendsTab, m_ModernTeeTab, m_ModernVisualTab, m_ModernControlsTab, m_ModernFeaturesTab, m_CreditsSettingsTab};
-	const int PreviousAppearanceTab = m_AppearanceSettingsTab;
-	const int PreviousTClientTab = m_TClientSettingsTab;
-	const int PreviousQmClientTab = m_QmClientSettingsTab;
-	const bool PreviousDummy = m_Dummy;
 	const bool PreviousCollecting = m_MenuTextPlanCollecting;
 	std::vector<SMenuTextPlanItem> *pPreviousCollection = m_pMenuTextPlanCollection;
 	const bool PreviousPendingActive = m_MenuTextPlanPendingActive;
@@ -6868,54 +7144,27 @@ void CMenus::CollectBaseSettingsMenuTextPlanUnit(std::vector<SMenuTextPlanItem> 
 	const int PreviousTextContextPage = m_SettingsTextContextPage;
 	const int PreviousTextContextTab = m_SettingsTextContextTab;
 	const int PreviousTextContextSubtab = m_SettingsTextContextSubtab;
-	const SSettingsShellLayoutFrame PreviousShell = m_SettingsShellLayout;
-	const SSettingsContentMetrics PreviousMetrics = m_SettingsContentMetrics;
-	const bool PreviousShellValid = m_SettingsShellLayoutValid;
 
-	ApplyModernSettingsRoute({Page, std::max(0, Tab), nullptr});
 	m_MenuTextPlanCollecting = true;
 	m_pMenuTextPlanCollection = &vItems;
 	m_MenuTextPlanPendingActive = false;
-	Ui()->MapScreen();
+	Ui()->BeginRenderOnly();
+	for(const int Page : s_aBaseSettingsPages)
 	{
-		CUiRenderOnlyScope RenderOnly(Ui());
+		g_Config.m_UiSettingsPage = Page;
 		RenderSettings(MainView);
 	}
+	Ui()->EndRenderOnly();
 
-	m_SettingsShellLayout = PreviousShell;
-	m_SettingsContentMetrics = PreviousMetrics;
-	m_SettingsShellLayoutValid = PreviousShellValid;
 	m_SettingsTextContextSubtab = PreviousTextContextSubtab;
 	m_SettingsTextContextTab = PreviousTextContextTab;
 	m_SettingsTextContextPage = PreviousTextContextPage;
 	if(PreviousPendingActive)
-		m_MenuTextPlanPendingItem = std::move(PreviousPendingItem);
+		m_MenuTextPlanPendingItem = PreviousPendingItem;
 	m_MenuTextPlanPendingActive = PreviousPendingActive;
 	m_pMenuTextPlanCollection = pPreviousCollection;
 	m_MenuTextPlanCollecting = PreviousCollecting;
-	m_Dummy = PreviousDummy;
-	m_AppearanceSettingsTab = PreviousAppearanceTab;
-	m_TClientSettingsTab = PreviousTClientTab;
-	m_QmClientSettingsTab = PreviousQmClientTab;
-	m_ModernFriendsTab = PreviousTabs.m_FriendsTab;
-	m_ModernTeeTab = PreviousTabs.m_TeeTab;
-	m_ModernVisualTab = PreviousTabs.m_VisualTab;
-	m_ModernControlsTab = PreviousTabs.m_ControlsTab;
-	m_ModernFeaturesTab = PreviousTabs.m_FeaturesTab;
-	m_CreditsSettingsTab = PreviousTabs.m_CreditsTab;
 	g_Config.m_UiSettingsPage = PreviousSettingsPage;
-	g_Config.m_QmSettingsNavigationVersion = PreviousNavigationVersion;
-}
-
-void CMenus::BuildBaseSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView)
-{
-	const auto VisibleView = ResolveSettingsWarmupView(g_Config.m_UiSettingsPage, g_Config.m_QmSettingsNavigationVersion,
-		{m_ModernFriendsTab, m_ModernTeeTab, m_ModernVisualTab, m_ModernControlsTab, m_ModernFeaturesTab, m_CreditsSettingsTab},
-		m_AppearanceSettingsTab, m_TClientSettingsTab, m_QmClientSettingsTab);
-	const int Page = VisibleView.m_Page;
-	const int Tab = VisibleView.m_Tab;
-	for(const auto &View : BuildSettingsWarmupViews(Page, Tab))
-		CollectBaseSettingsMenuTextPlanUnit(vItems, MainView, View.m_Page, View.m_Tab);
 }
 
 void CMenus::BuildIngameMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView)
@@ -6939,7 +7188,7 @@ void CMenus::BuildIngameMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems, CUI
 		PreviousPendingItem = m_MenuTextPlanPendingItem;
 
 	CUIRect TabBar, ContentView;
-	MainView.HSplitTop(MenuMenubarHeight(), &TabBar, &ContentView);
+	MainView.HSplitTop(MENU_MENUBAR_HEIGHT_NEW, &TabBar, &ContentView);
 
 	m_MenuTextPlanCollecting = true;
 	m_pMenuTextPlanCollection = &vItems;
@@ -6971,6 +7220,31 @@ void CMenus::BuildSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems)
 
 void CMenus::BuildSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView)
 {
+	const bool PreferQmClient = SettingsCanonicalPage(m_SettingsRuntimeMetadata.m_LastPage) == SETTINGS_QMCLIENT;
+	if(PreferQmClient)
+	{
+		BuildQmClientSettingsMenuTextPlan(vItems, MainView, m_SettingsRuntimeMetadata.m_LastQmTab);
+		BuildTClientSettingsMenuTextPlan(vItems, MainView, m_SettingsRuntimeMetadata.m_LastTClientTab);
+	}
+	else
+	{
+		BuildTClientSettingsMenuTextPlan(vItems, MainView, m_SettingsRuntimeMetadata.m_LastTClientTab);
+		BuildQmClientSettingsMenuTextPlan(vItems, MainView, m_SettingsRuntimeMetadata.m_LastQmTab);
+	}
+	constexpr int NumTClientTabs = 5; // 与 menus_tclient.cpp 的 NUMBER_OF_TCLIENT_TABS 保持一致
+	for(int Tab = 0; Tab < NumTClientTabs; ++Tab)
+	{
+		if(Tab != CanonicalizeTClientCacheTab(m_SettingsRuntimeMetadata.m_LastTClientTab))
+			BuildTClientSettingsMenuTextPlan(vItems, MainView, Tab);
+	}
+	for(int Tab = 0; Tab < NUMBER_OF_QMCLIENT_SETTINGS_TABS; ++Tab)
+	{
+		// 贡献者页签的枚举值只是持久化占位，不再渲染内容，文本计划按可见页签收集。
+		if(Tab == QMCLIENT_SETTINGS_TAB_CONTRIBUTORS)
+			continue;
+		if(Tab != std::clamp(m_SettingsRuntimeMetadata.m_LastQmTab, 0, NUMBER_OF_QMCLIENT_SETTINGS_TABS - 1))
+			BuildQmClientSettingsMenuTextPlan(vItems, MainView, Tab);
+	}
 	BuildBaseSettingsMenuTextPlan(vItems, MainView);
 }
 
@@ -7005,18 +7279,57 @@ void CMenus::PrepareSettingsMenuTextPlanCollectionUnits(const char *pOperationOv
 	if(IngameEscOperation)
 		m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_INGAME_ESC, -1, -1});
 
-	const auto VisibleView = ResolveSettingsWarmupView(g_Config.m_UiSettingsPage, g_Config.m_QmSettingsNavigationVersion,
-		{m_ModernFriendsTab, m_ModernTeeTab, m_ModernVisualTab, m_ModernControlsTab, m_ModernFeaturesTab, m_CreditsSettingsTab},
-		m_AppearanceSettingsTab, m_TClientSettingsTab, m_QmClientSettingsTab);
-	const int CurrentPage = VisibleView.m_Page;
-	const int CurrentTab = VisibleView.m_Tab;
+	const int CurrentPage = SettingsCanonicalPage(g_Config.m_UiSettingsPage);
+	int CurrentTab = -1;
+	if(CurrentPage == SETTINGS_TCLIENT)
+		CurrentTab = m_TClientSettingsTab;
+	else if(CurrentPage == SETTINGS_QMCLIENT)
+		CurrentTab = m_QmClientSettingsTab;
 	m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_VISIBLE_SETTINGS, CurrentPage, CurrentTab});
-	for(const auto &View : BuildSettingsWarmupViews(CurrentPage, CurrentTab))
+
+	const bool PreferQmClient = SettingsCanonicalPage(m_SettingsRuntimeMetadata.m_LastPage) == SETTINGS_QMCLIENT;
+	const int LastTClientTab = CanonicalizeTClientCacheTab(m_SettingsRuntimeMetadata.m_LastTClientTab);
+	int LastQmClientTab = std::clamp(m_SettingsRuntimeMetadata.m_LastQmTab, 0, NUMBER_OF_QMCLIENT_SETTINGS_TABS - 1);
+	// 贡献者页签的枚举值只是持久化占位，回落到首个子页签。
+	if(LastQmClientTab == QMCLIENT_SETTINGS_TAB_CONTRIBUTORS)
+		LastQmClientTab = QMCLIENT_SETTINGS_TAB_VISUAL;
+	if(PreferQmClient)
 	{
-		if(View.m_Page == CurrentPage && View.m_Tab == CurrentTab)
-			continue;
-		m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_BASE_PAGE, View.m_Page, View.m_Tab});
+		m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_QMCLIENT_TAB, SETTINGS_QMCLIENT, LastQmClientTab});
+		m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_TCLIENT_TAB, SETTINGS_TCLIENT, LastTClientTab});
 	}
+	else
+	{
+		m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_TCLIENT_TAB, SETTINGS_TCLIENT, LastTClientTab});
+		m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_QMCLIENT_TAB, SETTINGS_QMCLIENT, LastQmClientTab});
+	}
+
+	constexpr int NumTClientTabs = 5; // 与 menus_tclient.cpp 的 NUMBER_OF_TCLIENT_TABS 保持一致
+	for(int Tab = 0; Tab < NumTClientTabs; ++Tab)
+	{
+		if(Tab != LastTClientTab)
+			m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_TCLIENT_TAB, SETTINGS_TCLIENT, Tab});
+	}
+	for(int Tab = 0; Tab < NUMBER_OF_QMCLIENT_SETTINGS_TABS; ++Tab)
+	{
+		if(Tab == QMCLIENT_SETTINGS_TAB_CONTRIBUTORS)
+			continue;
+		if(Tab != LastQmClientTab)
+			m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_QMCLIENT_TAB, SETTINGS_QMCLIENT, Tab});
+	}
+
+	static constexpr int s_aBaseSettingsPages[] = {
+		SETTINGS_GENERAL,
+		SETTINGS_TEE,
+		SETTINGS_APPEARANCE,
+		SETTINGS_CONTROLS,
+		SETTINGS_GRAPHICS,
+		SETTINGS_SOUND,
+		SETTINGS_ASSETS,
+		SETTINGS_DDNET,
+	};
+	for(const int Page : s_aBaseSettingsPages)
+		m_vSettingsMenuTextPlanCollectionUnits.push_back({MENU_TEXT_PLAN_UNIT_BASE_PAGE, Page, -1});
 }
 
 void CMenus::CollectSettingsMenuTextPlanUnit(const SSettingsMenuTextPlanCollectionUnit &Unit, CUIRect Screen, CUIRect SettingsMainView)
@@ -7024,19 +7337,39 @@ void CMenus::CollectSettingsMenuTextPlanUnit(const SSettingsMenuTextPlanCollecti
 	switch(Unit.m_Kind)
 	{
 	case MENU_TEXT_PLAN_UNIT_VISIBLE_SETTINGS:
-		CollectBaseSettingsMenuTextPlanUnit(m_vSettingsMenuTextPrebuildPlan, SettingsMainView, Unit.m_Page, Unit.m_Tab);
+		BuildVisibleSettingsMenuTextPlan(m_vSettingsMenuTextPrebuildPlan, SettingsMainView);
 		break;
 	case MENU_TEXT_PLAN_UNIT_TCLIENT_TAB:
+		BuildTClientSettingsMenuTextPlan(m_vSettingsMenuTextPrebuildPlan, SettingsMainView, Unit.m_Tab);
+		break;
 	case MENU_TEXT_PLAN_UNIT_QMCLIENT_TAB:
+		BuildQmClientSettingsMenuTextPlan(m_vSettingsMenuTextPrebuildPlan, SettingsMainView, Unit.m_Tab);
+		break;
+	case MENU_TEXT_PLAN_UNIT_BASE_PAGE:
 	{
-		const auto Route = qm_settings_navigation::ResolveLegacyPage(Unit.m_Page, 0, Unit.m_Tab, Unit.m_Tab);
-		if(Route.IsValid())
-			CollectBaseSettingsMenuTextPlanUnit(m_vSettingsMenuTextPrebuildPlan, SettingsMainView, Route.m_Page, Route.m_SubTab);
+		const int PreviousSettingsPage = g_Config.m_UiSettingsPage;
+		const bool PreviousCollecting = m_MenuTextPlanCollecting;
+		std::vector<SMenuTextPlanItem> *pPreviousCollection = m_pMenuTextPlanCollection;
+		const bool PreviousPendingActive = m_MenuTextPlanPendingActive;
+		SMenuTextPlanItem PreviousPendingItem;
+		if(PreviousPendingActive)
+			PreviousPendingItem = m_MenuTextPlanPendingItem;
+		g_Config.m_UiSettingsPage = Unit.m_Page;
+		m_MenuTextPlanCollecting = true;
+		m_pMenuTextPlanCollection = &m_vSettingsMenuTextPrebuildPlan;
+		m_MenuTextPlanPendingActive = false;
+		Ui()->MapScreen();
+		Ui()->BeginRenderOnly();
+		RenderSettings(SettingsMainView);
+		Ui()->EndRenderOnly();
+		if(PreviousPendingActive)
+			m_MenuTextPlanPendingItem = PreviousPendingItem;
+		m_MenuTextPlanPendingActive = PreviousPendingActive;
+		m_pMenuTextPlanCollection = pPreviousCollection;
+		m_MenuTextPlanCollecting = PreviousCollecting;
+		g_Config.m_UiSettingsPage = PreviousSettingsPage;
 		break;
 	}
-	case MENU_TEXT_PLAN_UNIT_BASE_PAGE:
-		CollectBaseSettingsMenuTextPlanUnit(m_vSettingsMenuTextPrebuildPlan, SettingsMainView, Unit.m_Page, Unit.m_Tab);
-		break;
 	case MENU_TEXT_PLAN_UNIT_INGAME_ESC:
 		BuildIngameMenuTextPlan(m_vSettingsMenuTextPrebuildPlan, Screen);
 		break;
@@ -7094,12 +7427,38 @@ bool CMenus::AdvanceSettingsMenuTextPlanCollection(int Budget, const char *pOper
 
 void CMenus::BuildVisibleSettingsMenuTextPlan(std::vector<SMenuTextPlanItem> &vItems, CUIRect MainView)
 {
-	const auto VisibleView = ResolveSettingsWarmupView(g_Config.m_UiSettingsPage, g_Config.m_QmSettingsNavigationVersion,
-		{m_ModernFriendsTab, m_ModernTeeTab, m_ModernVisualTab, m_ModernControlsTab, m_ModernFeaturesTab, m_CreditsSettingsTab},
-		m_AppearanceSettingsTab, m_TClientSettingsTab, m_QmClientSettingsTab);
-	const int Page = VisibleView.m_Page;
-	const int Tab = VisibleView.m_Tab;
-	CollectBaseSettingsMenuTextPlanUnit(vItems, MainView, Page, Tab);
+	const int Page = SettingsCanonicalPage(g_Config.m_UiSettingsPage);
+	if(Page == SETTINGS_TCLIENT)
+	{
+		BuildTClientSettingsMenuTextPlan(vItems, MainView, m_TClientSettingsTab);
+		return;
+	}
+	if(Page == SETTINGS_QMCLIENT)
+	{
+		BuildQmClientSettingsMenuTextPlan(vItems, MainView, m_QmClientSettingsTab);
+		return;
+	}
+
+	const int PreviousSettingsPage = g_Config.m_UiSettingsPage;
+	const bool PreviousCollecting = m_MenuTextPlanCollecting;
+	std::vector<SMenuTextPlanItem> *pPreviousCollection = m_pMenuTextPlanCollection;
+	const bool PreviousPendingActive = m_MenuTextPlanPendingActive;
+	SMenuTextPlanItem PreviousPendingItem;
+	if(PreviousPendingActive)
+		PreviousPendingItem = m_MenuTextPlanPendingItem;
+	g_Config.m_UiSettingsPage = Page;
+	m_MenuTextPlanCollecting = true;
+	m_pMenuTextPlanCollection = &vItems;
+	m_MenuTextPlanPendingActive = false;
+	Ui()->BeginRenderOnly();
+	RenderSettings(MainView);
+	Ui()->EndRenderOnly();
+	if(PreviousPendingActive)
+		m_MenuTextPlanPendingItem = PreviousPendingItem;
+	m_MenuTextPlanPendingActive = PreviousPendingActive;
+	m_pMenuTextPlanCollection = pPreviousCollection;
+	m_MenuTextPlanCollecting = PreviousCollecting;
+	g_Config.m_UiSettingsPage = PreviousSettingsPage;
 }
 
 int CMenus::CountMissingSettingsMenuTextPlanItems() const
@@ -7112,7 +7471,14 @@ int CMenus::CountMissingSettingsMenuTextPlanItems() const
 bool CMenus::SettingsMenuTextPrebuildReady(const char *pOperationOverride) const
 {
 	const char *pOperation = pOperationOverride != nullptr ? pOperationOverride : SettingsPerfActiveOperation();
-	return Ui()->Screen() != nullptr && s_LastPlanCollectionScreenBucket == round_to_int(Ui()->Screen()->w) && !m_SettingsMenuTextPlanCollectionDirty && !m_SettingsMenuTextPlanMetadataDirty && m_SettingsMenuTextPlanCollectionGeneration == m_MenuTextPoolGeneration && m_SettingsMenuTextPlanGeneration == m_MenuTextPoolGeneration && m_SettingsMenuTextPlanCollectionOperation == (pOperation != nullptr ? pOperation : "") && m_SettingsMenuTextPlanCollectionComplete && m_SettingsMenuTextPlanCursor >= m_vSettingsMenuTextPrebuildPlan.size();
+	return Ui()->Screen() != nullptr &&
+	       s_LastPlanCollectionScreenBucket == round_to_int(Ui()->Screen()->w) &&
+	       !m_SettingsMenuTextPlanCollectionDirty && !m_SettingsMenuTextPlanMetadataDirty &&
+	       m_SettingsMenuTextPlanCollectionGeneration == m_MenuTextPoolGeneration &&
+	       m_SettingsMenuTextPlanGeneration == m_MenuTextPoolGeneration &&
+	       m_SettingsMenuTextPlanCollectionOperation == (pOperation != nullptr ? pOperation : "") &&
+	       m_SettingsMenuTextPlanCollectionComplete &&
+	       m_SettingsMenuTextPlanCursor >= m_vSettingsMenuTextPrebuildPlan.size();
 }
 
 void CMenus::PrebuildSettingsMenuTextPool(int Budget, const char *pScopeOverride, const char *pOperationOverride)
@@ -7516,7 +7882,7 @@ void CMenus::InvalidateSettingsRuntimeCaches(ESettingsInvalidationReason Reason)
 bool CMenus::PrewarmSettingsPageResources(int Page, int Tab, const CUIRect &ContentView)
 {
 	Page = SettingsCanonicalPage(Page);
-	if(Page == SETTINGS_LANGUAGE)
+	if(Page == SETTINGS_GENERAL)
 	{
 		std::vector<int> vCountryCodes;
 		const int NumLanguages = (int)g_Localization.Languages().size();
@@ -7559,12 +7925,13 @@ void CMenus::PrewarmVisibleSettingsResources(CUIRect MainView)
 	const SSettingsShellLayoutFrame Shell = ResolveSettingsShellLayout(MainView, NeedRestart ? 30.0f : 0.0f);
 	ContentView = Shell.m_ContentRect;
 
-	const auto VisibleView = ResolveSettingsWarmupView(g_Config.m_UiSettingsPage, g_Config.m_QmSettingsNavigationVersion,
-		{m_ModernFriendsTab, m_ModernTeeTab, m_ModernVisualTab, m_ModernControlsTab, m_ModernFeaturesTab, m_CreditsSettingsTab},
-		m_AppearanceSettingsTab, m_TClientSettingsTab, m_QmClientSettingsTab);
-	const int Page = VisibleView.m_Page;
-	int Tab = VisibleView.m_Tab;
-	if(Page == SETTINGS_ASSETS)
+	const int Page = SettingsCanonicalPage(g_Config.m_UiSettingsPage);
+	int Tab = -1;
+	if(Page == SETTINGS_TCLIENT)
+		Tab = m_TClientSettingsTab;
+	else if(Page == SETTINGS_QMCLIENT)
+		Tab = m_QmClientSettingsTab;
+	else if(Page == SETTINGS_ASSETS)
 		Tab = CurrentSettingsAssetsTab();
 
 	(void)PrewarmSettingsPageResources(Page, Tab, ContentView);
@@ -7599,12 +7966,6 @@ bool CMenus::OnInput(const IInput::CEvent &Event)
 	if(!IsActive() && GameClient()->m_HudEditor.IsActive())
 		return false;
 
-	if(IsActive() && HandleSettingsSearchInput(Event))
-	{
-		MarkMenuInteraction();
-		return true;
-	}
-
 	// Escape key is always handled to activate/deactivate menu
 	if((Event.m_Flags & IInput::FLAG_PRESS && Event.m_Key == KEY_ESCAPE) || IsActive())
 	{
@@ -7617,8 +7978,6 @@ bool CMenus::OnInput(const IInput::CEvent &Event)
 
 void CMenus::OnStateChange(int NewState, int OldState)
 {
-	if(m_ResourceEditorWorkspace.Visible())
-		SuspendResourceEditorWorkspace();
 	m_QmVoteMenu.m_Loader.Suspend();
 	m_QmVoteMenu.m_SelectedName.clear();
 	m_QmVoteMenu.m_Status.clear();
@@ -8010,8 +8369,6 @@ void CMenus::SetMenuPage(int NewPage)
 	if(NewPage != PAGE_DEMOS && m_pScreenshotWatermarkJob)
 		m_pScreenshotWatermarkJob->Cancel();
 	const int OldPage = m_MenuPage;
-	if(OldPage == PAGE_RESOURCE_EDITOR && NewPage != OldPage && m_ResourceEditorWorkspace.Visible())
-		SuspendResourceEditorWorkspace();
 	if(OldPage != NewPage)
 		MarkMenuInteraction();
 	if(OldPage == PAGE_SETTINGS && NewPage != PAGE_SETTINGS)
@@ -8084,7 +8441,6 @@ void CMenus::SetMenuPage(int NewPage)
 	if(OldPage != NewPage && NewPage == PAGE_SETTINGS)
 	{
 		m_SettingsPerfLastPage = -1;
-		m_SettingsPerfLastTab = -1;
 		m_SettingsPerfLastTClientTab = -1;
 		m_SettingsPerfLastQmClientTab = -1;
 		const std::string PageName = SettingsPageCacheKey(g_Config.m_UiSettingsPage, -1);
@@ -8093,7 +8449,6 @@ void CMenus::SetMenuPage(int NewPage)
 	else if(OldPage == PAGE_SETTINGS && NewPage != PAGE_SETTINGS)
 	{
 		m_SettingsPerfLastPage = -1;
-		m_SettingsPerfLastTab = -1;
 		m_SettingsPerfLastTClientTab = -1;
 		m_SettingsPerfLastQmClientTab = -1;
 	}
@@ -8106,8 +8461,6 @@ void CMenus::SetGamePage(int NewPage)
 		NewPage = PAGE_GAME;
 
 	const int OldPage = m_GamePage;
-	if(OldPage == PAGE_RESOURCE_EDITOR && NewPage != OldPage && m_ResourceEditorWorkspace.Visible())
-		SuspendResourceEditorWorkspace();
 	if(OldPage != NewPage)
 		MarkMenuInteraction();
 	if(PerfDebugEnabled() && OldPage != NewPage)
@@ -8129,7 +8482,6 @@ void CMenus::SetGamePage(int NewPage)
 	if(OldPage != NewPage && NewPage == PAGE_SETTINGS)
 	{
 		m_SettingsPerfLastPage = -1;
-		m_SettingsPerfLastTab = -1;
 		m_SettingsPerfLastTClientTab = -1;
 		m_SettingsPerfLastQmClientTab = -1;
 		const std::string PageName = SettingsPageCacheKey(g_Config.m_UiSettingsPage, -1);
@@ -8143,7 +8495,6 @@ void CMenus::SetGamePage(int NewPage)
 	else if(OldPage == PAGE_SETTINGS && NewPage != PAGE_SETTINGS)
 	{
 		m_SettingsPerfLastPage = -1;
-		m_SettingsPerfLastTab = -1;
 		m_SettingsPerfLastTClientTab = -1;
 		m_SettingsPerfLastQmClientTab = -1;
 	}

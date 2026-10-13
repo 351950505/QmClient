@@ -39,11 +39,6 @@ struct SRoundedSurfacePlan
 	bool m_UseSdf = false;
 };
 
-inline float ResolveUiSurfaceRadius(float Radius, bool RoundedCorners)
-{
-	return RoundedCorners ? Radius : 0.0f;
-}
-
 inline vec4 ResolveRoundedSurfaceCornerRadii(const float Radius, const int Corners)
 {
 	return vec4(

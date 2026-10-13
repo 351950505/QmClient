@@ -2669,8 +2669,8 @@ Console color
 Console color scheme
 == Konsol: renk şeması
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== Konsol: renk şeması: 0=Çağdaş terminal, 1=Klasik PowerShell, 2=özel, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== Konsol: renk şeması: 0=Çağdaş terminal, 1=Klasik PowerShell, 2=özel
 
 Console command color
 == Konsol: komut rengi
@@ -6287,9 +6287,6 @@ Interface surface
 Interface surface color
 == Arayüz yüzey rengi
 
-Interface text size percentage
-== Arayüz metin boyutu yüzdesi
-
 Interface transparency
 == Genel arayüz şeffaflığı
 
@@ -7936,9 +7933,6 @@ Nameplates
 
 Native scale (1.0)
 == Yerel ölçek (1.0)
-
-Navigation size percentage
-== Gezinme boyutu yüzdesi
 
 Need to have started the map to swap with a player.
 == Bir oyuncuyla yer değiştirmek için haritayı başlatmış olmanız gerekir.
@@ -11363,9 +11357,6 @@ Settings card titles use rainbow colors
 Settings file
 == Ayarlar dosyası
 
-Settings navigation migration version
-== Ayarlar gezinmesi geçiş sürümü
-
 Settings page opacity
 == Ayarlar sayfası opaklığı
 
@@ -14357,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI ölçeği
 
-UI scrolling: 0=original, 1=damped
-== Arayüz kaydırma: 0=özgün, 1=sönümlü
-
 UI server address
 == UI sunucu adresi
 
@@ -14734,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Gelişmiş işleme etkin olduğunda prosedürel halka işlem hattını kullan
-
-Use rounded corners for interface surfaces
-== Arayüz yüzeylerinde yuvarlatılmış köşeler kullan
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Gelişmiş işleme etkin olduğunda Dynamic Island ve yuvarlatılmış dikdörtgenler için SDF işlem hatlarını kullan

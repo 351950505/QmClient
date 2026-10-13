@@ -547,14 +547,9 @@ namespace
 
 void CMenus::AssetsEditorOpen(int Type)
 {
-	if(Ui()->RenderOnly())
-		return;
-	OpenResourceEditorWorkspace(static_cast<int>(qm_resource_editor::EWorkspace::IMAGE));
-	// 重进工作区沿用草稿；只有显式关闭或编辑器内切换类型才重建内容。
-	if(m_AssetsEditorState.m_Open)
-		return;
 	AssetsEditorCloseNow();
 
+	g_Config.m_UiSettingsPage = SETTINGS_ASSETS;
 	m_AssetsEditorState.m_Open = true;
 	m_AssetsEditorState.m_Initialized = false;
 	m_AssetsEditorState.m_Type = std::clamp(Type, 0, ASSETS_EDITOR_TYPE_COUNT - 1);
@@ -1795,9 +1790,6 @@ void CMenus::AssetsEditorRenderCanvas(const CUIRect &Rect, IGraphics::CTextureHa
 
 void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 {
-	const bool ReadOnly = Ui()->RenderOnly();
-	if(ReadOnly && (!m_AssetsEditorState.m_Open || !m_AssetsEditorState.m_Initialized))
-		return;
 	if(!m_AssetsEditorState.m_Initialized)
 	{
 		AssetsEditorEnsureAssetsLoadedForType(m_AssetsEditorState.m_Type);
@@ -1806,7 +1798,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 		AssetsEditorSyncExportNameFromType();
 		m_AssetsEditorState.m_Initialized = true;
 	}
-	else if(!ReadOnly)
+	else
 	{
 		AssetsEditorEnsureDefaultExportNames();
 	}
@@ -1889,7 +1881,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 	static CScrollRegion s_ModeDropDownScrollRegion;
 	s_ModeDropDownState.m_SelectionPopupContext.m_pScrollRegion = &s_ModeDropDownScrollRegion;
 	const int NewMode = Ui()->DoDropDown(&ModeDropDown, m_AssetsEditorState.m_Type, apModeNames, ASSETS_EDITOR_TYPE_COUNT, s_ModeDropDownState);
-	if(!ReadOnly && NewMode != m_AssetsEditorState.m_Type)
+	if(NewMode != m_AssetsEditorState.m_Type)
 	{
 		AssetsEditorCommitExportNameForType();
 		AssetsEditorCancelDrag();
@@ -1907,7 +1899,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 	int &MainAssetIndex = m_AssetsEditorState.m_aMainAssetIndex[m_AssetsEditorState.m_Type];
 	int &DonorAssetIndex = m_AssetsEditorState.m_aDonorAssetIndex[m_AssetsEditorState.m_Type];
 
-	if(!ReadOnly && vAssets.empty())
+	if(vAssets.empty())
 	{
 		AssetsEditorReloadAssetType(m_AssetsEditorState.m_Type);
 		AssetsEditorResetPartSlots();
@@ -1918,13 +1910,8 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 		return;
 	}
 
-	if(ReadOnly && (MainAssetIndex < 0 || MainAssetIndex >= (int)vAssets.size() || DonorAssetIndex < 0 || DonorAssetIndex >= (int)vAssets.size()))
-		return;
-	if(!ReadOnly)
-	{
-		MainAssetIndex = std::clamp(MainAssetIndex, 0, (int)vAssets.size() - 1);
-		DonorAssetIndex = std::clamp(DonorAssetIndex, 0, (int)vAssets.size() - 1);
-	}
+	MainAssetIndex = std::clamp(MainAssetIndex, 0, (int)vAssets.size() - 1);
+	DonorAssetIndex = std::clamp(DonorAssetIndex, 0, (int)vAssets.size() - 1);
 
 	std::vector<const char *> vAssetNames;
 	vAssetNames.reserve(vAssets.size());
@@ -1962,13 +1949,13 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 		vFilteredMainAssetIndices.push_back((int)AssetIndex);
 		vFilteredMainAssetNames.push_back(pAssetName);
 	}
-	if(!ReadOnly && !vFilteredDonorAssetIndices.empty())
+	if(!vFilteredDonorAssetIndices.empty())
 	{
 		const bool CurrentDonorVisible = std::find(vFilteredDonorAssetIndices.begin(), vFilteredDonorAssetIndices.end(), DonorAssetIndex) != vFilteredDonorAssetIndices.end();
 		if(!CurrentDonorVisible)
 			DonorAssetIndex = vFilteredDonorAssetIndices.front();
 	}
-	if(!ReadOnly && !vFilteredMainAssetIndices.empty())
+	if(!vFilteredMainAssetIndices.empty())
 	{
 		const bool CurrentMainVisible = std::find(vFilteredMainAssetIndices.begin(), vFilteredMainAssetIndices.end(), MainAssetIndex) != vFilteredMainAssetIndices.end();
 		if(!CurrentMainVisible)
@@ -2013,7 +2000,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 	static_assert(std::size(s_aBlendModes) == ASSETS_EDITOR_COLOR_BLEND_COUNT);
 	const int SelectedSlotIndex = m_AssetsEditorState.m_SelectedTargetSlotIndex;
 	SAssetsEditorPartSlot *pSelectedSlot = SelectedSlotIndex >= 0 && SelectedSlotIndex < (int)m_AssetsEditorState.m_vPartSlots.size() ? &m_AssetsEditorState.m_vPartSlots[SelectedSlotIndex] : nullptr;
-	const bool CanEditPartColor = !ReadOnly && pSelectedSlot != nullptr && !Ui()->IsPopupOpen(&m_ColorPickerPopupContext) && !m_AssetsEditorState.m_DragActive;
+	const bool CanEditPartColor = pSelectedSlot != nullptr && !Ui()->IsPopupOpen(&m_ColorPickerPopupContext) && !m_AssetsEditorState.m_DragActive;
 	const int CurrentBlendMode = pSelectedSlot != nullptr ? ClampAssetsEditorColorBlendMode(pSelectedSlot->m_ColorBlendMode) : ASSETS_EDITOR_COLOR_BLEND_MULTIPLY;
 	const char *apBlendModeNames[ASSETS_EDITOR_COLOR_BLEND_COUNT];
 	int BlendSelection = 0;
@@ -2101,13 +2088,12 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 	RightPanel.HSplitBottom(BottomBarHeight, &RightCanvas, &RightBottom);
 	Ui()->DoLabel(&RightTitle, Localize("Frankenstein (drop parts on right)"), FontSize, TEXTALIGN_ML);
 
-	if(!ReadOnly)
-	{
-		AssetsEditorUpdatePreviewIfDirty();
-		m_AssetsEditorState.m_HoveredDonorSlotIndex = -1;
-		m_AssetsEditorState.m_HoveredTargetSlotIndex = -1;
-		AssetsEditorEnsurePreviewLoaded(vAssets[DonorAssetIndex]);
-	}
+	AssetsEditorUpdatePreviewIfDirty();
+
+	m_AssetsEditorState.m_HoveredDonorSlotIndex = -1;
+	m_AssetsEditorState.m_HoveredTargetSlotIndex = -1;
+
+	AssetsEditorEnsurePreviewLoaded(vAssets[DonorAssetIndex]);
 	const SAssetsEditorAssetEntry &DonorAsset = vAssets[DonorAssetIndex];
 	CUIRect DonorFittedRect;
 	const bool HasDonorFitted = AssetsEditorCalcFittedRect(LeftCanvas, DonorAsset.m_PreviewWidth, DonorAsset.m_PreviewHeight, DonorFittedRect);
@@ -2115,11 +2101,11 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 	const bool HasTargetFitted = AssetsEditorCalcFittedRect(RightCanvas, m_AssetsEditorState.m_ComposedPreviewWidth, m_AssetsEditorState.m_ComposedPreviewHeight, TargetFittedRect);
 	bool ColorPickerOpen = Ui()->IsPopupOpen(&m_ColorPickerPopupContext);
 	// 下拉列表覆盖画布时，点击和关闭弹层都不能穿透到部件。
-	const bool CanvasInputBlocked = ReadOnly || PopupOpenAtFrameStart || Ui()->IsPopupOpen();
+	const bool CanvasInputBlocked = PopupOpenAtFrameStart || Ui()->IsPopupOpen();
 	const vec2 MousePos = Ui()->MousePos();
-	const bool ClickedLmb = !ReadOnly && Ui()->MouseButtonClicked(0);
-	const bool ClickedRmb = !ReadOnly && Ui()->MouseButtonClicked(1);
-	const bool MouseDownLmb = !ReadOnly && Ui()->MouseButton(0);
+	const bool ClickedLmb = Ui()->MouseButtonClicked(0);
+	const bool ClickedRmb = Ui()->MouseButtonClicked(1);
+	const bool MouseDownLmb = Ui()->MouseButton(0);
 
 	if(!CanvasInputBlocked && HasDonorFitted)
 		m_AssetsEditorState.m_HoveredDonorSlotIndex = AssetsEditorResolveHoveredSlotWithCycle(DonorFittedRect, m_AssetsEditorState.m_Type, m_AssetsEditorState.m_vPartSlots, MousePos, ClickedLmb, -1);
@@ -2162,7 +2148,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 		ColorPickerOpen = true;
 	};
 
-	if(!ReadOnly && m_AssetsEditorState.m_ColorPickerSlotIndex >= 0)
+	if(m_AssetsEditorState.m_ColorPickerSlotIndex >= 0)
 	{
 		if(m_AssetsEditorState.m_ColorPickerSlotIndex < (int)m_AssetsEditorState.m_vPartSlots.size() &&
 			Ui()->IsPopupOpen(&m_ColorPickerPopupContext) &&
@@ -2195,7 +2181,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 		}
 	}
 
-	if(!ReadOnly && (CanvasInputBlocked || ColorPickerOpen))
+	if(CanvasInputBlocked || ColorPickerOpen)
 	{
 		m_AssetsEditorState.m_TargetPressPending = false;
 		m_AssetsEditorState.m_PendingTargetSlotIndex = -1;
@@ -2220,7 +2206,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 		m_AssetsEditorState.m_PendingTargetPressTime = time_get();
 	}
 
-	if(!ReadOnly && !ColorPickerOpen && !m_AssetsEditorState.m_ShowExitConfirm && !m_AssetsEditorState.m_DragActive && m_AssetsEditorState.m_TargetPressPending)
+	if(!ColorPickerOpen && !m_AssetsEditorState.m_ShowExitConfirm && !m_AssetsEditorState.m_DragActive && m_AssetsEditorState.m_TargetPressPending)
 	{
 		const float DeltaX = MousePos.x - m_AssetsEditorState.m_PendingTargetPressPos.x;
 		const float DeltaY = MousePos.y - m_AssetsEditorState.m_PendingTargetPressPos.y;
@@ -2274,7 +2260,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 		DropIsValid = !m_AssetsEditorState.m_ApplySameSize || AssetsEditorSlotSameNormalizedSize(DraggedSlot, HoveredTarget);
 	}
 
-	const bool ReleasedLmb = !ReadOnly && !Ui()->MouseButton(0) && Ui()->LastMouseButton(0);
+	const bool ReleasedLmb = !Ui()->MouseButton(0) && Ui()->LastMouseButton(0);
 	if(!ColorPickerOpen && m_AssetsEditorState.m_DragActive && ReleasedLmb)
 	{
 		if(m_AssetsEditorState.m_HoveredTargetSlotIndex >= 0 && DropIsValid)
@@ -2286,8 +2272,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 		}
 		AssetsEditorCancelDrag();
 	}
-	if(!ReadOnly)
-		AssetsEditorUpdatePreviewIfDirty();
+	AssetsEditorUpdatePreviewIfDirty();
 
 	const int DonorHighlightSlot = m_AssetsEditorState.m_DragActive ? m_AssetsEditorState.m_ActiveDraggedSlotIndex : m_AssetsEditorState.m_HoveredDonorSlotIndex;
 	const int TargetHighlightSlot = ColorPickerOpen ? m_AssetsEditorState.m_ColorPickerSlotIndex : m_AssetsEditorState.m_HoveredTargetSlotIndex;
@@ -2420,7 +2405,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 	if(!vFilteredDonorAssetNames.empty())
 	{
 		const int NewFilteredDonorAssetIndex = Ui()->DoDropDown(&DonorDropDown, FilteredDonorAssetIndex, vFilteredDonorAssetNames.data(), (int)vFilteredDonorAssetNames.size(), s_DonorDropDownState[m_AssetsEditorState.m_Type]);
-		if(!ReadOnly && NewFilteredDonorAssetIndex >= 0 && NewFilteredDonorAssetIndex < (int)vFilteredDonorAssetIndices.size())
+		if(NewFilteredDonorAssetIndex >= 0 && NewFilteredDonorAssetIndex < (int)vFilteredDonorAssetIndices.size())
 		{
 			const int NewDonorAssetIndex = vFilteredDonorAssetIndices[NewFilteredDonorAssetIndex];
 			if(NewDonorAssetIndex != DonorAssetIndex)
@@ -2474,7 +2459,7 @@ void CMenus::RenderAssetsEditorScreen(CUIRect MainView)
 	if(!vFilteredMainAssetNames.empty())
 	{
 		const int NewFilteredMainAssetIndex = Ui()->DoDropDown(&BottomMainDropDown, FilteredMainAssetIndex, vFilteredMainAssetNames.data(), (int)vFilteredMainAssetNames.size(), s_BottomMainDropDownState[m_AssetsEditorState.m_Type]);
-		if(!ReadOnly && NewFilteredMainAssetIndex >= 0 && NewFilteredMainAssetIndex < (int)vFilteredMainAssetIndices.size())
+		if(NewFilteredMainAssetIndex >= 0 && NewFilteredMainAssetIndex < (int)vFilteredMainAssetIndices.size())
 		{
 			const int NewMainAssetIndexBottom = vFilteredMainAssetIndices[NewFilteredMainAssetIndex];
 			if(NewMainAssetIndexBottom != MainAssetIndex)
