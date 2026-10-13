@@ -256,32 +256,17 @@
 0 disables timed rotation; skins only switch on random start events
 == 0, zamanlanmış döndürmeyi devre dışı bırakır; skinler yalnızca rastgele başlangıç olaylarında değişir
 
-1 star
-== 1 yıldız
-
 1% low
 == %1 düşük
 
 128 player id <-> 64 player id map update rate
 == 128 <-> 64 oyuncu kimliği harita güncelleme hızı
 
-2 stars
-== 2 yıldız
-
-3 stars
-== 3 yıldız
-
 3D background
 == 3D arka plan
 
-4 stars
-== 4 yıldız
-
 45° Aim
 == 45° Nişan
-
-5 stars
-== 5 yıldız
 
 === All Local Saves ===
 == === Tüm yerel saveler ===
@@ -676,9 +661,6 @@ All players
 
 All sounds
 == Tüm sesler
-
-All stars
-== Tüm yıldızlar
 
 Allow /map.
 == /map komutuna izin ver.
@@ -1855,9 +1837,6 @@ Change map
 
 Change ready state (0.7 only)
 == Hazır durumunu değiştir (yalnızca 0.7)
-
-Change settings
-== Ayarları değiştir
 
 Change the skip duration
 == Atlama süresini değiştir
@@ -3136,9 +3115,6 @@ DDNet Client needs to be restarted to complete update!
 
 DDNet contributors and staff credits
 == DDNet katkıda bulunanlar ve ekip
-
-DDNet map library
-== DDNet harita kitaplığı
 
 DDNet Memory
 == DDNet belleği
@@ -5774,9 +5750,6 @@ Hide weapon muzzle flashes
 High Detail
 == Yüksek Detay
 
-High to low
-== Yüksekten düşüğe
-
 Higher input latency
 == daha yüksek giriş gecikmesi
 
@@ -7072,9 +7045,6 @@ Long frames
 
 Lose weapons when teleporting (useful for race maps)
 == Işınlanırken silahları kaybet (yarış haritaları için kullanışlıdır)
-
-Low to high
-== Düşükten yükseğe
 
 LXGW WenKai is available.
 == LXGW WenKai kullanılabilir.
@@ -10592,17 +10562,11 @@ Rifle laser outline color
 Right jump
 == Sağ zıplama
 
-Right-click to add to favorites
-== Favorilere eklemek için sağ tıklayın
-
 Right-click to disable auto-translate
 == Otomatik çeviriyi devre dışı bırakmak için sağ tıklayın
 
 Right-click to enable auto-translate
 == Otomatik çeviriyi etkinleştirmek için sağ tıklayın
-
-Right-click to remove from favorites
-== Favorilerden kaldırmak için sağ tıklayın
 
 Ring
 == Halka
@@ -11188,9 +11152,6 @@ Server browser filter string
 
 Server browser sort column
 == Sunucu tarayıcı sıralama sütunu
-
-Server control
-== Sunucu yönetimi
 
 Server could not be started
 == Sunucu başlatılamadı
@@ -14989,18 +14950,6 @@ Vote a map by name
 
 Vote aborted
 == Oylama iptal edildi
-
-Vote command
-== Oylama komutu
-
-Vote command:
-== Oylama komutu:
-
-Vote description
-== Oylama açıklaması
-
-Vote description:
-== Oylama açıklaması:
 
 Vote duration (in seconds)
 == Oylama süresi (saniye cinsinden)

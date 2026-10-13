@@ -256,32 +256,17 @@
 0 disables timed rotation; skins only switch on random start events
 == 0 wyłącza rotację czasową; skórki zmieniają się tylko przy losowym starcie
 
-1 star
-== 1 gwiazdka
-
 1% low
 == 1% najniższych
 
 128 player id <-> 64 player id map update rate
 == Częstotliwość aktualizacji mapy identyfikatorów graczy 128 <-> 64
 
-2 stars
-== 2 gwiazdki
-
-3 stars
-== 3 gwiazdki
-
 3D background
 == Tło 3D
 
-4 stars
-== 4 gwiazdki
-
 45° Aim
 == Celowanie 45°
-
-5 stars
-== 5 gwiazdek
 
 === All Local Saves ===
 == === Wszystkie lokalne save'y ===
@@ -676,9 +661,6 @@ All players
 
 All sounds
 == Wszystkie dźwięki
-
-All stars
-== Wszystkie gwiazdki
 
 Allow /map.
 == Zezwól na /map.
@@ -1855,9 +1837,6 @@ Change map
 
 Change ready state (0.7 only)
 == Zmień stan gotowości (tylko 0.7)
-
-Change settings
-== Zmień ustawienia
 
 Change the skip duration
 == Zmień czas pomijania
@@ -3136,9 +3115,6 @@ DDNet Client needs to be restarted to complete update!
 
 DDNet contributors and staff credits
 == DDNet — współtwórcy i zespół
-
-DDNet map library
-== Biblioteka map DDNet
 
 DDNet Memory
 == Pamięć DDNet
@@ -5774,9 +5750,6 @@ Hide weapon muzzle flashes
 High Detail
 == Wysoki szczegół
 
-High to low
-== Od wysokiego do niskiego
-
 Higher input latency
 == wyższe opóźnienie wejścia
 
@@ -7072,9 +7045,6 @@ Long frames
 
 Lose weapons when teleporting (useful for race maps)
 == Strać broń podczas teleportacji (przydatne na mapach wyścigowych)
-
-Low to high
-== Od niskiego do wysokiego
 
 LXGW WenKai is available.
 == Czcionka LXGW WenKai jest dostępna.
@@ -10592,17 +10562,11 @@ Rifle laser outline color
 Right jump
 == Prawy skok
 
-Right-click to add to favorites
-== Kliknij prawym przyciskiem, aby dodać do ulubionych
-
 Right-click to disable auto-translate
 == Kliknij prawym przyciskiem, aby wyłączyć automatyczne tłumaczenie
 
 Right-click to enable auto-translate
 == Kliknij prawym przyciskiem, aby włączyć automatyczne tłumaczenie
-
-Right-click to remove from favorites
-== Kliknij prawym przyciskiem, aby usunąć z ulubionych
 
 Ring
 == Pierścień
@@ -11188,9 +11152,6 @@ Server browser filter string
 
 Server browser sort column
 == Kolumna sortowania w przeglądarce serwerów
-
-Server control
-== Zarządzanie serwerem
 
 Server could not be started
 == Nie można uruchomić serwera
@@ -14989,18 +14950,6 @@ Vote a map by name
 
 Vote aborted
 == Głosowanie przerwane
-
-Vote command
-== Polecenie głosowania
-
-Vote command:
-== Polecenie głosowania:
-
-Vote description
-== Opis głosowania
-
-Vote description:
-== Opis głosowania:
 
 Vote duration (in seconds)
 == Czas trwania głosowania (w sekundach)

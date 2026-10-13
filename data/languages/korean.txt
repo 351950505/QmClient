@@ -256,32 +256,17 @@
 0 disables timed rotation; skins only switch on random start events
 == 0이면 시간 순환을 비활성화하고 무작위 시작 이벤트 때만 스킨을 전환합니다
 
-1 star
-== 1성
-
 1% low
 == 1% 최저 프레임
 
 128 player id <-> 64 player id map update rate
 == 128 플레이어 ID와 64 플레이어 ID 맵 업데이트 속도
 
-2 stars
-== 2성
-
-3 stars
-== 3성
-
 3D background
 == 3D 배경
 
-4 stars
-== 4성
-
 45° Aim
 == 45° 조준
-
-5 stars
-== 5성
 
 === All Local Saves ===
 == === 모든 로컬 저장 ===
@@ -676,9 +661,6 @@ All players
 
 All sounds
 == 모든 사운드
-
-All stars
-== 모든 별점
 
 Allow /map.
 == /map 허용.
@@ -1855,9 +1837,6 @@ Change map
 
 Change ready state (0.7 only)
 == 준비 상태 변경 (0.7 전용)
-
-Change settings
-== 설정 변경
 
 Change the skip duration
 == 건너뛰기 시간 변경
@@ -3136,9 +3115,6 @@ DDNet Client needs to be restarted to complete update!
 
 DDNet contributors and staff credits
 == DDNet 기여자 및 스태프
-
-DDNet map library
-== DDNet 맵 라이브러리
 
 DDNet Memory
 == DDNet 메모리
@@ -5774,9 +5750,6 @@ Hide weapon muzzle flashes
 High Detail
 == 높은 상세도
 
-High to low
-== 높음에서 낮음으로
-
 Higher input latency
 == 입력 지연 증가
 
@@ -7072,9 +7045,6 @@ Long frames
 
 Lose weapons when teleporting (useful for race maps)
 == 순간이동 시 무기 손실 (레이스 맵에 유용)
-
-Low to high
-== 낮음에서 높음으로
 
 LXGW WenKai is available.
 == LXGW WenKai를 사용할 수 있습니다.
@@ -10592,17 +10562,11 @@ Rifle laser outline color
 Right jump
 == 오른쪽 점프
 
-Right-click to add to favorites
-== 마우스 오른쪽 버튼으로 즐겨찾기에 추가
-
 Right-click to disable auto-translate
 == 우클릭하여 자동 번역 비활성화
 
 Right-click to enable auto-translate
 == 우클릭하여 자동 번역 활성화
-
-Right-click to remove from favorites
-== 마우스 오른쪽 버튼으로 즐겨찾기에서 제거
 
 Ring
 == 링
@@ -11188,9 +11152,6 @@ Server browser filter string
 
 Server browser sort column
 == 서버 브라우저 정렬 열
-
-Server control
-== 서버 관리
 
 Server could not be started
 == 서버를 시작할 수 없음
@@ -14989,18 +14950,6 @@ Vote a map by name
 
 Vote aborted
 == 투표가 중단되었습니다
-
-Vote command
-== 투표 명령
-
-Vote command:
-== 투표 명령:
-
-Vote description
-== 투표 설명
-
-Vote description:
-== 투표 설명:
 
 Vote duration (in seconds)
 == 투표 지속 시간 (초)
