@@ -3202,6 +3202,9 @@ if(CLIENT)
     QmUi/QmTree.h
     QmUi/SecondaryPanel.h
     QmUi/ServerBrowserFilterForm.cpp
+    QmUi/SettingsMenuWidgets.cpp
+    QmUi/SettingsMenuPrewarm.cpp
+    QmUi/SettingsRuntimeCache.cpp
     QmUi/SettingsCard.cpp
     QmUi/SettingsCardInfo.cpp
     QmUi/SettingsCardInfo.h
@@ -3460,8 +3463,6 @@ if(CLIENT)
     components/qmclient/word_filter_list.cpp
     components/qmclient/word_filter_list.h
     components/qmclient/data_version.h
-    components/qmclient/dummy_hammer_input.cpp
-    components/qmclient/dummy_hammer_input.h
     components/qmclient/demo_ui.h
     components/qmclient/emoticon_commands.h
     components/qmclient/hammer_hit_detection.cpp
@@ -3497,6 +3498,9 @@ if(CLIENT)
     components/qmclient/scoreboard_media_controls.h
     components/qmclient/voting_hud.h
     components/qmclient/menus_qmclient.cpp
+    components/qmclient/menus_qmclient_internal.h
+    components/qmclient/menus_qmclient_popups.cpp
+    components/qmclient/menus_qmclient_search.cpp
     components/qmclient/modes.cpp
     components/qmclient/modes.h
     components/qmclient/nameplate_layout.h
@@ -3706,6 +3710,8 @@ if(CLIENT)
     components/tclient/map_history.cpp
     components/tclient/map_history.h
     components/tclient/menus_tclient.cpp
+    components/tclient/menus_tclient_internal.h
+    components/tclient/menus_tclient_preview.cpp
     components/tclient/mod.cpp
     components/tclient/mod.h
     components/tclient/moving_tiles.cpp
@@ -3807,6 +3813,8 @@ if(CLIENT)
   set_src(GAME_EDITOR GLOB_RECURSE src/game/editor
     auto_map.cpp
     auto_map.h
+    collab_camera.cpp
+    collab_camera.h
     component.cpp
     component.h
     drawing_tools.cpp
@@ -4593,8 +4601,6 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_blank_asset_fallback_test.cpp
     src/test/unit/qmclient/client/qm_spectator_selector_layout_test.cpp
     src/test/unit/qmclient/client/qm_shortcut_held_bind_test.cpp
-    src/test/unit/qmclient/client/qm_dummy_hammer_input_test.cpp
-    src/test/integration/qmclient/client/qm_deepfly_bind_test.cpp
     src/test/unit/qmclient/client/qm_spectator_tele_search_test.cpp
     src/test/unit/qmclient/client/qm_spectator_friend_priority_test.cpp
     src/test/unit/qmclient/client/qm_mobile_spectator_test.cpp
@@ -4602,6 +4608,9 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/client/qm_friend_online_tracker_test.cpp
     src/test/unit/qmclient/client/qm_friends_category_drag_test.cpp
     src/test/unit/engine/friends_revision_test.cpp
+    src/test/unit/engine/friends_pin_test.cpp
+    src/test/integration/engine/friends_pin_persistence_test.cpp
+    src/test/integration/qmclient/client/qm_browser_friend_pin_test.cpp
     src/test/unit/qmclient/monitoring/qm_perf_diagnostics_test.cpp
     src/test/unit/qmclient/monitoring/qm_perf_json_test.cpp
     src/test/unit/qmclient/monitoring/qm_device_sampler_lifecycle_test.cpp
@@ -4669,6 +4678,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/engine/demo_player_test.cpp
     src/test/unit/engine/video_frame_capture_test.cpp
     src/test/unit/engine/editor_test.cpp
+    src/test/unit/client/editor_collab_camera_test.cpp
     src/test/unit/client/editor_quad_slice_test.cpp
     src/test/unit/client/editor_envelope_channels_test.cpp
     src/test/integration/client/editor_envelope_channel_io_test.cpp
@@ -4704,6 +4714,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/ui/players_menu_test.cpp
     src/test/integration/qmclient/ui/vote_map_loader_test.cpp
     src/test/unit/client/map_history_test.cpp
+    src/test/unit/client/map_tile_border_test.cpp
     src/test/unit/engine/map_load_test.cpp
     src/test/unit/engine/linereader_test.cpp
     src/test/unit/base/mapbugs_test.cpp
@@ -4882,6 +4893,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/integration/qmclient/client/qm_removed_ui_config_test.cpp
     src/test/integration/qmclient/client/qm_legacy_config_load_test.cpp
     src/test/integration/engine/config_persistence_test.cpp
+    src/test/integration/engine/console_script_storage_test.cpp
     src/test/contract/qmclient/client/qm_prediction_contract_test.cpp
     src/test/unit/qmclient/client/qm_predicted_event_queue_test.cpp
     src/test/unit/qmclient/client/qm_tee_hue_cycle_test.cpp
@@ -4989,6 +5001,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/qmclient/settings/settings_card_order_drop_test.cpp
     src/test/unit/qmclient/settings/settings_card_interaction_test.cpp
     src/test/unit/qmclient/settings/settings_card_animation_test.cpp
+    src/test/integration/qmclient/settings/settings_card_entry_animation_test.cpp
     src/test/unit/qmclient/settings/settings_card_view_key_test.cpp
     src/test/unit/qmclient/settings/settings_country_flag_plan_test.cpp
     src/test/unit/qmclient/settings/settings_resource_budget_test.cpp
@@ -5079,8 +5092,10 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/unit/client/voice_spatial_utils_test.cpp
   )
   set(TESTS_EXTRA
+    src/game/editor/collab_camera.cpp
     src/game/editor/mapitems/envelope.cpp
     src/game/map/envelope_eval.cpp
+    src/game/map/render_map.cpp
     src/engine/client/backend_threaded.cpp
     src/engine/client/backend/vulkan/backend_vulkan_qm_ext.cpp
     src/engine/client/backend/graphics_backend_contract.cpp
@@ -5139,7 +5154,6 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/game/client/components/qmclient/vote_map_library.cpp
     src/game/client/components/qmclient/vote_map_loader.cpp
     src/game/client/components/qmclient/hammer_hit_detection.cpp
-    src/game/client/components/qmclient/dummy_hammer_input.cpp
     src/game/client/components/qmclient/axiom_scores.cpp
     src/game/client/components/qmclient/axiom_scores_data.cpp
     src/game/client/components/qmclient/streamer_word_filter.cpp
@@ -5386,6 +5400,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/test/integration/qmclient/ui/qm_console_settings_scroll_test.cpp
       src/test/integration/qmclient/ui/qm_scrollbar_color_submission_test.cpp
       src/test/integration/qmclient/ui/qm_background_controls_test.cpp
+      src/test/integration/qmclient/ui/qm_navigation_selection_test.cpp
       src/test/integration/qmclient/ui/qm_editor_text_input_test.cpp
       src/test/integration/qmclient/ui/qm_tooltip_text_layout_test.cpp
       src/test/integration/qmclient/ui/qm_card_summary_layout_test.cpp

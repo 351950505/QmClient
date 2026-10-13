@@ -1419,6 +1419,45 @@ void CCommandProcessorFragment_OpenGL2::SetState(const CCommandBuffer::SState &S
 	}
 }
 
+bool CCommandProcessorFragment_OpenGL2::InitBorderTileProgram(CGLSLTileProgram *pProgram, CGLSLCompiler &Compiler, IStorage *pStorage, bool Textured)
+{
+	CGLSL VertexShader;
+	CGLSL FragmentShader;
+	if(Textured)
+	{
+		Compiler.AddDefine("TW_TILE_TEXTURED", "");
+		if(!m_Has2DArrayTextures)
+			Compiler.AddDefine("TW_TILE_3D_TEXTURED", "");
+	}
+	const bool VertexLoaded = VertexShader.LoadShader(&Compiler, pStorage, "shader/tile_border.vert", GL_VERTEX_SHADER);
+	const bool FragmentLoaded = FragmentShader.LoadShader(&Compiler, pStorage, "shader/tile_border.frag", GL_FRAGMENT_SHADER);
+	Compiler.ClearDefines();
+	// 单阶段程序在兼容上下文中也可能链接成功，必须确认两个阶段都已加载。
+	if(!VertexLoaded || !FragmentLoaded)
+		return false;
+
+	pProgram->CreateProgram();
+	if(!pProgram->AddShader(&VertexShader) || !pProgram->AddShader(&FragmentShader))
+		return false;
+	glBindAttribLocation(pProgram->GetProgramId(), 0, "inVertex");
+	if(Textured)
+		glBindAttribLocation(pProgram->GetProgramId(), 1, "inVertexTexCoord");
+	if(!pProgram->LinkProgram())
+		return false;
+
+	pProgram->m_LocPos = pProgram->GetUniformLoc("gPos");
+	pProgram->m_LocColor = pProgram->GetUniformLoc("gVertColor");
+	pProgram->m_LocOffset = pProgram->GetUniformLoc("gOffset");
+	pProgram->m_LocScale = pProgram->GetUniformLoc("gScale");
+	if(Textured)
+		pProgram->m_LocTextureSampler = pProgram->GetUniformLoc("gTextureSampler");
+	const bool UniformsAvailable = pProgram->m_LocPos >= 0 && pProgram->m_LocColor >= 0 &&
+				       pProgram->m_LocOffset >= 0 && pProgram->m_LocScale >= 0 && (!Textured || pProgram->m_LocTextureSampler >= 0);
+	if(!UniformsAvailable)
+		log_warn("gfx/opengl/shader", "Tile border shader is missing required uniforms (textured=%d).", Textured);
+	return UniformsAvailable;
+}
+
 #ifndef BACKEND_GL_MODERN_API
 bool CCommandProcessorFragment_OpenGL2::DoAnalyzeStep(size_t CheckCount, size_t VerticesCount, uint8_t aFakeTexture[], size_t SingleImageSize)
 {
@@ -1854,55 +1893,13 @@ bool CCommandProcessorFragment_OpenGL2::Cmd_Init(const SCommand_Init *pCommand)
 				m_pTileProgramTextured->m_LocColor = m_pTileProgramTextured->GetUniformLoc("gVertColor");
 			}
 
+			const bool BorderProgramReady = InitBorderTileProgram(m_pBorderTileProgram, ShaderCompiler, pCommand->m_pStorage, false);
+			const bool TexturedBorderProgramReady = InitBorderTileProgram(m_pBorderTileProgramTextured, ShaderCompiler, pCommand->m_pStorage, true);
+			if(!BorderProgramReady || !TexturedBorderProgramReady)
 			{
-				CGLSL VertexShader;
-				CGLSL FragmentShader;
-				VertexShader.LoadShader(&ShaderCompiler, pCommand->m_pStorage, "shader/tile_border.vert", GL_VERTEX_SHADER);
-				FragmentShader.LoadShader(&ShaderCompiler, pCommand->m_pStorage, "shader/tile_border.frag", GL_FRAGMENT_SHADER);
-				ShaderCompiler.ClearDefines();
-
-				m_pBorderTileProgram->CreateProgram();
-				m_pBorderTileProgram->AddShader(&VertexShader);
-				m_pBorderTileProgram->AddShader(&FragmentShader);
-
-				glBindAttribLocation(m_pBorderTileProgram->GetProgramId(), 0, "inVertex");
-
-				m_pBorderTileProgram->LinkProgram();
-
-				UseProgram(m_pBorderTileProgram);
-
-				m_pBorderTileProgram->m_LocPos = m_pBorderTileProgram->GetUniformLoc("gPos");
-				m_pBorderTileProgram->m_LocColor = m_pBorderTileProgram->GetUniformLoc("gVertColor");
-				m_pBorderTileProgram->m_LocOffset = m_pBorderTileProgram->GetUniformLoc("gOffset");
-				m_pBorderTileProgram->m_LocScale = m_pBorderTileProgram->GetUniformLoc("gScale");
-			}
-
-			{
-				CGLSL VertexShader;
-				CGLSL FragmentShader;
-				ShaderCompiler.AddDefine("TW_TILE_TEXTURED", "");
-				if(!pCommand->m_pCapabilities->m_2DArrayTextures)
-					ShaderCompiler.AddDefine("TW_TILE_3D_TEXTURED", "");
-				VertexShader.LoadShader(&ShaderCompiler, pCommand->m_pStorage, "shader/tile_border.vert", GL_VERTEX_SHADER);
-				FragmentShader.LoadShader(&ShaderCompiler, pCommand->m_pStorage, "shader/tile_border.frag", GL_FRAGMENT_SHADER);
-				ShaderCompiler.ClearDefines();
-
-				m_pBorderTileProgramTextured->CreateProgram();
-				m_pBorderTileProgramTextured->AddShader(&VertexShader);
-				m_pBorderTileProgramTextured->AddShader(&FragmentShader);
-
-				glBindAttribLocation(m_pBorderTileProgramTextured->GetProgramId(), 0, "inVertex");
-				glBindAttribLocation(m_pBorderTileProgramTextured->GetProgramId(), 1, "inVertexTexCoord");
-
-				m_pBorderTileProgramTextured->LinkProgram();
-
-				UseProgram(m_pBorderTileProgramTextured);
-
-				m_pBorderTileProgramTextured->m_LocPos = m_pBorderTileProgramTextured->GetUniformLoc("gPos");
-				m_pBorderTileProgramTextured->m_LocTextureSampler = m_pBorderTileProgramTextured->GetUniformLoc("gTextureSampler");
-				m_pBorderTileProgramTextured->m_LocColor = m_pBorderTileProgramTextured->GetUniformLoc("gVertColor");
-				m_pBorderTileProgramTextured->m_LocOffset = m_pBorderTileProgramTextured->GetUniformLoc("gOffset");
-				m_pBorderTileProgramTextured->m_LocScale = m_pBorderTileProgramTextured->GetUniformLoc("gScale");
+				// 保留 OpenGL 和纹理数组能力，地图改走已有的逐瓦片边界延伸绘制。
+				pCommand->m_pCapabilities->m_TileBuffering = false;
+				log_warn("gfx/opengl", "Tile border shader unavailable, using unbuffered tile rendering.");
 			}
 
 			glUseProgram(0);

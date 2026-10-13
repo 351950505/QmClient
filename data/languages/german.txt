@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == Alle
 
+All categories
+== Alle Kategorien
+
 All combined
 == Alle kombiniert
 
@@ -8876,6 +8879,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == Umbenennungsliste des Kreismenüs (| trennt Einträge; Hauptfigur,Dummy benennt beide um)
 
+Pin friend
+== Freund anheften
+
 Ping
 == Ping
 
@@ -11311,6 +11317,9 @@ Set voice input device
 
 Set voice output device
 == Sprachausgabegerät festlegen
+
+Set whether a friend is pinned
+== Festlegen, ob ein Freund angeheftet ist
 
 Set your checkpoints based on another player
 == Deine Checkpoints basierend auf einem anderen Spieler setzen
@@ -14518,6 +14527,9 @@ Unmute:
 
 Unmuted
 == Nicht stummgeschaltet
+
+Unpin friend
+== Freund lösen
 
 Unpredictable ghost opacity (0-100)
 == Unvorhersehbare Geist-Deckkraft (0-100)

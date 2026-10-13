@@ -662,6 +662,9 @@ Alive: %.1fs/%.1fs
 All
 == 全体
 
+All categories
+== 全部
+
 All combined
 == 全部文件
 
@@ -4982,6 +4985,9 @@ Follow
 Follow option color
 == 跟随颜色
 
+Follow remote placements in the collaborative editor
+== 协作制图时，将视角移到其他协作者新增或替换的放置区域
+
 Follow server
 == 跨服跟随
 
@@ -8876,6 +8882,9 @@ Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
 == 饼菜单改名名单（| 分隔选项；C,D 同时改名，C 为本体，D 为分身）
 
+Pin friend
+== 置顶好友
+
 Ping
 == 延迟
 
@@ -11311,6 +11320,9 @@ Set voice input device
 
 Set voice output device
 == 设置语音输出设备
+
+Set whether a friend is pinned
+== 设置好友是否置顶
 
 Set your checkpoints based on another player
 == 根据其他玩家设置你的检查点
@@ -14519,6 +14531,9 @@ Unmute:
 Unmuted
 == 未静音
 
+Unpin friend
+== 取消置顶好友
+
 Unpredictable ghost opacity (0-100)
 == 不可预测幽灵透明度（0-100）
 
@@ -17557,6 +17572,10 @@ FLAG: Place where red team flag is.
 [Editor]
 folder
 == 文件夹
+
+[Editor]
+Follow remote placements
+== 跟随其他协作者的放置
 
 [Editor]
 Font typer

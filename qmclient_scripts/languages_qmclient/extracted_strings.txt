@@ -219,6 +219,7 @@ Alive notification text
 Alive notification vertical position (percentage of screen height)
 Alive: %.1fs/%.1fs
 All
+All categories
 All combined
 All maps
 All players
@@ -1659,6 +1660,7 @@ Folder
 Folder Link
 Follow
 Follow option color
+Follow remote placements in the collaborative editor
 Follow server
 Follow Tee
 Following
@@ -2957,6 +2959,7 @@ Pie menu highlight tint
 Pie menu highlight tint (alpha controls tint strength)
 Pie menu opening and closing effects
 Pie menu rename list (| separates entries; main,dummy renames both)
+Pin friend
 Ping
 Ping the current server
 Pistol
@@ -3769,6 +3772,7 @@ Set timeout protection code s
 Set up Kugou lyrics
 Set voice input device
 Set voice output device
+Set whether a friend is pinned
 Set your checkpoints based on another player
 Sets one of the two rescue modes (auto or manual). Prints current mode if no arguments provided
 Sets your tee's eye emote
@@ -4838,6 +4842,7 @@ Unmute player with IP address
 Unmute player with list index
 Unmute:
 Unmuted
+Unpin friend
 Unpredictable ghost opacity (0-100)
 Unpredictable shadow tee transparency (0 invisible, 100 fully visible)
 Unpredicted ghost opacity
@@ -5701,6 +5706,7 @@ Zoom to current mouse target
 [Editor]	FLAG: Place where blue team flag is.
 [Editor]	FLAG: Place where red team flag is.
 [Editor]	folder
+[Editor]	Follow remote placements
 [Editor]	Font typer
 [Editor]	Force
 [Editor]	Freeze

@@ -324,7 +324,7 @@ void CMenus::RenderQmFunctionKeywordReplyContent(CUIRect &Content, float UiScale
 	const char *apTabs[] = {Localize("Rule list"), Localize("Reply content"), Localize("Trigger limits")};
 	if(Flow.Control("keyword-tabs", LineHeight, Row))
 	{
-		const int NewTab = DoSegmentedChoice(s_aKeywordTabButtons, apTabs, std::size(apTabs), s_KeywordReplyTab, Row, ui_token::radius::BASE, nullptr, BodySize);
+		const int NewTab = DoNavigationTabs(s_aKeywordTabButtons, apTabs, std::size(apTabs), s_KeywordReplyTab, Row, ui_token::radius::BASE, nullptr, BodySize);
 		if(CanCommit)
 		{
 			s_pKeywordTabDropDown = &m_SettingsRadioStates.at(s_aKeywordTabButtons).m_DropDown;

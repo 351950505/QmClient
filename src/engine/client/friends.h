@@ -24,6 +24,7 @@ class CFriends : public IFriends
 	static void ConRenameFriendCategory(IConsole::IResult *pResult, void *pUserData);
 	static void ConRemoveFriendCategory(IConsole::IResult *pResult, void *pUserData);
 	static void ConSetFriendCategory(IConsole::IResult *pResult, void *pUserData);
+	static void ConSetFriendPinned(IConsole::IResult *pResult, void *pUserData);
 	static void ConSetFriendNote(IConsole::IResult *pResult, void *pUserData);
 	static void ConClearFriendNote(IConsole::IResult *pResult, void *pUserData);
 	static void ConFriends(IConsole::IResult *pResult, void *pUserData);
@@ -45,6 +46,8 @@ public:
 	const CFriendInfo *GetFriend(int Index) const override;
 	int GetFriendState(const char *pName, const char *pClan) const override;
 	bool IsFriend(const char *pName, const char *pClan, bool PlayersOnly) const override;
+	bool IsFriendPinned(const char *pName, const char *pClan) const override;
+	bool SetFriendPinned(const char *pName, const char *pClan, bool Pinned) override;
 	const char *GetFriendCategory(const char *pName, const char *pClan) const override;
 	const char *GetFriendNote(const char *pName, const char *pClan) const override;
 	bool SetFriendNote(const char *pName, const char *pClan, const char *pNote) override;

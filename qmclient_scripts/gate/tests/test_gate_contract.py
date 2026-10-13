@@ -160,6 +160,8 @@ class GateLibraryContractTest(unittest.TestCase):
 		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/cards/QmCardCatalogSkin.cpp"]))
 		self.assertTrue(settings_ui.should_run(["src/game/client/components/menus.cpp"]))
 		self.assertTrue(settings_ui.should_run(["src/game/client/components/tclient/menus_tclient.cpp"]))
+		self.assertTrue(settings_ui.should_run(["src/game/client/components/qmclient/menus_qmclient_search.cpp"]))
+		self.assertTrue(settings_ui.should_run(["src/game/client/QmUi/SettingsMenuWidgets.cpp"]))
 		self.assertFalse(settings_ui.should_run(["src/game/client/gameclient.cpp"]))
 
 	def test_settings_ui_irrelevant_scope_is_not_applicable(self):

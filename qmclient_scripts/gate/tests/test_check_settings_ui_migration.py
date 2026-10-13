@@ -324,6 +324,16 @@ Clean.m_FontSize = Metrics.m_BodySize;
 		self.write("src/game/client/ui_popups.cpp", "void ArbitraryPopupImplementation() {}")
 		self.assertEqual(audit_shared_contracts(self.root), [])
 
+	def test_moved_settings_modules_keep_shared_api_contracts(self):
+		for source in (
+			"src/game/client/components/qmclient/menus_qmclient_search.cpp",
+			"src/game/client/QmUi/SettingsMenuWidgets.cpp",
+		):
+			with self.subTest(source=source):
+				self.write(source, "Ui()->DoDropDown();")
+				self.assertTrue(any("dropdown bypasses" in error for error in audit_shared_contracts(self.root)))
+				self.write(source, "")
+
 
 if __name__ == "__main__":
 	unittest.main()

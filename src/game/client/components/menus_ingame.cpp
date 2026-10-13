@@ -2197,19 +2197,16 @@ void CMenus::RenderServerControlLegacy(CUIRect MainView)
 	ControlTabsRemainder.VSplitLeft(ControlTabsRemainder.w / 3.0f, &aControlTabSlots[0], &ControlTabsRemainder);
 	ControlTabsRemainder.VSplitMid(&aControlTabSlots[1], &aControlTabSlots[2]);
 	const int ActiveControlTab = s_ControlPage == EServerControlTab::SETTINGS ? 0 : (s_ControlPage == EServerControlTab::KICKVOTE ? 1 : 2);
-	ui_widget::CapsuleTabBarChrome(TabBarUiContext(), MakeUiScopeHash("ingame_server_control_tabs_capsule"), aControlTabSlots, 3, ActiveControlTab, CapsuleTabBarStyleFor(ms_ColorTabbarActive));
+	s_ControlPage = static_cast<EServerControlTab>(ui_widget::CapsuleTabBar(TabBarUiContext(), MakeUiScopeHash("ingame_server_control_tabs_capsule"), aControlTabSlots, 3, ActiveControlTab, CapsuleTabBarStyleFor(ms_ColorTabbarActive)));
 
 	static CButtonContainer s_Button0;
-	if(DoButton_MenuTab(&s_Button0, Localize("Change settings"), s_ControlPage == EServerControlTab::SETTINGS, &aControlTabSlots[0], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true))
-		s_ControlPage = EServerControlTab::SETTINGS;
+	DoButton_MenuTab(&s_Button0, Localize("Change settings"), s_ControlPage == EServerControlTab::SETTINGS, &aControlTabSlots[0], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true);
 
 	static CButtonContainer s_Button1;
-	if(DoButton_MenuTab(&s_Button1, Localize("Kick player"), s_ControlPage == EServerControlTab::KICKVOTE, &aControlTabSlots[1], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true))
-		s_ControlPage = EServerControlTab::KICKVOTE;
+	DoButton_MenuTab(&s_Button1, Localize("Kick player"), s_ControlPage == EServerControlTab::KICKVOTE, &aControlTabSlots[1], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true);
 
 	static CButtonContainer s_Button2;
-	if(DoButton_MenuTab(&s_Button2, Localize("Move player to spectators"), s_ControlPage == EServerControlTab::SPECVOTE, &aControlTabSlots[2], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true))
-		s_ControlPage = EServerControlTab::SPECVOTE;
+	DoButton_MenuTab(&s_Button2, Localize("Move player to spectators"), s_ControlPage == EServerControlTab::SPECVOTE, &aControlTabSlots[2], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 10.0f, nullptr, nullptr, -1.0f, true);
 
 	if(!s_ControlPageTransitionInitialized)
 	{
@@ -2783,29 +2780,9 @@ void CMenus::RenderInGameNetwork(CUIRect MainView)
 	}
 
 	const IUiContext TabBarCtx = TabBarUiContext();
-	ui_widget::CapsuleTabBarChrome(TabBarCtx, MakeUiScopeHash("menubar_capsule_ingame_server_tabs"), aServerTabSlots, NumServerTabs, ActiveServerTab, MenuCapsuleTabBarStyle());
-
-	TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
-	TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
-	for(int TabIndex = 0; TabIndex < NumServerTabs; ++TabIndex)
-	{
-		const SServerTab &Tab = aServerTabs[TabIndex];
-		const CUIRect &Slot = aServerTabSlots[TabIndex];
-		const bool TabActive = g_Config.m_UiPage == Tab.m_Page;
-		ColorRGBA InactiveColor = QmMenuTabDefaultColor();
-		ColorRGBA ActiveColor = QmMenuTabActiveColor();
-		ColorRGBA HoverColor = QmMenuMenubarHoverColor();
-		InactiveColor.a *= Tab.m_AppearStrength;
-		ActiveColor.a *= Tab.m_AppearStrength;
-		HoverColor.a *= Tab.m_AppearStrength;
-		if(DoMenuTabV2_QmIcon(&s_aServerTabButtons[TabIndex], Tab.m_Icon, Tab.m_pIcon, TabActive, &Slot, IGraphics::CORNER_ALL, &InactiveColor, &ActiveColor, &HoverColor, Tab.m_pCommunityIcon, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true))
-		{
-			NewPage = Tab.m_Page;
-		}
-		GameClient()->m_Tooltips.DoToolTip(&s_aServerTabButtons[TabIndex], &Slot, Tab.m_pTooltip);
-	}
-	TextRender()->SetRenderFlags(0);
-	TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
+	const int PressedServerTab = ui_widget::CapsuleTabBarPressedIndex(TabBarCtx, aServerTabSlots, NumServerTabs);
+	if(PressedServerTab >= 0)
+		NewPage = aServerTabs[PressedServerTab].m_Page;
 
 	// 键盘左右键循环切换服务器页签。
 	int MaxPage = PAGE_FAVORITES + ServerBrowser()->FavoriteCommunities().size();
@@ -2851,10 +2828,32 @@ void CMenus::RenderInGameNetwork(CUIRect MainView)
 		}
 	}
 
-	if(NewPage != g_Config.m_UiPage)
+	ActiveServerTab = -1;
+	for(int TabIndex = 0; TabIndex < NumServerTabs; ++TabIndex)
+		if(aServerTabs[TabIndex].m_Page == NewPage)
+			ActiveServerTab = TabIndex;
+	ui_widget::CapsuleTabBarChrome(TabBarCtx, MakeUiScopeHash("menubar_capsule_ingame_server_tabs"), aServerTabSlots, NumServerTabs, ActiveServerTab, MenuCapsuleTabBarStyle());
+
+	TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+	TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGNMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
+	for(int TabIndex = 0; TabIndex < NumServerTabs; ++TabIndex)
 	{
-		SetMenuPage(NewPage);
+		const SServerTab &Tab = aServerTabs[TabIndex];
+		const CUIRect &Slot = aServerTabSlots[TabIndex];
+		const bool TabActive = NewPage == Tab.m_Page;
+		ColorRGBA InactiveColor = QmMenuTabDefaultColor();
+		ColorRGBA ActiveColor = QmMenuTabActiveColor();
+		ColorRGBA HoverColor = QmMenuMenubarHoverColor();
+		InactiveColor.a *= Tab.m_AppearStrength;
+		ActiveColor.a *= Tab.m_AppearStrength;
+		HoverColor.a *= Tab.m_AppearStrength;
+		DoMenuTabV2_QmIcon(&s_aServerTabButtons[TabIndex], Tab.m_Icon, Tab.m_pIcon, TabActive, &Slot, IGraphics::CORNER_ALL, &InactiveColor, &ActiveColor, &HoverColor, Tab.m_pCommunityIcon, nullptr, MENU_MENUBAR_CONTENT_SCALE_NEW, true);
+		GameClient()->m_Tooltips.DoToolTip(&s_aServerTabButtons[TabIndex], &Slot, Tab.m_pTooltip);
 	}
+	TextRender()->SetRenderFlags(0);
+	TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
+	if(NewPage != g_Config.m_UiPage)
+		SetMenuPage(NewPage);
 
 	// 浏览页由 RenderServerbrowser 绘制服务器列表、状态栏与工具箱，不叠加整页背景。
 	RenderServerbrowser(MainView, false);

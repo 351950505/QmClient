@@ -4236,14 +4236,13 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 		AssetsTabsRemainder.VSplitLeft(TabWidth, &aAssetsTabSlots[Tab], &AssetsTabsRemainder);
 	const int ActiveAssetsTab = std::clamp(s_CurCustomTab, (int)ASSETS_TAB_ENTITIES, (int)NUMBER_OF_ASSETS_TABS - 1);
 	const IUiContext AssetsTabBarCtx = TabBarUiContext();
-	ui_widget::CapsuleTabBarChrome(AssetsTabBarCtx, MakeUiScopeHash("settings_assets_tabs_capsule"), ui_widget::CapsuleTabBarRowRect(aAssetsTabSlots, NUMBER_OF_ASSETS_TABS), &aAssetsTabSlots[ActiveAssetsTab], SettingsCapsuleTabBarStyle());
+	const int SelectedAssetsTab = ui_widget::CapsuleTabBar(AssetsTabBarCtx, MakeUiScopeHash("settings_assets_tabs_capsule"), aAssetsTabSlots, NUMBER_OF_ASSETS_TABS, ActiveAssetsTab, SettingsCapsuleTabBarStyle());
+	if(!Ui()->RenderOnly())
+		s_CurCustomTab = SelectedAssetsTab;
 
 	for(int Tab = ASSETS_TAB_ENTITIES; Tab < NUMBER_OF_ASSETS_TABS; ++Tab)
 	{
-		if(DoButton_MenuTab(&s_aPageTabs[Tab], s_apAssetsTabNames[Tab], s_CurCustomTab == Tab, &aAssetsTabSlots[Tab], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true))
-		{
-			s_CurCustomTab = Tab;
-		}
+		DoButton_MenuTab(&s_aPageTabs[Tab], s_apAssetsTabNames[Tab], s_CurCustomTab == Tab, &aAssetsTabSlots[Tab], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true);
 	}
 
 	if(!s_AssetsTransitionInitialized)

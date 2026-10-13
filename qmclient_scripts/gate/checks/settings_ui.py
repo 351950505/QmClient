@@ -24,6 +24,14 @@ TRIGGER_PATHS = {
 	"src/game/client/components/menus_settings_controls.cpp",
 	"src/game/client/components/qmclient/menus_qmclient.cpp",
 	"src/game/client/components/tclient/menus_tclient.cpp",
+	"src/game/client/components/tclient/menus_tclient_internal.h",
+	"src/game/client/components/tclient/menus_tclient_preview.cpp",
+	"src/game/client/components/qmclient/menus_qmclient_internal.h",
+	"src/game/client/components/qmclient/menus_qmclient_search.cpp",
+	"src/game/client/components/qmclient/menus_qmclient_popups.cpp",
+	"src/game/client/QmUi/SettingsMenuWidgets.cpp",
+	"src/game/client/QmUi/SettingsMenuPrewarm.cpp",
+	"src/game/client/QmUi/SettingsRuntimeCache.cpp",
 }
 
 TRIGGER_PREFIXES = ("src/game/client/QmUi/SettingsCard", "src/game/client/QmUi/cards/QmCardCatalog")

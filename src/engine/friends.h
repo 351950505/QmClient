@@ -17,6 +17,7 @@ struct CFriendInfo
 	char m_aNote[128];
 	unsigned m_NameHash;
 	unsigned m_ClanHash;
+	bool m_Pinned;
 };
 
 class IFriends : public IInterface
@@ -40,11 +41,13 @@ public:
 	virtual void Init(bool Foes = false) = 0;
 
 	virtual int NumFriends() const = 0;
-	// 好友身份与分组变化的版本；备注在显示时直接读取。
+	// 好友身份、分组与置顶变化的版本；备注在显示时直接读取。
 	virtual uint64_t Revision() const = 0;
 	virtual const CFriendInfo *GetFriend(int Index) const = 0;
 	virtual int GetFriendState(const char *pName, const char *pClan) const = 0;
 	virtual bool IsFriend(const char *pName, const char *pClan, bool PlayersOnly) const = 0;
+	virtual bool IsFriendPinned(const char *pName, const char *pClan) const = 0;
+	virtual bool SetFriendPinned(const char *pName, const char *pClan, bool Pinned) = 0;
 	virtual const char *GetFriendCategory(const char *pName, const char *pClan) const = 0;
 	virtual const char *GetFriendNote(const char *pName, const char *pClan) const = 0;
 	virtual bool SetFriendNote(const char *pName, const char *pClan, const char *pNote) = 0;

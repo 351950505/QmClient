@@ -707,3 +707,11 @@ qm_card_catalog::STClientCardResult CMenus::RunTClientWarListCard(const qm_card_
 	}
 	return {0.0f, CardRevision};
 }
+
+void CMenus::PopupConfirmRemoveWarType()
+{
+	const auto &vpTypes = GameClient()->m_WarList.m_WarTypes;
+	if(std::find(vpTypes.begin(), vpTypes.end(), m_pRemoveWarType) != vpTypes.end())
+		GameClient()->m_WarList.RemoveWarType(m_pRemoveWarType->m_aWarName);
+	m_pRemoveWarType = nullptr;
+}

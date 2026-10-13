@@ -234,7 +234,7 @@ _PAGE_SOURCE = {
 	"qmclient_function": Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
 	"qmclient_visual": Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
 	"contributors": Path("src/game/client/components/menus_credits.cpp"),
-	"global_search": Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
+	"global_search": Path("src/game/client/components/qmclient/menus_qmclient_search.cpp"),
 	"tclient": Path("src/game/client/components/tclient/menus_tclient.cpp"),
 	"tclient_bind_wheel": Path("src/game/client/components/tclient/menus_tclient.cpp"),
 	"tclient_chat_binds": Path("src/game/client/components/tclient/menus_tclient.cpp"),
@@ -341,6 +341,12 @@ _TYPOGRAPHY_SOURCES = (
 	Path("src/game/client/components/menus_settings_controls.cpp"),
 	Path("src/game/client/components/tclient/menus_tclient.cpp"),
 	Path("src/game/client/components/qmclient/menus_qmclient.cpp"),
+	Path("src/game/client/components/qmclient/menus_qmclient_search.cpp"),
+	Path("src/game/client/components/qmclient/menus_qmclient_popups.cpp"),
+	Path("src/game/client/components/tclient/menus_tclient_preview.cpp"),
+	Path("src/game/client/QmUi/SettingsMenuWidgets.cpp"),
+	Path("src/game/client/QmUi/SettingsMenuPrewarm.cpp"),
+	Path("src/game/client/QmUi/SettingsRuntimeCache.cpp"),
 )
 _FONT_ASSIGNMENT_SOURCES = _TYPOGRAPHY_SOURCES + (_NAVIGATION_SOURCE,)
 # 特殊视觉元素不属于设置内容文字：国旗代码、Tee/皮肤状态图标、统计预览、

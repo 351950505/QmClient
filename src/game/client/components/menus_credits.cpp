@@ -235,17 +235,15 @@ void CMenus::RenderSettingsContributors(CUIRect MainView, bool PrewarmOnly)
 		for(int Tab = 0; Tab < CREDITS_SETTINGS_TAB_NUM; ++Tab)
 			TabsRemainder.VSplitLeft(TabWidth, &aTabSlots[Tab], &TabsRemainder);
 		const IUiContext TabBarCtx = TabBarUiContext();
-		ui_widget::CapsuleTabBarChrome(TabBarCtx, MakeUiScopeHash("settings_credits_tabs_capsule"), ui_widget::CapsuleTabBarRowRect(aTabSlots, CREDITS_SETTINGS_TAB_NUM), &aTabSlots[m_CreditsSettingsTab], SettingsCapsuleTabBarStyle());
+		const int SelectedTab = ui_widget::CapsuleTabBar(TabBarCtx, MakeUiScopeHash("settings_credits_tabs_capsule"), aTabSlots, CREDITS_SETTINGS_TAB_NUM, m_CreditsSettingsTab, SettingsCapsuleTabBarStyle());
+		if(!ReadOnly && m_CreditsSettingsTab != SelectedTab)
+		{
+			m_CreditsSettingsTab = SelectedTab;
+			m_SettingsCardDeck.BeginDisplayCycle(++m_SettingsCardDeckDisplayCycle, true);
+		}
 		for(int Tab = 0; Tab < CREDITS_SETTINGS_TAB_NUM; ++Tab)
 		{
-			if(DoButton_MenuTab(&s_aPageTabs[Tab], apCreditsTabNames[Tab], m_CreditsSettingsTab == Tab, &aTabSlots[Tab], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true) && !ReadOnly)
-			{
-				if(m_CreditsSettingsTab != Tab)
-				{
-					m_CreditsSettingsTab = Tab;
-					m_SettingsCardDeck.BeginDisplayCycle(++m_SettingsCardDeckDisplayCycle, true);
-				}
-			}
+			DoButton_MenuTab(&s_aPageTabs[Tab], apCreditsTabNames[Tab], m_CreditsSettingsTab == Tab, &aTabSlots[Tab], IGraphics::CORNER_ALL, nullptr, nullptr, nullptr, nullptr, 4.0f, nullptr, nullptr, -1.0f, true);
 		}
 	}
 

@@ -14,10 +14,8 @@
 namespace ui_widget
 {
 
-	// Horizontal tab bar. Splits Rect into Count equal columns, renders each with
-	// CMenus::DoButton_MenuTab and animates a 2px accent underline to the active
-	// tab via the v2 animation runtime. Updates *pActive on click; returns the
-	// new value (same as *pActive after this call).
+	// 水平导航等分槽位，按下时更新 *pActive，再绘制胶囊滑块和页签文字。
+	// 返回值与本帧更新后的 *pActive 相同。
 	int TabBar(const IUiContext &Ctx, const char *const *ppLabels, int Count, int *pActive, const CUIRect &Rect);
 
 	// 胶囊 Tabbar：整排 Tab 共用一个胶囊容器，激活位置由一枚弹簧驱动的滑块胶囊标记。
@@ -113,6 +111,9 @@ namespace ui_widget
 		}
 		CapsuleTabBarChrome(Ctx, GroupId, CapsuleTabBarRowRect(pSlots, Count), pSlots != nullptr && ActiveIndex >= 0 && ActiveIndex < Count ? &pSlots[ActiveIndex] : nullptr, Style, Tints);
 	}
+
+	// 先解析本帧按下，再绘制选中滑块；调用方用返回值绘制文字和正文。
+	int CapsuleTabBar(const IUiContext &Ctx, uint64_t GroupId, const CUIRect *pSlots, int Count, int ActiveIndex, const SCapsuleTabBarStyle &Style, const ColorRGBA *pSlotTints = nullptr);
 
 	// 胶囊配色推导：滑块与文字色由容器表面色明暗自适应 —— 容器偏暗用亮滑块 + 深字，
 	// 容器偏亮反过来，避免"白底白滑块"或"深底深字"。各 Tabbar 传入自己的容器表面色。

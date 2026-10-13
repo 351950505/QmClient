@@ -43,6 +43,10 @@ export interface ReportQuality {
   totalLines: number;
   invalidLines: number;
   sampledEntries: number;
+  sampledFrameEntries: number | null;
+  sampledDetailEntries: number | null;
+  droppedEventEntries: number | null;
+  frameSamplesEstimated: boolean;
   samplingThresholdMs: number;
   biased: boolean;
   operation: OperationSignature;
@@ -365,10 +369,26 @@ export function reportQuality(entries: PerfEntry[], diagnostics: ParseDiagnostic
   const frameEntries = selectFrameTimeEntries(entries);
   const durations = frameEntries.map(e => entryDurationMs(e) ?? e.durationMs);
   const samplingThresholdMs = inferSamplingThreshold(durations);
-  const biased = !hasUnifiedFrameSamples(entries) && isSamplingBiased(durations, BUDGET.samplingDefault);
+  const unifiedFrameSamples = hasUnifiedFrameSamples(entries);
+  const biased = !unifiedFrameSamples && isSamplingBiased(durations, BUDGET.samplingDefault);
+  // 历史日志的帧耗时保存在明细池；旧诊断缺少分项时沿用总量保守判断。
+  const sampledFrameSourceEntries = (unifiedFrameSamples
+    ? diagnostics.sampledFrameEntries : diagnostics.sampledDetailEntries) ?? diagnostics.sampledEntries ?? 0;
+  const frameSamplesEstimated = frameEntries.length > 0 && sampledFrameSourceEntries > 0;
   const warnings: string[] = [];
   if ((diagnostics.sampledEntries ?? 0) > 0) {
-    warnings.push('analysis_sampled: 大日志已使用有界样本，百分位和合规率为估计值，窗口归因仅覆盖保留事件；完整记录见原日志');
+    warnings.push(frameSamplesEstimated
+      ? 'analysis_sampled: 帧时间数据已使用有界样本，百分位和合规率为估计值；完整记录见原日志'
+      : 'analysis_sampled: 归因数据存在抽样或截断，完整帧数据仍用于计算百分位和合规率');
+  }
+  if ((diagnostics.sampledDetailEntries ?? 0) > 0) {
+    warnings.push(`detail_samples_sampled: ${diagnostics.sampledDetailEntries} 条明细未保留，阶段与页面归因仅覆盖保留事件`);
+  }
+  if ((diagnostics.droppedEventEntries ?? 0) > 0) {
+    warnings.push(`window_events_dropped: ${diagnostics.droppedEventEntries} 条窗口事件未保留，操作窗口归因可能不完整`);
+  }
+  if ((diagnostics.sampledEntries ?? 0) > 0 && diagnostics.sampledDetailEntries === undefined && diagnostics.droppedEventEntries === undefined) {
+    warnings.push('attribution_sampling_unknown: 旧诊断未区分明细与窗口事件损失，归因仅供参考');
   }
   if (diagnostics.configurationIncomplete || configurationSummary(entries).incomplete) {
     warnings.push('configuration_incomplete: 配置记录存在缺失或未完成的分段');
@@ -482,6 +502,10 @@ export function reportQuality(entries: PerfEntry[], diagnostics: ParseDiagnostic
     totalLines: diagnostics.totalLines,
     invalidLines: diagnostics.invalidLines,
     sampledEntries: diagnostics.sampledEntries ?? 0,
+    sampledFrameEntries: diagnostics.sampledFrameEntries ?? null,
+    sampledDetailEntries: diagnostics.sampledDetailEntries ?? null,
+    droppedEventEntries: diagnostics.droppedEventEntries ?? null,
+    frameSamplesEstimated,
     samplingThresholdMs,
     biased,
     operation: operationSignature(entries),
@@ -514,7 +538,7 @@ export function summarizeForBundle(entries: PerfEntry[], sourceFile: string, dia
     generatedAt: new Date().toISOString(),
     sourceFile: basename(sourceFile),
     percentiles,
-    verdict: quality.failed ? 'FAIL' : frameEntries.length === 0 || (quality.sampledEntries > 0 && computeVerdict(percentiles, spikes.length) === 'PASS') ? 'WARN' : computeVerdict(percentiles, spikes.length),
+    verdict: quality.failed ? 'FAIL' : frameEntries.length === 0 || (quality.frameSamplesEstimated && computeVerdict(percentiles, spikes.length) === 'PASS') ? 'WARN' : computeVerdict(percentiles, spikes.length),
     verdictAvailable: frameEntries.length > 0,
     spikeCount: spikes.length,
     quality,
