@@ -5407,6 +5407,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/test/integration/qmclient/ui/qm_adaptive_choice_test.cpp
       src/test/integration/qmclient/ui/qm_console_button_text_layout_test.cpp
       src/test/integration/qmclient/ui/qm_icon_text_test.cpp
+      src/test/integration/qmclient/ui/qm_surface_text_test.cpp
       src/test/integration/qmclient/ui/qm_theme_selection_test.cpp
       src/test/integration/qmclient/ui/qm_ui_element_lifetime_test.cpp
       src/engine/client/text.cpp
