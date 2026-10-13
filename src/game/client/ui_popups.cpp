@@ -1266,16 +1266,6 @@ int CUi::DoDropDown(CUIRect *pRect, int CurSelection, const char *const *pStrs, 
 	return DoDropDown(pRect, CurSelection, pStrs, Num, State, DropDownProps);
 }
 
-void CUi::SColorPickerPopupContext::ApplyPreset(unsigned Rgb)
-{
-	m_RgbaColor = ResolveUiColorPickerPreset(Rgb, m_RgbaColor.a);
-	m_HslaColor = color_cast<ColorHSLA>(m_RgbaColor);
-	m_HsvaColor = color_cast<ColorHSVA>(m_HslaColor);
-	if(m_pHslaColor != nullptr)
-		*m_pHslaColor = m_HslaColor.Pack(m_Alpha);
-	m_State = EEditState::ONE_GO;
-}
-
 namespace
 {
 	// 取色器二级弹窗页面布局常量（逻辑像素，外层套 ui 缩放）。
@@ -1811,10 +1801,9 @@ CUi::EPopupMenuFunctionResult CUi::PopupColorPicker(void *pContext, CUIRect View
 
 				if(Click == 1)
 				{
-					pColorPicker->ApplyPreset(PresetRgb.PackAlphaLast(false));
-					PickerColorRGB = pColorPicker->m_RgbaColor;
-					PickerColorHSL = pColorPicker->m_HslaColor;
-					PickerColorHSV = pColorPicker->m_HsvaColor;
+					PickerColorHSV = PresetHsv;
+					SyncFromHsv();
+					pColorPicker->m_State = EEditState::ONE_GO;
 				}
 			}
 		}

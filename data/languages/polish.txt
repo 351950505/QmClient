@@ -2669,8 +2669,8 @@ Console color
 Console color scheme
 == Konsola: schemat kolorów
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== Konsola: schemat kolorów: 0=Nowoczesny terminal, 1=Klasyczny PowerShell, 2=własny, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== Konsola: schemat kolorów: 0=Nowoczesny terminal, 1=Klasyczny PowerShell, 2=własny
 
 Console command color
 == Konsola: kolor poleceń
@@ -6287,9 +6287,6 @@ Interface surface
 Interface surface color
 == Kolor powierzchni interfejsu
 
-Interface text size percentage
-== Rozmiar tekstu interfejsu w procentach
-
 Interface transparency
 == Ogólna przezroczystość interfejsu
 
@@ -7936,9 +7933,6 @@ Nameplates
 
 Native scale (1.0)
 == Natywna skala (1.0)
-
-Navigation size percentage
-== Rozmiar nawigacji w procentach
 
 Need to have started the map to swap with a player.
 == Musisz rozpocząć mapę, aby zamienić się miejscami z graczem.
@@ -11363,9 +11357,6 @@ Settings card titles use rainbow colors
 Settings file
 == Plik ustawień
 
-Settings navigation migration version
-== Wersja migracji nawigacji ustawień
-
 Settings page opacity
 == Krycie strony ustawień
 
@@ -14357,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == Skala UI
 
-UI scrolling: 0=original, 1=damped
-== Przewijanie interfejsu: 0=oryginalne, 1=tłumione
-
 UI server address
 == Adres serwera UI
 
@@ -14734,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Używaj potoku pierścieni proceduralnych przy włączonym ulepszonym renderowaniu
-
-Use rounded corners for interface surfaces
-== Używaj zaokrąglonych narożników elementów interfejsu
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Używaj potoków SDF dla Dynamic Island i zaokrąglonych prostokątów przy włączonym ulepszonym renderowaniu

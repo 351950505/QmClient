@@ -2669,8 +2669,8 @@ Console color
 Console color scheme
 == 控制台: 配色
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== 控制台: 配色: 0=現代終端, 1=經典 PowerShell, 2=自訂, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== 控制台: 配色: 0=現代終端, 1=經典 PowerShell, 2=自訂
 
 Console command color
 == 控制台: 命令顏色
@@ -6287,9 +6287,6 @@ Interface surface
 Interface surface color
 == 介面表面顏色
 
-Interface text size percentage
-== 介面文字大小百分比
-
 Interface transparency
 == 通用介面透明度
 
@@ -7936,9 +7933,6 @@ Nameplates
 
 Native scale (1.0)
 == 原生縮放 (1.0)
-
-Navigation size percentage
-== 導覽大小百分比
 
 Need to have started the map to swap with a player.
 == 你需要先開始地圖，才能和其他玩家交換位置
@@ -11363,9 +11357,6 @@ Settings card titles use rainbow colors
 Settings file
 == 設置文件
 
-Settings navigation migration version
-== 設定導覽遷移版本
-
 Settings page opacity
 == 設定頁不透明度
 
@@ -14357,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI 大小
 
-UI scrolling: 0=original, 1=damped
-== 介面捲動：0=原版，1=阻尼
-
 UI server address
 == 界面伺服器地址
 
@@ -14734,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == 啟用增強渲染時使用程序化圓環管線
-
-Use rounded corners for interface surfaces
-== 在介面區域使用圓角
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == 啟用增強渲染時，為動態島和圓角矩形使用 SDF 管線

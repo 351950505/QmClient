@@ -113,7 +113,6 @@ struct SQmResolvedScrollPolicy
 SQmScrollContainerStyle QmScrollContainerStyleForSize(EQmScrollSize Size, float UiScale = 1.0f);
 SQmScrollConfig QmNativeWheelScrollConfig(float UiScale, float SmoothScrollTimeSec);
 SQmScrollConfig QmSettingsScrollConfig(float UiScale, float SmoothScrollTimeSec);
-SQmScrollConfig QmScrollConfigForMode(SQmScrollConfig Config, int Mode);
 SQmResolvedScrollPolicy QmResolveScrollPolicy(const SQmScrollRequest &Request, float UiScale = 1.0f, float SmoothScrollTimeSec = 0.0f);
 
 struct SQmScrollContentDragState

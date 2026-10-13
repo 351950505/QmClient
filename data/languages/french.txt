@@ -2669,8 +2669,8 @@ Console color
 Console color scheme
 == Console: palette de couleurs
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== Console: palette de couleurs: 0=Terminal moderne, 1=PowerShell classique, 2=personnalisée, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== Console: palette de couleurs: 0=Terminal moderne, 1=PowerShell classique, 2=personnalisée
 
 Console command color
 == Console: couleur des commandes
@@ -6287,9 +6287,6 @@ Interface surface
 Interface surface color
 == Couleur de la surface de l'interface
 
-Interface text size percentage
-== Taille du texte de l’interface en pourcentage
-
 Interface transparency
 == Opacité générale de l'interface
 
@@ -7936,9 +7933,6 @@ Nameplates
 
 Native scale (1.0)
 == Échelle native (1.0)
-
-Navigation size percentage
-== Taille de la navigation en pourcentage
 
 Need to have started the map to swap with a player.
 == Vous devez avoir commencé la carte pour échanger avec un joueur.
@@ -11363,9 +11357,6 @@ Settings card titles use rainbow colors
 Settings file
 == Fichier de paramètres
 
-Settings navigation migration version
-== Version de migration de la navigation des paramètres
-
 Settings page opacity
 == Opacité de la page des paramètres
 
@@ -14357,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == Échelle de l'interface utilisateur
 
-UI scrolling: 0=original, 1=damped
-== Défilement de l’interface : 0=original, 1=amorti
-
 UI server address
 == Adresse du serveur UI
 
@@ -14734,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == Utiliser le pipeline d’anneaux procéduraux lorsque le rendu amélioré est actif
-
-Use rounded corners for interface surfaces
-== Utiliser des coins arrondis pour les surfaces de l’interface
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == Utiliser les pipelines SDF pour Dynamic Island et les rectangles arrondis lorsque le rendu amélioré est actif

@@ -77,7 +77,7 @@ bool DrawRoundedSurface(CUi *pUi, const CUIRect &Rect, const ColorRGBA &Fill, co
 	if(pUi == nullptr || pUi->DrawingSuppressed())
 		return false;
 	SRoundedSurfaceParams Params;
-	Params.m_Radius = pUi->QmSurfaceRounding(Radius);
+	Params.m_Radius = Radius;
 	Params.m_BorderWidth = BorderWidth;
 	Params.m_PixelSize = pUi->PixelSize();
 	Params.m_Corners = Corners;

@@ -2669,8 +2669,8 @@ Console color
 Console color scheme
 == 콘솔: 색 구성
 
-Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom, 3=PowerShell 7
-== 콘솔: 색 구성: 0=현대식 터미널, 1=클래식 PowerShell, 2=사용자 지정, 3=PowerShell 7
+Console color scheme: 0=modern terminal, 1=classic PowerShell, 2=custom
+== 콘솔: 색 구성: 0=현대식 터미널, 1=클래식 PowerShell, 2=사용자 지정
 
 Console command color
 == 콘솔: 명령어 색상
@@ -6287,9 +6287,6 @@ Interface surface
 Interface surface color
 == 인터페이스 표면 색상
 
-Interface text size percentage
-== 인터페이스 글자 크기 비율
-
 Interface transparency
 == 일반 UI 투명도
 
@@ -7936,9 +7933,6 @@ Nameplates
 
 Native scale (1.0)
 == 네이티브 스케일 (1.0)
-
-Navigation size percentage
-== 탐색 메뉴 크기 비율
 
 Need to have started the map to swap with a player.
 == 플레이어와 교환하려면 맵을 시작해야 합니다.
@@ -11363,9 +11357,6 @@ Settings card titles use rainbow colors
 Settings file
 == 설정 파일
 
-Settings navigation migration version
-== 설정 탐색 메뉴 마이그레이션 버전
-
 Settings page opacity
 == 설정 페이지 불투명도
 
@@ -14357,9 +14348,6 @@ UI rounded corner segments (even numbers recommended)
 UI scale
 == UI 크기
 
-UI scrolling: 0=original, 1=damped
-== UI 스크롤: 0=기본, 1=감쇠
-
 UI server address
 == UI 서버 주소
 
@@ -14734,9 +14722,6 @@ Use pre-input to predict other players for more accurate input prediction
 
 Use procedural ring pipeline when enhanced rendering is active
 == 향상된 렌더링이 활성화되면 절차적 링 파이프라인 사용
-
-Use rounded corners for interface surfaces
-== 인터페이스 영역에 둥근 모서리 사용
 
 Use SDF pipelines for Dynamic Island / rounded rects when enhanced rendering is active
 == 향상된 렌더링이 활성화되면 Dynamic Island 및 둥근 사각형에 SDF 파이프라인 사용

@@ -207,8 +207,6 @@ void CUIRect::Draw(ColorRGBA Color, int Corners, float Rounding) const
 {
 	if(ms_pUi != nullptr && ms_pUi->DrawingSuppressed())
 		return;
-	if(ms_pUi != nullptr)
-		Rounding = ms_pUi->QmSurfaceRounding(Rounding);
 	if(Color.a > 0.0f && Color.a < 1.0f)
 		DrawRectBackdrop(Corners, Rounding);
 	if(ms_pGraphics->HasRoundedRectSdf() && Rounding > 0.0f && Corners != IGraphics::CORNER_NONE)
@@ -228,8 +226,6 @@ void CUIRect::Draw4(ColorRGBA ColorTopLeft, ColorRGBA ColorTopRight, ColorRGBA C
 {
 	if(ms_pUi != nullptr && ms_pUi->DrawingSuppressed())
 		return;
-	if(ms_pUi != nullptr)
-		Rounding = ms_pUi->QmSurfaceRounding(Rounding);
 	const float MaximumAlpha = std::max({ColorTopLeft.a, ColorTopRight.a, ColorBottomLeft.a, ColorBottomRight.a});
 	if(MaximumAlpha > 0.0f && (ColorTopLeft.a < 1.0f || ColorTopRight.a < 1.0f || ColorBottomLeft.a < 1.0f || ColorBottomRight.a < 1.0f))
 		DrawRectBackdrop(Corners, Rounding);

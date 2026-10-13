@@ -63,35 +63,6 @@ TEST(QmConsoleAppearance, FontSizeAllowsOneThroughSevenWithoutClampingToEight)
 		EXPECT_FLOAT_EQ(QmConsoleAppearance::FontSize(Size), static_cast<float>(Size));
 }
 
-TEST(QmConsoleAppearance, PowerShellSevenPresetDistinguishesCommandParameterAndString)
-{
-	const auto Palette = QmConsoleAppearance::ResolvePalette(3, 40, {});
-	const auto Command = Palette.m_aColors[QmConsoleAppearance::COMMAND];
-	const auto Parameter = Palette.m_aColors[QmConsoleAppearance::PARAMETER];
-	const auto String = Palette.m_aColors[QmConsoleAppearance::STRING];
-	EXPECT_GT(Command.r, Command.b);
-	EXPECT_GT(Parameter.b, Parameter.r);
-	EXPECT_GT(String.g, String.r);
-	EXPECT_FLOAT_EQ(Palette.m_aColors[QmConsoleAppearance::BACKGROUND].a, 0.4f);
-	EXPECT_FLOAT_EQ(Command.a, 1.0f);
-	EXPECT_FLOAT_EQ(Parameter.a, 1.0f);
-	EXPECT_FLOAT_EQ(String.a, 1.0f);
-}
-
-TEST(QmConsoleAppearance, SwitchingPresetKeepsTheConfiguredCustomPalette)
-{
-	CConfig Config{};
-	QmConsoleAppearance::Reset(Config);
-	Config.m_QmConsoleCommandColor = ColorHSLA(0.7f, 0.8f, 0.6f).Pack(false);
-	Config.m_QmConsoleColorScheme = 2;
-	const auto Custom = QmConsoleAppearance::Palette(Config);
-	Config.m_QmConsoleColorScheme = 3;
-	const auto Preset = QmConsoleAppearance::Palette(Config);
-	EXPECT_NE(Preset.m_aColors[QmConsoleAppearance::COMMAND], Custom.m_aColors[QmConsoleAppearance::COMMAND]);
-	Config.m_QmConsoleColorScheme = 2;
-	EXPECT_EQ(QmConsoleAppearance::Palette(Config).m_aColors, Custom.m_aColors);
-}
-
 TEST(QmConsoleAppearance, CustomBackgroundChangesBorderAndShadowColors)
 {
 	std::array<unsigned, QmConsoleAppearance::COLOR_COUNT> aCustom{};
@@ -132,7 +103,7 @@ TEST(QmConsoleAppearance, CustomTextChangesBorderWithoutChangingShadow)
 
 TEST(QmConsoleAppearance, OpacityChangesDecorationAlphaWithoutChangingRgb)
 {
-	for(int Scheme : {0, 1, 2, 3})
+	for(int Scheme : {0, 1, 2})
 	{
 		SCOPED_TRACE(Scheme);
 		std::array<unsigned, QmConsoleAppearance::COLOR_COUNT> aCustom{};
@@ -163,7 +134,7 @@ TEST(QmConsoleAppearance, SwitchingBackToPresetsRestoresDecorations)
 	std::array<unsigned, QmConsoleAppearance::COLOR_COUNT> aCustom{};
 	aCustom.fill(ColorHSLA(0.3f, 0.8f, 0.6f, 1.0f).Pack(false));
 	const auto Custom = QmConsoleAppearance::ResolvePalette(2, 96, aCustom);
-	for(int Scheme : {0, 1, 3})
+	for(int Scheme : {0, 1})
 	{
 		SCOPED_TRACE(Scheme);
 		const auto Restored = QmConsoleAppearance::ResolvePalette(Scheme, 96, aCustom);

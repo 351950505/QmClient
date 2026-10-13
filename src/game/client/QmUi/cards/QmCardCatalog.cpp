@@ -77,15 +77,6 @@ namespace qm_card_catalog
 		}
 	}
 
-	SQmFunctionCardLayoutState ResolveFunctionCardLayoutState(size_t FavoriteMapCount)
-	{
-		SQmFunctionCardLayoutState State;
-		State.m_BlockWordsRevision = BlockWordsLayoutRevision();
-		State.m_FavoriteMapsRevision = FavoriteMapsLayoutRevision(FavoriteMapCount);
-		FillKeywordReplyLayoutState(State);
-		return State;
-	}
-
 	bool BuildCard(const SQmCardBuildContext &Ctx, const char *pStableId, SSettingsCardDefinition &Out)
 	{
 		if(ContainsStableId(ControlsCardStableIds(), pStableId))

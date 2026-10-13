@@ -9,7 +9,6 @@
 #include <base/color.h>
 
 #include <algorithm>
-#include <array>
 
 // Centralized QmUi design tokens. Values are unscaled; callers apply
 // responsive UiScale on top, matching existing LG_* convention in
@@ -162,12 +161,6 @@ namespace ui_token::font
 	inline constexpr float SMALL = 10.0f;
 	inline constexpr float CAPTION = 10.0f;
 	inline constexpr float TIP = 9.0f;
-
-	// 字号与承载文字的行高共用该因子；不改变整个虚拟屏幕或导航尺寸。
-	inline constexpr float TextScale(int Percent)
-	{
-		return std::clamp(Percent, 75, 150) / 100.0f;
-	}
 } // namespace ui_token::font
 
 // HUD 基础字号按 300 逻辑高度定义：辅助信息、正文、重点数值、关键提示。

@@ -43,11 +43,14 @@
 #include <utility>
 #include <vector>
 
+static constexpr float FONT_SIZE = 10.0f;
 static constexpr float LINE_SPACING = 1.0f;
 static constexpr float LINK_CLICK_DRAG_THRESHOLD = 3.0f;
 static constexpr float LINK_UNDERLINE_HEIGHT = 0.12f;
 static constexpr float CONSOLE_SCROLLBAR_WIDTH = 18.0f;
 static constexpr float CONSOLE_SCROLLBAR_MARGIN = 5.0f;
+static constexpr ColorRGBA LINK_TEXT_COLOR = ColorRGBA(0.2f, 0.65f, 1.0f, 1.0f);
+static constexpr ColorRGBA LINK_UNDERLINE_COLOR = ColorRGBA(0.2f, 0.65f, 1.0f, 0.9f);
 
 struct SConfigHelpLookup
 {
@@ -801,7 +804,10 @@ void CGameConsole::CInstance::ExecuteLine(const char *pLine)
 		// print out the user's commands before they get run
 		char aBuf[IConsole::CMDLINE_LENGTH + 3];
 		str_format(aBuf, sizeof(aBuf), "> %s", pLine);
-		PrintLine(aBuf, str_length(aBuf), gs_ConsoleDefaultColor, nullptr, 0, nullptr, true);
+		if(m_Type == CONSOLETYPE_LOCAL)
+			PrintLine(aBuf, str_length(aBuf), gs_ConsoleDefaultColor, nullptr, 0, nullptr, true);
+		else
+			m_pGameConsole->PrintLine(m_Type, aBuf);
 	}
 
 	if(m_Type == CGameConsole::CONSOLETYPE_LOCAL)
@@ -881,7 +887,7 @@ bool CGameConsole::CInstance::OnInput(const IInput::CEvent &Event)
 
 	if(Event.m_Flags & IInput::FLAG_PRESS)
 	{
-		if(!m_ChatExportMode && m_pGameConsole->Input()->AltIsPressed() &&
+		if(m_Type == CONSOLETYPE_LOCAL && !m_ChatExportMode && m_pGameConsole->Input()->AltIsPressed() &&
 			Event.m_Key >= KEY_1 && Event.m_Key <= KEY_5 && !m_pGameConsole->Input()->HasComposition())
 		{
 			SetLogFilterMask(QmToggleConsoleLogFilterCategory(m_LogFilterMask, LogFilterCategoryForButton(Event.m_Key - KEY_1)));
@@ -1359,7 +1365,7 @@ void CGameConsole::CInstance::ScrollToCenter(int StartLine, int EndLine)
 
 float CGameConsole::CInstance::FontSize() const
 {
-	return QmConsoleAppearance::FontSize(g_Config.m_QmConsoleFontSize);
+	return m_Type == CONSOLETYPE_LOCAL ? QmConsoleAppearance::FontSize(g_Config.m_QmConsoleFontSize) : FONT_SIZE;
 }
 
 float CGameConsole::CInstance::BacklogLineWidth() const
@@ -1887,10 +1893,10 @@ void CGameConsole::OnRender()
 	const float FontSize = pConsole->FontSize();
 	const auto Palette = QmConsoleAppearance::Palette(g_Config);
 	const bool SettingsOpen = Ui()->IsPopupVisible(&m_SettingsPopupId);
-	const bool FontChanged = m_aLastFontSize[m_ConsoleType] != FontSize;
+	const bool FontChanged = LocalConsole && m_LastLocalFontSize != FontSize;
 	if(FontChanged)
 	{
-		m_aLastFontSize[m_ConsoleType] = FontSize;
+		m_LastLocalFontSize = FontSize;
 		pConsole->UpdateBacklogTextAttributes();
 		pConsole->m_Selection.Finish();
 		pConsole->m_ScrollbarDragging = false;
@@ -1905,10 +1911,10 @@ void CGameConsole::OnRender()
 	constexpr float FilterPadding = 6.0f;
 	const float FilterIndicatorWidth = FontSize + 4.0f;
 	float aFilterWidths[CInstance::LOG_FILTER_BUTTON_COUNT];
-	float TotalFilterWidth = FilterSpacing * (CInstance::LOG_FILTER_BUTTON_COUNT - 1);
-	for(int i = 0; i < CInstance::LOG_FILTER_BUTTON_COUNT; ++i)
+	float TotalFilterWidth = LocalConsole ? FilterSpacing * (CInstance::LOG_FILTER_BUTTON_COUNT - 1) : 0.0f;
+	for(int i = 0; LocalConsole && i < CInstance::LOG_FILTER_BUTTON_COUNT; ++i)
 	{
-		aFilterWidths[i] = TextRender()->TextWidth(FontSize, apFilterLabels[i]) + FilterPadding * 2.0f + (i != 0 ? FilterIndicatorWidth : 0.0f);
+		aFilterWidths[i] = TextRender()->TextWidth(FontSize, apFilterLabels[i]) + FilterPadding * 2.0f + (LocalConsole && i != 0 ? FilterIndicatorWidth : 0.0f);
 		TotalFilterWidth += aFilterWidths[i];
 	}
 	enum class EToolbarAction
@@ -1957,12 +1963,6 @@ void CGameConsole::OnRender()
 		AddAction(EToolbarAction::SETTINGS, Localize("Console settings"), SettingsOpen);
 		AddAction(EToolbarAction::EXPAND, m_LocalConsoleFullscreen ? Localize("Collapse console") : Localize("Expand console"), m_LocalConsoleFullscreen);
 	}
-	else
-	{
-		AddAction(EToolbarAction::SEARCH, pConsole->m_SearchInput.IsSearching() ? Localize("Cancel") : Localize("Search"), pConsole->m_SearchInput.IsSearching());
-		AddAction(EToolbarAction::FOLLOW, Localize("Following"), pConsole->m_BacklogCurLine == 0);
-		AddAction(EToolbarAction::SETTINGS, Localize("Console settings"), SettingsOpen);
-	}
 	float TotalActionWidth = 0.0f;
 	for(int i = 0; i < NumActions; ++i)
 		TotalActionWidth += aActions[i].m_Width + FilterSpacing;
@@ -1973,15 +1973,16 @@ void CGameConsole::OnRender()
 	ToolbarRightMargin = FontSize * 2.0f + 10.0f;
 #endif
 	const auto Toolbar = QmConsoleUi::LayoutToolbar(Screen.w - ToolbarRightMargin, pConsole->m_ChatExportMode ? 0.0f : TotalFilterWidth, TotalActionWidth, FontSize + 16.0f);
-	const float RowHeight = Toolbar.m_Height;
-	const float FooterHeight = FontSize + 6.0f;
+	const float RowHeight = LocalConsole ? Toolbar.m_Height : FontSize * 2.0f;
+	const float FooterHeight = LocalConsole ? FontSize + 6.0f : 0.0f;
 
 	const ColorRGBA PreviousTextColor = TextRender()->GetTextColor();
 	const ColorRGBA PreviousTextOutlineColor = TextRender()->GetTextOutlineColor();
 	const ColorRGBA PreviousTextSelectionColor = TextRender()->GetTextSelectionColor();
 	const unsigned PreviousRenderFlags = TextRender()->GetRenderFlags();
 	const EFontPreset PreviousFontPreset = TextRender()->GetFontPreset();
-	TextRender()->TextOutlineColor(ResolveUiSurfaceForeground(Palette.m_aColors[QmConsoleAppearance::TEXT]).WithAlpha(PreviousTextOutlineColor.a));
+	if(LocalConsole)
+		TextRender()->TextOutlineColor(ResolveUiSurfaceForeground(Palette.m_aColors[QmConsoleAppearance::TEXT]).WithAlpha(PreviousTextOutlineColor.a));
 
 	float ConsoleHeightScale;
 	if(m_ConsoleState == CONSOLE_OPENING)
@@ -1993,8 +1994,10 @@ void CGameConsole::OnRender()
 
 	const float ConsoleHeight = ConsoleHeightScale * MaxConsoleHeight;
 
-	const ColorRGBA ShadowColor = Palette.m_Shadow;
+	const ColorRGBA ShadowColor = LocalConsole ? Palette.m_Shadow : ColorRGBA(0.0f, 0.0f, 0.0f, 0.4f);
 	const ColorRGBA TransparentColor = ShadowColor.WithAlpha(0.0f);
+	const ColorRGBA aBackgroundColors[NUM_CONSOLETYPES] = {ColorRGBA(0.2f, 0.2f, 0.2f, 0.9f), ColorRGBA(0.4f, 0.2f, 0.2f, 0.9f)};
+	const ColorRGBA aBorderColors[NUM_CONSOLETYPES] = {ColorRGBA(0.1f, 0.1f, 0.1f, 0.9f), ColorRGBA(0.2f, 0.1f, 0.1f, 0.9f)};
 
 	const bool RestoreUiEnabled = Ui()->Enabled();
 	{
@@ -2012,16 +2015,28 @@ void CGameConsole::OnRender()
 	if(SettingsOpen && g_Config.m_QmGaussianBlur)
 		Ui()->PrepareGaussianBlur();
 
-	// 两种控制台均只模糊底层画面一次，背板与工具栏沿用同一终端配色。
+	// 两种控制台均只模糊底层画面一次，各自背板与工具栏不重复模糊。
 	Ui()->RenderGaussianBlur({0.0f, 0.0f, Screen.w, ConsoleHeight}, ConsoleHeightScale, IGraphics::CORNER_NONE, 0.0f);
-	// 本地和远程控制台共用终端表面，命令、认证与日志仍由各自实例处理。
-	QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, ConsoleHeight}, Palette.m_aColors[QmConsoleAppearance::BACKGROUND]);
-	QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, RowHeight}, Palette.m_Panel);
-	QmConsoleUi::DrawPanel(Ui(), {0.0f, ConsoleHeight - FooterHeight, Screen.w, FooterHeight}, Palette.m_Panel);
+	if(LocalConsole)
+	{
+		QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, ConsoleHeight}, Palette.m_aColors[QmConsoleAppearance::BACKGROUND]);
+		QmConsoleUi::DrawPanel(Ui(), {0.0f, 0.0f, Screen.w, RowHeight}, Palette.m_Panel);
+		QmConsoleUi::DrawPanel(Ui(), {0.0f, ConsoleHeight - FooterHeight, Screen.w, FooterHeight}, Palette.m_Panel);
+	}
+	else
+	{
+		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_BACKGROUND_NOISE].m_Id);
+		Graphics()->QuadsBegin();
+		Graphics()->SetColor(aBackgroundColors[m_ConsoleType]);
+		Graphics()->QuadsSetSubset(0, 0, Screen.w / 80.0f, ConsoleHeight / 80.0f);
+		IGraphics::CQuadItem QuadItemBackground(0.0f, 0.0f, Screen.w, ConsoleHeight);
+		Graphics()->QuadsDrawTL(&QuadItemBackground, 1);
+		Graphics()->QuadsEnd();
+	}
 	// bottom border
 	Graphics()->TextureClear();
 	Graphics()->QuadsBegin();
-	Graphics()->SetColor(Palette.m_Border);
+	Graphics()->SetColor(LocalConsole ? Palette.m_Border : aBorderColors[m_ConsoleType]);
 	IGraphics::CQuadItem QuadItemBorder(0.0f, ConsoleHeight, Screen.w, 1.0f);
 	Graphics()->QuadsDrawTL(&QuadItemBorder, 1);
 	Graphics()->QuadsEnd();
@@ -2050,7 +2065,7 @@ void CGameConsole::OnRender()
 		PromptCursor.m_FontSize = FontSize;
 
 		char aPrompt[32];
-		TextRender()->TextColor(Palette.m_aColors[QmConsoleAppearance::TEXT]);
+		TextRender()->TextColor(LocalConsole ? Palette.m_aColors[QmConsoleAppearance::TEXT] : TextRender()->DefaultTextColor());
 		Prompt(aPrompt);
 		TextRender()->TextEx(&PromptCursor, aPrompt);
 
@@ -2165,7 +2180,7 @@ void CGameConsole::OnRender()
 		const bool WasCursorChanged = pConsole->m_Input.WasCursorChanged();
 		const bool Changed = WasChanged || WasCursorChanged || FontChanged;
 		std::vector<STextColorSplit> vInputColors;
-		if((LocalConsole || Client()->RconAuthed()) && !pConsole->m_SearchInput.IsSearching() && g_Config.m_QmConsoleHighlightCommands)
+		if(LocalConsole && !pConsole->m_SearchInput.IsSearching() && g_Config.m_QmConsoleHighlightCommands)
 		{
 			std::string DisplayText = pConsole->m_Input.GetString();
 			if(pConsole->m_Input.IsActive() && Input()->HasComposition())
@@ -2295,7 +2310,8 @@ void CGameConsole::OnRender()
 				pConsole->m_NewLineCounter = 0;
 		}
 
-		y = QmConsoleUi::LogBottomBeforeSeparator(y - 2.0f, FontSize);
+		if(LocalConsole)
+			y = QmConsoleUi::LogBottomBeforeSeparator(y - 2.0f, FontSize);
 		const float LogTop = RowHeight;
 		const float LogBottom = y;
 		const float LogHeight = maximum(0.0f, LogBottom - LogTop);
@@ -2425,7 +2441,7 @@ void CGameConsole::OnRender()
 				pEntry = pConsole->m_Backlog.Prev(pEntry);
 				continue;
 			}
-			const ColorRGBA PrintColor = pEntry->m_PrintColor == gs_ConsoleDefaultColor ? Palette.m_aColors[QmConsoleAppearance::TEXT] : pEntry->m_PrintColor;
+			const ColorRGBA PrintColor = LocalConsole && pEntry->m_PrintColor == gs_ConsoleDefaultColor ? Palette.m_aColors[QmConsoleAppearance::TEXT] : pEntry->m_PrintColor;
 			TextRender()->TextColor(PrintColor);
 
 			if(First)
@@ -2487,7 +2503,7 @@ void CGameConsole::OnRender()
 			const int TextLength = str_length(pText);
 			vColorLayers.clear();
 			vColorLayers.emplace_back(0, TextLength, PrintColor);
-			if(pEntry->m_CommandEcho && g_Config.m_QmConsoleHighlightCommands)
+			if(LocalConsole && pEntry->m_CommandEcho && g_Config.m_QmConsoleHighlightCommands)
 				QmConsoleSyntax::AppendColors(pText + 2, Palette, vColorLayers, 2);
 			vColorLayers.insert(vColorLayers.end(), EntryCursor.m_vColorSplits.begin(), EntryCursor.m_vColorSplits.end());
 			const auto StoredColorSpans = pConsole->m_ColorSpansByExportId.find(pEntry->m_ExportId);
@@ -2533,7 +2549,7 @@ void CGameConsole::OnRender()
 			QmConsoleText::CollectLinks(pText, vLinkRanges);
 			for(const auto &Range : vLinkRanges)
 			{
-				vColorLayers.emplace_back(Range.m_StartByte, Range.m_EndByte - Range.m_StartByte, Palette.m_aColors[QmConsoleAppearance::LINK]);
+				vColorLayers.emplace_back(Range.m_StartByte, Range.m_EndByte - Range.m_StartByte, LocalConsole ? Palette.m_aColors[QmConsoleAppearance::LINK] : LINK_TEXT_COLOR);
 				CTextCursor LinkCursor;
 				LinkCursor.SetPosition(vec2(EntryTextX, EntryTop));
 				LinkCursor.m_FontSize = FontSize;
@@ -2565,7 +2581,7 @@ void CGameConsole::OnRender()
 				{
 					const float Height = Quad.m_Height * LINK_UNDERLINE_HEIGHT;
 					const CUIRect Underline = {Quad.m_X, Quad.m_Y + Quad.m_Height - Height, Quad.m_Width, Height};
-					const ColorRGBA UnderlineColor = Palette.m_aColors[QmConsoleAppearance::LINK].WithAlpha(0.9f);
+					const ColorRGBA UnderlineColor = LocalConsole ? Palette.m_aColors[QmConsoleAppearance::LINK].WithAlpha(0.9f) : LINK_UNDERLINE_COLOR;
 					QmConsoleUi::DrawPanel(Ui(), Underline, UnderlineColor.WithAlpha(UnderlineColor.a * ContentAlpha));
 				}
 			}
@@ -2578,7 +2594,7 @@ void CGameConsole::OnRender()
 					if(Match.m_EntryLine != LineNum + 1 - pEntry->m_LineCount)
 						continue;
 					const bool IsSelected = Selected.m_EntryLine == Match.m_EntryLine && Selected.m_Pos == Match.m_Pos;
-					vColorLayers.emplace_back(Match.m_Pos, Match.m_Length, Palette.m_aColors[IsSelected ? QmConsoleAppearance::SEARCH_SELECTED : QmConsoleAppearance::SEARCH]);
+					vColorLayers.emplace_back(Match.m_Pos, Match.m_Length, LocalConsole ? Palette.m_aColors[IsSelected ? QmConsoleAppearance::SEARCH_SELECTED : QmConsoleAppearance::SEARCH] : (IsSelected ? ms_SearchSelectedColor : ms_SearchHighlightColor));
 				}
 			}
 			for(auto &Layer : vColorLayers)
@@ -2597,13 +2613,13 @@ void CGameConsole::OnRender()
 					SelectionCursor.m_AlignedFontSize, time_get_nanoseconds(), g_Config.m_QmUiMotionLevel, pConsole->m_Selection.HasSelection());
 				LogCaretRendered = true;
 				const CUIRect Caret = {Position.x, Position.y, CaretWidth, SelectionCursor.m_AlignedFontSize};
-				const ColorRGBA CaretColor = Palette.m_aColors[QmConsoleAppearance::TEXT];
+				const ColorRGBA CaretColor = LocalConsole ? Palette.m_aColors[QmConsoleAppearance::TEXT] : TextRender()->DefaultTextColor();
 				QmConsoleUi::DrawPanel(Ui(), Caret, CaretColor.WithAlpha(CaretColor.a * ContentAlpha));
 			}
 			pEntry = pConsole->m_Backlog.Prev(pEntry);
 
 			// reset color
-			TextRender()->TextColor(Palette.m_aColors[QmConsoleAppearance::TEXT]);
+			TextRender()->TextColor(LocalConsole ? Palette.m_aColors[QmConsoleAppearance::TEXT] : TextRender()->DefaultTextColor());
 			First = false;
 
 			if(!pEntry)
@@ -2629,7 +2645,7 @@ void CGameConsole::OnRender()
 			m_WantsSelectionCopy = false;
 		}
 
-		TextRender()->TextColor(Palette.m_aColors[QmConsoleAppearance::TEXT]);
+		TextRender()->TextColor(LocalConsole ? Palette.m_aColors[QmConsoleAppearance::TEXT] : TextRender()->DefaultTextColor());
 
 		char aLinesBuf[128];
 		const int LineStart = pConsole->m_LinesRendered > 0 ? pConsole->m_BacklogCurLine + 1 : 0;
@@ -2639,23 +2655,25 @@ void CGameConsole::OnRender()
 		const auto ToolbarButton = [&](const CUIRect &Rect, const char *pLabel, float Scale, bool Selected = false, bool CategoryButton = false, uint64_t AnimationKey = 0) {
 			return QmConsoleUi::Button(Ui(), Rect, pLabel, maximum(1.0f, FontSize * Scale), Selected,
 				m_ButtonPressPosition, ButtonMousePosition, pConsole->m_MouseIsPress, ButtonReleased, !SettingsOpen && m_ConsoleState == CONSOLE_OPEN,
-				CategoryButton ? FilterIndicatorWidth * Scale : 0.0f, &Palette, AnimationKey);
+				CategoryButton ? FilterIndicatorWidth * Scale : 0.0f, LocalConsole ? &Palette : nullptr, AnimationKey);
 		};
-		float FilterX = 10.0f;
+		const float LinesWidth = LocalConsole ? 0.0f : TextRender()->TextWidth(FontSize, aLinesBuf);
+		float FilterX = LocalConsole ? 10.0f : LinesWidth + 20.0f;
 		const float FilterScale = Toolbar.m_FilterScale;
-		if(!pConsole->m_ChatExportMode)
+		if(LocalConsole && !pConsole->m_ChatExportMode)
 		{
 			for(int i = 0; i < CInstance::LOG_FILTER_BUTTON_COUNT; ++i)
 			{
 				const int Category = CInstance::LogFilterCategoryForButton(i);
-				const CUIRect Button = {FilterX, 3.0f, aFilterWidths[i] * FilterScale, FontSize + 10.0f};
+				const CUIRect Button = {FilterX, 3.0f, aFilterWidths[i] * FilterScale, LocalConsole ? FontSize + 10.0f : 14.0f};
 				if(ToolbarButton(Button, apFilterLabels[i], FilterScale, QmConsoleLogFilterButtonActive(pConsole->m_LogFilterMask, Category),
-					   Category != QM_CONSOLE_LOG_CATEGORY_ALL,
+					   LocalConsole && Category != QM_CONSOLE_LOG_CATEGORY_ALL,
 					   (static_cast<uint64_t>(reinterpret_cast<uintptr_t>(pConsole)) << 3) ^ static_cast<uint64_t>(i + 1)))
 					pConsole->SetLogFilterMask(QmToggleConsoleLogFilterCategory(pConsole->m_LogFilterMask, Category));
 				FilterX += (aFilterWidths[i] + FilterSpacing) * FilterScale;
 			}
 		}
+		if(LocalConsole)
 		{
 			float ActionX = Toolbar.m_ActionX;
 			for(int i = 0; i < NumActions; ++i)
@@ -2684,13 +2702,6 @@ void CGameConsole::OnRender()
 			}
 			char aStatus[256];
 			str_copy(aStatus, aLinesBuf);
-			if(!LocalConsole && (Client()->ReceivingRconCommands() || Client()->ReceivingMaplist()))
-			{
-				const float Progress = Client()->ReceivingRconCommands() ? Client()->GotRconCommandsPercentage() : Client()->GotMaplistPercentage();
-				char aLoading[160];
-				str_format(aLoading, sizeof(aLoading), "  |  %s %d%%", Client()->ReceivingRconCommands() ? Localize("Loading commands…") : Localize("Loading maps…"), round_to_int(Progress * 100.0f));
-				str_append(aStatus, aLoading);
-			}
 			if(pConsole->m_ChatExportMode)
 			{
 				char aExportStatus[128];
@@ -2722,6 +2733,35 @@ void CGameConsole::OnRender()
 			{
 				const CUIRect HintRect = {HintX, ConsoleHeight - FooterHeight, HintWidth, FooterHeight};
 				Ui()->DoLabel(&HintRect, pHints, FontSize * 0.8f, TEXTALIGN_ML);
+			}
+		}
+		else
+		{
+			TextRender()->Text(10.0f, FontSize / 2.0f, FontSize, aLinesBuf);
+			if(Client()->ReceivingRconCommands() || Client()->ReceivingMaplist())
+			{
+				const float Percentage = Client()->ReceivingRconCommands() ? Client()->GotRconCommandsPercentage() : Client()->GotMaplistPercentage();
+				SProgressSpinnerProperties ProgressProps;
+				ProgressProps.m_Progress = Percentage;
+				Ui()->RenderProgressSpinner(vec2(Screen.w / 4.0f + FontSize / 2.f, FontSize), FontSize / 2.f, ProgressProps);
+				char aLoading[128];
+				str_copy(aLoading, Client()->ReceivingRconCommands() ? Localize("Loading commands…") : Localize("Loading maps…"));
+				if(Percentage > 0)
+				{
+					char aPercentage[8];
+					str_format(aPercentage, sizeof(aPercentage), " %d%%", (int)(Percentage * 100));
+					str_append(aLoading, aPercentage);
+				}
+				TextRender()->Text(Screen.w / 4.0f + FontSize + 2.0f, FontSize / 2.f, FontSize, aLoading);
+			}
+			char aVersion[128];
+			str_copy(aVersion, "v" GAME_VERSION " on " CONF_PLATFORM_STRING " " CONF_ARCH_STRING);
+			const float VersionWidth = TextRender()->TextWidth(FontSize, aVersion);
+			if(FilterX + VersionWidth + 10.0f <= Screen.w - ToolbarRightMargin)
+			{
+				TextRender()->Text(Screen.w - ToolbarRightMargin - VersionWidth - 10.0f, FontSize / 2.0f, FontSize, aVersion);
+				const char *pClientVersion = CLIENT_NAME " " CLIENT_RELEASE_VERSION;
+				TextRender()->Text(Screen.w - ToolbarRightMargin - TextRender()->TextWidth(FontSize, pClientVersion) - 10.0f, FontSize * 2.0f, FontSize, pClientVersion);
 			}
 		}
 	}

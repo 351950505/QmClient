@@ -4,8 +4,6 @@
 #include "SettingsCard.h"
 #include "UiContext.h"
 
-#include <engine/shared/config.h>
-
 #include <game/client/components/tooltips.h>
 #include <game/client/qm_icon.h>
 #include <game/client/ui.h>
@@ -22,6 +20,6 @@ void RenderSettingsCardInfo(const IUiContext &Ctx, const SSettingsCardSpec &Spec
 	{
 		Ctx.m_pTooltips->DoInfoToolTipForRect(pId, &Button, Spec.m_pInfo,
 			ResolveSettingsCardInfoWidth(Ctx.m_pUi->Screen()->w, Ctx.m_UiScale),
-			ui_token::font::BODY * std::max(0.1f, Ctx.m_UiScale) * ui_token::font::TextScale(g_Config.m_QmUiTextScale));
+			ui_token::font::BODY * std::max(0.1f, Ctx.m_UiScale));
 	}
 }

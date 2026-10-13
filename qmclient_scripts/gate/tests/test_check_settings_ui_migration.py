@@ -3,8 +3,8 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from qmclient_scripts.gate.check_settings_ui_migration import (
-	CATALOG_PAGE_SOURCES, PAGE_CATALOGUE_LIST, PAGE_FUNCTIONS, PAGE_REGISTRY_TABS,
-	PAGE_STABLE_IDS, PAGE_MODERN_VIEWS, _CATALOGUE_LIST_STATICS, _DEFAULT_SOURCE, _PAGE_SOURCE, _SETTINGS_PAGE_UNITS,
+	CATALOG_PAGE_SOURCES, PAGE_CATALOGUE_LIST, PAGE_FUNCTIONS, PAGE_ROUTE_TABS,
+	PAGE_STABLE_IDS, _CATALOGUE_LIST_STATICS, _DEFAULT_SOURCE, _PAGE_SOURCE,
 	_contains_forbidden_token, _find_legacy_color_picker_geometry, _find_raw_font_literals,
 	_find_rect_derived_font_arguments, _find_rect_derived_font_assignments,
 	audit_catalog_build_contracts, audit_page, audit_shared_contracts,
@@ -31,11 +31,9 @@ class SettingsUiMigrationAuditTest(unittest.TestCase):
 
 	def make_page(self, page):
 		# 这些是校验器的最小输入，不复制 UI 算法或声称验证 C++ 运行时行为。
-		tabs = PAGE_REGISTRY_TABS[page]
+		tabs = PAGE_ROUTE_TABS[page]
 		if page in CATALOG_PAGE_SOURCES:
-			if page in PAGE_MODERN_VIEWS:
-				body = f'RenderModernSettingsCards(MainView, "{PAGE_MODERN_VIEWS[page]}");'
-			elif len(tabs) > 1:
+			if len(tabs) > 1:
 				body = 'const char *s_apTabs[] = {' + ', '.join(f'"{tab}"' for tab in tabs) + '};\nRenderSettingsCatalogPage(MainView, s_apTabs[Index]);'
 			else:
 				body = f'RenderSettingsCatalogPage(MainView, "{tabs[0]}");'
@@ -52,6 +50,8 @@ class SettingsUiMigrationAuditTest(unittest.TestCase):
 		self.write(_PAGE_SOURCE.get(page, _DEFAULT_SOURCE), source)
 		entries = ',\n'.join(f'{{"{stable_id}", "{tabs[0] if tabs else "search"}", ECardColumn::Left, 0}}' for stable_id in PAGE_STABLE_IDS[page])
 		self.write("src/game/client/QmUi/QmCardRegistry.cpp", "std::vector<SCardDefault> Cards = {" + entries + "};")
+		routes = "\n".join(f'if(str_comp(pTab, "{tab}") == 0) return true;' for tab in tabs)
+		self.write("src/game/client/components/menus.cpp", "bool CMenus::SetSettingsPageFromCardTab(const char *pTab) {" + routes + "return false;}")
 		return self.root
 
 	def test_every_manifest_page_accepts_its_current_structural_boundary(self):
@@ -147,12 +147,10 @@ class SettingsUiMigrationAuditTest(unittest.TestCase):
 		self.replace("src/game/client/QmUi/QmCardRegistry.cpp", 'Cards = {', 'Cards = {{"deck:tclient-warlist-editor", "tclient-warlist", 0},')
 		self.assertTrue(any("legacy registry" in error for error in audit_page(self.root, "tclient_warlist")))
 
-	def test_modern_wrapper_must_delegate_its_registered_view(self):
-		for page, view in PAGE_MODERN_VIEWS.items():
-			with self.subTest(page=page):
-				self.make_page(page)
-				self.replace(_DEFAULT_SOURCE, f'"{view}"', '"wrong-modern-view"')
-				self.assertTrue(any(f"{view}: catalog page route missing" in error for error in audit_page(self.root, page)))
+	def test_route_literal_outside_navigation_function_cannot_supply_route(self):
+		self.make_page("general")
+		self.write("src/game/client/components/menus.cpp", 'const char *pText = "general";')
+		self.assertTrue(any("registry/navigation entry missing" in error for error in audit_page(self.root, "general")))
 
 	def test_legacy_card_entry_is_rejected(self):
 		self.make_page("general")
@@ -168,10 +166,7 @@ class SettingsUiMigrationAuditTest(unittest.TestCase):
 		names = {"QmCardCatalog.cpp", "QmCardCatalogIds.cpp", "QmCardCatalogStandard.cpp", "QmCardCatalogTClient.cpp", "QmCardRenderBridge.cpp", "QmCardCatalogControls.cpp", *CATALOG_PAGE_SOURCES.values()}
 		for name in names:
 			self.write("src/game/client/QmUi/cards/" + name, "// 编译单元\n")
-		page_units = [path.relative_to("src/game/client").as_posix() for path in _SETTINGS_PAGE_UNITS]
-		for path in _SETTINGS_PAGE_UNITS:
-			self.write(path, "// 设置页编译单元\n")
-		self.write("CMakeLists.txt", "set(CLIENT_SRC\n" + "\n".join([*("QmUi/cards/" + name for name in sorted(names)), *page_units]) + "\n)")
+		self.write("CMakeLists.txt", "set(CLIENT_SRC\n" + "\n".join("QmUi/cards/" + name for name in sorted(names)) + "\n)")
 
 	def test_catalog_sources_require_cmake_registration_and_recover(self):
 		self.make_build_contract()
@@ -180,11 +175,6 @@ class SettingsUiMigrationAuditTest(unittest.TestCase):
 		self.assertIn("catalog: QmCardCatalogPlayer.cpp: CMake registration missing", audit_catalog_build_contracts(self.root))
 		self.replace("CMakeLists.txt", "# QmUi/cards/QmCardCatalogPlayer.cpp", "QmUi/cards/QmCardCatalogPlayer.cpp")
 		self.assertEqual(audit_catalog_build_contracts(self.root), [])
-
-	def test_modern_page_unit_requires_cmake_registration(self):
-		self.make_build_contract()
-		self.replace("CMakeLists.txt", "QmUi/ModernSettingsPage.cpp", "# QmUi/ModernSettingsPage.cpp")
-		self.assertIn("settings page: QmUi/ModernSettingsPage.cpp: CMake registration missing", audit_catalog_build_contracts(self.root))
 
 	def test_cmake_entry_without_source_is_rejected(self):
 		self.make_build_contract()
@@ -336,7 +326,7 @@ Clean.m_FontSize = Metrics.m_BodySize;
 
 	def test_moved_settings_modules_keep_shared_api_contracts(self):
 		for source in (
-			"src/game/client/QmUi/SettingsSearchPage.cpp",
+			"src/game/client/components/qmclient/menus_qmclient_search.cpp",
 			"src/game/client/QmUi/SettingsMenuWidgets.cpp",
 		):
 			with self.subTest(source=source):
