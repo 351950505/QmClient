@@ -256,32 +256,17 @@
 0 disables timed rotation; skins only switch on random start events
 == 0 desactiva la rotación temporizada; las skins solo cambian en eventos de inicio aleatorio
 
-1 star
-== 1 estrella
-
 1% low
 == 1% más bajo
 
 128 player id <-> 64 player id map update rate
 == Frecuencia de actualización del mapa de ID de jugador 128 <-> 64
 
-2 stars
-== 2 estrellas
-
-3 stars
-== 3 estrellas
-
 3D background
 == Fondo 3D
 
-4 stars
-== 4 estrellas
-
 45° Aim
 == Apuntar 45°
-
-5 stars
-== 5 estrellas
 
 === All Local Saves ===
 == === Todos los saves locales ===
@@ -676,9 +661,6 @@ All players
 
 All sounds
 == Todos los sonidos
-
-All stars
-== Todas las estrellas
 
 Allow /map.
 == Permitir /map.
@@ -1855,9 +1837,6 @@ Change map
 
 Change ready state (0.7 only)
 == Cambiar estado de preparado (solo 0.7)
-
-Change settings
-== Cambiar ajustes
 
 Change the skip duration
 == Cambiar la duración del salto
@@ -3136,9 +3115,6 @@ DDNet Client needs to be restarted to complete update!
 
 DDNet contributors and staff credits
 == Contribuidores y equipo de DDNet
-
-DDNet map library
-== Biblioteca de mapas DDNet
 
 DDNet Memory
 == Memoria de DDNet
@@ -5774,9 +5750,6 @@ Hide weapon muzzle flashes
 High Detail
 == Alto detalle
 
-High to low
-== De alto a bajo
-
 Higher input latency
 == mayor latencia de entrada
 
@@ -7072,9 +7045,6 @@ Long frames
 
 Lose weapons when teleporting (useful for race maps)
 == Perder armas al teletransportarse (útil para mapas de carrera)
-
-Low to high
-== De bajo a alto
 
 LXGW WenKai is available.
 == LXGW WenKai está disponible.
@@ -10592,17 +10562,11 @@ Rifle laser outline color
 Right jump
 == Salto derecho
 
-Right-click to add to favorites
-== Haz clic derecho para añadir a favoritos
-
 Right-click to disable auto-translate
 == Clic derecho para desactivar traducción automática
 
 Right-click to enable auto-translate
 == Clic derecho para activar traducción automática
-
-Right-click to remove from favorites
-== Haz clic derecho para eliminar de favoritos
 
 Ring
 == Anillo
@@ -11188,9 +11152,6 @@ Server browser filter string
 
 Server browser sort column
 == Columna de ordenación del navegador de servidores
-
-Server control
-== Control del servidor
 
 Server could not be started
 == No se pudo iniciar el servidor
@@ -14989,18 +14950,6 @@ Vote a map by name
 
 Vote aborted
 == Votación cancelada
-
-Vote command
-== Comando de votación
-
-Vote command:
-== Comando de votación:
-
-Vote description
-== Descripción de la votación
-
-Vote description:
-== Descripción de la votación:
 
 Vote duration (in seconds)
 == Duración de la votación (en segundos)

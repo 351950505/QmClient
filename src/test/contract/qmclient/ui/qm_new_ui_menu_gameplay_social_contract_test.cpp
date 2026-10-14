@@ -95,22 +95,6 @@ TEST(QmNewUiMenuGameplaySocialContract, ShortServerNamesKeepDisplayNameHighlight
 	EXPECT_EQ(Source.find("!g_Config.m_QmShortServerNames && g_Config.m_BrFilterString"), std::string::npos);
 }
 
-TEST(QmNewUiMenuGameplaySocialContract, CallVoteMapListShowsFinishedIcon)
-{
-	const std::string Source = ReadTextFile("src/game/client/components/menus_ingame.cpp");
-	const size_t RenderPos = Source.find("bool CMenus::RenderServerControlServer(CUIRect MainView, bool UpdateScroll)");
-	ASSERT_NE(RenderPos, std::string::npos);
-	const size_t EndPos = Source.find("bool CMenus::RenderServerControlKick(CUIRect MainView", RenderPos);
-	ASSERT_NE(EndPos, std::string::npos);
-	const std::string Body = Source.substr(RenderPos, EndPos - RenderPos);
-
-	EXPECT_NE(Body.find("ExtractMapName(pOption->m_aDescription"), std::string::npos);
-	EXPECT_NE(Body.find("g_Config.m_BrIndicateFinished"), std::string::npos);
-	EXPECT_NE(Body.find("pCurrentCommunity->HasRank(aMapName) == CServerInfo::RANK_RANKED"), std::string::npos);
-	EXPECT_NE(Body.find("RenderFontIcon_QmIcon(Icon, EQmIcon::FLAG_CHECKERED, FONT_ICON_FLAG_CHECKERED"), std::string::npos);
-	EXPECT_NE(Body.find("GameClient()->m_TClient.IsFavoriteMap(aMapName)"), std::string::npos);
-}
-
 TEST(QmNewUiMenuGameplaySocialContract, AxiomMigrationRemovesTClientLoginApi)
 {
 	// 迁移终态约束：运行时行为无法证明旧模块的公开 API 已被删除。

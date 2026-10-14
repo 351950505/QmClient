@@ -256,32 +256,17 @@
 0 disables timed rotation; skins only switch on random start events
 == 0 отключает ротацию по времени; скины меняются только при случайном старте
 
-1 star
-== 1 звезда
-
 1% low
 == 1% низких кадров
 
 128 player id <-> 64 player id map update rate
 == Частота обновления карты для ID игроков 128 <-> 64
 
-2 stars
-== 2 звезды
-
-3 stars
-== 3 звезды
-
 3D background
 == 3D фон
 
-4 stars
-== 4 звезды
-
 45° Aim
 == Прицел 45°
-
-5 stars
-== 5 звезд
 
 === All Local Saves ===
 == === Все локальные сохранения ===
@@ -676,9 +661,6 @@ All players
 
 All sounds
 == Все звуки
-
-All stars
-== Все звезды
 
 Allow /map.
 == Разрешить /map.
@@ -1855,9 +1837,6 @@ Change map
 
 Change ready state (0.7 only)
 == Изменить состояние готовности (только 0.7)
-
-Change settings
-== Изменить настройки
 
 Change the skip duration
 == Изменить длительность пропуска
@@ -3136,9 +3115,6 @@ DDNet Client needs to be restarted to complete update!
 
 DDNet contributors and staff credits
 == Участники и команда DDNet
-
-DDNet map library
-== Библиотека карт DDNet
 
 DDNet Memory
 == Память DDNet
@@ -5774,9 +5750,6 @@ Hide weapon muzzle flashes
 High Detail
 == Высокая детализация
 
-High to low
-== От высокого к низкому
-
 Higher input latency
 == более высокая задержка ввода
 
@@ -7072,9 +7045,6 @@ Long frames
 
 Lose weapons when teleporting (useful for race maps)
 == Терять оружие при телепортации (полезно для гоночных карт)
-
-Low to high
-== От низкого к высокому
 
 LXGW WenKai is available.
 == Шрифт LXGW WenKai доступен.
@@ -10592,17 +10562,11 @@ Rifle laser outline color
 Right jump
 == Кольцо
 
-Right-click to add to favorites
-== Щёлкните правой кнопкой, чтобы добавить в избранное
-
 Right-click to disable auto-translate
 == Правый клик для отключения автоперевода
 
 Right-click to enable auto-translate
 == Правый клик для включения автоперевода
-
-Right-click to remove from favorites
-== Щёлкните правой кнопкой, чтобы удалить из избранного
 
 Ring
 == Шумоподавление RNNoise
@@ -11188,9 +11152,6 @@ Server browser filter string
 
 Server browser sort column
 == Столбец сортировки в браузере серверов
-
-Server control
-== Управление сервером
 
 Server could not be started
 == Не удалось запустить сервер
@@ -14989,18 +14950,6 @@ Vote a map by name
 
 Vote aborted
 == Голосование прервано
-
-Vote command
-== Команда голосования
-
-Vote command:
-== Команда голосования:
-
-Vote description
-== Описание голосования
-
-Vote description:
-== Описание голосования:
 
 Vote duration (in seconds)
 == Длительность голосования (в секундах)

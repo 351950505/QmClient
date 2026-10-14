@@ -84,15 +84,10 @@
 0 - Disabled, 1-9999 minutes
 0 = auto
 0 disables timed rotation; skins only switch on random start events
-1 star
 1% low
 128 player id <-> 64 player id map update rate
-2 stars
-3 stars
 3D background
-4 stars
 45° Aim
-5 stars
 === All Local Saves ===
 === Saves for '%s' ===
 [%s] %s (Map: %s, Time: %s)
@@ -224,7 +219,6 @@ All combined
 All maps
 All players
 All sounds
-All stars
 Allow /map.
 Allow /rescue command to teleport out of freeze (only applies in initial config)
 Allow arbitrary game resolution when scaling (may cause issues on Windows)
@@ -617,7 +611,6 @@ Center line width (requires qm_show_center)
 Change indicator offset based on distance to other tees
 Change map
 Change ready state (0.7 only)
-Change settings
 Change the skip duration
 Change zoom
 Changes: %d
@@ -1044,7 +1037,6 @@ DDNet
 DDNet / Total CPU
 DDNet Client needs to be restarted to complete update!
 DDNet contributors and staff credits
-DDNet map library
 DDNet Memory
 DDNet memory
 DDNet points
@@ -1924,7 +1916,6 @@ Hide UI for focused gameplay
 Hide weapon fire effects in Zen Mode
 Hide weapon muzzle flashes
 High Detail
-High to low
 Higher input latency
 Higher values make the wave move faster. Zero stops the movement.
 Highlight Color
@@ -2357,7 +2348,6 @@ Logout of econ
 Logout of rcon
 Long frames
 Lose weapons when teleporting (useful for race maps)
-Low to high
 LXGW WenKai is available.
 LXGW WenKai is unavailable. Current fonts and weights will be kept.
 Lyrics
@@ -3530,10 +3520,8 @@ Rifle laser inner color
 Rifle Laser Outline Color
 Rifle laser outline color
 Right jump
-Right-click to add to favorites
 Right-click to disable auto-translate
 Right-click to enable auto-translate
-Right-click to remove from favorites
 Ring
 RNNoise noise reduction
 RNNoise noise reduction (unavailable in this build)
@@ -3729,7 +3717,6 @@ Server best:
 Server browser exclude string
 Server browser filter string
 Server browser sort column
-Server control
 Server could not be started
 Server could not be started. Make sure to grant the notification permission in the app settings so the server can run in the background.
 Server does not allow voting to kick players
@@ -4996,10 +4983,6 @@ Volume
 Volume unavailable for this player
 Vote a map by name
 Vote aborted
-Vote command
-Vote command:
-Vote description
-Vote description:
 Vote duration (in seconds)
 Vote failed
 Vote failed because of veto. Find an empty server instead
