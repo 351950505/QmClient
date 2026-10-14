@@ -3815,6 +3815,7 @@ if(CLIENT)
     auto_map.h
     collab_camera.cpp
     collab_camera.h
+    collab_camera_map_capture.cpp
     component.cpp
     component.h
     drawing_tools.cpp
