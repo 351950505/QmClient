@@ -8564,6 +8564,9 @@ Original language for both received and outgoing messages. Use Auto to detect ea
 Original message language
 == Idioma da mensagem original
 
+Original options
+== Opções originais
+
 Other
 == Outro
 
@@ -11218,6 +11221,9 @@ Server type (novice, moderate, etc.)
 
 Server URL
 == URL do servidor
+
+Server votes
+== Votações do servidor
 
 Server-assigned style
 == Estilo atribuído pelo servidor
