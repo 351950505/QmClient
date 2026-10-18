@@ -180,6 +180,15 @@ bool CEditor::CallbackSaveMap(const char *pFilename, int StorageType, void *pUse
 
 	CEditor *pEditor = static_cast<CEditor *>(pUser);
 
+	CEditorMap *pCloseMap = pEditor->m_pCloseMapAfterSave;
+	pEditor->m_pCloseMapAfterSave = nullptr;
+	if(pCloseMap != nullptr && pCloseMap != pEditor->Map())
+	{
+		log_error("editor/save", "close-after-save target map changed, aborting save");
+		pEditor->OnDialogClose();
+		return false;
+	}
+
 	// Save map to specified file
 	if(pEditor->Save(pFilename))
 	{
@@ -208,6 +217,9 @@ bool CEditor::CallbackSaveMap(const char *pFilename, int StorageType, void *pUse
 		if(!pEditor->Map()->PerformAutosave(ErrorHandler))
 			return false;
 	}
+
+	if(pCloseMap != nullptr)
+		pCloseMap->m_CloseOnSave = true;
 
 	pEditor->OnDialogClose();
 	return true;
@@ -5648,6 +5660,9 @@ void CEditor::HandleWriterFinishJobs()
 	const bool CollabSnapshotJob = m_CollabSnapshotSavePending && m_pCollabSnapshotJob == pJob && pJob->Map() == m_pCollabMap && IsCollabMapValid();
 
 	const char *pErrorMessage = pJob->ErrorMessage();
+	auto MapIt = std::find_if(m_vpMaps.begin(), m_vpMaps.end(), [&](const std::unique_ptr<CEditorMap> &pMap) {
+		return pMap.get() == pJob->Map();
+	});
 	if(pErrorMessage[0] != '\0')
 	{
 		if(CollabSnapshotJob)
@@ -5656,14 +5671,13 @@ void CEditor::HandleWriterFinishJobs()
 			m_pCollabSnapshotJob.reset();
 			SetCollabStatus(Localizable("Sync failed: map snapshot save failed", "Editor"));
 		}
+		if(MapIt != m_vpMaps.end())
+			(*MapIt)->m_CloseOnSave = false;
 		ShowFileDialogError("%s", pErrorMessage);
 		log_error("editor/save", "%s", pErrorMessage);
 		return;
 	}
 
-	auto MapIt = std::find_if(m_vpMaps.begin(), m_vpMaps.end(), [&](const std::unique_ptr<CEditorMap> &pMap) {
-		return pMap.get() == pJob->Map();
-	});
 	if(MapIt != m_vpMaps.end() && (*MapIt)->m_CloseOnSave)
 	{
 		// CEditorMap::OnModify clears this flag if the map is edited while saving.
@@ -5838,6 +5852,7 @@ void CEditor::OnDialogClose()
 {
 	m_DrawingTools.CancelDrawing();
 	m_Dialog = DIALOG_NONE;
+	m_pCloseMapAfterSave = nullptr;
 	m_FileBrowser.OnDialogClose();
 }
 
@@ -5957,6 +5972,8 @@ void CEditor::CloseMap(size_t Index, bool Confirm)
 		ResetCollabSession();
 		SetCollabStatus(Localizable("Not in a collaboration room", "Editor"));
 	}
+	if(m_vpMaps[Index].get() == m_pCloseMapAfterSave)
+		m_pCloseMapAfterSave = nullptr;
 	Ui()->ClosePopupMenu(&m_PopupMapTab);
 	m_vpMaps.erase(m_vpMaps.begin() + Index);
 	if(m_vpMaps.empty())
