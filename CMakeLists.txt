@@ -3461,6 +3461,7 @@ if(CLIENT)
     components/qmclient/browser_map_preview_loader.h
     components/qmclient/chat_command_preview.h
     components/qmclient/chat_input_layout.h
+    components/qmclient/chat_message_filter.h
     components/qmclient/pending_chat_messages.h
     components/qmclient/chat_translation_notes.h
     components/qmclient/chat_scrollbar.h
@@ -4780,6 +4781,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
     src/test/contract/qmclient/client/qm_axiom_scores_contract_test.cpp
     src/test/unit/qmclient/client/qm_chat_emoji_test.cpp
     src/test/unit/qmclient/client/qm_chat_interactions_test.cpp
+    src/test/unit/qmclient/client/qm_chat_message_filter_test.cpp
     src/test/unit/qmclient/client/qm_chat_command_policy_test.cpp
     src/test/unit/qmclient/client/qm_chat_command_hud_test.cpp
     src/test/unit/qmclient/client/qm_chat_presentation_test.cpp
