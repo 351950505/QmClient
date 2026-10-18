@@ -5689,6 +5689,8 @@ void CEditor::HandleWriterFinishJobs()
 	{
 		m_CollabSnapshotSavePending = false;
 		m_pCollabSnapshotJob.reset();
+		if(m_pCollabMap == nullptr)
+			return;
 		const bool MapUnchangedSinceSnapshot = m_pCollabMap->m_LastModifiedTime == m_CollabPendingUploadedModifiedTime;
 		if(m_CollabState == ECollabState::CONNECTED && IsCollabMapActive() && m_CollabJoinedTransport && MapUnchangedSinceSnapshot && m_CollabSnapshotRevision == m_CollabRevision)
 			m_CollabSnapshotReady = true;
