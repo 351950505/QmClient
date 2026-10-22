@@ -305,6 +305,9 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 					*pValue ^= 1;
 			};
 			VisibilityToggle(&g_Config.m_QmShowNameplateTitle, "qm-title-show-nameplate", Localize("Show titles on nameplates"));
+			RowAction("title-nameplate-scale", [&](CUIRect Row) {
+				pMenus->DoSettingsScrollbarOption(Page, Tab, "qm-nameplate-title-scale", &g_Config.m_QmNameplateTitleScale, &g_Config.m_QmNameplateTitleScale, &Row, Localize("Nameplate title size"), 50, 200, &CUi::ms_LinearScrollbarScale, 0, "%");
+			});
 			VisibilityToggle(&g_Config.m_QmNameplateTitleAboveName, "qm-title-above-name", Localize("Show titles above player names"));
 			VisibilityToggle(&g_Config.m_QmShowMainTitle, "qm-title-show-main", Localize("Show main tee title locally"));
 			VisibilityToggle(&g_Config.m_QmShowDummyTitle, "qm-title-show-dummy", Localize("Show dummy title locally"));
@@ -362,7 +365,7 @@ bool qm_card_catalog::QmCardRenderHook::BuildTitleCard(const SQmCardBuildContext
 				{
 					const vec2 Size = QmDeveloperBadgeSize(BodySize * 1.4f);
 					Auth.DeveloperBadge().Render(pMenus->Graphics(),
-						{TitlePreviewArea.x + (TitlePreviewArea.w - Size.x) * 0.5f, TitlePreviewArea.y + (TitlePreviewArea.h - Size.y) * 0.5f, Size.x, Size.y}, 1.0f);
+						{TitlePreviewArea.x + (TitlePreviewArea.w - Size.x) * 0.5f, TitlePreviewArea.y + (TitlePreviewArea.h - Size.y) * 0.5f, Size.x, Size.y}, 1.0f, Auth.TitleAnimationTime());
 				}
 				else
 					RenderQmTitleFinishedPreview(pMenus->Graphics(), pMenus->TextRender(), pMenus->GameClient()->m_QmClient.TitleBadge(), TitlePreviewArea, Draft.m_Title.GetString(), BodySize * 1.4f);

@@ -3593,6 +3593,7 @@ if(CLIENT)
     components/qmclient/qm_map_upload.cpp
     components/qmclient/qm_developer_badge.cpp
     components/qmclient/qm_developer_badge.h
+    components/qmclient/qm_developer_badge_motion.h
     components/qmclient/qm_title_badge.cpp
     components/qmclient/qm_title_badge.h
     components/qmclient/qm_title_appearance.h
@@ -5473,6 +5474,7 @@ if((GTEST_FOUND OR DOWNLOAD_GTEST) AND SERVER)
       src/test/integration/qmclient/ui/qm_color_picker_text_input_test.cpp
       src/test/integration/qmclient/client/qm_font_loading_test.cpp
       src/test/integration/qmclient/client/qm_text_measurement_test.cpp
+      src/test/integration/qmclient/client/qm_title_badge_text_test.cpp
       src/test/integration/qmclient/client/qm_text_bitmap_test.cpp
       src/test/integration/qmclient/client/qm_text_initialization_test.cpp
       src/test/integration/qmclient/client/qm_text_device_recovery_test.cpp
