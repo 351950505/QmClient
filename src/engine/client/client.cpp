@@ -3786,7 +3786,8 @@ void CClient::Update()
 
 	{
 		static int64_t s_LastDupLogTime = 0;
-		if(MainOnline && Now - s_LastDupLogTime >= time_freq())
+		// 仅在 debug 调试开启时输出，避免正常联机时每秒刷控制台。
+		if(g_Config.m_Debug && MainOnline && Now - s_LastDupLogTime >= time_freq())
 		{
 			s_LastDupLogTime = Now;
 			if(g_Config.m_ClDupUpstream >= 2 && !m_ServerCapabilities.m_PingEx)
